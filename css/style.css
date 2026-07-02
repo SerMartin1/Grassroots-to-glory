@@ -14,6 +14,20 @@
 --fs-dense:10px;  /* sztywne UI (koszulki, boisko) — dolny limit */
 }
 *{margin:0;padding:0;box-sizing:border-box;}
+/* ── KLASY NARZĘDZIOWE ROZMIARU CZCIONKI ──
+   Preferowany sposób ustawiania font-size w nowym kodzie: class="fs-h2"
+   zamiast style="font-size:var(--fs-h2)". Działanie identyczne (obie
+   metody czytają te same tokeny z :root), ale klasa jest krótsza,
+   mniej podatna na literówki i łatwiejsza do znalezienia przez grep. */
+.fs-hero{font-size:var(--fs-hero);}
+.fs-h1{font-size:var(--fs-h1);}
+.fs-h2{font-size:var(--fs-h2);}
+.fs-h3{font-size:var(--fs-h3);}
+.fs-micro{font-size:var(--fs-micro);}
+.fs-display{font-size:var(--fs-display);}
+.fs-body{font-size:var(--fs-body);}
+.fs-meta{font-size:var(--fs-meta);}
+.fs-dense{font-size:var(--fs-dense);}
 body{background:var(--gd);color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-body);min-height:100vh;overflow-x:hidden;}
 .view{display:none;flex-direction:column;min-height:100vh;}
 .view.show .panel,.view .panel.open{display:flex;}
