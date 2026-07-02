@@ -3308,6 +3308,12 @@ function go(vid){
     }
   }
 }
+function closeAllPanels(exceptId){
+  // Zamyka wszystkie otwarte panele oprócz exceptId (naprawia nakładanie się np. Tabeli i Kryzysu kadrowego)
+  document.querySelectorAll('.panel.open').forEach(function(el){
+    if(el.id!==exceptId) el.classList.remove('open');
+  });
+}
 function openPanel(id){fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');}
 function closePanel(id){
   const el=document.getElementById(id);
@@ -3597,6 +3603,7 @@ function openFACrisis(crisis){
       list.innerHTML='<div style="color:var(--gr);padding:12px;text-align:center">'+t('fa_no_agents')+'</div>';
     }
   }
+  closeAllPanels('p-freeagents');
   openPanel('p-freeagents');
 }
 function signFreeAgent(id){
@@ -3632,7 +3639,8 @@ function closeFACrisis(){
   closePanel('p-freeagents');
   const pm=document.getElementById('p-match');
   if(pm&&pm.classList.contains('open')){fillMatch();}
-  else{openPanel('p-tactics');}
+  // W przeciwnym razie po prostu wracamy do głównego widoku (bez wymuszania Taktyki),
+  // żeby nie nadpisywać panelu, z którego użytkownik faktycznie przyszedł (np. Tabela).
 }
 function updateHdr(){if(!G)return;
   const c=document.getElementById('h-club'),s=document.getElementById('h-season'),rn=document.getElementById('h-rnd');
