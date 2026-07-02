@@ -3314,7 +3314,9 @@ function closeAllPanels(exceptId){
     if(el.id!==exceptId) el.classList.remove('open');
   });
 }
-function openPanel(id){fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');}
+function openPanel(id){
+ closeAllPanels(id); // <-- DODAJ TĘ LINIĘ
+fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');}
 function closePanel(id){
   const el=document.getElementById(id);
   if(el){
@@ -5021,7 +5023,7 @@ function fillMatch(){
       t('match_fix_squad_warn').replace('{a}',_validSt.length).replace('{b}',_req3)+'<br>'+
       '<div style="display:flex;gap:6px;margin-top:6px">'+
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
-        '<button onclick="openFACrisis(checkSquadCrisis());openPanel(\'p-freeagents\')" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
+        '<button onclick="openFACrisis(checkSquadCrisis())" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
       '</div>'+
     '</div>';
   } else {
