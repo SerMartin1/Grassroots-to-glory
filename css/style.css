@@ -3,15 +3,15 @@
 /* ── SYSTEM TYPOGRAFICZNY ── */
 /* Press Start 2P — marka/UI: tytuły, przyciski, etykiety, statusy */
 --fs-hero:20px;   /* tytuł gry / splash */
---fs-h1:11px;     /* nagłówek panelu */
---fs-h2:9px;      /* przycisk / CTA — wzorcowy rozmiar */
---fs-h3:8px;      /* tab, tile, etykieta interaktywna */
---fs-micro:7px;   /* tag, badge — twardy dolny limit */
+--fs-h1:12px;     /* nagłówek panelu */
+--fs-h2:10px;     /* przycisk / CTA — wzorcowy rozmiar */
+--fs-h3:10px;     /* tab, tile, etykieta interaktywna */
+--fs-micro:9px;   /* tag, badge — twardy dolny limit */
 /* VT323 — treść czytana: opisy, dane, tabele */
 --fs-display:24px;/* duże liczby, input, wynik */
---fs-body:13px;   /* tekst do czytania */
---fs-meta:12px;   /* dane pomocnicze, etykiety w tabelach */
---fs-dense:10px;  /* sztywne UI (koszulki, boisko) — dolny limit */
+--fs-body:14px;   /* tekst do czytania */
+--fs-meta:13px;   /* dane pomocnicze, etykiety w tabelach */
+--fs-dense:11px;  /* sztywne UI (koszulki, boisko) — dolny limit */
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 /* ── KLASY NARZĘDZIOWE ROZMIARU CZCIONKI ──
