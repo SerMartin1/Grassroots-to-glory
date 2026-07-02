@@ -2,16 +2,16 @@
 :root{--gd:#0a1f0a;--gm:#1a3d1a;--gl:#2d6b2d;--gb:#4caf50;--am:#ffc107;--ad:#e6a800;--rd:#f44336;--wh:#e8f5e9;--gr:#a3b0a3;--tb:#122412;
 /* ── SYSTEM TYPOGRAFICZNY ── */
 /* Press Start 2P — marka/UI: tytuły, przyciski, etykiety, statusy */
---fs-hero:16px;   /* tytuł gry / splash */
+--fs-hero:15px;   /* tytuł gry / splash */
 --fs-h1:11px;     /* nagłówek panelu */
 --fs-h2:9px;     /* przycisk / CTA — wzorcowy rozmiar */
 --fs-h3:9px;     /* tab, tile, etykieta interaktywna */
 --fs-micro:8px;  /* tag, badge — twardy dolny limit */
 /* VT323 — treść czytana: opisy, dane, tabele */
---fs-display:22px;/* duże liczby, input, wynik */
+--fs-display:20px;/* duże liczby, input, wynik */
 --fs-body:14px;   /* tekst do czytania */
---fs-meta:12px;   /* dane pomocnicze, etykiety w tabelach */
---fs-dense:12px;  /* sztywne UI (koszulki, boisko) — dolny limit */
+--fs-meta:13px;   /* dane pomocnicze, etykiety w tabelach */
+--fs-dense:13px;  /* sztywne UI (koszulki, boisko) — dolny limit */
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 /* ── RAMKA TELEFONU NA DESKTOPIE ──
