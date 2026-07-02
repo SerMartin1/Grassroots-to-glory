@@ -1,6 +1,6 @@
 window.onerror=function(msg,src,line,col,err){
   const div=document.createElement('div');
-  div.style.cssText='position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:10px;font-family:monospace;font-size:11px;z-index:9999;white-space:pre-wrap';
+  div.style.cssText='position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:10px;font-family:monospace;font-size:var(--fs-meta);z-index:9999;white-space:pre-wrap';
   div.textContent='ERROR: '+msg+'\nLine: '+line+':'+col+'\nFile: '+src+(err&&err.stack?'\n'+err.stack.slice(0,300):'');
   document.body&&document.body.appendChild(div);
 };
@@ -1417,13 +1417,13 @@ function showLangPicker(onDone) {
   overlay.id = 'lang-picker-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;';
   overlay.innerHTML =
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:16px;color:var(--am);text-shadow:3px 3px 0 #7a5c00;text-align:center;line-height:1.8">GRASSROOTS<br>TO GLORY</div>'+
-    '<div style="font-family:VT323,monospace;font-size:20px;color:var(--gr);letter-spacing:2px;text-align:center">SELECT LANGUAGE / WYBIERZ JĘZYK</div>'+
+    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-hero);color:var(--am);text-shadow:3px 3px 0 #7a5c00;text-align:center;line-height:1.8">GRASSROOTS<br>TO GLORY</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-display);color:var(--gr);letter-spacing:2px;text-align:center">SELECT LANGUAGE / WYBIERZ JĘZYK</div>'+
     '<div style="display:flex;gap:16px">'+
-      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-family:\'Press Start 2P\',monospace;font-size:9px;padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
-      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-family:\'Press Start 2P\',monospace;font-size:9px;padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
+      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
+      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
     '</div>'+
-    '<div style="font-family:VT323,monospace;font-size:14px;color:#1a3d1a;letter-spacing:1px">v1.0</div>';
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:#1a3d1a;letter-spacing:1px">v1.0</div>';
   document.body.appendChild(overlay);
   window._langPickerCallback = onDone || null;
 }
@@ -2530,15 +2530,15 @@ function _newsItemHtml(n,dimmed){
     msg=newsClickable(n.msg||'');
   }
   const actionHtml=(!dimmed&&n.action)
-    ?'<div style="margin-top:3px"><span style="font-family:\'Press Start 2P\',monospace;font-size:4px;cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||'PRZEJDŹ')+'</span></div>'
+    ?'<div style="margin-top:3px"><span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||'PRZEJDŹ')+'</span></div>'
     :'';
   const opacity=dimmed?'opacity:0.6;':'' ;
   return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a;'+opacity+'">'
     +'<div style="width:3px;background:'+(dimmed?'#2d3d2d':bar)+';flex-shrink:0"></div>'
     +'<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 10px;flex:1">'
-      +'<span style="font-size:13px;flex-shrink:0;margin-top:1px">'+ico+'</span>'
+      +'<span style="font-size:var(--fs-body);flex-shrink:0;margin-top:1px">'+ico+'</span>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-family:VT323,monospace;font-size:10px;color:'+col+';line-height:1.3">'+msg+'</div>'
+        +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+col+';line-height:1.3">'+msg+'</div>'
         +actionHtml
       +'</div>'
     +'</div>'
@@ -2599,12 +2599,12 @@ function _renderPrevList(filter){
   const prevWeeks=[...new Set(prevNews.map(n=>n.week))].sort((a,b)=>b-a);
   let html='';
   if(!prevNews.length){
-    html='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:10px 12px">Brak zdarzeń w tej kategorii</div>';
+    html='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:10px 12px">Brak zdarzeń w tej kategorii</div>';
   } else {
     prevWeeks.forEach(w=>{
       const wNews=prevNews.filter(n=>n.week===w);
       html+='<div style="display:flex;align-items:center;gap:6px;padding:3px 12px;background:#0a130a;border-bottom:1px solid #0d1f0d">'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr);letter-spacing:1px">TYG. '+w+'</span>'
+        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px">TYG. '+w+'</span>'
         +'<div style="flex:1;height:1px;background:#1a2d1a"></div>'
         +'</div>';
       wNews.forEach(n=>{html+=_newsItemHtml(n,false);});
@@ -2617,7 +2617,7 @@ function _renderPrevList(filter){
 function renderNews(){
   const el=document.getElementById('news-list');if(!el)return;
   if(!G||!G.news||!G.news.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:10px 12px;border-left:3px solid var(--gl)">'+t('news_none')+'</div>';
+    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:10px 12px;border-left:3px solid var(--gl)">'+t('news_none')+'</div>';
     return;
   }
   const prio={err:0,inj:0,budget:1,card:2,premium:3,ok:4,back:4,train:5,scout:5,academy:5,club:6,info:6,rumour:7,contract:8};
@@ -2647,7 +2647,7 @@ function renderNews(){
     const badge=_newsBadge(t.id, curAll);
     const isActive=_newsTab===t.id;
     const badgeHtml=badge>0
-      ?'<span style="background:'+(isActive?'#000':'var(--am)')+';color:'+(isActive?'var(--am)':'#000')+';font-family:VT323,monospace;font-size:8px;padding:0 4px;margin-left:3px;min-width:14px;text-align:center;display:inline-block">'+badge+'</span>'
+      ?'<span style="background:'+(isActive?'#000':'var(--am)')+';color:'+(isActive?'var(--am)':'#000')+';font-family:VT323,monospace;font-size:var(--fs-dense);padding:0 4px;margin-left:3px;min-width:14px;text-align:center;display:inline-block">'+badge+'</span>'
       :'';
     html+='<div onclick="newsSetTab(\''+t.id+'\')" style="'
       +'display:flex;flex-direction:column;align-items:center;gap:1px;'
@@ -2655,32 +2655,32 @@ function renderNews(){
       +'border-bottom:2px solid '+(isActive?'var(--gb)':'transparent')+';'
       +'background:'+(isActive?'#0a1f0a':'transparent')+';'
       +'">'
-      +'<span style="font-size:11px">'+t.icon+'</span>'
-      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:3px;color:'+(isActive?'var(--gb)':'var(--gr)')+'">'+t.label+badgeHtml+'</span>'
+      +'<span style="font-size:var(--fs-meta)">'+t.icon+'</span>'
+      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(isActive?'var(--gb)':'var(--gr)')+'">'+t.label+badgeHtml+'</span>'
       +'</div>';
   });
   html+='</div>';
 
   // ── BIEŻĄCY TYDZIEŃ ───────────────────────────────────────────────────
   html+='<div style="display:flex;align-items:center;gap:8px;padding:4px 12px;background:#0a180a;border-bottom:1px solid var(--gl)">'
-    +'<span style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--am);letter-spacing:1px">'+t('news_week').replace('{n}',currentWeek)+'</span>'
+    +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);letter-spacing:1px">'+t('news_week').replace('{n}',currentWeek)+'</span>'
     +'<div style="flex:1;height:1px;background:var(--gl)"></div>'
-    +'<span style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+t('news_events').replace('{n}',curFiltered.length)+'</span>'
+    +'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('news_events').replace('{n}',curFiltered.length)+'</span>'
     +'</div>';
 
   if(curFiltered.length){
     curFiltered.forEach(n=>{html+=_newsItemHtml(n,false);});
   } else {
-    html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:8px 12px">'+t('news_none_cat')+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:8px 12px">'+t('news_none_cat')+'</div>';
   }
 
   // ── POPRZEDNIE TYGODNIE ───────────────────────────────────────────────
   const prevFiltered=prevAll.filter(n=>_newsTabFilter(_newsTab,n));
   if(prevFiltered.length){
     html+='<div onclick="newsTogglePrev()" style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--gm);border-top:2px solid var(--gb);border-bottom:2px solid var(--gl);cursor:pointer;user-select:none">'
-      +'<span id="news-prev-arrow" style="font-family:\'Press Start 2P\',monospace;font-size:8px;color:var(--am)">▶</span>'
-      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--wh);letter-spacing:1px">'+t('news_prev_weeks')+'</span>'
-      +'<span style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-left:auto">'+prevFiltered.length+'</span>'
+      +'<span id="news-prev-arrow" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">▶</span>'
+      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh);letter-spacing:1px">'+t('news_prev_weeks')+'</span>'
+      +'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-left:auto">'+prevFiltered.length+'</span>'
       +'</div>';
     html+='<div id="news-prev-body" style="display:none">';
     html+='<div id="news-prev-list"></div>';
@@ -3569,7 +3569,7 @@ function _faCrisisMissingHtml(crisis){
   if((crisis.needOBR||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needOBR+'× CB</span>');
   if((crisis.needPOL||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needPOL+'× MID</span>');
   if((crisis.needNAP||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needNAP+'× ST</span>');
-  const _missHtml=_miss.length?'<div style="margin-top:6px;font-size:10px">Brakuje do formacji <b>'+G.formation+'</b>: '+_miss.join(', ')+'</div>':'';
+  const _missHtml=_miss.length?'<div style="margin-top:6px;font-size:var(--fs-dense)">Brakuje do formacji <b>'+G.formation+'</b>: '+_miss.join(', ')+'</div>':'';
   return crisis.issues.map(function(i){return '⚠️ '+i;}).join('<br>')+_missHtml;
 }
 function openFACrisis(crisis){
@@ -3716,10 +3716,10 @@ function squadTab(tab,btn){
 }
 function _sqTbl(headers, rows, footer){
   return '<div style="overflow-x:auto;padding:0 14px 0 0">'+
-  '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:11px">'+
+  '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-meta)">'+
     '<thead><tr>'+headers.map(h=>'<th style="padding:6px 8px 6px '+(h.right?'12px':'8px')+';border-bottom:2px solid var(--gl);color:var(--gr);text-align:'+(h.right?'right':'left')+';cursor:'+(h.sort?'pointer':'default')+'" '+(h.sort?'onclick="'+h.sort+'"':'')+'>'+h.label+(h.active?' ↓':'')+'</th>').join('')+'</tr></thead>'+
     '<tbody>'+rows+'</tbody>'+
-    (footer?'<tfoot><tr><td colspan="'+headers.length+'" style="padding:6px 8px;border-top:2px solid var(--gl);color:var(--gr);font-size:10px">'+footer+'</td></tr></tfoot>':'')+
+    (footer?'<tfoot><tr><td colspan="'+headers.length+'" style="padding:6px 8px;border-top:2px solid var(--gl);color:var(--gr);font-size:var(--fs-dense)">'+footer+'</td></tr></tfoot>':'')+
   '</table></div>';
 }
 // Sort state per zakładka
@@ -3795,7 +3795,7 @@ function renderSquadStats(){
       '<td style="text-align:right;color:var(--am)">'+(p.st.g||0)+'</td><td style="text-align:right;color:var(--gb)">'+(p.st.a||0)+'</td><td style="text-align:right">'+(p.st.m||0)+'</td>';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
       '<td style="padding:5px 8px;color:var(--gr)">'+(p.jerseyNum||'—')+'</td>'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:9px;cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="Filtruj '+( POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="Filtruj '+( POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh);vertical-align:middle"><span class="sq-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;padding-right:8px;color:var(--gr)">'+(p.age||'—')+'</td>'+
       '<td style="text-align:right;padding-right:10px;color:'+oc+'">'+o+'</td>'+
@@ -3845,10 +3845,10 @@ function renderSquadHealth(){
     const fatCol=fat>70?'var(--rd)':fat>50?'var(--am)':'var(--gb)';
     const fatLbl=fat>70?t('squad_fat_overloaded'):fat>50?t('squad_fat_tired'):t('squad_fat_ok');
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:9px;cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'health\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'health\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;color:'+fc+'">'+fm+'%</td>'+
-      '<td style="text-align:right;color:'+fatCol+'">'+fat+'%<br><span style="font-size:8px">'+fatLbl+'</span></td>'+
+      '<td style="text-align:right;color:'+fatCol+'">'+fat+'%<br><span style="font-size:var(--fs-dense)">'+fatLbl+'</span></td>'+
       '<td style="padding:5px 8px 5px 4px;padding-right:14px;color:'+scol+'">'+status+'</td>'+
     '</tr>';
   }).join('');
@@ -3879,7 +3879,7 @@ function renderSquadContracts(){
     const cc=p.contract<=1?'var(--rd)':p.contract<=2?'var(--am)':'var(--wh)';
     const vc=p.value>=20000?'var(--gb)':p.value>=5000?'var(--am)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:9px;cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'contracts\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'contracts\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;color:var(--wh)">'+fmt(p.salary||0)+'</td>'+
       '<td style="text-align:right;color:'+cc+'">'+t('squad_contract_seasons').replace('{n}',p.contract)+(p.contract<=1?' ⚠️':'')+'</td>'+
@@ -3899,7 +3899,7 @@ function renderSquadContracts(){
 }
 
 function mkCard(p){const o=ovr(p);const isSt=p.starter;const susp=p.suspension&&p.suspension>0;const d=document.createElement('div');d.className='pcard2 '+(isSt?'st':'bn');if(susp||p.injured)d.style.borderLeft='4px solid var(--rd)';
-d.innerHTML='<div style="flex:1;min-width:0"><div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div><div class="pc2-row2">'+p.age+'l • <span class="pc2-ovr-green">OVR '+o+'</span></div><div class="pc2-row2"><span class="pc2-value">'+fmtVal(p.value)+'</span> • K:'+p.contract+' sez.</div></div><div style="text-align:right;font-family:\'VT323\',monospace;font-size:9px;color:var(--gr);white-space:nowrap;flex-shrink:0">'+
+d.innerHTML='<div style="flex:1;min-width:0"><div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div><div class="pc2-row2">'+p.age+'l • <span class="pc2-ovr-green">OVR '+o+'</span></div><div class="pc2-row2"><span class="pc2-value">'+fmtVal(p.value)+'</span> • K:'+p.contract+' sez.</div></div><div style="text-align:right;font-family:\'VT323\',monospace;font-size:var(--fs-dense);color:var(--gr);white-space:nowrap;flex-shrink:0">'+
 (p.pos==='GK'?'📅 <b style="color:var(--wh)">'+p.st.m+'</b> 🛡️ <b style="color:var(--gb)">'+(p.st.cs||0)+'</b> 🔴 <b style="color:var(--rd)">'+(p.st.ga||0)+'</b>':'📅 <b style="color:var(--wh)">'+p.st.m+'</b> ⚽ <b style="color:var(--am)">'+p.st.g+'</b> 🤝 <b style="color:var(--gb)">'+p.st.a+'</b>')+'</div>';
 d.onclick=()=>showPlayer(p);return d;}
 
@@ -3946,10 +3946,10 @@ function mkTacCard(p){
   d.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
       '<div style="display:flex;align-items:center;gap:6px">'+
-        '<span style="font-size:14px">'+readyIcon+'</span>'+
+        '<span style="font-size:var(--fs-body)">'+readyIcon+'</span>'+
         '<div>'+
           '<div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
             (POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+o+
           '</div>'+
         '</div>'+
@@ -3957,7 +3957,7 @@ function mkTacCard(p){
       '<button class="btog2 '+(isSt?'add':'rem')+'" onclick="event.stopPropagation();togSt('+p.id+');fillTacSquad()">'+(isSt?'✔ SKŁAD':'+ SKŁAD')+'</button>'+
     '</div>'+
     // Statystyki w jednej linii
-    '<div style="display:flex;gap:10px;font-family:VT323,monospace;font-size:9px;margin-bottom:4px">'+
+    '<div style="display:flex;gap:10px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:4px">'+
       '<span style="color:var(--gr)">Fm: <span style="color:'+fmCol+'">'+fm+'%</span></span>'+
       '<span style="color:var(--gr)">Zmę: <span style="color:'+fatCol+'">'+fat+'%</span></span>'+
       (readyLbl?'<span style="color:var(--rd)">'+readyLbl+'</span>':'')+
@@ -3967,7 +3967,7 @@ function mkTacCard(p){
       '<div style="flex:1;height:5px;background:#0d1f0d;border:1px solid var(--gl)">'+
         '<div style="height:100%;background:'+barCol+';width:'+barFill+'%"></div>'+
       '</div>'+
-      '<span style="font-family:VT323,monospace;font-size:9px;color:'+readyCol+';min-width:32px;text-align:right">'+ready+'%</span>'+
+      '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+readyCol+';min-width:32px;text-align:right">'+ready+'%</span>'+
     '</div>';
 
   d.onclick=()=>showPlayer(p);return d;
@@ -3988,14 +3988,14 @@ function fillTacSquad(){
   const con=document.getElementById('tac-sq-all');if(!con)return;
   con.innerHTML='';
   const tbl=document.createElement('table');
-  tbl.style.cssText='width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:10px';
+  tbl.style.cssText='width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)';
   const thead=document.createElement('thead');
   thead.innerHTML='<tr style="border-bottom:1px solid var(--gl)">'+
-    '<th style="padding:5px 14px;color:var(--gr);text-align:left;font-size:9px">'+t('tac_col_player')+'</th>'+
-    '<th style="color:var(--gr);text-align:right;font-size:9px">'+t('tac_col_ovr')+'</th>'+
-    '<th style="color:var(--gr);text-align:right;font-size:9px">'+t('tac_col_fm')+'</th>'+
-    '<th style="color:var(--gr);text-align:right;padding-right:6px;font-size:9px">'+t('tac_col_fat')+'</th>'+
-    '<th style="color:var(--gr);text-align:center;padding-right:10px;font-size:9px"></th>'+
+    '<th style="padding:5px 14px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tac_col_player')+'</th>'+
+    '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tac_col_ovr')+'</th>'+
+    '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tac_col_fm')+'</th>'+
+    '<th style="color:var(--gr);text-align:right;padding-right:6px;font-size:var(--fs-dense)">'+t('tac_col_fat')+'</th>'+
+    '<th style="color:var(--gr);text-align:center;padding-right:10px;font-size:var(--fs-dense)"></th>'+
   '</tr>';
   tbl.appendChild(thead);
   const fl=all.slice().sort((a,b)=>posOrd(a.pos)-posOrd(b.pos)||calcReadiness(b)-calcReadiness(a));
@@ -4004,7 +4004,7 @@ function fillTacSquad(){
     if(!grp.length)return;
     const stI=grp.filter(p=>p.starter).length;
     const gHdr=document.createElement('tr');
-    gHdr.innerHTML='<td colspan="5" style="padding:6px 14px 3px;font-size:9px;color:var(--am);background:#0d1f0d;border-bottom:1px solid var(--gl)">'+pg.label.toUpperCase()+' '+t('tac_in_squad').replace('{n}',stI).replace('{m}',lim[pg.key])+'</td>';
+    gHdr.innerHTML='<td colspan="5" style="padding:6px 14px 3px;font-size:var(--fs-dense);color:var(--am);background:#0d1f0d;border-bottom:1px solid var(--gl)">'+pg.label.toUpperCase()+' '+t('tac_in_squad').replace('{n}',stI).replace('{m}',lim[pg.key])+'</td>';
     tbl.appendChild(gHdr);
     grp.forEach(p=>{
       const o=ovr(p);const fm=p.form||75;const fat=Math.round(p.fatigue||0);
@@ -4019,18 +4019,18 @@ function fillTacSquad(){
       tr.style.cssText='border-bottom:1px solid #0d1f0d;cursor:pointer;'+(rowBg?'background:'+rowBg+';':'');
       tr.innerHTML=
         '<td style="padding:5px 14px">'+
-          '<span style="color:'+iconCol+';margin-right:4px;font-size:9px">'+icon+'</span>'+
+          '<span style="color:'+iconCol+';margin-right:4px;font-size:var(--fs-dense)">'+icon+'</span>'+
           '<span style="color:'+(isSt?'var(--wh)':'var(--gr)')+'">'+p.name+'</span>'+
-          (isSt?'<span style="color:var(--am);font-size:8px;margin-left:4px">✔</span>':'')+
+          (isSt?'<span style="color:var(--am);font-size:var(--fs-dense);margin-left:4px">✔</span>':'')+
         '</td>'+
         '<td style="text-align:right;color:'+ovrCol+'">'+o+'</td>'+
         '<td style="text-align:right;color:'+fmCol+'">'+fm+'%</td>'+
         '<td style="text-align:right;color:'+fatCol+';padding-right:6px">'+fat+'%</td>'+
         '<td style="text-align:center;padding-right:10px">'+
-          (p.injured?'<span style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">'+t('tac_injured')+'</span>':
-           susp?'<span style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">'+t('tac_suspended')+'</span>':
+          (p.injured?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+t('tac_injured')+'</span>':
+           susp?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+t('tac_suspended')+'</span>':
           '<button onclick="event.stopPropagation();togSt('+p.id+');fillTacSquad()" '+
-            'style="font-family:VT323,monospace;font-size:9px;padding:2px 8px;cursor:pointer;'+
+            'style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 8px;cursor:pointer;'+
             'background:'+(isSt?'var(--gm)':'var(--tb)')+';'+
             'border:1px solid '+(isSt?'var(--gb)':'var(--gl)')+';'+
             'color:'+(isSt?'var(--gb)':'var(--gr)')+'">'+
@@ -4054,7 +4054,7 @@ function fillPitch(){if(!G)return;const st=myPl().filter(p=>p.starter).sort((a,b
     } else {
       po.textContent=t('tac_avg_ovr_camp').replace('{n}',avg);
     }
-  }const field=document.getElementById('pitch-field');if(!field)return;field.innerHTML='';if(!st.length){field.innerHTML='<div style="color:var(--gr);text-align:center;padding:20px;font-size:9px">'+t('tac_no_players')+'</div>';return;}function row(pl,cls,lbl){if(!pl.length)return;const ld=document.createElement('div');ld.style.cssText="text-align:center;font-family:VT323,monospace;font-size:5px;color:rgba(255,255,255,0.3);margin-top:4px";ld.textContent=lbl;field.appendChild(ld);const rd=document.createElement('div');rd.className='pitch-row';pl.forEach(p=>{const el=document.createElement('div');el.className='pp '+(cls||'');el.style.cursor='pointer';el.innerHTML='<span class="pp-name">'+p.name.split(' ')[1].substring(0,8)+'</span><span class="pp-ovr">OVR '+ovr(p)+'</span>';el.onclick=()=>showPlayer(p);rd.appendChild(el);});field.appendChild(rd);}
+  }const field=document.getElementById('pitch-field');if(!field)return;field.innerHTML='';if(!st.length){field.innerHTML='<div style="color:var(--gr);text-align:center;padding:20px;font-size:var(--fs-dense)">'+t('tac_no_players')+'</div>';return;}function row(pl,cls,lbl){if(!pl.length)return;const ld=document.createElement('div');ld.style.cssText="text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px";ld.textContent=lbl;field.appendChild(ld);const rd=document.createElement('div');rd.className='pitch-row';pl.forEach(p=>{const el=document.createElement('div');el.className='pp '+(cls||'');el.style.cursor='pointer';el.innerHTML='<span class="pp-name">'+p.name.split(' ')[1].substring(0,8)+'</span><span class="pp-ovr">OVR '+ovr(p)+'</span>';el.onclick=()=>showPlayer(p);rd.appendChild(el);});field.appendChild(rd);}
 row(st.filter(p=>p.pos==='NAP'),'',t('tac_row_strikers'));row(st.filter(p=>p.pos==='POL'),'',t('tac_row_mids'));row(st.filter(p=>p.pos==='OBR'),'',t('tac_row_defs'));row(st.filter(p=>p.pos==='GK'),'gk',t('tac_row_gk'));}
 
 function _styleLabel(s){
@@ -4138,11 +4138,11 @@ function showPlayer(p){
     const _fat2=p.fatigue||0;
     const _fatCol2=_fat2>70?'var(--rd)':_fat2>50?'var(--am)':'var(--gb)';
     const _fatLbl2=_fat2>70?t('plr_fat_exhausted'):_fat2>50?t('plr_fat_tired'):t('plr_fat_ok');
-    statusBar.innerHTML='<span style="color:'+scol+'">'+stxt+'</span><div style="margin-top:3px;font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+t('plr_fat_label')+' <span style="color:'+_fatCol2+'">'+_fat2+'% '+_fatLbl2+'</span></div><div style="height:4px;background:#111;margin-top:2px"><div style="height:100%;background:'+_fatCol2+';width:'+_fat2+'%"></div></div>';
+    statusBar.innerHTML='<span style="color:'+scol+'">'+stxt+'</span><div style="margin-top:3px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('plr_fat_label')+' <span style="color:'+_fatCol2+'">'+_fat2+'% '+_fatLbl2+'</span></div><div style="height:4px;background:#111;margin-top:2px"><div style="height:100%;background:'+_fatCol2+';width:'+_fat2+'%"></div></div>';
   }
   // IMIĘ
   const nameEl=document.getElementById('plr-name');
-  if(nameEl)nameEl.innerHTML=p.name.toUpperCase()+(p.jerseyNum?' #'+p.jerseyNum:'')+(p.status==='retired'?' <span style="color:var(--gr);font-size:14px">'+t('plr_retired_badge')+'</span>':'');
+  if(nameEl)nameEl.innerHTML=p.name.toUpperCase()+(p.jerseyNum?' #'+p.jerseyNum:'')+(p.status==='retired'?' <span style="color:var(--gr);font-size:var(--fs-body)">'+t('plr_retired_badge')+'</span>':'');
 
   // KLUB + POZYCJA + WIEK
   const clubLine=document.getElementById('plr-club-line');
@@ -4150,7 +4150,7 @@ function showPlayer(p){
     const retiredNote=p.status==='retired'?t('plr_retired_since').replace('{n}',p.retiredSeason||'?'):'';
     const acadBadge=p.fromAcademy?' 🎓':'';
     var _arch6=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' lat'+acadBadge+retiredNote+(_arch6?' <span style="font-family:VT323,monospace;font-size:9px;color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+_arch6.name+'</span>':'');
+    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' lat'+acadBadge+retiredNote+(_arch6?' <span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+_arch6.name+'</span>':'');
   }
   // TRAITS ICONS - ukryte (przeniesione do CHARAKTER)
   const traitsIcons=document.getElementById('plr-traits-icons');
@@ -4222,7 +4222,7 @@ function showPlayer(p){
       traits.map(tid=>{
         const tr2=TRAITS[tid];if(!tr2)return'';
         return '<div style="text-align:center;flex:1">'+
-          '<div style="font-size:20px">'+tr2.icon+'</div>'+
+          '<div style="font-size:var(--fs-display)">'+tr2.icon+'</div>'+
           '<div style="color:'+tr2.color+'">'+_traitLabel(tid)+'</div>'+
           '<div style="color:var(--gr);margin-top:2px">'+_traitDesc(tid)+'</div>'+
         '</div>';
@@ -4235,7 +4235,7 @@ function showPlayer(p){
   if(infoExtra){
     let extras=[];
     if(p.campBonusRounds>0)extras.push(t('plr_camp_bonus').replace('{n}',p.campBonusRounds));
-    infoExtra.innerHTML=extras.map(e=>'<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-top:4px">'+e+'</div>').join('');
+    infoExtra.innerHTML=extras.map(e=>'<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-top:4px">'+e+'</div>').join('');
   }
 
   // ATRYBUTY — ukryte dla AI (tylko własni i obserwowani przez skauta)
@@ -4243,8 +4243,8 @@ function showPlayer(p){
   const attrs=[{name:t('attr_tec'),key:'tec'},{name:t('attr_pas'),key:'pas'},{name:t('attr_sht'),key:'sht'},{name:t('attr_def'),key:'def'},{name:t('attr_phy'),key:'phy'},{name:t('attr_men'),key:'men'}];
   const _attrBarEl=document.getElementById('plr-attr-bars');
   if(!isOwn&&!_isObserved){
-    _attrBarEl.innerHTML='<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr);padding:16px 0;text-align:center">'+
-      t('plr_attrs_hidden')+'<br><span style="font-size:9px">'+t('plr_attrs_hint')+'</span></div>';
+    _attrBarEl.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">'+
+      t('plr_attrs_hidden')+'<br><span style="font-size:var(--fs-dense)">'+t('plr_attrs_hint')+'</span></div>';
   } else {
     _attrBarEl.innerHTML=attrs.map((a,i)=>{
       const v=p[a.key]||0;
@@ -4317,7 +4317,7 @@ function renderPlayerHistory(p){
   var _switcherHtml='<div style="display:flex;border-bottom:1px solid var(--gl);background:#0d1f0d;margin-bottom:0">';
   [['all',t('plr_hist_all')],['lg',t('plr_hist_league')],['cup',t('plr_hist_cup')]].forEach(function(v){
     var isOn=_hView===v[0];
-    _switcherHtml+='<button onclick="window._plrHistView=\''+v[0]+'\';var _pp=G&&G.players&&G.players.find(function(x){return x.id===window._plrId;});if(_pp)renderPlayerHistory(_pp);" style="flex:1;padding:7px 2px;background:'+(isOn?'var(--gm)':'none')+';border:none;border-bottom:2px solid '+(isOn?(v[0]==='cup'?'#c8a800':'var(--am)'):'transparent')+';color:'+(isOn?(v[0]==='cup'?'#c8a800':'var(--am)'):'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:5px;cursor:pointer;letter-spacing:0.3px">'+v[1]+'</button>';
+    _switcherHtml+='<button onclick="window._plrHistView=\''+v[0]+'\';var _pp=G&&G.players&&G.players.find(function(x){return x.id===window._plrId;});if(_pp)renderPlayerHistory(_pp);" style="flex:1;padding:7px 2px;background:'+(isOn?'var(--gm)':'none')+';border:none;border-bottom:2px solid '+(isOn?(v[0]==='cup'?'#c8a800':'var(--am)'):'transparent')+';color:'+(isOn?(v[0]==='cup'?'#c8a800':'var(--am)'):'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);cursor:pointer;letter-spacing:0.3px">'+v[1]+'</button>';
   });
   _switcherHtml+='</div>';
 
@@ -4348,14 +4348,14 @@ function renderPlayerHistory(p){
         _curHtml='<thead><tr><th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td style="color:var(--gb)">'+_tCS+'</td><td style="color:var(--rd)">'+_tGA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       else
         _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td>'+_tG+'</td><td>'+_tA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
-      _curHtml+='<tbody>'+(_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:9px">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+'</tbody>';
+      _curHtml+='<tbody>'+(_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+'</tbody>';
     } else if(_hView==='cup'){
       // Tylko puchar
       if(isGK)
         _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#4a8a40">CS</th><th style="color:#8a3020">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:var(--gb)">'+(_cup.cs||0)+'</td><td style="color:var(--rd)">'+(_cup.ga||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
       else
         _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#c8a800">G</th><th style="color:#c8a800">A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:#ffd700">'+(_cup.g||0)+'</td><td style="color:#ffd700">'+(_cup.a||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
-      if(_cupAvgRat)_curHtml+='<tbody><tr><td colspan="2" style="color:var(--gr);font-size:9px">'+t('plr_hist_avg_cup')+'</td><td colspan="3">'+_cupAvgStr+'</td></tr></tbody>';
+      if(_cupAvgRat)_curHtml+='<tbody><tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_cup')+'</td><td colspan="3">'+_cupAvgStr+'</td></tr></tbody>';
     } else {
       // Tylko liga
       if(isGK)
@@ -4363,15 +4363,15 @@ function renderPlayerHistory(p){
       else
         _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_cst.m+'</td><td>'+(_cst.g||0)+'</td><td>'+(_cst.a||0)+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       _curHtml+='<tbody>'+
-        (_last5.length?'<tr><td colspan="2" style="color:var(--gr);font-size:9px">'+t('plr_hist_avg_label')+'</td><td colspan="3" style="font-size:9px">'+_last5str+'</td></tr>':'')+
-        (_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:9px">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+
+        (_last5.length?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_label')+'</td><td colspan="3" style="font-size:var(--fs-dense)">'+_last5str+'</td></tr>':'')+
+        (_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+
         '</tbody>';
     }
     _cur.innerHTML=_curHtml;
   }
 
   if(!hist.length){
-    htbl.innerHTML='<tbody><tr><td colspan="9" style="color:var(--gr);padding:12px;font-size:11px;text-align:center">'+t('plr_no_history')+'</td></tr></tbody>';
+    htbl.innerHTML='<tbody><tr><td colspan="9" style="color:var(--gr);padding:12px;font-size:var(--fs-meta);text-align:center">'+t('plr_no_history')+'</td></tr></tbody>';
     return;
   }
 
@@ -4392,7 +4392,7 @@ function renderPlayerHistory(p){
   const showLg=_hView!=='cup';
   const showCup=_hView!=='lg';
 
-  const clubCell=h=>h.clubId?'<td style="font-size:10px"><span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openClubModal('+h.clubId+');var _mc=document.getElementById(\'modal-club-ai\');if(_mc)_mc.style.zIndex=\'1000\';">'+(h.club||'?')+'</span></td>':'<td style="color:var(--gr);font-size:10px">'+(h.club||'?')+'</td>';
+  const clubCell=h=>h.clubId?'<td style="font-size:var(--fs-dense)"><span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openClubModal('+h.clubId+');var _mc=document.getElementById(\'modal-club-ai\');if(_mc)_mc.style.zIndex=\'1000\';">'+(h.club||'?')+'</span></td>':'<td style="color:var(--gr);font-size:var(--fs-dense)">'+(h.club||'?')+'</td>';
 
   function transferRow(h,nextH){
     if(!nextH)return'';
@@ -4401,7 +4401,7 @@ function renderPlayerHistory(p){
     if(!idChanged&&!nameChanged)return'';
     const tr=h.transferOut||null;
     const priceStr=tr&&tr.price>0?(' • <span style="color:var(--am)">'+fmtVal(tr.price)+'</span>'):'';
-    return '<tr style="background:#0a1a0a"><td colspan="9" style="padding:3px 4px 3px 10px;border-left:2px solid var(--gl)"><span style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">↓ '+(h.club||'?')+' → <span style="color:var(--wh)">'+(nextH.club||'?')+'</span>'+priceStr+'</span></td></tr>';
+    return '<tr style="background:#0a1a0a"><td colspan="9" style="padding:3px 4px 3px 10px;border-left:2px solid var(--gl)"><span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">↓ '+(h.club||'?')+' → <span style="color:var(--wh)">'+(nextH.club||'?')+'</span>'+priceStr+'</span></td></tr>';
   }
 
   // ── Nagłówek tabeli ───────────────────────────────────────────
@@ -4456,7 +4456,7 @@ function renderPlayerHistory(p){
     const isCurrent=!!(h._current&&!G.seasonEnded);
     const rowStyle=isCurrent?' style="opacity:0.75"':'';
     const isAcad=!!(h.fromAcademy);
-    const sBadge=(isAcad||isCurrent)?'<tr style="background:#0a1a0a"><td colspan="9" style="padding:2px 4px 2px 10px;font-family:VT323,monospace;font-size:8px;border-left:2px solid '+(isAcad?'var(--gb)':'var(--am)')+'">'+
+    const sBadge=(isAcad||isCurrent)?'<tr style="background:#0a1a0a"><td colspan="9" style="padding:2px 4px 2px 10px;font-family:VT323,monospace;font-size:var(--fs-dense);border-left:2px solid '+(isAcad?'var(--gb)':'var(--am)')+'">'+
       (isAcad?'<span style="color:var(--gb)">'+t('plr_academy_badge')+'</span>':'<span style="color:var(--am)">'+t('plr_current_badge')+'</span>')+
     '</td></tr>':'';
     const seasonLabel='<span style="color:var(--am)">'+h.season+'</span>';
@@ -4477,7 +4477,7 @@ function renderPlayerHistory(p){
     if(isGK) tdSumFields='<td style="color:#ffd700"><b>'+totCpM+'</b></td><td style="color:var(--gb)"><b>'+totCpCS+'</b></td><td style="color:var(--rd)"><b>'+totCpGA+'</b></td><td>—</td><td>—</td>';
     else     tdSumFields='<td style="color:#ffd700"><b>'+totCpM+'</b></td><td style="color:#ffd700"><b>'+totCpG+'</b></td><td style="color:#ffd700"><b>'+totCpA+'</b></td><td>—</td><td>—</td>';
   }
-  const sumRow='<tr style="border-top:2px solid var(--gb);background:var(--gm)"><td style="color:var(--am)">Σ</td><td style="color:var(--gr);font-size:10px">'+t('plr_hist_sum_label')+'</td>'+(_isMyPlayer?'<td>—</td>':'')+tdSumFields+'<td>—</td></tr>';
+  const sumRow='<tr style="border-top:2px solid var(--gb);background:var(--gm)"><td style="color:var(--am)">Σ</td><td style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_sum_label')+'</td>'+(_isMyPlayer?'<td>—</td>':'')+tdSumFields+'<td>—</td></tr>';
 
   htbl.innerHTML=header+'<tbody>'+seasonRows+sumRow+'</tbody>';
 
@@ -4490,21 +4490,21 @@ function renderPlayerHistory(p){
       const _bondDesc={4:t('plr_bond_desc_4'),3:t('plr_bond_desc_3'),2:t('plr_bond_desc_2')};
       if(_b.level>=2){
         const _seasTxt=_b.seasons===1?'1 sez.':_b.seasons+'sez.';
-        const _effTxt=(_b.level>=3)?'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);margin-top:4px;line-height:1.8">'+t('plr_bond_home_form').replace('{n}',(_b.level===4)?3:2)+((_b.level===4)?t('plr_bond_away_form'):'')+t('plr_bond_offers').replace('{n}',(_b.level===4)?'40':(_b.level===3)?'25':'10')+'</div>':'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);margin-top:4px;line-height:1.8">'+t('plr_bond_home_form').replace('{n}',1)+t('plr_bond_offers').replace('{n}','10')+'</div>';
+        const _effTxt=(_b.level>=3)?'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);margin-top:4px;line-height:1.8">'+t('plr_bond_home_form').replace('{n}',(_b.level===4)?3:2)+((_b.level===4)?t('plr_bond_away_form'):'')+t('plr_bond_offers').replace('{n}',(_b.level===4)?'40':(_b.level===3)?'25':'10')+'</div>':'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);margin-top:4px;line-height:1.8">'+t('plr_bond_home_form').replace('{n}',1)+t('plr_bond_offers').replace('{n}','10')+'</div>';
         _bondBadgeEl.innerHTML='<div style="background:#0a1a0a;border:1px solid '+_b.color+';border-left:3px solid '+_b.color+';padding:7px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px">'
-          +'<span style="font-size:18px">'+_b.icon+'</span>'
-          +'<div><div style="font-family:\'Press Start 2P\',monospace;font-size:5.5px;color:'+_b.color+';letter-spacing:0.5px;margin-bottom:3px">'+t('plr_bond_title')+'</div>'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--wh);margin-bottom:3px">'+_bondDesc[_b.level]+' • '+t('plr_bond_seasons').replace('{n}',_b.seasons)+'</div>'
+          +'<span style="font-size:var(--fs-display)">'+_b.icon+'</span>'
+          +'<div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+_b.color+';letter-spacing:0.5px;margin-bottom:3px">'+t('plr_bond_title')+'</div>'
+          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh);margin-bottom:3px">'+_bondDesc[_b.level]+' • '+t('plr_bond_seasons').replace('{n}',_b.seasons)+'</div>'
           +_effTxt
           +'</div></div>';
       } else {
         const _brakuje=3-(_b.seasons);
         const _brakujeTxt=_brakuje===1?t('plr_bond_missing1'):t('plr_bond_missingN').replace('{n}',_brakuje);
         _bondBadgeEl.innerHTML='<div style="background:#0a1a0a;border:1px solid var(--gl);border-left:3px solid var(--gr);padding:7px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px">'
-          +'<span style="font-size:18px;color:var(--gr)">·</span>'
-          +'<div><div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);letter-spacing:0.5px;margin-bottom:5px">'+t('plr_bond_title')+'</div>'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);margin-bottom:5px">'+(_b.seasons>0?t('plr_bond_seasons').replace('{n}',_b.seasons):t('plr_bond_first'))+'</div>'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);line-height:1.8">'+_brakujeTxt+t('plr_bond_goal')+'</div>'
+          +'<span style="font-size:var(--fs-display);color:var(--gr)">·</span>'
+          +'<div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);letter-spacing:0.5px;margin-bottom:5px">'+t('plr_bond_title')+'</div>'
+          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);margin-bottom:5px">'+(_b.seasons>0?t('plr_bond_seasons').replace('{n}',_b.seasons):t('plr_bond_first'))+'</div>'
+          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);line-height:1.8">'+_brakujeTxt+t('plr_bond_goal')+'</div>'
           +'</div></div>';
       }
     } else {
@@ -4513,7 +4513,7 @@ function renderPlayerHistory(p){
   }
 
   if(p.status==='retired'){
-    htbl.innerHTML+='<tbody><tr><td colspan="9" style="padding:8px 0;color:var(--gr);font-family:VT323,monospace;font-size:10px;text-align:center">'+t('plr_retired_hist').replace('{n}',p.retiredSeason||'?')+'</td></tr></tbody>';
+    htbl.innerHTML+='<tbody><tr><td colspan="9" style="padding:8px 0;color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);text-align:center">'+t('plr_retired_hist').replace('{n}',p.retiredSeason||'?')+'</td></tr></tbody>';
   }
 }
 
@@ -4558,16 +4558,16 @@ function renderPlayerAwards(p){
 
   // ── Gablocie emoji ────────────────────────────────────────────
   var shelfHtml='<div style="background:#080f08;border-bottom:2px solid var(--gb);padding:4px 14px 10px">';
-  shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--gr);padding:6px 0 8px;letter-spacing:1px">'+t('plr_awards_shelf')+'</div>';
+  shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">'+t('plr_awards_shelf')+'</div>';
   if(!awards.length){
-    shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#2a3a2a;text-align:center;padding:16px 0">'+t('plr_awards_none')+'</div>';
+    shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:#2a3a2a;text-align:center;padding:16px 0">'+t('plr_awards_none')+'</div>';
   } else {
     shelfHtml+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
     awards.forEach(function(a,i){
       var tc=tierColor[a.tier]||'var(--am)';
       shelfHtml+='<div onclick="showAwardDetail('+i+')" style="text-align:center;width:52px;cursor:pointer">';
       shelfHtml+='<div style="font-size:26px;line-height:1">'+a.icon+'</div>';
-      shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:'+tc+';margin-top:3px;line-height:1.5">S'+a.season+'</div>';
+      shelfHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+tc+';margin-top:3px;line-height:1.5">S'+a.season+'</div>';
       shelfHtml+='</div>';
     });
     shelfHtml+='</div>';
@@ -4576,18 +4576,18 @@ function renderPlayerAwards(p){
   shelfHtml+='<div id="plr-award-detail" style="display:none;margin:6px 10px 2px"></div>';
 
   // ── Chronologiczna lista ──────────────────────────────────────
-  var listHtml='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gr);padding:7px 14px 4px;letter-spacing:1px;border-bottom:1px solid var(--gl)">'+t('plr_awards_chrono')+'</div>';
+  var listHtml='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gr);padding:7px 14px 4px;letter-spacing:1px;border-bottom:1px solid var(--gl)">'+t('plr_awards_chrono')+'</div>';
   if(!awards.length){
-    listHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#2a3a2a;text-align:center;padding:20px 14px">'+t('plr_awards_none_chrono')+'</div>';
+    listHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:#2a3a2a;text-align:center;padding:20px 14px">'+t('plr_awards_none_chrono')+'</div>';
   } else {
     var sorted=awards.slice().sort(function(a,b){return a.season-b.season;});
     sorted.forEach(function(a,i){
       var tc=tierColor[a.tier]||'var(--am)';
       var bg=i%2===0?'#0a1a0a':'transparent';
       listHtml+='<div style="display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid #0d1f0d;background:'+bg+'">';
-      listHtml+='<span style="font-size:18px;width:22px;text-align:center">'+a.icon+'</span>';
-      listHtml+='<div style="flex:1;font-family:VT323,monospace;font-size:15px;color:'+tc+'">'+a.label+'</div>';
-      listHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--gr)">S'+a.season+'</div>';
+      listHtml+='<span style="font-size:var(--fs-display);width:22px;text-align:center">'+a.icon+'</span>';
+      listHtml+='<div style="flex:1;font-family:VT323,monospace;font-size:var(--fs-body);color:'+tc+'">'+a.label+'</div>';
+      listHtml+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">S'+a.season+'</div>';
       listHtml+='</div>';
     });
   }
@@ -4608,8 +4608,8 @@ function showAwardDetail(idx){
   _d.innerHTML='<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;border:1px solid '+tierBorder[a.tier||'gold']+';background:'+tierBg[a.tier||'gold']+'">'+
     '<span style="font-size:26px">'+a.icon+'</span>'+
     '<div>'+
-      '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:'+tc+';margin-bottom:4px">'+a.label+'</div>'+
-      '<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--gr)">'+t('plr_award_season').replace('{n}',a.season)+'</div>'+
+      '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+tc+';margin-bottom:4px">'+a.label+'</div>'+
+      '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">'+t('plr_award_season').replace('{n}',a.season)+'</div>'+
     '</div>'+
   '</div>';
 }
@@ -4621,9 +4621,9 @@ function renderExt(p){
   // Karta zawodnika pokazuje tylko przycisk
   const alr=p.contractChangedSeason===G.season;
   c.innerHTML=
-    (alr?'<div style="color:var(--rd);font-family:VT323,monospace;font-size:9px;margin-bottom:6px">'+t('plr_extended_warn')+'</div>':'')+
+    (alr?'<div style="color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+t('plr_extended_warn')+'</div>':'')+
     (alr?'':
-      '<button onclick="openContractModal()" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:10px;cursor:pointer">'+t('plr_extend_btn')+'</button>'
+      '<button onclick="openContractModal()" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:10px;cursor:pointer">'+t('plr_extend_btn')+'</button>'
     );
 }
 function openContractModal(){
@@ -4656,38 +4656,38 @@ function _renderContractModal(p){
       '<div style="display:flex;justify-content:space-between"><span style="color:var(--gr)">'+t('plr_negot_salary')+'</span><span style="color:var(--wh)">'+fmt(demand.minSalary)+' zł/mc</span></div>'+
     '</div>'+
     (p.demands?'<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;margin-bottom:8px">'+
-      '<div style="color:var(--am);font-size:9px;margin-bottom:4px;font-family:VT323,monospace">'+t('plr_negot_demands_extra')+'</div>'+
+      '<div style="color:var(--am);font-size:var(--fs-dense);margin-bottom:4px;font-family:VT323,monospace">'+t('plr_negot_demands_extra')+'</div>'+
       demandsHtmlInteractive(p,{salary:sal,contract:years,starter:true,signing:p._ofSig||false,bonus:p._ofBonus||false,loyalty:p._ofLoyalty||false})+
     '</div>':'')+
-    (p.demands?'<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-bottom:6px">'+t('plr_negot_met').replace('{n}',demandsMetCount(p,sal,years,true))+'</div>':'')+
+    (p.demands?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+t('plr_negot_met').replace('{n}',demandsMetCount(p,sal,years,true))+'</div>':'')+
     // Wybór lat
     '<div style="color:var(--gr);margin-bottom:4px">'+t('plr_negot_offer')+'</div>'+
     '<div style="display:flex;gap:4px;margin-bottom:10px">'+
     [1,2,3,4].map(y=>
-      '<button onclick="selContractYears('+y+')" style="flex:1;padding:6px 2px;border:2px solid '+(y===years?'var(--gb)':'var(--gl)')+';background:'+(y===years?'var(--gb)':' var(--tb)')+';color:'+(y===years?'#000':'var(--wh)')+';font-family:VT323,monospace;font-size:9px;cursor:pointer">'+(y===1?t('plr_negot_year').replace('{n}',y):t('plr_negot_years').replace('{n}',y))+'</button>'
+      '<button onclick="selContractYears('+y+')" style="flex:1;padding:6px 2px;border:2px solid '+(y===years?'var(--gb)':'var(--gl)')+';background:'+(y===years?'var(--gb)':' var(--tb)')+';color:'+(y===years?'#000':'var(--wh)')+';font-family:VT323,monospace;font-size:var(--fs-dense);cursor:pointer">'+(y===1?t('plr_negot_year').replace('{n}',y):t('plr_negot_years').replace('{n}',y))+'</button>'
     ).join('')+
     '</div>'+
     // Pensja z strzałkami
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--tb);border:1px solid var(--gl);padding:8px">'+
-      '<span style="color:var(--gr);font-family:VT323,monospace;font-size:9px">'+t('plr_negot_salary')+'</span>'+
+      '<span style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">'+t('plr_negot_salary')+'</span>'+
       '<div style="display:flex;align-items:center;gap:4px;flex:1;justify-content:center">'+
-        '<button onclick="changeMCSalary(-50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:14px;width:28px;height:28px;cursor:pointer">▼</button>'+
-        '<span style="font-family:VT323,monospace;font-size:13px;color:var(--am);min-width:80px;text-align:center">'+fmt(sal)+' zł</span>'+
-        '<button onclick="changeMCSalary(50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:14px;width:28px;height:28px;cursor:pointer">▲</button>'+
+        '<button onclick="changeMCSalary(-50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-body);width:28px;height:28px;cursor:pointer">▼</button>'+
+        '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);min-width:80px;text-align:center">'+fmt(sal)+' zł</span>'+
+        '<button onclick="changeMCSalary(50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-body);width:28px;height:28px;cursor:pointer">▲</button>'+
       '</div>'+
-      '<span style="color:var(--gr);font-family:VT323,monospace;font-size:9px">/mc</span>'+
+      '<span style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">/mc</span>'+
     '</div>'+
     // Status akceptacji
     '<div style="background:var(--tb);border:1px solid '+(chance===0?'var(--rd)':'var(--gl)')+';padding:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'+
-        '<span style="color:var(--gr);font-family:VT323,monospace;font-size:9px">'+t('plr_negot_accept_label')+'</span>'+
-        '<span style="color:'+(salOk&&yearsOk?'var(--gb)':'var(--rd)')+';font-family:VT323,monospace;font-size:9px">'+(salOk&&yearsOk?t('plr_negot_ok'):t('plr_negot_low'))+'</span>'+
+        '<span style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">'+t('plr_negot_accept_label')+'</span>'+
+        '<span style="color:'+(salOk&&yearsOk?'var(--gb)':'var(--rd)')+';font-family:VT323,monospace;font-size:var(--fs-dense)">'+(salOk&&yearsOk?t('plr_negot_ok'):t('plr_negot_low'))+'</span>'+
       '</div>'+
       '<div style="display:flex;justify-content:space-between">'+
-        '<span style="color:var(--gr);font-family:VT323,monospace;font-size:9px">Szansa przyjęcia</span>'+
-        '<span style="color:'+chCol+';font-family:VT323,monospace;font-size:9px">'+chance+'%</span>'+
+        '<span style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">Szansa przyjęcia</span>'+
+        '<span style="color:'+chCol+';font-family:VT323,monospace;font-size:var(--fs-dense)">'+chance+'%</span>'+
       '</div>'+
-      (sal>demand.minSalary*1.10?'<div style="color:var(--gb);font-family:VT323,monospace;font-size:8px;margin-top:3px">+bonus forma dla zawodnika</div>':'')+
+      (sal>demand.minSalary*1.10?'<div style="color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:3px">+bonus forma dla zawodnika</div>':'')+
     '</div>';
   const btn=document.getElementById('mc-submit-btn');
   if(btn)btn.style.background=chance===0?'#3d0000':'var(--gb)';
@@ -4793,19 +4793,19 @@ function openSellModal(id){
   if(mt)mt.innerHTML=
     '<b style="color:var(--wh)">'+p.name+'</b><br>'+
     '<span style="color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+'</span><br><br>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin:6px 0;font-size:9px">'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin:6px 0;font-size:var(--fs-dense)">'+
       '<div style="color:var(--gr);margin-bottom:4px">Wartość dynamiczna: <span style="color:var(--wh)">'+fmtVal(calcValueDynamic(p))+'</span>'+
-      (p._hot?' <span style="color:var(--am)">[HOT +20%]</span>':'')+(p.injured?' <span style="color:var(--rd)">[KONTUZJA -15%]</span>':'')+'<br><span style="font-size:8px;color:var(--gr)">Baza: '+fmtVal(calcValue(ovr(p),p.age))+'</span></div>'+
+      (p._hot?' <span style="color:var(--am)">[HOT +20%]</span>':'')+(p.injured?' <span style="color:var(--rd)">[KONTUZJA -15%]</span>':'')+'<br><span style="font-size:var(--fs-dense);color:var(--gr)">Baza: '+fmtVal(calcValue(ovr(p),p.age))+'</span></div>'+
       '<div style="color:var(--gr);margin-bottom:4px">Okno transferowe: <span style="color:'+(tw.open?'var(--gb)':'var(--rd)')+'">'+(tw.open?'🟢 OTWARTE ('+tw.type+')':'🔴 ZAMKNIĘTE')+'</span></div>'+
       (p.contract<=1?'<div style="color:var(--am);margin-bottom:4px">[!] Wygasajacy kontrakt: -15% ceny</div>':'')+
       (p.boughtSeason&&(G.season||1)===p.boughtSeason+1&&p.boughtPrice&&price>p.boughtPrice?
         '<div style="color:var(--am);margin-bottom:4px">[!] Podatek od zysku: -25% z '+fmtVal(price-p.boughtPrice)+' = -'+fmtVal(Math.round((price-p.boughtPrice)*0.25/500)*500)+' (sprzedaz rok po zakupie)</div>':'')+
-      '<div style="color:var(--gb);font-size:11px;margin-top:4px">Cena oferty: <b>'+fmt(price)+'</b>'+(tw.open?' (70–100% wartości)':offer&&offer.isAI?'':' (50–75% wartości — poza oknem)')+'</div>'+
+      '<div style="color:var(--gb);font-size:var(--fs-meta);margin-top:4px">Cena oferty: <b>'+fmt(price)+'</b>'+(tw.open?' (70–100% wartości)':offer&&offer.isAI?'':' (50–75% wartości — poza oknem)')+'</div>'+
       (function(){
         const _profit=price-(p.boughtPrice||0);
         const _tax=(p.boughtSeason&&(G.season||1)===p.boughtSeason+1&&p.boughtPrice&&_profit>0)?Math.round(_profit*0.25/500)*500:0;
         const _net=price-_tax;
-        return _tax>0?'<div style="color:var(--wh);font-size:11px;margin-top:2px">Otrzymasz netto: <b style="color:var(--gb)">'+fmt(_net)+'</b></div>':'';
+        return _tax>0?'<div style="color:var(--wh);font-size:var(--fs-meta);margin-top:2px">Otrzymasz netto: <b style="color:var(--gb)">'+fmt(_net)+'</b></div>':'';
       })()+
     '</div>'+
     'Kupujący: <b style="color:var(--am)">'+(buyer?buyer.n:'Losowy klub')+'</b>';
@@ -5009,11 +5009,11 @@ function fillMatch(){
   if(!_fixBaner){_fixBaner=document.createElement('div');_fixBaner.id='m-fix-squad-baner';const _mp=document.getElementById('m-prematch');if(_mp)_mp.parentNode.insertBefore(_fixBaner,_mp);}
   if(!_canPlay){
     _fixBaner.style.display='block';
-    _fixBaner.innerHTML='<div style="background:#3d0000;border:1px solid var(--rd);padding:10px 14px;margin:0 0 6px;font-family:VT323,monospace;font-size:10px;color:var(--rd)">'+
+    _fixBaner.innerHTML='<div style="background:#3d0000;border:1px solid var(--rd);padding:10px 14px;margin:0 0 6px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+
       t('match_fix_squad_warn').replace('{a}',_validSt.length).replace('{b}',_req3)+'<br>'+
       '<div style="display:flex;gap:6px;margin-top:6px">'+
-        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:11px;padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
-        '<button onclick="openFACrisis(checkSquadCrisis());openPanel(\'p-freeagents\')" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:11px;padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
+        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
+        '<button onclick="openFACrisis(checkSquadCrisis());openPanel(\'p-freeagents\')" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
       '</div>'+
     '</div>';
   } else {
@@ -5116,13 +5116,13 @@ function fillMatch(){
       const mw=Math.round(myVal/BMAX*100);
       return(
         '<div style="margin-bottom:6px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
+          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
           '<div style="display:flex;justify-content:space-between;align-items:center">'+
             '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-right:6px">'+
               '<div style="height:100%;width:'+mw+'%;background:'+myC+';border-radius:1px"></div>'+
             '</div>'+
-            '<span style="font-family:VT323,monospace;font-size:13px;color:'+myC+'">'+myVal+'</span>'+
-            '<span style="font-family:VT323,monospace;font-size:13px;color:'+triC+';margin-left:2px">'+triCh+'</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+myC+'">'+myVal+'</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+triC+';margin-left:2px">'+triCh+'</span>'+
           '</div>'+
         '</div>'
       );
@@ -5135,10 +5135,10 @@ function fillMatch(){
       const barC=stronger?'var(--rd)':equal?'var(--gl)':'var(--gm)';
       return(
         '<div style="margin-bottom:6px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
+          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
           '<div style="display:flex;justify-content:space-between;align-items:center">'+
-            '<span style="font-family:VT323,monospace;font-size:13px;color:'+opC+';margin-right:2px">'+triCh2+'</span>'+
-            '<span style="font-family:VT323,monospace;font-size:13px;color:'+opC+'">'+oppVal+'</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+opC+';margin-right:2px">'+triCh2+'</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+opC+'">'+oppVal+'</span>'+
             '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-left:6px;display:flex;justify-content:flex-end">'+
               '<div style="height:100%;width:'+ow+'%;background:'+barC+';border-radius:1px"></div>'+
             '</div>'+
@@ -5153,27 +5153,27 @@ function fillMatch(){
         '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">'+
           // LEWA = gospodarz
           '<div>'+
-            '<div style="font-family:VT323,monospace;font-size:16px;color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
               (isHome?'⭐ ':'')+homeClub.n+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr);margin-top:1px">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
               'OVR '+homeS.total+' • Forma '+Math.round(homeS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;margin-top:4px">'+formDots(homeId)+'</div>'+
           '</div>'+
           // Środek VS
           '<div style="text-align:center">'+
-            '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--gr)">'+t('match_vs')+'</div>'+
-            '<div style="font-family:VT323,monospace;font-size:11px;color:'+(isHome?'var(--gb)':'var(--gr)')+'">'+
+            '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">'+t('match_vs')+'</div>'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(isHome?'var(--gb)':'var(--gr)')+'">'+
               (isHome?t('match_home_tag'):t('match_away_tag'))+
             '</div>'+
           '</div>'+
           // PRAWA = gość
           '<div style="text-align:right">'+
-            '<div style="font-family:VT323,monospace;font-size:16px;color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}')+'">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}')+'">'+
               awayClub.n+(isHome?'':' ⭐')+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr);margin-top:1px">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
               'OVR '+awayS.total+' • Forma '+Math.round(awayS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;justify-content:flex-end;margin-top:4px">'+formDots(awayId)+'</div>'+
@@ -5183,61 +5183,61 @@ function fillMatch(){
 
       // ── POPRAWKA 3: Badge strip — miejsce + bonus dom ───────────
       '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:5px 12px;border-bottom:1px solid var(--gl);background:#080f08">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_you_pos').replace('{pos}',_myPos)+
         '</div>'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_rival_pos').replace('{pos}',_oppPos)+
         '</div>'+
-        (isHome?'<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
+        (isHome?'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
       '</div>'+
 
       // ── POPRAWKA 4: Dwie oddzielne karty TY | RYWAL ─────────────
       '<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--gl)">'+
         // Karta LEWA — GOSPODARZ
         '<div style="padding:8px 10px;border-right:1px solid var(--gl)">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gb);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px">'+(isHome?t('match_you_label'):t('match_host_label'))+' 🏠</div>'+
+          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gb);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px">'+(isHome?t('match_you_label'):t('match_host_label'))+' 🏠</div>'+
           cardStatRow('ATK',homeS.atk,awayS.atk)+
           cardStatRow('MID',homeS.mid,awayS.mid)+
           cardStatRow('DEF',homeS.def,awayS.def)+
           '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--wh)">'+(isHome?G.formation:oppForm)+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
+              '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?G.formation:oppForm)+'</span>'+
             '</div>'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gb)">'+(isHome?_styleLabel(G.style||'Zrównoważony'):_styleLabel(oppStyle))+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(isHome?_styleLabel(G.style||'Zrównoważony'):_styleLabel(oppStyle))+'</span>'+
             '</div>'+
             (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
                 (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+
               '</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--rd)">'+(homeS.atk<=homeS.def?'⚠ ATK':'⚠ DEF')+'</span></div>')+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(homeS.atk<=homeS.def?'⚠ ATK':'⚠ DEF')+'</span></div>')+
           '</div>'+
         '</div>'+
         // Karta PRAWA — GOŚĆ
         '<div style="padding:8px 10px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--am);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px;text-align:right">'+(isHome?t('match_rival_label'):t('match_you_label_r'))+' ✈</div>'+
+          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px;text-align:right">'+(isHome?t('match_rival_label'):t('match_you_label_r'))+' ✈</div>'+
           cardStatRowOpp('ATK',awayS.atk,homeS.atk)+
           cardStatRowOpp('MID',awayS.mid,homeS.mid)+
           cardStatRowOpp('DEF',awayS.def,homeS.def)+
           '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--wh)">'+(isHome?oppForm:G.formation)+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
+              '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?oppForm:G.formation)+'</span>'+
             '</div>'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+(isHome?styleIcon+' '+_styleLabel(oppStyle):_styleLabel(G.style||'Zrównoważony'))+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+(isHome?styleIcon+' '+_styleLabel(oppStyle):_styleLabel(G.style||'Zrównoważony'))+'</span>'+
             '</div>'+
             (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--rd)">'+(awayS.atk<=awayS.def?'⚠ ATK':'⚠ DEF')+'</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:11px;color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(awayS.atk<=awayS.def?'⚠ ATK':'⚠ DEF')+'</span></div>':'<div style="display:flex;justify-content:space-between">'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
+              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
                 (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+'</span></div>')+
           '</div>'+
         '</div>'+
@@ -5245,13 +5245,13 @@ function fillMatch(){
 
       // ── POPRAWKA 5: Szanse — pasek aktualizuje się z mood ───────
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
         '<div style="display:flex;height:8px;border-radius:1px;overflow:hidden;margin-bottom:4px">'+
           '<div style="flex:'+myWin+';background:var(--gb)"></div>'+
           '<div style="flex:'+draw+';background:var(--gl)"></div>'+
           '<div style="flex:'+oppWin+';background:var(--rd)"></div>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:10px">'+
+        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gb)">'+t('match_chance_win').replace('{n}',myWin)+'</span>'+
           '<span style="color:var(--gr)">'+t('match_chance_draw').replace('{n}',draw)+'</span>'+
           '<span style="color:var(--rd)">'+t('match_chance_loss').replace('{n}',oppWin)+'</span>'+
@@ -5260,7 +5260,7 @@ function fillMatch(){
 
       // ── NASTAWIENIE ──────────────────────────────────────────────
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr);margin-bottom:5px;letter-spacing:.3px">'+t('match_mood_title')+'</div>'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:5px;letter-spacing:.3px">'+t('match_mood_title')+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">'+
         moods.map(md=>{
           const sel=G._matchMood===md.k;
@@ -5269,9 +5269,9 @@ function fillMatch(){
             'style="padding:7px 4px;text-align:center;cursor:pointer;'+
             'background:'+(sel?'#1a2a00':'var(--tb)')+';'+
             'border:2px solid '+(sel?'var(--am)':'var(--gm)')+'">'+
-            '<div style="font-size:15px;line-height:1">'+md.lbl.split(' ')[0]+'</div>'+
-            '<div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:'+(sel?'var(--am)':'var(--gr)')+';margin-top:3px">'+md.lbl.split(' ')[1]+'</div>'+
-            lines.map(l=>'<div style="font-family:VT323,monospace;font-size:9px;color:'+(sel?'var(--gb)':'#444')+';margin-top:1px;line-height:1.1">'+l+'</div>').join('')+
+            '<div style="font-size:var(--fs-body);line-height:1">'+md.lbl.split(' ')[0]+'</div>'+
+            '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(sel?'var(--am)':'var(--gr)')+';margin-top:3px">'+md.lbl.split(' ')[1]+'</div>'+
+            lines.map(l=>'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(sel?'var(--gb)':'#444')+';margin-top:1px;line-height:1.1">'+l+'</div>').join('')+
           '</div>';
         }).join('')+
         '</div>'+
@@ -5280,9 +5280,9 @@ function fillMatch(){
       // ── PRZYCISKI TAKTYKA + SKŁAD ────────────────────────────────
       '<div style="display:flex;gap:6px;padding:7px 12px 8px">'+
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" '+
-          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:12px;padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
+          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
         '<button onclick="fillPanel(\'p-squad\');openPanel(\'p-squad\');document.getElementById(\'p-squad\').style.zIndex=\'300\'" '+
-          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:12px;padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
+          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
       '</div>';
   }
 }
@@ -6232,7 +6232,7 @@ const ev=allEvts[idx2++];
             assistStr=assP?' <span style="color:var(--gr)">(as. <span style="cursor:pointer;text-decoration:underline;color:var(--wh)" onclick="event.stopPropagation();showById('+assP.id+')">'+ev.assister+'</span>)</span>':' <span style="color:var(--gr)">(as. '+ev.assister+')</span>';
           }
           const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">[róż.]</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">[rz.w.]</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">[kar.]</span>':'';
-          txt='<b>GOL! '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-family:VT323,monospace;font-size:9px;color:#9c27b0;margin-top:2px">Wychowanek od S'+_acadDebH3.season+' • OVR '+_acadDebH3.ovr+'→'+ovr(scorerP)+'</div>':'');
+          txt='<b>GOL! '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">Wychowanek od S'+_acadDebH3.season+' • OVR '+_acadDebH3.ovr+'→'+ovr(scorerP)+'</div>':'');
         } else if(ev.type==='shot'){
           cls+=isMy?'shot-my':'shot-opp'; icon=isMy?'→':'←';
         } else if(ev.type==='narration'){
@@ -6249,13 +6249,13 @@ const ev=allEvts[idx2++];
           cls+='narr-my'; icon='⚙️';
           const _tBtns=[{key:'attack',label:'⚔️ Atak totale',desc:'+20% strzałów -15% save',shotMod:1.20,saveMod:0.85},{key:'counter',label:'🏃 Kontratak',desc:'+25% strzałów mniej akcji',shotMod:1.25,saveMod:1.05},{key:'defend',label:'🛡️ Graj na czas',desc:'-20% akcji +12% save',shotMod:0.85,saveMod:1.12},{key:'press',label:'💪 Pressing',desc:'+15% akcji -8% strzałów',shotMod:0.92,saveMod:1.00}];
           const _tacId='tac-countdown-'+Date.now();
-          txt='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:7px">⚙ PRZERWA — WYBIERZ TAKTYKĘ NA 2. POŁOWĘ</span><br><span style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Wybór możliwy tylko teraz</span>'
+          txt='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro)">⚙ PRZERWA — WYBIERZ TAKTYKĘ NA 2. POŁOWĘ</span><br><span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Wybór możliwy tylko teraz</span>'
             +'<div style="display:flex;align-items:center;gap:8px;margin:5px 0">'
             +'<div style="flex:1;height:4px;background:#1a1a1a;border:1px solid var(--gl)"><div id="'+_tacId+'-bar" style="height:100%;background:var(--am);width:100%;transition:width 1s linear"></div></div>'
-            +'<span style="font-family:VT323,monospace;font-size:14px;color:var(--am);min-width:28px;text-align:right"><b id="'+_tacId+'-sec">10</b>s</span>'
+            +'<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);min-width:28px;text-align:right"><b id="'+_tacId+'-sec">10</b>s</span>'
             +'</div>'
             +'<div style="display:flex;flex-wrap:wrap;gap:4px">'+ 
-            _tBtns.map(b=>'<button id="tbtn-'+b.key+'" onclick="_applyTactic(\''+b.key+'\','+b.shotMod+','+b.saveMod+')" style="padding:6px 10px;font-family:VT323,monospace;font-size:11px;background:#0d1f0d;color:var(--am);border:1px solid var(--gl);border-radius:2px;cursor:pointer;text-align:left;min-width:140px">'+b.label+'<br><span style=\"color:#8ab88a;font-size:9px\">'+b.desc+'</span></button>').join('')
+            _tBtns.map(b=>'<button id="tbtn-'+b.key+'" onclick="_applyTactic(\''+b.key+'\','+b.shotMod+','+b.saveMod+')" style="padding:6px 10px;font-family:VT323,monospace;font-size:var(--fs-meta);background:#0d1f0d;color:var(--am);border:1px solid var(--gl);border-radius:2px;cursor:pointer;text-align:left;min-width:140px">'+b.label+'<br><span style=\"color:#8ab88a;font-size:var(--fs-dense)\">'+b.desc+'</span></button>').join('')
             +'</div>';
           // Uruchom odliczanie po wyrenderowaniu
           window._tacTimerId=setTimeout(function _startTacTimer(){
@@ -6277,7 +6277,7 @@ const ev=allEvts[idx2++];
                 if(!window._tacticalShift.used){
                   window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
                   const mlog2=document.getElementById('mlog');
-                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:10px;color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent='⏱️ Przerwa skończona — brak zmiany taktyki.';mlog2.appendChild(_d2);}
+                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent='⏱️ Przerwa skończona — brak zmiany taktyki.';mlog2.appendChild(_d2);}
                 }
                 window._tacResumeNext&&window._tacResumeNext();
               }
@@ -6322,7 +6322,7 @@ function openSubs(){
   // nagłówek kolumn będzie w innerHTML poniżej
   const st=myPl().filter(p=>p.starter&&!p.injured);
   const ol=document.getElementById('m-sub-out-list');
-  if(ol)ol.innerHTML=st.map(p=>{var _phyCol=(p.phy||50)<35?'var(--rd)':(p.phy||50)<50?'var(--am)':'var(--gr)';var _fmCol=p.form<50?'var(--rd)':p.form<75?'var(--am)':'var(--wh)';return '<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="selectSubOut('+p.id+')">'+'<span style="color:'+_fmCol+'">'+( POS_SHORT[p.pos]||p.pos)+' '+p.name+'</span>'+'<span style="font-family:VT323,monospace;font-size:9px;display:flex;gap:6px">'+'<span style="color:'+_fmCol+'">fm:'+p.form+'%</span>'+'<span style="color:'+_phyCol+'">phy:'+(p.phy||50)+'</span>'+'</span>'+'</div>';}).join('');
+  if(ol)ol.innerHTML=st.map(p=>{var _phyCol=(p.phy||50)<35?'var(--rd)':(p.phy||50)<50?'var(--am)':'var(--gr)';var _fmCol=p.form<50?'var(--rd)':p.form<75?'var(--am)':'var(--wh)';return '<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="selectSubOut('+p.id+')">'+'<span style="color:'+_fmCol+'">'+( POS_SHORT[p.pos]||p.pos)+' '+p.name+'</span>'+'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);display:flex;gap:6px">'+'<span style="color:'+_fmCol+'">fm:'+p.form+'%</span>'+'<span style="color:'+_phyCol+'">phy:'+(p.phy||50)+'</span>'+'</span>'+'</div>';}).join('');
   document.getElementById('m-sub-in-section').style.display='none';
   panel.style.display='flex';_subOutId=null;
 }
@@ -6334,7 +6334,7 @@ function selectSubOut(pid){
   const anyBench=bench.length?bench:myPl().filter(x=>!x.starter&&!x.injured).sort((a,b)=>ovr(b)-ovr(a));
   const il=document.getElementById('m-sub-in-list');
   const posLabel=pOut?(POS_SHORT[pOut.pos]||pOut.pos):'';
-  if(il)il.innerHTML='<div style="color:var(--gr);font-size:9px;margin-bottom:4px">'+posLabel+' na '+posLabel+':</div>'+(anyBench.length?anyBench.map(x=>'<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between" onclick="confirmSub('+pid+','+x.id+')"><span style="color:var(--gb)">'+(POS_SHORT[x.pos]||x.pos)+' '+x.name+'</span><span style="color:var(--am)">OVR '+ovr(x)+'</span></div>').join(''):'<div style="color:var(--rd)">Brak zawodnikow na tej pozycji</div>');
+  if(il)il.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:4px">'+posLabel+' na '+posLabel+':</div>'+(anyBench.length?anyBench.map(x=>'<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between" onclick="confirmSub('+pid+','+x.id+')"><span style="color:var(--gb)">'+(POS_SHORT[x.pos]||x.pos)+' '+x.name+'</span><span style="color:var(--am)">OVR '+ovr(x)+'</span></div>').join(''):'<div style="color:var(--rd)">Brak zawodnikow na tej pozycji</div>');
   document.getElementById('m-sub-in-section').style.display='block';
 }
 function confirmSub(outId,inId){
@@ -6345,7 +6345,7 @@ function confirmSub(outId,inId){
   window._matchSubsOut.push(pOut.id);// v199: zapamiętaj kto zszedł
   closeSubs();
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:11px;color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='ZMIANA: '+pOut.name+' -> '+pIn.name+' ('+_subsLeft+'/3)';mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='ZMIANA: '+pOut.name+' -> '+pIn.name+' ('+_subsLeft+'/3)';mlog.appendChild(d);}
   notif('Zmiana: '+pOut.name+' → '+pIn.name,'ok');
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
   if(_subsLeft<=0){const b=document.getElementById('btn-sub');if(b)b.style.opacity='0.3';}
@@ -6365,7 +6365,7 @@ function _addEventChip(isH,icon,min){
   else if(icon==='🔄') col='var(--gb)';
   else col='#00bcd4';
   ch.style.cssText='background:#050f05;border:1px solid '+col+';color:'+col
-    +';font-family:VT323,monospace;font-size:9px;padding:1px 4px;white-space:nowrap';
+    +';font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 4px;white-space:nowrap';
   ch.textContent=icon+' '+min+String.fromCharCode(39);
   ec.appendChild(ch);
 }
@@ -6376,9 +6376,9 @@ function _applyTactic(key,shotMod,saveMod){
   if(window._tacCountdown)clearInterval(window._tacCountdown);
   if(window._tacTimerId)clearTimeout(window._tacTimerId);
   const labels={attack:'Atak totale',counter:'Kontratak',defend:'Graj na czas',press:'Pressing'};
-  notif('⚙️ Taktyka: '+(labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:'⚔️ Atak totale',counter:'🏃 Kontratak',defend:'🛡️ Graj na czas',press:'💪 Pressing'};const _tacBonus={attack:'+20% strz. / −15% GK',counter:'+25% strz. / mniej akcji',defend:'−20% akcji / +12% GK',press:'+15% akcji / −8% strz.'};if(_tn)_tn.innerHTML='<span style="font-size:10px;color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:8px;color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
+  notif('⚙️ Taktyka: '+(labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:'⚔️ Atak totale',counter:'🏃 Kontratak',defend:'🛡️ Graj na czas',press:'💪 Pressing'};const _tacBonus={attack:'+20% strz. / −15% GK',counter:'+25% strz. / mniej akcji',defend:'−20% akcji / +12% GK',press:'+15% akcji / −8% strz.'};if(_tn)_tn.innerHTML='<span style="font-size:var(--fs-dense);color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:11px;color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='⚙️ TAKTYKA: '+(labels[key]||key)+' (od 46\')';mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='⚙️ TAKTYKA: '+(labels[key]||key)+' (od 46\')';mlog.appendChild(d);}
   // Wznów mecz natychmiast po wyborze
   if(window._tacResumeNext){window._tacResumeNext();}
 }
@@ -6415,14 +6415,14 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
 
   function pitchRow(pls, label){
     if(!pls.length)return '';
-    return '<div style="text-align:center;font-family:VT323,monospace;font-size:8px;color:rgba(255,255,255,0.3);margin-top:4px">'+label+'</div>'+
+    return '<div style="text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px">'+label+'</div>'+
       '<div class="pitch-row">'+pls.map(p=>{
         const r=ratings[p.id];
         const rat=r?r.rating:null;
         const col=rat?starCol(rat):'var(--gr)';
         const isMom=globalMomId&&p.id===globalMomId;
         const ratDisp=rat?rat.toFixed(1)+(isMom?' ⭐':''):'—';
-        const goalBalls=r&&r.goals>0?'<span style="font-size:8px;display:block;line-height:1">'+'⚽'.repeat(Math.min(r.goals,4))+'</span>':'';
+        const goalBalls=r&&r.goals>0?'<span style="font-size:var(--fs-dense);display:block;line-height:1">'+'⚽'.repeat(Math.min(r.goals,4))+'</span>':'';
         // v199: ikony zdarzeń — kartki z allEvts, zmiany/kontuzje z window
         var _evI='';
         if(matchEvts){
@@ -6602,7 +6602,7 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   if(_globalMom&&_globalMom.fromAcademy&&_globalMom.clubId===G.myClubId){
     var _bD2=_globalMom.history?_globalMom.history.find(function(h){return h.fromAcademy;}):null;
     var _archBH=_globalMom.archetype&&ARCHETYPE_META[_globalMom.archetype]?ARCHETYPE_META[_globalMom.archetype]:null;
-    var _bohatHtml='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:8px 14px;font-family:VT323,monospace;font-size:9px">'+
+    var _bohatHtml='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:8px 14px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<div style="color:#ce93d8;margin-bottom:2px">🌟 BOHATER MECZU — WYCHOWANEK AKADEMII</div>'+
       '<div style="color:var(--gb);font-size:11px">🎓 '+_globalMom.name+'</div>'+
       (_bD2?'<div style="color:var(--gr);margin-top:2px">W Akademii od S'+_bD2.season+' • OVR '+_bD2.ovr+'→'+ovr(_globalMom)+'</div>':'')+
@@ -7801,8 +7801,8 @@ function kronShowModal(ev, resolvedBody){
   chEl.innerHTML='';
   ev.choices.forEach(function(ch,idx){
     const btn=document.createElement('button');
-    btn.style.cssText='width:100%;background:'+(idx===0?'var(--gm)':idx===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-family:VT323,monospace;font-size:9px;padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
-    btn.innerHTML='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:7px">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
+    btn.style.cssText='width:100%;background:'+(idx===0?'var(--gm)':idx===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
+    btn.innerHTML='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
     btn.onclick=function(){
       modal.style.display='none';
       try{ch.effect();}catch(e){console.warn('Kronika effect error:',e);}
@@ -10168,9 +10168,9 @@ function renderCupDrzewko(){
 
   // ── NAWIGATOR SEZONÓW ───────────────────────────────────────────
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--gm);border-bottom:1px solid var(--gl)">';
-  html+='<button onclick="cupDrzewkoNav(-1)" style="background:none;border:1px solid var(--gl);color:'+(idx<seasons.length-1?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:14px;padding:2px 10px;cursor:'+(idx<seasons.length-1?'pointer':'default')+'">◀</button>';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am)">'+t('cup_season_label').replace('{n}',cur.season)+(cur.src==='live'?t('cup_season_live'):'')+'</div>';
-  html+='<button onclick="cupDrzewkoNav(1)" style="background:none;border:1px solid var(--gl);color:'+(idx>0?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:14px;padding:2px 10px;cursor:'+(idx>0?'pointer':'default')+'">▶</button>';
+  html+='<button onclick="cupDrzewkoNav(-1)" style="background:none;border:1px solid var(--gl);color:'+(idx<seasons.length-1?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx<seasons.length-1?'pointer':'default')+'">◀</button>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">'+t('cup_season_label').replace('{n}',cur.season)+(cur.src==='live'?t('cup_season_live'):'')+'</div>';
+  html+='<button onclick="cupDrzewkoNav(1)" style="background:none;border:1px solid var(--gl);color:'+(idx>0?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx>0?'pointer':'default')+'">▶</button>';
   html+='</div>';
 
   // Pobierz rundy
@@ -10181,10 +10181,10 @@ function renderCupDrzewko(){
   if(winner){
     const isMyWin=winner.cid===myId;
     html+='<div style="background:'+(isMyWin?'#1a2a00':'var(--tb)')+';border:2px solid '+(isMyWin?'var(--am)':'#8B6914')+';padding:10px 14px;margin:10px 14px;text-align:center">';
-    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--am);margin-bottom:4px">'+t('cup_winner_title')+'</div>';
-    html+='<div style="font-family:VT323,monospace;font-size:14px;color:'+(isMyWin?'var(--am)':'var(--wh)')+'">'+(isMyWin?'★ ':'')+
+    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:4px">'+t('cup_winner_title')+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyWin?'var(--am)':'var(--wh)')+'">'+(isMyWin?'★ ':'')+
       '<span onclick="openClubModal('+winner.cid+')" style="cursor:pointer;text-decoration:underline;color:inherit">'+winner.name+'</span></div>';
-    if(cur.data.finalHg!=null)html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-top:2px">'+t('cup_final_score').replace('{hg}',cur.data.finalHg).replace('{ag}',cur.data.finalAg).replace('{opp}',(cur.data.runnerUp?cur.data.runnerUp.name:'?'))+'</div>';
+    if(cur.data.finalHg!=null)html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+t('cup_final_score').replace('{hg}',cur.data.finalHg).replace('{ag}',cur.data.finalAg).replace('{opp}',(cur.data.runnerUp?cur.data.runnerUp.name:'?'))+'</div>';
     html+='</div>';
   }
 
@@ -10204,8 +10204,8 @@ function renderCupDrzewko(){
     html+='<div style="margin:0 0 2px">';
     // Nagłówek rundy — klikalny
     html+='<div onclick="cupToggleRound('+ri+','+cur.season+')" style="display:flex;justify-content:space-between;align-items:center;padding:6px 14px;background:#0d1f0d;cursor:pointer;border-left:3px solid '+(myMatchInRound?'var(--am)':'var(--gl)')+'">';
-    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:'+(myMatchInRound?'var(--am)':'var(--gr)')+'">'+label+'</div>';
-    html+='<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr)">'+t('cup_round_match').replace('{n}',rmatches.length).replace('{suffix}',rmatches.length===1?'':'y')+' '+(collapsed?'▶':'▼')+'</div>';
+    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+(myMatchInRound?'var(--am)':'var(--gr)')+'">'+label+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_round_match').replace('{n}',rmatches.length).replace('{suffix}',rmatches.length===1?'':'y')+' '+(collapsed?'▶':'▼')+'</div>';
     html+='</div>';
 
     if(!collapsed){
@@ -10217,15 +10217,15 @@ function renderCupDrzewko(){
         const aWin=m.done&&m.winnerId===m.a.cid;
         let bdr=isMyMatch?(myWon?'var(--gb)':myLost?'var(--rd)':'var(--am)'):'var(--gl)';
         html+='<div style="background:var(--tb);border-left:3px solid '+bdr+';padding:6px 14px 6px 16px;border-bottom:1px solid #0d1f0d">';
-        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:10px;color:'+(hWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
+        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(hWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
         html+='<span>'+(m.h.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.h.name+'</span>';
-        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:'+(hWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.hg:'—')+'</span>';
+        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(hWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.hg:'—')+'</span>';
         html+='</div>';
-        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:10px;margin-top:2px;color:'+(aWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
+        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px;color:'+(aWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
         html+='<span>'+(m.a.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.a.name+'</span>';
-        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:'+(aWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.ag:'—')+'</span>';
+        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(aWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.ag:'—')+'</span>';
         html+='</div>';
-        if(!m.done&&isMyMatch)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--am);margin-top:3px">'+t('cup_your_match')+'</div>';
+        if(!m.done&&isMyMatch)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-top:3px">'+t('cup_your_match')+'</div>';
         html+='</div>';
       });
     }
@@ -10261,20 +10261,20 @@ function renderCupZwyciezcy(){
 
   // ── NAGRODY ─────────────────────────────────────────────────────
   html+='<div style="padding:8px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:8px">'+t('cup_rewards_title')+'</div>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_rewards_title')+'</div>';
   const allRewards=[...CUP_REWARDS,{label:t('cup_reward_win'),cash:CUP_REWARD_WIN.cash,rep:CUP_REWARD_WIN.rep}];
   allRewards.forEach((rw,i)=>{
     const isWin=i===6;
     const isLast=i===allRewards.length-1;
     html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid '+(isLast?'var(--am)':'#0d1f0d')+';'+(isLast?'margin-top:2px':'')+'">'+
-      '<div style="font-family:VT323,monospace;font-size:10px;color:'+(isLast?'var(--am)':'var(--wh)')+'">'+rw.label+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isLast?'var(--am)':'var(--wh)')+'">'+rw.label+'</div>'+
       '<div style="display:flex;gap:10px;align-items:center">'+
-        '<span style="font-family:VT323,monospace;font-size:10px;color:var(--gb)">+'+fmt(rw.cash)+' zł</span>'+
-        '<span style="font-family:VT323,monospace;font-size:10px;color:var(--am)">+'+rw.rep+' rep</span>'+
+        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">+'+fmt(rw.cash)+' zł</span>'+
+        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">+'+rw.rep+' rep</span>'+
       '</div>'+
     '</div>';
   });
-  html+='<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-top:5px">'+
+  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:5px">'+
     t('cup_total_title').replace('{cash}','<span style="color:var(--gb)">'+fmt(CUP_REWARDS.reduce((s,r)=>s+r.cash,0)+CUP_REWARD_WIN.cash)+' zł</span>').replace('{rep}','<span style="color:var(--am)">+'+(CUP_REWARDS.reduce((s,r)=>s+r.rep,0)+CUP_REWARD_WIN.rep)+' rep</span>')+
   '</div>';
   html+='</div>';
@@ -10294,26 +10294,26 @@ function renderCupZwyciezcy(){
   }
 
   html+='<div style="padding:12px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:8px">'+t('cup_your_record')+'</div>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_your_record')+'</div>';
   html+='<div style="display:flex;gap:6px;margin-bottom:8px">';
   // Ikonki trofeów
-  myWins.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px">🥇</div><div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--am)">S'+h.season+'</div></div>';});
-  myFinals.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px;filter:grayscale(0.3)">🥈</div><div style="font-family:\'Press Start 2P\',monospace;font-size:4px;color:var(--gr)">S'+h.season+'</div></div>';});
-  if(!myWins.length&&!myFinals.length)html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+t('cup_no_trophies')+'</div>';
+  myWins.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px">🥇</div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">S'+h.season+'</div></div>';});
+  myFinals.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px;filter:grayscale(0.3)">🥈</div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">S'+h.season+'</div></div>';});
+  if(!myWins.length&&!myFinals.length)html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_no_trophies')+'</div>';
   html+='</div>';
   // Statystyki tekstowe
   html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">';
-  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+t('cup_stat_part')+'</div><div style="font-family:VT323,monospace;font-size:12px;color:var(--wh)">'+hist.length+'</div></div>';
-  html+='<div style="background:var(--tb);border:1px solid '+(myWins.length?'#FFD700':'var(--gl)')+';padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+t('cup_stat_titles')+'</div><div style="font-family:VT323,monospace;font-size:12px;color:'+(myWins.length?'var(--am)':'var(--wh)')+'">'+myWins.length+'</div></div>';
-  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+t('cup_stat_furthest')+'</div><div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">'+furthestLabel+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_part')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">'+hist.length+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid '+(myWins.length?'#FFD700':'var(--gl)')+';padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_titles')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(myWins.length?'var(--am)':'var(--wh)')+'">'+myWins.length+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_furthest')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+furthestLabel+'</div></div>';
   html+='</div>';
   html+='</div>';
 
   // ── HALL OF FAME ─────────────────────────────────────────────────
   html+='<div style="padding:12px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:10px">'+t('cup_hof_title')+'</div>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:10px">'+t('cup_hof_title')+'</div>';
   if(!hist.length){
-    html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+t('cup_hof_empty')+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_hof_empty')+'</div>';
   } else {
     const wins={};
     hist.forEach(h=>{
@@ -10328,17 +10328,17 @@ function renderCupZwyciezcy(){
       const isMy=entry.isMy;
       const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
       html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
-      html+='<div style="font-size:14px;min-width:18px">'+(medal||('<span style="font-family:VT323,monospace;font-size:10px;color:var(--gr)">'+(i+1)+'.</span>'))+'</div>';
+      html+='<div style="font-size:var(--fs-body);min-width:18px">'+(medal||('<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(i+1)+'.</span>'))+'</div>';
       html+='<div style="flex:1">';
-      html+='<div style="font-family:VT323,monospace;font-size:10px;color:'+(isMy?'var(--am)':'var(--wh)')+';">'+(isMy?'★ ':'')+
+      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isMy?'var(--am)':'var(--wh)')+';">'+(isMy?'★ ':'')+
         '<span onclick="openClubModal('+entry.cid+')" style="cursor:pointer;text-decoration:underline;color:inherit">'+entry.name+'</span>'+
       '</div>';
       html+='<div style="height:4px;background:var(--gm);margin-top:3px;border-radius:2px">';
       html+='<div style="height:100%;width:'+barW+'%;background:'+(isMy?'var(--am)':i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--gb)')+'"></div>';
       html+='</div>';
-      html+='<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-top:1px">S'+entry.seasons.join(' S')+'</div>';
+      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">S'+entry.seasons.join(' S')+'</div>';
       html+='</div>';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:'+(isMy?'var(--am)':i===0?'#FFD700':'var(--wh)')+'">'+entry.count+'x</div>';
+      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(isMy?'var(--am)':i===0?'#FFD700':'var(--wh)')+'">'+entry.count+'x</div>';
       html+='</div>';
     });
   }
@@ -10346,17 +10346,17 @@ function renderCupZwyciezcy(){
 
   // ── HISTORIA FINAŁÓW ─────────────────────────────────────────────
   html+='<div style="padding:12px 14px">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:8px">'+t('cup_finals_history')+'</div>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_finals_history')+'</div>';
   if(!hist.length){
-    html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+t('cup_finals_empty')+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_finals_empty')+'</div>';
   } else {
     [...hist].reverse().forEach(h=>{
       const myW=h.winner.cid===myId;
       const myL=h.runnerUp&&h.runnerUp.cid===myId;
       html+='<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #0d1f0d">';
-      html+='<div style="font-size:14px">'+(myW?'🥇':myL?'🥈':'🏆')+'</div>';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--gr);min-width:20px">S'+h.season+'</div>';
-      html+='<div style="flex:1;font-family:VT323,monospace;font-size:9px">';
+      html+='<div style="font-size:var(--fs-body)">'+(myW?'🥇':myL?'🥈':'🏆')+'</div>';
+      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);min-width:20px">S'+h.season+'</div>';
+      html+='<div style="flex:1;font-family:VT323,monospace;font-size:var(--fs-dense)">';
       html+='<span onclick="openClubModal('+h.winner.cid+')" style="cursor:pointer;text-decoration:underline;color:'+(myW?'var(--am)':'var(--wh)')+'">'+h.winner.name+'</span>';
       html+=' <span style="color:var(--gr)">'+h.finalHg+':'+h.finalAg+'</span> ';
       html+='<span onclick="openClubModal('+(h.runnerUp?h.runnerUp.cid:0)+')" style="cursor:pointer;text-decoration:underline;color:'+(myL?'var(--am)':'var(--gr)')+'">'+(h.runnerUp?h.runnerUp.name:'?')+'</span>';
@@ -10505,29 +10505,29 @@ function showSeasonSummary(){
 
   document.getElementById('mss-wyniki').innerHTML=`
     <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:10px;color:var(--gr);margin-bottom:1px">POZYCJA W LIDZE</div>
-      <div style="font-size:10px;color:${posColor}">${pos}.</div>
-      <div style="font-size:10px;color:var(--gr)">z ${totalClubs} drużyn</div>
-      ${promRelLabel?'<div style="margin-top:4px;font-size:10px">'+promRelLabel+'</div>':''}
+      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:1px">POZYCJA W LIDZE</div>
+      <div style="font-size:var(--fs-dense);color:${posColor}">${pos}.</div>
+      <div style="font-size:var(--fs-dense);color:var(--gr)">z ${totalClubs} drużyn</div>
+      ${promRelLabel?'<div style="margin-top:4px;font-size:var(--fs-dense)">'+promRelLabel+'</div>':''}
     </div>
     <div style="background:#0a1a0a;border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;text-align:center;gap:4px">
-        <div><div style="font-size:10px;color:var(--gr)">PKT</div><div style="font-size:10px;color:var(--am)">${myS.pts||0}</div></div>
-        <div><div style="font-size:10px;color:var(--gr)">W</div><div style="font-size:10px;color:var(--gb)">${myS.w||0}</div></div>
-        <div><div style="font-size:10px;color:var(--gr)">R</div><div style="font-size:10px;color:var(--wh)">${myS.d||0}</div></div>
-        <div><div style="font-size:10px;color:var(--gr)">P</div><div style="font-size:10px;color:var(--rd)">${myS.l||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">PKT</div><div style="font-size:var(--fs-dense);color:var(--am)">${myS.pts||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">W</div><div style="font-size:var(--fs-dense);color:var(--gb)">${myS.w||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">R</div><div style="font-size:var(--fs-dense);color:var(--wh)">${myS.d||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">P</div><div style="font-size:var(--fs-dense);color:var(--rd)">${myS.l||0}</div></div>
       </div>
-      <div style="text-align:center;margin-top:4px;font-size:10px;color:var(--wh)">${myS.gf||0}:${myS.ga||0} <span style="color:var(--gr);font-size:10px">gole</span></div>
+      <div style="text-align:center;margin-top:4px;font-size:var(--fs-dense);color:var(--wh)">${myS.gf||0}:${myS.ga||0} <span style="color:var(--gr);font-size:var(--fs-dense)">gole</span></div>
     </div>
-    ${topScorer?`<div style="font-size:10px;color:var(--gr);margin-bottom:2px">⚽ TOP STRZELEC SEZONU</div>
+    ${topScorer?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">⚽ TOP STRZELEC SEZONU</div>
     <div onclick="showById(${topScorer.id})" style="background:#0a1a0a;border:1px solid var(--am);padding:6px 10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-      <span style="font-size:10px;color:var(--am)">${topScorer.name} <span style='font-size:10px'>↗</span></span>
-      <span style="font-size:10px;color:var(--am)">${topScorer.st&&topScorer.st.g||0} goli</span>
+      <span style="font-size:var(--fs-dense);color:var(--am)">${topScorer.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
+      <span style="font-size:var(--fs-dense);color:var(--am)">${topScorer.st&&topScorer.st.g||0} goli</span>
     </div>`:''}
-    ${topRating?`<div style="font-size:10px;color:var(--gr);margin-bottom:2px">⭐ NAJLEPSZY GRACZ SEZONU</div>
+    ${topRating?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">⭐ NAJLEPSZY GRACZ SEZONU</div>
     <div onclick="showById(${topRating.id})" style="background:#0a1a0a;border:1px solid var(--gb);padding:6px 10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-      <span style="font-size:10px;color:var(--gb)">${topRating.name} <span style='font-size:10px'>↗</span></span>
-      <span style="font-size:10px;color:var(--gb)">${(topRating.seasonRatings.reduce((s,r)=>s+r,0)/topRating.seasonRatings.length).toFixed(1)} avg</span>
+      <span style="font-size:var(--fs-dense);color:var(--gb)">${topRating.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
+      <span style="font-size:var(--fs-dense);color:var(--gb)">${(topRating.seasonRatings.reduce((s,r)=>s+r,0)/topRating.seasonRatings.length).toFixed(1)} avg</span>
     </div>`:''}
   `;
 
@@ -10540,22 +10540,22 @@ function showSeasonSummary(){
     const oColor=lastGoals.optDone===true?'var(--gb)':lastGoals.optDone===false?'var(--rd)':'var(--gr)';
     const ocena=lastGoals.mainDone?'<span style="color:var(--gb)">Zarząd jest zadowolony</span>':'<span style="color:var(--rd)">Zarząd rozczarowany</span>';
     celeHtml=`
-      <div style="font-size:10px;color:var(--gr);margin-bottom:6px">CEL GŁÓWNY</div>
+      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">CEL GŁÓWNY</div>
       <div style="background:#0a1a0a;border:1px solid ${mColor};padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
-        <span style="font-size:10px">${mIcon}</span>
-        <span style="font-size:10px;color:${mColor}">${lastGoals.mainGoal||'—'}</span>
+        <span style="font-size:var(--fs-dense)">${mIcon}</span>
+        <span style="font-size:var(--fs-dense);color:${mColor}">${lastGoals.mainGoal||'—'}</span>
       </div>
-      ${lastGoals.optGoal?`<div style="font-size:10px;color:var(--gr);margin-bottom:6px">CEL OPCJONALNY</div>
+      ${lastGoals.optGoal?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">CEL OPCJONALNY</div>
       <div style="background:#0a1a0a;border:1px solid ${oColor};padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
-        <span style="font-size:10px">${oIcon}</span>
-        <span style="font-size:10px;color:${oColor}">${lastGoals.optGoal}</span>
+        <span style="font-size:var(--fs-dense)">${oIcon}</span>
+        <span style="font-size:var(--fs-dense);color:${oColor}">${lastGoals.optGoal}</span>
       </div>`:''}
-      <div style="background:#111;border:1px solid var(--gl);padding:8px 12px;text-align:center;font-size:10px;margin-top:6px">
+      <div style="background:#111;border:1px solid var(--gl);padding:8px 12px;text-align:center;font-size:var(--fs-dense);margin-top:6px">
         ${ocena}
-        ${(lastGoals.streakAfter||0)>=2?'<div style="color:var(--rd);font-size:10px;margin-top:3px">⚠ Presja zarządu x'+(lastGoals.streakAfter)+'</div>':''}
+        ${(lastGoals.streakAfter||0)>=2?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:3px">⚠ Presja zarządu x'+(lastGoals.streakAfter)+'</div>':''}
       </div>`;
   } else {
-    celeHtml='<div style="color:var(--gr);font-size:10px;text-align:center;padding:16px">Brak celów zarządu w tym sezonie.</div>';
+    celeHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:16px">Brak celów zarządu w tym sezonie.</div>';
   }
   document.getElementById('mss-cele').innerHTML=celeHtml;
 
@@ -10571,38 +10571,38 @@ function showSeasonSummary(){
     document.getElementById('mss-finanse').innerHTML=`
     <div style="background:#0a1a0a;border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">📺 Przychody operacyjne</span>
-        <span style="font-size:10px;color:var(--gb)">+${fmtVal(totalInc)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">📺 Przychody operacyjne</span>
+        <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(totalInc)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">💸 Wydatki operacyjne</span>
-        <span style="font-size:10px;color:var(--rd)">-${fmtVal(totalCost)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">💸 Wydatki operacyjne</span>
+        <span style="font-size:var(--fs-dense);color:var(--rd)">-${fmtVal(totalCost)}</span>
       </div>
       ${_trNet!==0?`<div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">🔄 Transfery</span>
-        <span style="font-size:10px;color:${_trNet>=0?'var(--gb)':'var(--rd)'}">${_trNet>=0?'+':''}${fmtVal(_trNet)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">🔄 Transfery</span>
+        <span style="font-size:var(--fs-dense);color:${_trNet>=0?'var(--gb)':'var(--rd)'}">${_trNet>=0?'+':''}${fmtVal(_trNet)}</span>
       </div>`:''}
       ${(G.seasonBonus&&G.seasonBonus>0)?`<div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">🏆 Premia</span>
-        <span style="font-size:10px;color:var(--gb)">+${fmtVal(G.seasonBonus)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">🏆 Premia</span>
+        <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(G.seasonBonus)}</span>
       </div>`:''}
       <div style="border-top:1px solid var(--gl);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between">
-        <span style="font-size:10px;color:var(--gr)">Suma</span>
-        <span style="font-size:10px;color:var(--wh)">${_nettoSign}${fmtVal(totalInc-totalCost+_trNet+(G.seasonBonus||0))}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">Suma</span>
+        <span style="font-size:var(--fs-dense);color:var(--wh)">${_nettoSign}${fmtVal(totalInc-totalCost+_trNet+(G.seasonBonus||0))}</span>
       </div>
     </div>
     <div style="background:#0a1a0a;border:1px solid var(--am);padding:10px 12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">Budżet na start sezonu</span>
-        <span style="font-size:10px;color:var(--wh)">${fmt(_bStart)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">Budżet na start sezonu</span>
+        <span style="font-size:var(--fs-dense);color:var(--wh)">${fmt(_bStart)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:10px;color:var(--gr)">Budżet na koniec sezonu</span>
-        <span style="font-size:10px;color:var(--am)">${fmt(G.budget)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">Budżet na koniec sezonu</span>
+        <span style="font-size:var(--fs-dense);color:var(--am)">${fmt(G.budget)}</span>
       </div>
       <div style="border-top:1px solid var(--gl);padding-top:6px;display:flex;justify-content:space-between">
-        <span style="font-size:10px;color:var(--wh)">Wynik netto sezonu</span>
-        <span style="font-size:10px;color:${_nettoColor}">${_nettoSign}${fmtVal(_nettoReal)}</span>
+        <span style="font-size:var(--fs-dense);color:var(--wh)">Wynik netto sezonu</span>
+        <span style="font-size:var(--fs-dense);color:${_nettoColor}">${_nettoSign}${fmtVal(_nettoReal)}</span>
       </div>
     </div>
   `;
@@ -10611,38 +10611,38 @@ function showSeasonSummary(){
   // ── TAB: TRANSFERY ─────────────────────────────────────────
   let trHtml='';
   if(trSeason.length===0){
-    trHtml='<div style="color:var(--gr);font-size:10px;text-align:center;padding:20px">Brak transferów w tym sezonie.</div>';
+    trHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">Brak transferów w tym sezonie.</div>';
   } else {
     const trBalColor=trEarned-trSpent>=0?'var(--gb)':'var(--rd)';
     const trBalSign=trEarned-trSpent>=0?'+':'';
     trHtml=`
       <div style="background:#0a1a0a;border:1px solid var(--gl);padding:10px 12px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:10px;color:var(--gr)">Zakupy (${trBought.length})</span>
-          <span style="font-size:10px;color:var(--rd)">-${fmtVal(trSpent)}</span>
+          <span style="font-size:var(--fs-dense);color:var(--gr)">Zakupy (${trBought.length})</span>
+          <span style="font-size:var(--fs-dense);color:var(--rd)">-${fmtVal(trSpent)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:10px;color:var(--gr)">Sprzedaże (${trSold.length})</span>
-          <span style="font-size:10px;color:var(--gb)">+${fmtVal(trEarned)}</span>
+          <span style="font-size:var(--fs-dense);color:var(--gr)">Sprzedaże (${trSold.length})</span>
+          <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(trEarned)}</span>
         </div>
         <div style="border-top:1px solid var(--gl);padding-top:8px;display:flex;justify-content:space-between">
-          <span style="font-size:10px;color:var(--wh)">Bilans</span>
-          <span style="font-size:10px;color:${trBalColor}">${trBalSign}${fmtVal(trEarned-trSpent)}</span>
+          <span style="font-size:var(--fs-dense);color:var(--wh)">Bilans</span>
+          <span style="font-size:var(--fs-dense);color:${trBalColor}">${trBalSign}${fmtVal(trEarned-trSpent)}</span>
         </div>
       </div>`;
     if(trBought.length>0){
-      trHtml+='<div style="font-size:10px;color:var(--gr);margin-bottom:4px">POZYSKANI</div>';
+      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">POZYSKANI</div>';
       trBought.forEach(t=>{
-        const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--gb);cursor:pointer">${t.name} <span style="font-size:9px">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
-        trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:10px">
+        const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--gb);cursor:pointer">${t.name} <span style="font-size:var(--fs-dense)">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
+        trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense)">
           ${_nameEl}<span style="color:var(--rd)">-${fmtVal(t.val||t.fee||0)}</span></div>`;
       });
     }
     if(trSold.length>0){
-      trHtml+='<div style="font-size:10px;color:var(--gr);margin:10px 0 4px">SPRZEDANI</div>';
+      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">SPRZEDANI</div>';
       trSold.forEach(t=>{
-        const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--rd);cursor:pointer">${t.name} <span style="font-size:9px">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
-        trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:10px">
+        const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--rd);cursor:pointer">${t.name} <span style="font-size:var(--fs-dense)">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
+        trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense)">
           ${_nameEl}<span style="color:var(--gb)">+${fmtVal(t.val||t.fee||0)}</span></div>`;
       });
     }
@@ -10652,43 +10652,43 @@ function showSeasonSummary(){
   // ── TAB: WYCENY ────────────────────────────────────────────
   let wycHtml='';
   if(valSnap.length===0){
-    wycHtml='<div style="color:var(--gr);font-size:10px;text-align:center;padding:20px">Wyceny są obliczane na koniec sezonu.<br>Zagraj sezon do końca aby zobaczyć zmiany.</div>';
+    wycHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">Wyceny są obliczane na koniec sezonu.<br>Zagraj sezon do końca aby zobaczyć zmiany.</div>';
   } else {
     const risers=[...valSnap].sort((a,b)=>b.diff-a.diff).filter(v=>v.diff>0);
     const fallers=[...valSnap].sort((a,b)=>a.diff-b.diff).filter(v=>v.diff<0);
     const unchanged=valSnap.filter(v=>v.diff===0);
-    wycHtml=`<div style="font-size:10px;color:var(--gr);margin-bottom:8px">${valSnap.length} zawodników • ${risers.length} wzrostów • ${fallers.length} spadków</div>`;
+    wycHtml=`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">${valSnap.length} zawodników • ${risers.length} wzrostów • ${fallers.length} spadków</div>`;
     if(risers.length>0){
-      wycHtml+='<div style="font-size:10px;color:var(--gb);margin-bottom:4px;letter-spacing:1px">▲ WZROSTY WARTOŚCI</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px;letter-spacing:1px">▲ WZROSTY WARTOŚCI</div>';
       risers.slice(0,8).forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a2a1a;cursor:pointer">
-          <div><div style="font-size:10px;color:var(--gb)">${v.name} <span style='font-size:10px'>↗</span></div><div style="font-size:10px;color:var(--gr)">${v.oldVal>0?fmtVal(v.oldVal):'—'} → ${fmtVal(v.newVal)}</div></div>
-          <span style="font-size:10px;color:var(--gb);min-width:44px;text-align:right">+${fmtVal(v.diff)}</span>
+          <div><div style="font-size:var(--fs-dense);color:var(--gb)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></div><div style="font-size:var(--fs-dense);color:var(--gr)">${v.oldVal>0?fmtVal(v.oldVal):'—'} → ${fmtVal(v.newVal)}</div></div>
+          <span style="font-size:var(--fs-dense);color:var(--gb);min-width:44px;text-align:right">+${fmtVal(v.diff)}</span>
         </div>`;
       });
     }
     if(fallers.length>0){
-      wycHtml+='<div style="font-size:10px;color:var(--rd);margin:10px 0 4px;letter-spacing:1px">▼ SPADKI WARTOŚCI</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--rd);margin:10px 0 4px;letter-spacing:1px">▼ SPADKI WARTOŚCI</div>';
       fallers.slice(0,8).forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a2a1a;cursor:pointer">
-          <div><div style="font-size:10px;color:var(--rd)">${v.name} <span style='font-size:10px'>↗</span></div><div style="font-size:10px;color:var(--gr)">${fmtVal(v.oldVal)} → ${fmtVal(v.newVal)}</div></div>
-          <span style="font-size:10px;color:var(--rd);min-width:44px;text-align:right">${fmtVal(v.diff)}</span>
+          <div><div style="font-size:var(--fs-dense);color:var(--rd)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></div><div style="font-size:var(--fs-dense);color:var(--gr)">${fmtVal(v.oldVal)} → ${fmtVal(v.newVal)}</div></div>
+          <span style="font-size:var(--fs-dense);color:var(--rd);min-width:44px;text-align:right">${fmtVal(v.diff)}</span>
         </div>`;
       });
     }
     if(!risers.length&&!fallers.length){
-      wycHtml+='<div style="font-size:10px;color:var(--gr);margin-bottom:6px">AKTUALNE WYCENY SKŁADU</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">AKTUALNE WYCENY SKŁADU</div>';
       [...valSnap].sort((a,b)=>b.newVal-a.newVal).forEach(v=>{
-        wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2a1a;font-size:10px;cursor:pointer">
-          <span style="color:var(--am)">${v.name} <span style='font-size:10px'>↗</span></span>
+        wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense);cursor:pointer">
+          <span style="color:var(--am)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
           <span style="color:var(--am)">${fmtVal(v.newVal||v.oldVal)}</span>
         </div>`;
       });
     } else if(unchanged.length>0){
-      wycHtml+='<div style="font-size:10px;color:var(--gr);margin:10px 0 4px">BEZ ZMIAN</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">BEZ ZMIAN</div>';
       unchanged.forEach(v=>{
-        wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:10px;cursor:pointer">
-          <span style="color:var(--wh)">${v.name} <span style='font-size:10px'>↗</span></span>
+        wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense);cursor:pointer">
+          <span style="color:var(--wh)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
           <span style="color:var(--gr)">${fmtVal(v.newVal||v.oldVal)}</span>
         </div>`;
       });
@@ -10993,7 +10993,7 @@ function startNewSeason(){
 }
 function fillLeaguesOverview(){
   const el=document.getElementById('tbl-ligi');if(!el)return;
-  if(!G||!G.leagues){el.innerHTML='<div style="color:var(--gr);padding:12px;font-family:VT323,monospace;font-size:9px">'+t('tbl_no_data')+'</div>';return;}
+  if(!G||!G.leagues){el.innerHTML='<div style="color:var(--gr);padding:12px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+t('tbl_no_data')+'</div>';return;}
   if(G.allStandings&&G.myLeague)G.allStandings[G.myLeague]=[...G.standing];
   el.innerHTML='';
 
@@ -11010,11 +11010,11 @@ function fillLeaguesOverview(){
     hdr.id='lghdr'+lvl;
     hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--gl);'+(isMyLg?'background:#1a2a00;border-left:4px solid var(--am);box-shadow:inset 0 0 20px rgba(255,193,7,0.05);':'background:var(--tb);border-left:3px solid var(--gl);');
     hdr.innerHTML=
-      '<div style="font-family:VT323,monospace;font-size:13px;color:'+(isMyLg?'var(--am)':'var(--gb)')+'">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gb)')+'">'+
         (isMyLg?'★ ':'')+lg.name+
-        (isMyLg&&myPos?'<span style="font-family:VT323,monospace;font-size:11px;color:var(--gr);margin-left:8px">'+t('tbl_pos_label').replace('{n}',myPos).replace('{total}',n)+'</span>':'')+
+        (isMyLg&&myPos?'<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr);margin-left:8px">'+t('tbl_pos_label').replace('{n}',myPos).replace('{total}',n)+'</span>':'')+
       '</div>'+
-      '<span id="arr'+lvl+'" style="font-family:VT323,monospace;font-size:13px;color:'+(isMyLg?'var(--am)':'var(--gr)')+'">▼</span>';
+      '<span id="arr'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gr)')+'">▼</span>';
 
     // --- DRAWER ---
     const drawer=document.createElement('div');
@@ -11028,7 +11028,7 @@ function fillLeaguesOverview(){
     tabsBar.style.cssText='display:flex;overflow-x:auto;background:#0a1a0a;border-bottom:1px solid var(--gl);';
     tabIds.forEach((t,i)=>{
       const btn=document.createElement('button');
-      btn.style.cssText='flex-shrink:0;background:transparent;border:none;border-right:1px solid var(--gl);color:'+(t==='tabela'?(isMyLg?'var(--am)':'var(--gb)'):'var(--gr)')+';font-family:"Press Start 2P",monospace;font-size:6px;padding:9px 8px;cursor:pointer;'+(t==='tabela'?'border-bottom:2px solid '+(isMyLg?'var(--am)':'var(--gb)')+';':'');
+      btn.style.cssText='flex-shrink:0;background:transparent;border:none;border-right:1px solid var(--gl);color:'+(t==='tabela'?(isMyLg?'var(--am)':'var(--gb)'):'var(--gr)')+';font-family:"Press Start 2P",monospace;font-size:var(--fs-h3);padding:9px 8px;cursor:pointer;'+(t==='tabela'?'border-bottom:2px solid '+(isMyLg?'var(--am)':'var(--gb)')+';':'');
       btn.textContent=tabLabels[i];
       btn.id='lgtab'+lvl+'_'+t;
       btn.onclick=()=>lgSwitchTab(lvl,t);
@@ -11053,24 +11053,24 @@ function fillLeaguesOverview(){
       '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
       '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
     '</tr>';};
-    let tblHtml='<table style="width:100%;font-family:VT323,monospace;font-size:9px;border-collapse:collapse">'+
+    let tblHtml='<table style="width:100%;font-family:VT323,monospace;font-size:var(--fs-dense);border-collapse:collapse">'+
       '<thead><tr>'+
-        '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:8px">'+t('tbl_col_num')+'</th>'+
-        '<th style="color:var(--gr);text-align:left;font-size:8px">'+t('tbl_col_club')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px">'+t('tbl_col_m')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px">'+t('tbl_col_pts')+'</th>'+
-        '<th style="color:var(--gb);text-align:right;font-size:8px">'+t('tbl_col_w')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px">'+t('tbl_col_d')+'</th>'+
-        '<th style="color:var(--rd);text-align:right;font-size:8px">'+t('tbl_col_l')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px">'+t('tbl_col_gf')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px">'+t('tbl_col_ga')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:8px;padding-right:6px">'+t('tbl_col_gd')+'</th>'+
+        '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_num')+'</th>'+
+        '<th style="color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_club')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_m')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_pts')+'</th>'+
+        '<th style="color:var(--gb);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_w')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_d')+'</th>'+
+        '<th style="color:var(--rd);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_l')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_gf')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_ga')+'</th>'+
+        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense);padding-right:6px">'+t('tbl_col_gd')+'</th>'+
       '</tr></thead><tbody id="tbody'+lvl+'">'+
       top3.map((s,i)=>rowHtmlLg(s,i,s.cid===G.myClubId)).join('')+
-      (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:8px;text-align:center">···</td></tr>'+rowHtmlLg(showMy,myPos-1,true):'')+
+      (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:var(--fs-dense);text-align:center">···</td></tr>'+rowHtmlLg(showMy,myPos-1,true):'')+
       '</tbody></table>'+
       '<div style="text-align:center;padding:4px">'+
-        '<button onclick="toggleFullTable('+lvl+')" id="btnfull'+lvl+'" style="font-family:VT323,monospace;font-size:9px;background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:3px 12px;cursor:pointer">'+t('tbl_full_table')+'</button>'+
+        '<button onclick="toggleFullTable('+lvl+')" id="btnfull'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-dense);background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:3px 12px;cursor:pointer">'+t('tbl_full_table')+'</button>'+
       '</div>';
     paneTabela.innerHTML=tblHtml;
     if(typeof pxCrest==='function'){paneTabela.querySelectorAll('.lg-crest-slot').forEach(function(sl){var cid=parseInt(sl.dataset.cid)||0;sl.appendChild(pxCrest(cid,1));});}
@@ -11090,16 +11090,16 @@ function fillLeaguesOverview(){
     const lgPl=G.players.filter(p=>p.clubId>0&&lgClubs.has(p.clubId));
     const topG=lgPl.filter(p=>p.st&&p.st.g>0).sort((a,b)=>b.st.g-a.st.g).slice(0,10);
     if(!topG.length){
-      paneStrzelcy.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:10px 12px">'+t('tbl_no_data')+'</div>';
+      paneStrzelcy.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
     } else {
-      paneStrzelcy.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_scorers')+'</div>'+
+      paneStrzelcy.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_scorers')+'</div>'+
         topG.map((p,i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
-            '<span style="font-size:11px;color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:11px;color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:9px;color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
-            '<span style="font-size:14px;color:var(--am);font-weight:bold">'+p.st.g+'⚽</span>'+
+            '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
+            '<span style="font-size:var(--fs-body);color:var(--am);font-weight:bold">'+p.st.g+'⚽</span>'+
           '</div>';
         }).join('');
     }
@@ -11111,16 +11111,16 @@ function fillLeaguesOverview(){
     paneAsysty.style.display='none';
     const topA=lgPl.filter(p=>p.st&&p.st.a>0).sort((a,b)=>b.st.a-a.st.a).slice(0,10);
     if(!topA.length){
-      paneAsysty.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:10px 12px">'+t('tbl_no_data')+'</div>';
+      paneAsysty.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
     } else {
-      paneAsysty.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_assists')+'</div>'+
+      paneAsysty.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_assists')+'</div>'+
         topA.map((p,i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
-            '<span style="font-size:11px;color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:11px;color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:9px;color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
-            '<span style="font-size:14px;color:var(--gb);font-weight:bold">'+p.st.a+'🎯</span>'+
+            '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
+            '<span style="font-size:var(--fs-body);color:var(--gb);font-weight:bold">'+p.st.a+'🎯</span>'+
           '</div>';
         }).join('');
     }
@@ -11132,17 +11132,17 @@ function fillLeaguesOverview(){
     paneOceny.style.display='none';
     const withAvg=lgPl.filter(p=>p.seasonRatings&&p.seasonRatings.length>0).map(p=>({p,avg:Math.round(p.seasonRatings.reduce((s,r)=>s+r,0)/p.seasonRatings.length*10)/10,m:p.seasonRatings.length})).sort((a,b)=>b.avg-a.avg).slice(0,10);
     if(!withAvg.length){
-      paneOceny.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:10px 12px">'+t('tbl_no_ratings')+'</div>';
+      paneOceny.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_ratings')+'</div>';
     } else {
-      paneOceny.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_ratings')+'</div>'+
+      paneOceny.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_ratings')+'</div>'+
         withAvg.map(({p,avg,m},i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
           const col=avg>=8?'var(--am)':avg>=7?'var(--gb)':'var(--wh)';
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
-            '<span style="font-size:11px;color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:11px;color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:9px;color:var(--gr)">'+(club?club.n:'')+' • '+m+'M</div></div>'+
-            '<span style="font-size:14px;color:'+col+';font-weight:bold">'+avg.toFixed(1)+'⭐</span>'+
+            '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+' • '+m+'M</div></div>'+
+            '<span style="font-size:var(--fs-body);color:'+col+';font-weight:bold">'+avg.toFixed(1)+'⭐</span>'+
           '</div>';
         }).join('');
     }
@@ -11180,7 +11180,7 @@ function renderHistoria(lvl,sub){
   const pane=document.getElementById('lgpane'+lvl+'_historia');
   if(!pane)return;
   const lgHistData=(G.lgHist&&G.lgHist[lvl])||[];
-  const noBrak='<div style="color:var(--gr);font-family:VT323,monospace;font-size:11px;padding:16px 12px;text-align:center;line-height:1.6">Brak historii.<br>Dane zapisują się automatycznie<br>po zakończeniu każdego sezonu.</div>';
+  const noBrak='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-meta);padding:16px 12px;text-align:center;line-height:1.6">Brak historii.<br>Dane zapisują się automatycznie<br>po zakończeniu każdego sezonu.</div>';
 
   // sub-tabs bar
   const activeSub=sub||'mistrzowie';
@@ -11188,7 +11188,7 @@ function renderHistoria(lvl,sub){
     ['mistrzowie','miejsca','legenda'].map(s=>{
       const lbl=s==='mistrzowie'?'👑 MISTRZOWIE':s==='miejsca'?'📊 HISTORIA MIEJSC':'🌍 LEGENDA';
       const isOn=s===activeSub;
-      return '<button onclick="renderHistoria('+lvl+',\''+s+'\')" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gl);border-bottom:'+(isOn?'2px solid var(--am)':'none')+';color:'+(isOn?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:5.5px;padding:9px 2px;cursor:pointer">'+lbl+'</button>';
+      return '<button onclick="renderHistoria('+lvl+',\''+s+'\')" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gl);border-bottom:'+(isOn?'2px solid var(--am)':'none')+';color:'+(isOn?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:9px 2px;cursor:pointer">'+lbl+'</button>';
     }).join('')+
   '</div>';
 
@@ -11204,10 +11204,10 @@ function renderHistoria(lvl,sub){
       const isMy=h.champion&&h.champion.cid===G.myClubId;
       const cid=h.champion?h.champion.cid:null;
       return '<div onclick="'+(cid?'openClubModal('+cid+')':'')+'" style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:'+(cid?'pointer':'default')+'">'+
-        '<span style="font-size:11px;color:var(--gr);width:28px">S'+h.season+'</span>'+
+        '<span style="font-size:var(--fs-meta);color:var(--gr);width:28px">S'+h.season+'</span>'+
         '<span style="font-size:15px">👑</span>'+
-        '<span style="flex:1;font-size:13px;color:'+(isMy?'var(--am)':'var(--wh)')+'">'+( h.champion?h.champion.n:'—')+'</span>'+
-        '<span style="font-size:11px;color:var(--gr)">'+(h.champion?h.champion.pts+' pkt':'')+'</span>'+
+        '<span style="flex:1;font-size:var(--fs-body);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+( h.champion?h.champion.n:'—')+'</span>'+
+        '<span style="font-size:var(--fs-meta);color:var(--gr)">'+(h.champion?h.champion.pts+' pkt':'')+'</span>'+
       '</div>';
     }).join('');
     pane.innerHTML=subBar+rows;
@@ -11229,31 +11229,31 @@ function renderHistoria(lvl,sub){
       const cells=lgHistData.map(h=>{
         const row=h.table.find(r=>r.cid===cid);
         const n=h.table.length;
-        if(!row)return '<td style="width:24px;height:20px;text-align:center;font-size:9px;color:#333;border:1px solid #0d1f0d">—</td>';
+        if(!row)return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);color:#333;border:1px solid #0d1f0d">—</td>';
         const style=posColor(row.pos,n);
         const label=row.pos===1?'👑':row.pos>n-2?'↓'+row.pos:String(row.pos);
-        return '<td style="width:24px;height:20px;text-align:center;font-size:10px;font-weight:bold;border:1px solid #0a0a0a;'+style+'">'+label+'</td>';
+        return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);font-weight:bold;border:1px solid #0a0a0a;'+style+'">'+label+'</td>';
       }).join('');
       return '<tr onclick="openClubModal('+cid+')" style="cursor:pointer;'+(isMy?'outline:1px solid var(--am);':'')+'">'+
-        '<td style="padding:2px 8px;font-family:VT323,monospace;font-size:11px;color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
+        '<td style="padding:2px 8px;font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
         cells+
       '</tr>';
     }).join('');
-    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="Otwórz tabelę sezonu '+s+'" style="width:26px;font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
+    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="Otwórz tabelę sezonu '+s+'" style="width:26px;font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
     const legend=
       '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--gl)">'+
-        '<span style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Legenda:</span>'+
-        '<span style="background:#7a5c00;color:#ffd54f;font-size:9px;padding:1px 5px">👑 Mistrz</span>'+
-        '<span style="background:#3a3a3a;color:#ccc;font-size:9px;padding:1px 5px">2 msc</span>'+
-        '<span style="background:#5c3a1a;color:#d4a574;font-size:9px;padding:1px 5px">3 msc</span>'+
-        '<span style="background:#0d2b0d;color:var(--gb);font-size:9px;padding:1px 5px">TOP 25%</span>'+
-        '<span style="background:#2b0d0d;color:var(--rd);font-size:9px;padding:1px 5px">↓ Spadek</span>'+
+        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Legenda:</span>'+
+        '<span style="background:#7a5c00;color:#ffd54f;font-size:var(--fs-dense);padding:1px 5px">👑 Mistrz</span>'+
+        '<span style="background:#3a3a3a;color:#ccc;font-size:var(--fs-dense);padding:1px 5px">2 msc</span>'+
+        '<span style="background:#5c3a1a;color:#d4a574;font-size:var(--fs-dense);padding:1px 5px">3 msc</span>'+
+        '<span style="background:#0d2b0d;color:var(--gb);font-size:var(--fs-dense);padding:1px 5px">TOP 25%</span>'+
+        '<span style="background:#2b0d0d;color:var(--rd);font-size:var(--fs-dense);padding:1px 5px">↓ Spadek</span>'+
       '</div>';
     pane.innerHTML=subBar+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">▲ kliknij S# aby otworzyć tabelę sezonu</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">▲ kliknij S# aby otworzyć tabelę sezonu</div>'+
       '<div style="overflow-x:auto;padding:4px 8px">'+
         '<table style="border-collapse:collapse;font-family:VT323,monospace">'+
-          '<thead><tr><th style="text-align:left;padding:2px 8px;font-family:VT323,monospace;font-size:9px;color:var(--gr);font-weight:normal">Drużyna</th>'+seasonHdrs+'</tr></thead>'+
+          '<thead><tr><th style="text-align:left;padding:2px 8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">Drużyna</th>'+seasonHdrs+'</tr></thead>'+
           '<tbody>'+teamRows+'</tbody>'+
         '</table>'+
       '</div>'+legend;
@@ -11270,15 +11270,15 @@ function showLgSeasonTable(lvl,season){
     const isMy=parseInt(r.cid)===parseInt(myId);
     const posCol=r.pos===1?'var(--am)':r.pos<=3?'var(--gb)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;'+(isMy?'background:#0d2b0d;outline:1px solid var(--am)':'')+'" onclick="var m=document.getElementById(\'modal-lg-season-table\');if(m)m.remove();openClubModal('+r.cid+')" style="cursor:pointer">'+
-      '<td style="padding:4px 3px;color:'+posCol+';font-family:VT323,monospace;font-size:11px;text-align:center">'+r.pos+'</td>'+
-      '<td style="padding:4px 3px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.n+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--wh)">'+(r.p||((r.w||0)+(r.d||0)+(r.l||0)))+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--gb)">'+(r.w||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--gr)">'+(r.d||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--rd)">'+(r.l||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--gb)">'+(r.gf||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--rd)">'+(r.ga||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--am);font-weight:bold">'+(r.pts||0)+'</td>'+
+      '<td style="padding:4px 3px;color:'+posCol+';font-family:VT323,monospace;font-size:var(--fs-meta);text-align:center">'+r.pos+'</td>'+
+      '<td style="padding:4px 3px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:var(--fs-meta);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.n+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">'+(r.p||((r.w||0)+(r.d||0)+(r.l||0)))+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(r.w||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+(r.d||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(r.l||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(r.gf||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(r.ga||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);font-weight:bold">'+(r.pts||0)+'</td>'+
     '</tr>';
   }).join('');
   let modal=document.getElementById('modal-lg-season-table');
@@ -11292,24 +11292,24 @@ function showLgSeasonTable(lvl,season){
   modal.innerHTML=
     '<div style="background:var(--gd);border:2px solid var(--gl);padding:14px;max-width:95vw;width:400px;max-height:85vh;overflow-y:auto;position:relative">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am)">'+lgName+'</span>'+
-        '<span onclick="document.getElementById(\'modal-lg-season-table\').remove()" style="font-family:VT323,monospace;font-size:14px;color:var(--gr);cursor:pointer;padding:2px 6px;border:1px solid var(--gl)">✕</span>'+
+        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">'+lgName+'</span>'+
+        '<span onclick="document.getElementById(\'modal-lg-season-table\').remove()" style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr);cursor:pointer;padding:2px 6px;border:1px solid var(--gl)">✕</span>'+
       '</div>'+
       '<table style="width:100%;border-collapse:collapse">'+
         '<thead><tr style="border-bottom:1px solid var(--gl);color:var(--gr)">'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center">#</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:left">KLUB</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center">M</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center;color:var(--gb)">W</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center">R</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center;color:var(--rd)">P</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center">GF</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center">GA</th>'+
-          '<th style="font-family:VT323,monospace;font-size:10px;font-weight:normal;padding:3px;text-align:center;color:var(--am)">PKT</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">#</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:left">KLUB</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">M</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--gb)">W</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">R</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--rd)">P</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GF</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GA</th>'+
+          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--am)">PKT</th>'+
         '</tr></thead>'+
         '<tbody>'+rows+'</tbody>'+
       '</table>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);text-align:center;margin-top:8px;border-top:1px solid var(--gl);padding-top:6px">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);text-align:center;margin-top:8px;border-top:1px solid var(--gl);padding-top:6px">'+
         'dotknij tło lub ✕ aby zamknąć'+
       '</div>'+
     '</div>';
@@ -11332,29 +11332,29 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     const pos=i+1;
     const posCol=pos===1?'var(--am)':pos<=3?'var(--gb)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer;'+(isMy?'background:#0d2b0d;outline:1px solid var(--am);':'')+'" onclick="openClubModal('+c.cid+')">'+
-      '<td style="padding:4px 2px;color:'+posCol+';font-family:VT323,monospace;font-size:11px">'+pos+'</td>'+
-      '<td style="padding:4px 2px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:11px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.n+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--am);font-family:VT323,monospace;font-size:11px;font-weight:bold">'+c.pkt+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--gb);font-family:VT323,monospace;font-size:11px">'+c.gf+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--rd);font-family:VT323,monospace;font-size:11px">'+c.ga+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:11px;color:var(--am)">'+( c.titles?c.titles:'—')+'</td>'+
+      '<td style="padding:4px 2px;color:'+posCol+';font-family:VT323,monospace;font-size:var(--fs-meta)">'+pos+'</td>'+
+      '<td style="padding:4px 2px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:var(--fs-meta);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.n+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);font-weight:bold">'+c.pkt+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta)">'+c.gf+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta)">'+c.ga+'</td>'+
+      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am)">'+( c.titles?c.titles:'—')+'</td>'+
     '</tr>';
   }).join('');
   const secLiga=
     '<div style="padding:10px 12px 4px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🏆</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--am)">LIGA — TABELA WSZECH CZASÓW</span>'+
+        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">LIGA — TABELA WSZECH CZASÓW</span>'+
       '</div>'+
       '<div style="overflow-x:auto">'+
         '<table style="width:100%;border-collapse:collapse">'+
           '<thead><tr style="border-bottom:1px solid var(--gl)">'+
-            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:10px;color:var(--gr);font-weight:normal">#</th>'+
-            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:10px;color:var(--gr);font-weight:normal">KLUB</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:10px;color:var(--am);font-weight:normal">PKT</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:10px;color:var(--gb);font-weight:normal">GF</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:10px;color:var(--rd);font-weight:normal">GA</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:10px;color:var(--gr);font-weight:normal">🏆</th>'+
+            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">#</th>'+
+            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">KLUB</th>'+
+            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);font-weight:normal">PKT</th>'+
+            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);font-weight:normal">GF</th>'+
+            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);font-weight:normal">GA</th>'+
+            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">🏆</th>'+
           '</tr></thead>'+
           '<tbody>'+ligaRows+'</tbody>'+
         '</table>'+
@@ -11381,15 +11381,15 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="background:var(--tb);height:8px;border-radius:2px;overflow:hidden;margin:6px 0 2px">'+
       '<div style="width:'+barPct+'%;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:2px"></div>'+
     '</div>'+
-    '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+    '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
       '<span>'+prestige+' PKT PRESTIŻU</span><span>MAX '+maxPrestige+'</span>'+
     '</div>';
   const klubMiniRows=klubRanking.slice(0,5).map((c,i)=>{
     const isMy=c.cid===myClubId;
     const barW=Math.round((c.p/(klubRanking[0].p||1))*100);
     return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:6px;cursor:pointer">'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:11px;margin-bottom:2px">'+
-        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:6px;margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
+      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:2px">'+
+        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
         '<span style="color:#a78bfa">'+c.p+' pkt</span>'+
       '</div>'+
       '<div style="background:var(--tb);height:4px;border-radius:2px;overflow:hidden">'+
@@ -11400,24 +11400,24 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
   const secKlub=
     '<div style="padding:10px 12px 4px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
-        '<span style="font-size:14px">⭐</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#a78bfa">KLUB — RANKING PRESTIŻU</span>'+
+        '<span style="font-size:var(--fs-body)">⭐</span>'+
+        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:#a78bfa">KLUB — RANKING PRESTIŻU</span>'+
       '</div>'+
       '<div style="background:#0d2b0d;border:1px solid var(--gb);border-left:4px solid #a78bfa;padding:10px 12px;margin-bottom:10px">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:11px;margin-bottom:8px">'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:8px">'+
           '<div><div style="color:var(--gr)">🏆 TROFEA</div><div style="color:#a78bfa">'+leagueTitles+'</div></div>'+
           '<div><div style="color:var(--gr)">⬆ AWANSE</div><div style="color:#a78bfa">'+promotions+'</div></div>'+
           '<div><div style="color:var(--gr)">🎖 OSIĄG.</div><div style="color:#a78bfa">'+specialTrophies+'</div></div>'+
           '<div><div style="color:var(--gr)">🏟 STADION</div><div style="color:#a78bfa">'+stadiumCap.toLocaleString()+'</div></div>'+
           '<div><div style="color:var(--gr)">⭐ PRESTIŻ</div><div style="color:#a78bfa">'+prestige+' pkt</div></div>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-bottom:6px;line-height:1.4">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px;line-height:1.4">'+
           'Prestiż = trofea ×100 + awanse ×30 + osiągnięcia ×20 + pojemność stadionu ÷100'+
         '</div>'+
         myPrestigeBar+
       '</div>'+
-      '<div style="font-family:\'Press Start 2P\',monospace;font-size:5.5px;color:var(--gr);margin-bottom:8px">TOP 5 — PRESTIŻ W LIDZE</div>'+
+      '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">TOP 5 — PRESTIŻ W LIDZE</div>'+
       klubMiniRows+
     '</div>';
 
@@ -11447,21 +11447,21 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     const score=c.titles*100+c.pkt;
     const barW=Math.round((score/topW)*100);
     return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:8px;cursor:pointer;'+(isMy?'background:#0d2b0d;padding:4px 6px;border-left:3px solid var(--gb);':'')+'">'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:11px;margin-bottom:2px">'+
-        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:'+(i===0?'var(--am)':'var(--gr)')+';margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
+      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:2px">'+
+        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+(i===0?'var(--am)':'var(--gr)')+';margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
         '<span style="color:var(--gb)">🏆 '+c.titles+'</span>'+
       '</div>'+
       '<div style="background:var(--tb);height:5px;border-radius:2px;overflow:hidden;margin-bottom:2px">'+
         '<div style="width:'+barW+'%;height:100%;background:'+(i===0?'linear-gradient(90deg,#b45309,var(--am))':isMy?'linear-gradient(90deg,#2d6b2d,var(--gb))':'var(--gl)')+';border-radius:2px"></div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+c.liga+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+c.liga+'</div>'+
     '</div>';
   }).join('');
   const secSwiat=
     '<div style="padding:10px 12px 12px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🌍</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gb)">ŚWIAT — RANKING HISTORYCZNY</span>'+
+        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb)">ŚWIAT — RANKING HISTORYCZNY</span>'+
       '</div>'+
       worldRows+
     '</div>';
@@ -11477,7 +11477,7 @@ function lgRefreshWyniki(lvl){
   if(!pane||!G)return;
   const sched=(G.allSchedules&&G.allSchedules[lvl])||[];
   if(!sched.length){
-    pane.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:10px 12px">Brak danych</div>';
+    pane.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">Brak danych</div>';
     return;
   }
   const isMyLg=lvl===G.myLeague;
@@ -11486,7 +11486,7 @@ function lgRefreshWyniki(lvl){
   const allRnds=Object.keys(byRnd).map(Number).sort((a,b)=>a-b);
   const curRnd=isMyLg?G.round:(Math.max(0,...sched.filter(m=>m.done).map(m=>m.rnd))+1);
 
-  let html='<div id="lgwrap'+lvl+'" style="font-family:VT323,monospace;font-size:9px;">';
+  let html='<div id="lgwrap'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-dense);">';
 
   allRnds.forEach(rnd=>{
     const matches=byRnd[rnd];
@@ -11495,11 +11495,11 @@ function lgRefreshWyniki(lvl){
 
     let hdrBg,hdrColor,rndIcon,rndBadge;
     if(isCurrent){
-      hdrBg='#1a2d00';hdrColor='var(--am)';rndIcon='▶ ';rndBadge='<span style="color:var(--am);font-size:7px">TERAZ</span>';
+      hdrBg='#1a2d00';hdrColor='var(--am)';rndIcon='▶ ';rndBadge='<span style="color:var(--am);font-size:var(--fs-dense)">TERAZ</span>';
     } else if(isDone){
       hdrBg='#0d1f0d';hdrColor='var(--gr)';rndIcon='';rndBadge='<span style="color:var(--gr);font-size:7px">✓</span>';
     } else {
-      hdrBg='#0a1a0a';hdrColor='#2a4a2a';rndIcon='· ';rndBadge='<span style="color:#1a3a1a;font-size:7px">—</span>';
+      hdrBg='#0a1a0a';hdrColor='#2a4a2a';rndIcon='· ';rndBadge='<span style="color:#1a3a1a;font-size:var(--fs-dense)">—</span>';
     }
 
     const anchorId=isCurrent?'lgcurr'+lvl:'';
@@ -11603,7 +11603,7 @@ function toggleFullTable(lvl){
     const top3=st.slice(0,3);
     const showMy=myPos>3?st[myPos-1]:null;
     tbody.innerHTML=top3.map((s,i)=>rowHtml(s,i,s.cid===G.myClubId)).join('')+
-      (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:8px">···</td></tr>'+rowHtml(showMy,myPos-1,true):'');
+      (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:var(--fs-dense)">···</td></tr>'+rowHtml(showMy,myPos-1,true):'');
     _injectCrests(tbody);
     btn.textContent='▼ PEŁNA TABELA';
     btn.dataset.expanded='0';
@@ -11715,7 +11715,7 @@ function demandsHtmlInteractive(p,o){
       const checked=(id==='starter'?o.starter:id==='signing'?o.signing:id==='bonus_perf'?o.bonus:o.loyalty)?'checked':'';
       chk='<input type="checkbox" '+checked+' data-f="'+field+'" onclick="toggleBuyOffer(this,this.dataset.f)" style="cursor:pointer;margin:0"> ';
     }
-    return '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--gl);font-family:VT323,monospace;font-size:9px">'+
+    return '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--gl);font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<span style="color:'+(met?'var(--gb)':'var(--rd)')+';">'+(met?'OK':'NIE')+'</span>'+
       chk+
       '<span style="color:var(--gr)">'+dt.icon+' '+dt.label+':</span>'+
@@ -11728,7 +11728,7 @@ function demandsHtmlInteractive(p,o){
 function demandsHtml(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty){
   if(!p.demands)return'';
   const res=getDemandResults(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty);
-  return res.map(r=>'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-family:VT323,monospace;font-size:9px">'+
+  return res.map(r=>'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
     '<span style="color:'+(r.met?'var(--gb)':'var(--rd)')+';">'+(r.met?'OK':'NIE')+'</span>'+
     '<span style="color:var(--gr)">'+r.icon+' '+r.label+':</span>'+
     '<span style="color:'+(r.met?'var(--gb)':'var(--wh)')+'">'+r.text+'</span></div>').join('');
@@ -11856,16 +11856,16 @@ function genTransferContext(p,lvl){
 }
 function sectionBadge(p){
   const s=p.section||'sale';
-  if(s==='sale')return '<span style="font-family:VT323,monospace;font-size:8px;color:var(--rd);border:1px solid var(--rd);padding:1px 4px">NA SPRZEDAZ</span>';
-  return '<span style="font-family:VT323,monospace;font-size:8px;color:var(--am);border:1px solid var(--am);padding:1px 4px">PLOTKA +'+(p.rumourWeeks||2)+' tyg.</span>';
+  if(s==='sale')return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">NA SPRZEDAZ</span>';
+  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);border:1px solid var(--am);padding:1px 4px">PLOTKA +'+(p.rumourWeeks||2)+' tyg.</span>';
 }
 function lastSeasonHtml(p){
   if(!p.lastSeason)return'';const s=p.lastSeason;
-  return '<span style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+(p.pos==='GK'?s.m+'M '+s.cs+'CS':s.m+'M '+s.g+'G '+s.a+'A')+'</span>';
+  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(p.pos==='GK'?s.m+'M '+s.cs+'CS':s.m+'M '+s.g+'G '+s.a+'A')+'</span>';
 }
 function transferReasonHtml(p){
   if(!p.transferReason)return'';const rr=p.transferReason;
-  return '<span style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+rr.icon+' '+rr.label+'</span>';
+  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+rr.icon+' '+rr.label+'</span>';
 }
 function genTransferMarket(){
   if(!G)return;
@@ -12047,14 +12047,14 @@ function renderBuyTab(){
   const _sortLbls={ovr:'OVR',age:'Wiek',price:'Cena',demands:'Zadania'};
   const _arrow=_f.sortDir>0?'\u2193':'\u2191'; // ↓ lub ↑
   const _filterBar=
-    '<div style="font-family:VT323,monospace;font-size:9px;margin-bottom:8px;border-bottom:1px solid var(--gl);padding-bottom:8px">'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:8px;border-bottom:1px solid var(--gl);padding-bottom:8px">'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin-bottom:5px">'+
       '<span style="color:var(--gr);margin-right:2px">POZ:</span>'+
-      _posOpts.map(v=>'<button data-key="pos" data-val="'+v+'" onclick="setTrFilter(this.dataset.key,this.dataset.val)" style="font-family:VT323,monospace;font-size:9px;padding:1px 7px;border:1px solid '+(_f.pos===v?'var(--am)':'var(--gl)')+';background:'+(_f.pos===v?'var(--am)':'var(--tb)')+';color:'+(_f.pos===v?'#000':'var(--gr)')+';cursor:pointer">'+(_posLbls[v]||v)+'</button>').join('')+
+      _posOpts.map(v=>'<button data-key="pos" data-val="'+v+'" onclick="setTrFilter(this.dataset.key,this.dataset.val)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.pos===v?'var(--am)':'var(--gl)')+';background:'+(_f.pos===v?'var(--am)':'var(--tb)')+';color:'+(_f.pos===v?'#000':'var(--gr)')+';cursor:pointer">'+(_posLbls[v]||v)+'</button>').join('')+
     '</div>'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">'+
       '<span style="color:var(--gr);margin-right:2px">SORTUJ:</span>'+
-      _sortOpts.map(v=>'<button data-val="'+v+'" onclick="toggleTrSort(this.dataset.val)" style="font-family:VT323,monospace;font-size:9px;padding:1px 7px;border:1px solid '+(_f.sortBy===v?'var(--gb)':'var(--gl)')+';background:'+(_f.sortBy===v?'var(--gm)':'var(--tb)')+';color:'+(_f.sortBy===v?'var(--gb)':'var(--gr)')+';cursor:pointer">'+(_sortLbls[v]||v)+(_f.sortBy===v?' '+_arrow:'')+  '</button>').join('')+
+      _sortOpts.map(v=>'<button data-val="'+v+'" onclick="toggleTrSort(this.dataset.val)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.sortBy===v?'var(--gb)':'var(--gl)')+';background:'+(_f.sortBy===v?'var(--gm)':'var(--tb)')+';color:'+(_f.sortBy===v?'var(--gb)':'var(--gr)')+';cursor:pointer">'+(_sortLbls[v]||v)+(_f.sortBy===v?' '+_arrow:'')+  '</button>').join('')+
     '</div>'+
     '</div>';
   // Zastosuj filtry
@@ -12072,7 +12072,7 @@ function renderBuyTab(){
   });
   const _sale=_mkt.filter(p=>p.section==='sale'||!p.section);
   const _rum=_mkt.filter(p=>p.section==='rumour');
-  function _sh(lbl,cnt,c){return cnt?'<div style="font-family:VT323,monospace;font-size:9px;color:'+c+';margin:8px 0 4px;border-bottom:1px solid '+c+';padding-bottom:2px">'+lbl+' ('+cnt+')</div>':'';}
+  function _sh(lbl,cnt,c){return cnt?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+c+';margin:8px 0 4px;border-bottom:1px solid '+c+';padding-bottom:2px">'+lbl+' ('+cnt+')</div>':'';}
   function _tcard(p,bought){
     const _isObs=!!(p._observed||(G&&G.scout&&(G.scout.observed||[]).find(x=>x.id===p.id)));
     const _isWatching=!_isObs&&G&&G.scout&&(G.scout.modeA||[]).find(x=>x.targetId===p.id);
@@ -12095,20 +12095,20 @@ function renderBuyTab(){
     const showSal=_isObs?fmt(p.salary):'~'+fmt(Math.round(p.salary*(0.85+Math.random()*0.30)/50)*50);
     return '<div class="tcard" style="margin-bottom:8px;border-left:3px solid '+bdr+'">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'+
-        (p._dedicated?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--gb);border:1px solid var(--gb);padding:1px 4px">PASUJE DO SKLADU (Twoj '+POS_SHORT[p.pos]+' sr.OVR '+p._weakOvr+')</span>':
-         p._premium?'<span style="font-family:VT323,monospace;font-size:8px;color:#ffd700;border:1px solid #ffd700;padding:1px 4px">PREMIUM — raz na sezon</span>':
-         p._timed?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--rd);border:1px solid var(--rd);padding:1px 4px">WYGASA ZA 1 TYG.</span>':
+        (p._dedicated?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 4px">PASUJE DO SKLADU (Twoj '+POS_SHORT[p.pos]+' sr.OVR '+p._weakOvr+')</span>':
+         p._premium?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ffd700;border:1px solid #ffd700;padding:1px 4px">PREMIUM — raz na sezon</span>':
+         p._timed?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">WYGASA ZA 1 TYG.</span>':
          sectionBadge(p))+
-        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--am)">OSTATNIA SZANSA</span>':'')+
-        (p.prevClub?(p._fromClubId?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--am);cursor:pointer;text-decoration:underline" onclick="openClubModal('+p._fromClubId+')">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>':'<span style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>'):'')+
+        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">OSTATNIA SZANSA</span>':'')+
+        (p.prevClub?(p._fromClubId?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);cursor:pointer;text-decoration:underline" onclick="openClubModal('+p._fromClubId+')">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>':'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>'):'')+
       '</div>'+
       '<div style="flex:1">'+
         '<div style="display:flex;align-items:center;gap:6px">'+
           '<span class="tr-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;line-height:0;flex-shrink:0"></span>'+
           '<div class="tname">'+p.name+'</div>'+
-          (_isObs?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--gb)">✔ obserwowany</span>':'') +
-          (_isWatching?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--am)">[w obs.]</span>':'')+
-          (p._hot?'<span style="font-family:VT323,monospace;font-size:8px;color:var(--gb)">[HOT]</span>':'')+
+          (_isObs?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">✔ obserwowany</span>':'') +
+          (_isWatching?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">[w obs.]</span>':'')+
+          (p._hot?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">[HOT]</span>':'')+
         '</div>'+
         '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • <span style="color:'+col+'">'+_ovrLabel+'</span> • Pot: '+(_isObs?p.potential:(_showPot!=null?'~'+_showPot:'???'))+'</div>'+
         '<div style="display:flex;gap:8px;margin-top:2px">'+lastSeasonHtml(p)+'&nbsp;'+transferReasonHtml(p)+'</div>'+
@@ -12118,21 +12118,21 @@ function renderBuyTab(){
         '<div>'+getDemandPreview(p)+'</div>'+
       '</div>'+
       '<div style="text-align:right;margin-left:8px">'+
-        (isRum?'<div style="font-family:VT323,monospace;font-size:8px;color:var(--am)">wkrotce</div>':
+        (isRum?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">wkrotce</div>':
           '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">'+
             '<button class="btn-buy" onclick="buyTransfer('+p.id+')" '+(_windowClosed||bought>=3?'disabled style="opacity:0.4"':'')+'>'+(_windowClosed?t('tr_window_closed_short'):t('tr_btn_buy_short'))+'</button>'+
-            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-family:VT323,monospace;font-size:8px;padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">OBSERWUJ</button>':'')+
+            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">OBSERWUJ</button>':'')+
           '</div>')+
       '</div></div>';
   }
-  const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:9px;text-align:center;color:var(--gr)">'+
+  const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
     '🔒 Okno zamknięte — <span style="color:var(--wh)">'+tw.next+'</span>'+(tw.eta?' za <span style="color:var(--am)">'+tw.eta+' kol.</span>':'')+
     ' | Możesz obserwować zawodników skautem</div>':'';
-  el.innerHTML=_closedBanner+_filterBar+'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?'Kupiono: <span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'/3</span> w tym oknie':'Przeglądasz rynek — kupno zablokowane')+'</div>'+
+  el.innerHTML=_closedBanner+_filterBar+'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?'Kupiono: <span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'/3</span> w tym oknie':'Przeglądasz rynek — kupno zablokowane')+'</div>'+
     _sh('NA SPRZEDAZ',_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
     _sh('PLOTKI',_rum.length,'var(--am)')+_rum.map(p=>_tcard(p,bought)).join('')+
-    (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:9px">Brak zawodnikow</div>':'')+
-    '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+
+    (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:var(--fs-dense)">Brak zawodnikow</div>':'')+
+    '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
       '<div style="color:var(--am);margin-bottom:5px">LEGENDA</div>'+
       '<div style="display:flex;flex-direction:column;gap:3px">'+
         '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--rd);flex-shrink:0"></span>NA SPRZEDAZ — wystawiony przez klub AI</div>'+
@@ -12152,10 +12152,10 @@ function renderSellTab(){
   // Oferty AI za wystawionych zawodników
   let offerHtml='';
   if(G.pendingOffers&&G.pendingOffers.length){
-    offerHtml='<div style="font-family:VT323,monospace;font-size:10px;color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">📨 OFERTY AI</div>'+
+    offerHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">📨 OFERTY AI</div>'+
     G.pendingOffers.map(o=>{
       const p=G.players.find(x=>x.id===o.pid);if(!p)return'';
-      return '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px 10px;margin-bottom:6px;font-family:VT323,monospace;font-size:9px">'+
+      return '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px 10px;margin-bottom:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
         '<div style="color:var(--wh)">'+o.clubName+' oferuje <b style="color:var(--am)">'+fmtVal(o.price)+'</b> za '+p.name+'</div>'+
         '<div style="color:var(--gr);margin-top:2px">Wartość: '+fmtVal(p.value)+' • Oferta: '+(Math.round(o.price/p.value*100))+'%</div>'+
         '<div style="display:flex;gap:6px;margin-top:6px">'+
@@ -12165,15 +12165,15 @@ function renderSellTab(){
     }).join('')+'<hr style="border-color:var(--gl);margin:8px 0">';
   }
   if(!tw.open){
-    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-family:VT323,monospace;font-size:9px;color:var(--gr)">🔒 Wystawianie na sprzedaż dostępne w oknie transferowym</div>'+
-      '<div style="margin-top:12px;font-family:VT323,monospace;font-size:9px;color:var(--gb)">MÓJ SKŁAD</div>'+
+    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Wystawianie na sprzedaż dostępne w oknie transferowym</div>'+
+      '<div style="margin-top:12px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">MÓJ SKŁAD</div>'+
       myPl().map(p=>'<div class="tcard" style="margin-top:4px"><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+' • '+fmtVal(p.value)+'</div></div>').join('');
     return;
   }
   const tw2=isTransferWindow();
   const sold2=G.trSoldThisWindow||0;
   el.innerHTML=offerHtml+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:8px">'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+
       (tw2.open?'🟢 Okno '+tw2.type+' • cena 70–100% wartości':'🔴 Okno zamknięte • cena 50–75% wartości')+
       (tw2.open?' • Sprzedano: <span style="color:'+(sold2>=3?'var(--rd)':'var(--am)')+'">'+sold2+'/3</span>':'')+
     '</div>'+
@@ -12191,18 +12191,18 @@ function renderHistoriaTab(){
   const wydano=hist.filter(t=>t.type==='buy').reduce((s,t)=>s+t.val,0);
   const zarobiono=hist.filter(t=>t.type==='sell').reduce((s,t)=>s+t.val,0);
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:9px"><div style="color:var(--gr)">WYDANO</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:9px"><div style="color:var(--gr)">ZAROBIONO</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:var(--fs-dense)"><div style="color:var(--gr)">WYDANO</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:var(--fs-dense)"><div style="color:var(--gr)">ZAROBIONO</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
   '</div>'+
   (hist.length?hist.slice().reverse().map(tr=>
-    '<div style="border-bottom:1px solid var(--gm);padding:6px 0;font-family:VT323,monospace;font-size:9px">'+
+    '<div style="border-bottom:1px solid var(--gm);padding:6px 0;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<span style="color:'+(tr.type==='buy'?'var(--rd)':'var(--gb)')+'">'+( tr.type==='buy'?t('tr_log_buy'):t('tr_log_sell'))+'</span> '+
       '<span style="color:var(--wh)">'+tr.name+'</span> '+
       '<span style="color:var(--am)">'+fmtVal(tr.val)+'</span>'+
       (tr.club?' <span style="color:var(--gr)">← '+tr.club+'</span>':'')+
       ' <span style="color:var(--gr)">S'+tr.season+' T'+tr.week+'</span>'+
     '</div>'
-  ).join(''):'<div style="color:var(--gr);font-size:9px;padding:12px 0">Brak transakcji</div>');
+  ).join(''):'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px 0">Brak transakcji</div>');
 }
 // ── ANALITYKA TRANSFEROWA ─────────────────────────────────────────────────
 let _analSubTab='rankingi';
@@ -12253,40 +12253,40 @@ function renderAnalitykaContent(){
   function fv(v){if(!v&&v!==0)return'—';if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return Math.round(v/1000)+'K';return v+'';}
 
   if(_analSubTab==='rankingi'){
-    if(!paired.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:16px 0;text-align:center">Brak zakończonych transferów do analizy.</div>';return;}
+    if(!paired.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">Brak zakończonych transferów do analizy.</div>';return;}
     const best=byRoi.slice(0,3);
     const worst=[...byRoi].reverse().slice(0,Math.min(2,byRoi.length));
     const medals=['🥇','🥈','🥉'];
-    let h='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--gb);margin:0 0 8px;letter-spacing:1px">🏆 NAJLEPSZE TRANSFERY</div>';
+    let h='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">🏆 NAJLEPSZE TRANSFERY</div>';
     h+=best.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
       return '<div style="background:var(--tb);border:2px solid var(--gb);border-left:4px solid var(--gb);padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--wh)">'+medals[i]+' '+t.name+'</span>'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:8px;color:'+roiCol(r)+'">'+
+          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--wh)">'+medals[i]+' '+t.name+'</span>'+
+          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+
             (r===999?'∞':(r>0?'+':'')+r+'%')+
           '</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px">'+
+        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+(t.isAcad?' 🌱':'')+'</span>'+
           '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+' zł</span>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-top:2px">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+
           (t.buyPrice===0?'gratis':fv(t.buyPrice))+' → '+fv(t.sellPrice)+
         '</div>'+
       '</div>';
     }).join('');
-    h+='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--rd);margin:12px 0 8px;letter-spacing:1px">💀 NAJGORSZE TRANSFERY</div>';
+    h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--rd);margin:12px 0 8px;letter-spacing:1px">💀 NAJGORSZE TRANSFERY</div>';
     h+=worst.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
       return '<div style="background:var(--tb);border:2px solid var(--rd);border-left:4px solid var(--rd);padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--wh)">#'+(i+1)+' '+t.name+'</span>'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:8px;color:var(--rd)">'+r+'%</span>'+
+          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--wh)">#'+(i+1)+' '+t.name+'</span>'+
+          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:var(--rd)">'+r+'%</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px">'+
+        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+'</span>'+
           '<span style="color:var(--rd)">'+fv(profit)+' zł</span>'+
         '</div>'+
@@ -12294,7 +12294,7 @@ function renderAnalitykaContent(){
     }).join('');
     // Bar chart bilans per sezon
     if(seasons.length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--gb);margin:12px 0 8px;letter-spacing:1px">📈 BILANS NETTO PER SEZON</div>';
+      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:12px 0 8px;letter-spacing:1px">📈 BILANS NETTO PER SEZON</div>';
       const seasonNets=seasons.map(s=>{
         const nb=buys.filter(b=>b.season===s).reduce((x,b)=>x+b.val,0);
         const ns=sells.filter(sl=>sl.season===s).reduce((x,sl)=>x+sl.val,0);
@@ -12305,9 +12305,9 @@ function renderAnalitykaContent(){
         const w=Math.round(Math.abs(x.net)/maxAbs*100);
         const col=x.net>=0?'var(--gb)':'var(--rd)';
         return '<div style="margin-bottom:9px">'+
-          '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px;margin-bottom:3px">'+
+          '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">'+
             '<span style="color:var(--gr)">SEZON '+x.s+'</span>'+
-            '<span style="font-family:Press Start 2P,monospace;font-size:6px;color:'+col+'">'+(x.net>=0?'+':'')+fv(x.net)+'</span>'+
+            '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+col+'">'+(x.net>=0?'+':'')+fv(x.net)+'</span>'+
           '</div>'+
           '<div style="height:10px;background:#000;border:1px solid var(--gl)">'+
             '<div style="height:100%;width:'+w+'%;background:'+col+'"></div>'+
@@ -12319,7 +12319,7 @@ function renderAnalitykaContent(){
 
   } else {
     // ── STATYSTYKI ──
-    let h='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--gb);margin:0 0 8px;letter-spacing:1px">KLUCZOWE WSKAŹNIKI</div>';
+    let h='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">KLUCZOWE WSKAŹNIKI</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
       [
         {icon:'💰',lbl:'Bilans netto',val:(totalNet>=0?'+':'')+fv(totalNet)+' zł',col:totalNet>=0?'var(--gb)':'var(--rd)'},
@@ -12328,21 +12328,21 @@ function renderAnalitykaContent(){
         {icon:'🌱',lbl:'Wychowankowie',val:acadsSprzedani+' sprzed.',col:'var(--gb)'},
       ].map(b=>
         '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px;text-align:center">'+
-          '<div style="font-size:18px;margin-bottom:4px">'+b.icon+'</div>'+
-          '<div style="font-family:Press Start 2P,monospace;font-size:8px;color:'+b.col+'">'+b.val+'</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-top:2px">'+b.lbl+'</div>'+
+          '<div style="font-size:var(--fs-display);margin-bottom:4px">'+b.icon+'</div>'+
+          '<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+b.col+'">'+b.val+'</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+b.lbl+'</div>'+
         '</div>'
       ).join('')+
     '</div>';
     // ROI per zawodnik
     if(byRoi.length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--gb);margin:0 0 8px;letter-spacing:1px">ROI% PER ZAWODNIK</div>';
-      h+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:9px;margin-bottom:12px">'+
+      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">ROI% PER ZAWODNIK</div>';
+      h+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--gl)">'+
-          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:6px">ZAWODNIK</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:6px">KUPNO</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:6px">SPRZED.</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:6px">ROI</th>'+
+          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">ZAWODNIK</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">KUPNO</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">SPRZED.</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">ROI</th>'+
         '</tr></thead><tbody>'+
         byRoi.map(t=>{
           const r=roiCalc(t.buyPrice,t.sellPrice);
@@ -12350,7 +12350,7 @@ function renderAnalitykaContent(){
             '<td style="padding:6px 4px;color:'+(t.isAcad?'var(--gb)':'var(--wh)')+'">'+t.name+(t.isAcad?' 🌱':'')+'</td>'+
             '<td style="text-align:right;padding:6px 4px;color:var(--gr)">'+(t.buyPrice===0?'—':fv(t.buyPrice))+'</td>'+
             '<td style="text-align:right;padding:6px 4px;color:var(--gb)">'+fv(t.sellPrice)+'</td>'+
-            '<td style="text-align:right;padding:6px 4px;font-family:Press Start 2P,monospace;font-size:6px;color:'+roiCol(r)+'">'+(r===999?'∞':(r>0?'+':'')+r+'%')+'</td>'+
+            '<td style="text-align:right;padding:6px 4px;font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+(r===999?'∞':(r>0?'+':'')+r+'%')+'</td>'+
           '</tr>';
         }).join('')+
         '</tbody></table>';
@@ -12363,11 +12363,11 @@ function renderAnalitykaContent(){
       posG[t.pos].count++;posG[t.pos].net+=t.sellPrice-t.buyPrice;
     });
     if(Object.keys(posG).length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:7px;color:var(--gb);margin:0 0 8px;letter-spacing:1px">BILANS WG POZYCJI</div>';
+      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">BILANS WG POZYCJI</div>';
       h+=Object.entries(posG).map(([pos,d])=>{
         const avg=Math.round(d.net/d.count);
         const posColors={NAP:'var(--rd)',POL:'var(--am)',OBR:'var(--gb)',GK:'#64b5f6'};
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 6px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:9px">'+
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 6px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
           '<span><span style="background:'+(posColors[pos]||'var(--gr)')+';color:#000;padding:1px 5px;margin-right:6px">'+pos+'</span>'+
           '<span style="color:var(--gr)">×'+d.count+'</span></span>'+
           '<span style="color:'+(avg>=0?'var(--gb)':'var(--rd)')+'">śr. '+(avg>=0?'+':'')+fv(avg)+' / tr.</span>'+
@@ -12376,8 +12376,8 @@ function renderAnalitykaContent(){
     }
     // Ocena dyrektora
     h+='<div style="margin-top:14px;background:#0d1f0d;border:1px solid var(--am);padding:10px 12px">'+
-      '<div style="font-family:Press Start 2P,monospace;font-size:6px;color:var(--am);margin-bottom:6px">🏅 OCENA DYREKTORA SPORTOWEGO</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--wh);line-height:1.6">'+
+      '<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">🏅 OCENA DYREKTORA SPORTOWEGO</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);line-height:1.6">'+
         (paired.length===0?'Brak zakończonych transferów.':
           totalNet>0?'Bilans na plusie (+'+fv(totalNet)+' zł). Niezłe oko do talentów!':
           'Bilans na minusie. Czas na lepsze zakupy.')+
@@ -12416,37 +12416,37 @@ function renderBuyModal(p){
   const _ovrLabel=_isObs?('OVR '+_rawOvr):('OVR ~'+_showOvr+' ±'+_err.max);
   mt.innerHTML=
     '<div style="font-family:VT323,monospace">'+
-    '<div style="font-size:10px;color:var(--wh);margin-bottom:4px">'+p.name+' ('+POS_SHORT[p.pos]+', '+p.age+'l, '+_ovrLabel+')</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:4px">'+p.name+' ('+POS_SHORT[p.pos]+', '+p.age+'l, '+_ovrLabel+')</div>'+
     (function(){
       const _bon=o.signing&&p.demands&&p.demands.includes('signing')?Math.round(Math.max(p.salary,o.salary||p.salary)*2/500)*500:0;
       const _total=p.transferPrice+_bon;
-      return '<div style="font-size:9px;color:var(--gr);margin-bottom:2px">Cena zakupu: <b style="color:var(--am)">'+fmt(p.transferPrice)+'</b></div>'+
-        (_bon>0?'<div style="font-size:9px;color:var(--gr);margin-bottom:2px">Bonus podpisania: <b style="color:var(--rd)">'+fmtVal(_bon)+'</b></div>'+
-          '<div style="font-size:9px;color:var(--wh);margin-bottom:8px;border-top:1px solid var(--gl);padding-top:4px">ŁĄCZNY KOSZT: <b style="color:var(--rd)">'+fmtVal(_total)+'</b></div>'
+      return '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">Cena zakupu: <b style="color:var(--am)">'+fmt(p.transferPrice)+'</b></div>'+
+        (_bon>0?'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">Bonus podpisania: <b style="color:var(--rd)">'+fmtVal(_bon)+'</b></div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;border-top:1px solid var(--gl);padding-top:4px">ŁĄCZNY KOSZT: <b style="color:var(--rd)">'+fmtVal(_total)+'</b></div>'
         :'<div style="margin-bottom:8px"></div>');
     })()+
     '<div style="border:1px solid var(--gl);padding:8px;margin-bottom:8px">'+
-      '<div style="font-size:9px;color:var(--am);margin-bottom:4px">OCZEKIWANIA ZAWODNIKA ('+met+'/3)</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">OCZEKIWANIA ZAWODNIKA ('+met+'/3)</div>'+
       demandsHtmlInteractive(p,o)+
     '</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;font-size:9px">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;font-size:var(--fs-dense)">'+
       '<div style="border:1px solid var(--gl);padding:6px">'+
         '<div style="color:var(--gr);margin-bottom:3px">Pensja /mc</div>'+
         '<div style="display:flex;gap:3px">'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="-500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:10px;padding:2px 6px;cursor:pointer">-</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="-500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-sal" style="color:var(--am);flex:1;text-align:center">'+fmt(o.salary)+'</span>'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:10px;padding:2px 6px;cursor:pointer">+</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
         '</div></div>'+
       '<div style="border:1px solid var(--gl);padding:6px">'+
         '<div style="color:var(--gr);margin-bottom:3px">Kontrakt (sez.)</div>'+
         '<div style="display:flex;gap:3px">'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="-1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:10px;padding:2px 6px;cursor:pointer">-</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="-1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-con" style="color:var(--am);flex:1;text-align:center">'+o.contract+'</span>'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:10px;padding:2px 6px;cursor:pointer">+</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
         '</div></div>'+
     '</div>'+
 
-    '<div style="border:1px solid '+metCol+';padding:6px;font-size:9px;color:'+metCol+'">'+
+    '<div style="border:1px solid '+metCol+';padding:6px;font-size:var(--fs-dense);color:'+metCol+'">'+
       'Wynik: <b>'+met+'/3</b> — '+metLbl+
     '</div>'+
     '</div>';
@@ -12666,7 +12666,7 @@ function getDemandPreview(p){
   if(!p.demands||!G)return'';
   const met=demandsMetCount(p,Math.round(p.salary*1.15/50)*50,2,false);
   const col=met>=3?'var(--gb)':met>=2?'var(--am)':'var(--rd)';
-  return '<span style="font-family:VT323,monospace;font-size:8px;color:'+col+'">Oczekiwania: '+met+'/3 spełnionych</span>';
+  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+col+'">Oczekiwania: '+met+'/3 spełnionych</span>';
 }
 function setTrFilter(key,val){
   if(!G)return;
@@ -12769,7 +12769,7 @@ function renderScoutsTab(){
   if(!G.scout)G.scout={level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]};
   const sc=G.scout;const sd=scoutDef();const acadLvl=getAcadLvl();
   const canB=canScoutModeB();
-  let html='<div style="font-family:VT323,monospace;font-size:9px">';
+  let html='<div style="font-family:VT323,monospace;font-size:var(--fs-dense)">';
   // ── POZIOM SKAUTA ───────────────────────────────────────────────────
   html+='<div style="border:1px solid var(--am);padding:8px;margin-bottom:8px">'+
     '<div style="color:var(--am);margin-bottom:4px">SKAUT: '+(sd.label||sd.name||'').toUpperCase()+'</div>'+
@@ -12780,22 +12780,22 @@ function renderScoutsTab(){
   const myLvl=G.myLeague||8;
   const upgradeOptions=SCOUTS_DEF.filter(s=>s.id!=='free'&&s.id!==sd.id);
   if(upgradeOptions.length){
-    html+='<div style="margin-top:6px;color:var(--gr);font-size:8px;letter-spacing:1px">DOSTĘPNE POZIOMY:</div>';
+    html+='<div style="margin-top:6px;color:var(--gr);font-size:var(--fs-dense);letter-spacing:1px">DOSTĘPNE POZIOMY:</div>';
     upgradeOptions.forEach(opt=>{
       const isActive=opt.id===sd.id;
       const leagueOk=myLvl<=opt.minLeague;// np. minLeague:6 = dostępny od VI ligi wzwyż (myLvl 1-6)
       const budgetOk=G.budget>=opt.cost;
       if(leagueOk){
         if(budgetOk){
-          html+='<button data-sid="'+opt.id+'" onclick="upgradeScout(this.dataset.sid)" style="width:100%;margin-top:4px;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:10px;padding:6px;cursor:pointer;text-align:left">'+
+          html+='<button data-sid="'+opt.id+'" onclick="upgradeScout(this.dataset.sid)" style="width:100%;margin-top:4px;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-dense);padding:6px;cursor:pointer;text-align:left">'+
             '▶ '+(opt.label||opt.name)+' — '+fmt(opt.cost)+' zł</button>';
         } else {
-          html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:9px;color:var(--rd)">'+
+          html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:var(--fs-dense);color:var(--rd)">'+
             (opt.label||opt.name)+' — brakuje '+fmt(opt.cost-G.budget)+' zł</div>';
         }
       } else {
         const reqName=LEAGUE_NAMES[opt.minLeague]||t('league_n').replace('{n}',opt.minLeague);
-        html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:9px;color:var(--gr)">'+
+        html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:var(--fs-dense);color:var(--gr)">'+
           '🔒 '+(opt.label||opt.name)+' — wymaga '+reqName+' lub wyżej</div>';
       }
     });
@@ -12817,29 +12817,29 @@ function renderScoutsTab(){
   if(actA.length<sd.modeA_slots){
     const slotsLeft=sd.modeA_slots-actA.length;
     html+='<div style="margin-bottom:8px">'
-      +'<div style="font-family:\'Press Start 2P\',monospace;font-size:5px;color:var(--gr);letter-spacing:1px;margin-bottom:6px">WYŚLIJ NA OBSERWACJĘ ('+slotsLeft+' slot'+(slotsLeft>1?'ów':'')+' wolny'+(slotsLeft>1?'ch':'')+')</div>'
+      +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:6px">WYŚLIJ NA OBSERWACJĘ ('+slotsLeft+' slot'+(slotsLeft>1?'ów':'')+' wolny'+(slotsLeft>1?'ch':'')+')</div>'
       // Karta: Z plotki
       +'<div onclick="sendScoutModeA(\'rumour\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--am);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
-        +'<span style="font-size:20px;flex-shrink:0">💬</span>'
+        +'<span style="font-size:var(--fs-display);flex-shrink:0">💬</span>'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--am);margin-bottom:3px">Z PLOTKI</div>'
-          +'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Obserwuj zawodnika z aktualnych plotek transferowych</div>'
+          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">Z PLOTKI</div>'
+          +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Obserwuj zawodnika z aktualnych plotek transferowych</div>'
         +'</div>'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:8px;color:var(--am)">▶</span>'
+        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">▶</span>'
       +'</div>'
       // Karta: Konkretny klub
       +'<div onclick="sendScoutModeA(\'club\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--gb);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
-        +'<span style="font-size:20px;flex-shrink:0">🔍</span>'
+        +'<span style="font-size:var(--fs-display);flex-shrink:0">🔍</span>'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gb);margin-bottom:3px">KONKRETNY KLUB</div>'
-          +'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Sprawdź skład wybranego rywala i znajdź kandydatów</div>'
+          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb);margin-bottom:3px">KONKRETNY KLUB</div>'
+          +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Sprawdź skład wybranego rywala i znajdź kandydatów</div>'
         +'</div>'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:8px;color:var(--gb)">▶</span>'
+        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb)">▶</span>'
       +'</div>'
-      +'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:0 2px">💡 Możesz też kliknąć OBSERWUJ na karcie zawodnika w zakładce KUP</div>'
+      +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:0 2px">💡 Możesz też kliknąć OBSERWUJ na karcie zawodnika w zakładce KUP</div>'
     +'</div>';
   } else {
-    html+='<div style="color:var(--gr);font-size:8px;margin-bottom:8px">Wszystkie sloty zajęte ('+actA.length+'/'+sd.modeA_slots+')</div>';
+    html+='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">Wszystkie sloty zajęte ('+actA.length+'/'+sd.modeA_slots+')</div>';
   }
   // Wyniki obserwacji A (obserwowani)
   const obsv=sc.observed||[];
@@ -12861,7 +12861,7 @@ function renderScoutsTab(){
     html+='<div style="border:1px solid var(--gl);padding:8px;color:var(--gr)">'+
       '<div style="color:var(--am);margin-bottom:4px">Tryb B niedostępny</div>'+
       '<div>Zbuduj Akademię Piłkarską żeby odkrywać talentów.</div>'+
-      '<div style="font-size:8px;margin-top:4px">Akademia Podstawowa: max 2 talenty/sezon, pot do 75<br>'+
+      '<div style="font-size:var(--fs-dense);margin-top:4px">Akademia Podstawowa: max 2 talenty/sezon, pot do 75<br>'+
       'Akademia Elitarna: max 8 talentów/sezon, pot do 92</div>'+
     '</div>';
   } else {
@@ -12871,11 +12871,11 @@ function renderScoutsTab(){
     if(sc.modeB&&sc.modeB.active){
       html+='<div style="border:1px solid var(--am);padding:6px;margin-bottom:6px">'+
         '<div style="color:var(--am)">Skaut w terenie — powrót za '+sc.modeB.roundsLeft+' kolejki</div>'+
-        '<div style="color:var(--gr);font-size:8px">Region: liga ±'+sd.modeB_range+' • Wiek: '+sd.modeB_minAge+'-20</div></div>';
+        '<div style="color:var(--gr);font-size:var(--fs-dense)">Region: liga ±'+sd.modeB_range+' • Wiek: '+sd.modeB_minAge+'-20</div></div>';
     } else if(curT<maxT){
       html+='<div style="color:var(--gr);margin-bottom:4px">Wyślij skauta:</div>'+
         '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">'+
-        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-family:VT323,monospace;font-size:9px;padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos||'Dowolna')+'</button>').join('')+
+        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos||'Dowolna')+'</button>').join('')+
         '</div>';
     } else {
       html+='<div style="color:var(--rd)">Osiągnięto limit talentów na ten sezon</div>';
@@ -12889,14 +12889,14 @@ function renderScoutsTab(){
         html+='<div style="border:1px solid var(--gb);padding:8px;margin-bottom:6px">'+
           '<div style="display:flex;justify-content:space-between">'+
             '<div style="color:var(--gb)">'+p.name+'</div>'+
-            '<div style="color:var(--rd);font-size:8px">'+p._talentDecisionWeeks+' kolejki na decyzję</div>'+
+            '<div style="color:var(--rd);font-size:var(--fs-dense)">'+p._talentDecisionWeeks+' kolejki na decyzję</div>'+
           '</div>'+
           '<div style="color:var(--gr)">'+POS_SHORT[p.pos]+' • '+p.age+'l • OVR '+ovr(p)+' • <b style="color:var(--am)">Pot: '+p.potential+'</b></div>'+
           '<div style="color:var(--gr)">'+p.prevClub+'</div>'+
           '<div style="color:var(--am)">Koszt podpisania: '+(cost>0?fmt(cost):'GRATIS (amator)')+'</div>'+
           '<div style="display:flex;gap:4px;margin-top:6px">'+
-            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:11px;padding:6px;cursor:pointer">PODPISZ</button>'+
-            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-family:VT323,monospace;font-size:11px;padding:6px;cursor:pointer">ODRZUĆ</button>'+
+            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODPISZ</button>'+
+            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">ODRZUĆ</button>'+
           '</div></div>';
       });
     }
@@ -12941,9 +12941,9 @@ function showClubPicker(){
   const myLvl=G.myLeague||8;
   const clubs=(G.leagues||[]).filter(l=>Math.abs(l.level-myLvl)<=1).flatMap(l=>l.clubs||[]).filter(c=>c.id!==G.myClubId);
   const el=document.getElementById('tr-skauci');if(!el)return;
-  const picker='<div style="border:1px solid var(--am);padding:8px;margin-top:6px;font-family:VT323,monospace;font-size:9px">'+
+  const picker='<div style="border:1px solid var(--am);padding:8px;margin-top:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
     '<div style="color:var(--am);margin-bottom:4px">WYBIERZ KLUB DO OBSERWACJI</div>'+
-    clubs.slice(0,12).map(c=>'<button onclick="scoutObserveClub('+c.id+')" style="display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--gl);background:transparent;color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:4px 0;cursor:pointer">'+c.n+'</button>').join('')+
+    clubs.slice(0,12).map(c=>'<button onclick="scoutObserveClub('+c.id+')" style="display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--gl);background:transparent;color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0;cursor:pointer">'+c.n+'</button>').join('')+
   '</div>';
   el.insertAdjacentHTML('beforeend',picker);
 }
@@ -13022,7 +13022,7 @@ function fillTransfers(){
   else if(tabKey==='tr_tab_scouts')renderScoutsTab();
   else if(tabKey==='tr_tab_history')renderHistoriaTab();
 }
-function renderMarket(pls){const el=document.getElementById('tr-market');if(!el)return;el.innerHTML=pls.length?pls.map(p=>'<div class="tcard"><div><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' \u2022 '+p.age+'l \u2022 OVR '+ovr(p)+' \u2022 '+fmtVal(p.value)+'</div><button class="btn-buy" onclick="buyMP(\''+p.id+'\')">'+t('tr_btn_buy').replace('{n}',fmtVal(p.value))+'</button></div><div class="t-ovr">'+ovr(p)+'</div></div>').join(''):'<div style="color:var(--gr);padding:12px;font-size:9px">'+t('tr_no_players')+'</div>';}
+function renderMarket(pls){const el=document.getElementById('tr-market');if(!el)return;el.innerHTML=pls.length?pls.map(p=>'<div class="tcard"><div><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' \u2022 '+p.age+'l \u2022 OVR '+ovr(p)+' \u2022 '+fmtVal(p.value)+'</div><button class="btn-buy" onclick="buyMP(\''+p.id+'\')">'+t('tr_btn_buy').replace('{n}',fmtVal(p.value))+'</button></div><div class="t-ovr">'+ovr(p)+'</div></div>').join(''):'<div style="color:var(--gr);padding:12px;font-size:var(--fs-dense)">'+t('tr_no_players')+'</div>';}
 function sellPlayer(id){openSellModal(id);}
 
 // ══════════════════════════════════════════════════════════════
@@ -13112,11 +13112,11 @@ function _renderClubCard(club,ai,def,lgSt){
     const filled=Math.round(pct/10);
     return '<div style="display:flex;gap:1px;align-items:center">'+
       Array.from({length:10},(_,i)=>'<div style="width:16px;height:7px;background:'+(i<filled?col:'#1a2a1a')+'"></div>').join('')+
-      '<span style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-left:5px">'+pct+'%</span>'+
+      '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-left:5px">'+pct+'%</span>'+
     '</div>';
   }
   function row2(label,val){
-    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:10px">'+
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<span style="color:var(--gr)">'+label+'</span><span style="color:var(--wh)">'+val+'</span></div>';
   }
   // Log transferów
@@ -13146,23 +13146,23 @@ function _renderClubCard(club,ai,def,lgSt){
     const dirStr=isBuy
       ?(tr.fromClub?clubLink(tr.fromClub):'← FA')
       :(tr.toClub?clubLink(tr.toClub):(livePl&&livePl.status==='retired'?'→ 🏁':'→ FA'));
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:10px">'+
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<div style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:0">'+
         '<div style="display:flex;gap:6px;align-items:center">'+icon+nameHtml+'</div>'+
-        '<div style="color:var(--gr);font-size:9px">'+(POS_SHORT[tr.pos]||tr.pos)+' • '+ageStr+' • <span style="color:var(--am)">'+dirStr+'</span></div>'+
+        '<div style="color:var(--gr);font-size:var(--fs-dense)">'+(POS_SHORT[tr.pos]||tr.pos)+' • '+ageStr+' • <span style="color:var(--am)">'+dirStr+'</span></div>'+
       '</div>'+
       '<div style="text-align:right;flex-shrink:0;margin-left:8px">'+
         '<div style="color:'+(isBuy?'var(--rd)':'var(--gb)')+'">'+priceStr+'</div>'+
-        '<div style="color:var(--gr);font-size:9px">S'+tr.season+'</div>'+
+        '<div style="color:var(--gr);font-size:var(--fs-dense)">S'+tr.season+'</div>'+
       '</div>'+
     '</div>';
-  }).join(''):'<div style="color:var(--gr);font-family:VT323,monospace;font-size:10px;padding:8px 0">'+t('tr_no_history')+'</div>';
+  }).join(''):'<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:8px 0">'+t('tr_no_history')+'</div>';
 
   const isMyClub=club.id===G.myClubId;
   el.innerHTML=
     // ── FILOZOFIA ──
     '<div style="background:#0d2b0d;border:1px solid var(--gb);padding:10px 12px;margin-bottom:10px">'+
-      '<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr);line-height:1.4">'+def.icon+' '+def.desc+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);line-height:1.4">'+def.icon+' '+def.desc+'</div>'+
     '</div>'+
     // ── STATYSTYKI (skrócone) ──
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:10px">'+
@@ -13177,7 +13177,7 @@ function _renderClubCard(club,ai,def,lgSt){
       const sMin=seasons.length?Math.min(...seasons):null;
       const sMax=seasons.length?Math.max(...seasons):null;
       const range=sMin&&sMax?(sMin===sMax?' • S'+sMin:' • S'+sMin+'–S'+sMax):'';
-      return '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--gb);letter-spacing:1px;margin-bottom:6px">OSTATNIE TRANSFERY<span style="color:var(--gr)">'+range+'</span></div>';
+      return '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb);letter-spacing:1px;margin-bottom:6px">OSTATNIE TRANSFERY<span style="color:var(--gr)">'+range+'</span></div>';
     })()+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px">'+logHtml+'</div>';
 }
@@ -13185,27 +13185,27 @@ function _renderClubCard(club,ai,def,lgSt){
 function _renderClubSquad(clubId){
   const el=document.getElementById('cm-pane-sklad');if(!el||!G)return;
   const squad=G.players.filter(p=>p.clubId===clubId).sort((a,b)=>posOrd(a.pos)-posOrd(b.pos)||ovr(b)-ovr(a));
-  if(!squad.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:10px;padding:12px">Brak zawodników</div>';return;}
+  if(!squad.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:12px">Brak zawodników</div>';return;}
   const starId=squad.reduce((b,p)=>ovr(p)>ovr(b)?p:b,squad[0]).id;
   const club=ALL_CLUBS.find(c=>c.id===clubId)||{n:'?'};
   let html=
     '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0d2b0d;border-bottom:2px solid var(--gb);cursor:pointer" onclick="openClubModal('+clubId+')">'+
-      '<div style="font-family:VT323,monospace;font-size:12px;color:var(--am)">⬅ '+club.n+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">• '+squad.length+' zawodników</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am)">⬅ '+club.n+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">• '+squad.length+' zawodników</div>'+
     '</div>';
   POS_GROUPS.forEach(pg=>{
     const grp=squad.filter(p=>p.pos===pg.key);if(!grp.length)return;
-    html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb);background:#0d1f0d;padding:6px 12px;border-left:3px solid var(--gb);letter-spacing:2px">'+pg.short+' — '+pg.label+'</div>';
+    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);background:#0d1f0d;padding:6px 12px;border-left:3px solid var(--gb);letter-spacing:2px">'+pg.short+' — '+pg.label+'</div>';
     grp.forEach(p=>{
       const isStar=p.id===starId;
       html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #0d1f0d;'+(isStar?'background:#0d2b0d;':'')+'cursor:pointer" onclick="window._playerReturnTo=\'club-squad\';window._playerReturnClubId='+clubId+';closeClubModal();setTimeout(function(){showById('+p.id+');},80);">'+
         '<span class="cms-face-slot" data-pid="'+p.id+'" style="display:inline-block;line-height:0;flex-shrink:0"></span>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);width:28px;flex-shrink:0">'+(POS_SHORT[p.pos]||p.pos)+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);width:28px;flex-shrink:0">'+(POS_SHORT[p.pos]||p.pos)+'</div>'+
         '<div style="flex:1;min-width:0">'+
-          '<div style="font-family:VT323,monospace;font-size:11px;color:'+(isStar?'var(--am)':'var(--wh)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(isStar?'var(--am)':'var(--wh)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
             (isStar?'⭐ ':'')+p.name+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+p.age+' lat</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+p.age+' lat</div>'+
         '</div>'+
       '</div>';
     });
@@ -13271,12 +13271,12 @@ function _renderClubHistory(clubId){
 
   function statBox(label,val,col){
     return '<div style="flex:1;min-width:0;background:var(--tb);border:1px solid var(--gl);padding:8px 6px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:18px;color:'+(col||'var(--am)')+'">'+val+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);line-height:1.3;white-space:pre-line">'+label+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-display);color:'+(col||'var(--am)')+'">'+val+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);line-height:1.3;white-space:pre-line">'+label+'</div>'+
     '</div>';
   }
   function secHead(icon,label,col){
-    return '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:'+(col||'var(--gb)')+';letter-spacing:1px;margin:12px 0 6px">'+icon+' '+label+'</div>';
+    return '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+(col||'var(--gb)')+';letter-spacing:1px;margin:12px 0 6px">'+icon+' '+label+'</div>';
   }
 
   var statsHtml=
@@ -13346,7 +13346,7 @@ function _renderClubHistory(clubId){
       svgP+='<text x="'+(Math.round(x)+barWp/2)+'" y="'+(Hp-4)+'" fill="#3a5a3a" font-family="VT323,monospace" font-size="7" text-anchor="middle">S'+e.season+'</text>';
     });
     ptsHtml=secHead('🏅','PUNKTY PER SEZON','var(--am)')+
-      '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-bottom:4px">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
         '<span style="color:#ffd700">■</span> Mistrz &nbsp;<span style="color:#4caf50">■</span> Podium &nbsp;<span style="color:#1565c0">■</span> Pozostałe'+
       '</div>'+
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
@@ -13386,7 +13386,7 @@ function _renderClubHistory(clubId){
         svgT+='<text x="'+(Math.round(x)+barWt/2)+'" y="'+(Ht-4)+'" fill="#3a5a3a" font-family="VT323,monospace" font-size="7" text-anchor="middle">S'+s+'</text>';
       });
       tfrHtml=secHead('💸','TRANSFERY PER SEZON','#e040fb')+
-        '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-bottom:4px">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
           '<span style="color:#f44336">■</span> Wydatki &nbsp;<span style="color:#4caf50">■</span> Przychody'+
         '</div>'+
         '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
@@ -13436,14 +13436,14 @@ function _renderClubHistory(clubId){
         var medal=idx===0?'🥇 ':idx===1?'🥈 ':idx===2?'🥉 ':'';
         return '<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #0d1f0d">'+
           '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
-            '<span style="font-family:VT323,monospace;font-size:11px;color:var(--am);cursor:pointer" onclick="showById('+p.id+')">'+medal+p.name+' ⭐</span>'+
-            '<span style="font-family:VT323,monospace;font-size:11px;color:var(--am)">'+p.score+' pkt</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);cursor:pointer" onclick="showById('+p.id+')">'+medal+p.name+' ⭐</span>'+
+            '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am)">'+p.score+' pkt</span>'+
           '</div>'+
         '</div>';
       }).join('')+
       '</div>';
   } else {
-    legendsHtml+='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;color:var(--gr);font-family:VT323,monospace;font-size:11px">Żaden zawodnik nie osiągnął jeszcze statusu legendy.</div>';
+    legendsHtml+='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-meta)">Żaden zawodnik nie osiągnął jeszcze statusu legendy.</div>';
   }
 
   // ── Trofea ──────────────────────────────────────────────────────────
@@ -13454,9 +13454,9 @@ function _renderClubHistory(clubId){
       allTrophies.map(function(t){
         var icon=t.type==='cup'?'🥇':'👑';
         var label=t.type==='cup'?'Puchar':'Mistrz';
-        return '<div style="font-family:VT323,monospace;font-size:10px;background:#0d2b0d;border:1px solid var(--gb);padding:4px 8px;text-align:center">'+
+        return '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);background:#0d2b0d;border:1px solid var(--gb);padding:4px 8px;text-align:center">'+
           '<div>'+icon+' '+label+'</div>'+
-          '<div style="color:var(--gr);font-size:8px">S'+t.season+'</div>'+
+          '<div style="color:var(--gr);font-size:var(--fs-dense)">S'+t.season+'</div>'+
         '</div>';
       }).join('')+
       '</div>';
@@ -13468,17 +13468,17 @@ function _renderClubHistory(clubId){
     var rows=entries.slice().reverse().slice(0,10);
     tableHtml=secHead('📋','OSTATNIE SEZONY','var(--gb)')+
       '<div style="background:var(--tb);border:1px solid var(--gl)">'+
-      '<div style="display:grid;grid-template-columns:32px 28px 1fr 36px 36px 36px;font-family:VT323,monospace;font-size:8px;color:var(--gr);padding:4px 8px;border-bottom:1px solid var(--gl)">'+
+      '<div style="display:grid;grid-template-columns:32px 28px 1fr 36px 36px 36px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:4px 8px;border-bottom:1px solid var(--gl)">'+
         '<span>SEZ</span><span>POZ</span><span>LIGA</span><span style="text-align:center">M</span><span style="text-align:center">G</span><span style="text-align:center">PKT</span>'+
       '</div>'+
       rows.map(function(e){
         var posCol=e.pos===1?'var(--am)':e.pos<=3?'var(--gb)':e.pos>=e.total-1?'var(--rd)':'var(--wh)';
         var lgShort=_leagueNamesShortMap()[e.lg]||('L'+e.lg);
         var trophy=e.pos===1?'👑':'';
-        return '<div style="display:grid;grid-template-columns:32px 28px 1fr 36px 36px 36px;font-family:VT323,monospace;font-size:10px;padding:5px 8px;border-bottom:1px solid #0d1f0d;align-items:center">'+
+        return '<div style="display:grid;grid-template-columns:32px 28px 1fr 36px 36px 36px;font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 8px;border-bottom:1px solid #0d1f0d;align-items:center">'+
           '<span style="color:var(--gr)">S'+e.season+'</span>'+
           '<span style="color:'+posCol+';font-weight:bold">'+trophy+e.pos+'.</span>'+
-          '<span style="color:var(--gr);font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+lgShort+'</span>'+
+          '<span style="color:var(--gr);font-size:var(--fs-dense);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+lgShort+'</span>'+
           '<span style="text-align:center;color:var(--wh)">'+(e.w+e.d+e.l)+'</span>'+
           '<span style="text-align:center;color:var(--gr)">'+(e.gf||0)+':'+(e.ga||0)+'</span>'+
           '<span style="text-align:center;color:var(--am)">'+(e.pts||0)+'</span>'+
@@ -13503,7 +13503,7 @@ function openClubSquad(clubId){
   if(!infoBar){
     infoBar=document.createElement('div');
     infoBar.id='cs-info-bar';
-    infoBar.style.cssText='font-family:VT323,monospace;font-size:12px;padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl);';
+    infoBar.style.cssText='font-family:VT323,monospace;font-size:var(--fs-meta);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl);';
     const topBar=document.querySelector('#p-club-squad .sq-top-bar');
     if(topBar)topBar.parentNode.insertBefore(infoBar,topBar);
   }
@@ -13525,7 +13525,7 @@ function openClubSquad(clubId){
   POS_GROUPS.forEach(pg=>{
     const grp=players.filter(p=>p.pos===pg.key);if(!grp.length)return;
     const hdr=document.createElement('div');hdr.className='sq-pos-hdr2';
-    hdr.innerHTML='<span style="font-size:8px">'+pg.short+' — '+pg.label+'</span>';
+    hdr.innerHTML='<span style="font-size:var(--fs-dense)">'+pg.short+' — '+pg.label+'</span>';
     con.appendChild(hdr);
     grp.forEach(p=>{
       const d=document.createElement('div');
@@ -13535,7 +13535,7 @@ function openClubSquad(clubId){
         '<div class="pc2-name-text">'+p.name+'</div>'+
         '<div class="pc2-row2">'+p.age+' lat • <span class="pc2-ovr-green">OVR '+o+'</span></div>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);white-space:nowrap">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);white-space:nowrap">'+
           (p.pos==='GK'?'📅 '+p.st.m+' 🛡️ '+(p.st.cs||0):'📅 '+p.st.m+' ⚽ '+p.st.g+' 🤝 '+p.st.a)+
         '</div>';
       d.onclick=()=>{showPlayer(p);};
@@ -13583,8 +13583,8 @@ function fillTraining(){
   if(el)el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
     TRAIN_OPTS.map(o=>'<div class="tropt '+(G.training===o.k?'sel':'')+'" onclick="setTrain(\''+o.k+'\')" style="padding:10px 8px">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:20px">'+o.i+'</span>'+
-        '<div><div class="tropt-name">'+o.l+'</div><div class="tropt-desc" style="font-size:8px">'+o.d+'</div></div>'+
+        '<span style="font-size:var(--fs-display)">'+o.i+'</span>'+
+        '<div><div class="tropt-name">'+o.l+'</div><div class="tropt-desc" style="font-size:var(--fs-dense)">'+o.d+'</div></div>'+
       '</div><div class="tropt-chk">\u2714</div></div>').join('')+
     '</div>';
   const iel=document.getElementById('tr-intensity');
@@ -13598,13 +13598,13 @@ function fillTraining(){
       '<div style="display:flex;gap:6px;margin-bottom:10px">'+
         INTENSITY_OPTS.map(o=>{
           const isSel=G.trainIntensity===o.k;
-          return '<button onclick="setIntensity(\'' + o.k + '\')" style="flex:1;font-family:VT323,monospace;font-size:11px;padding:7px 4px;cursor:pointer;border:1px solid '+(isSel?'var(--am)':'var(--gl)')+';background:'+(isSel?'var(--gm)':'var(--tb)')+';color:'+(isSel?'var(--am)':'var(--gr)')+'">'+(isSel?'\u2714 ':'')+o.l+'</button>';
+          return '<button onclick="setIntensity(\'' + o.k + '\')" style="flex:1;font-family:VT323,monospace;font-size:var(--fs-meta);padding:7px 4px;cursor:pointer;border:1px solid '+(isSel?'var(--am)':'var(--gl)')+';background:'+(isSel?'var(--gm)':'var(--tb)')+';color:'+(isSel?'var(--am)':'var(--gr)')+'">'+(isSel?'\u2714 ':'')+o.l+'</button>';
             (isSel?'✔ ':'')+o.l+
           '</button>';
         }).join('')+
       '</div>'+
-      '<div style="border:1px solid var(--gl);padding:10px;font-family:VT323,monospace;font-size:9px">'+
-        '<div style="color:var(--am);font-size:11px;margin-bottom:6px">'+cur.l+(G.trainIntensity===cur.k?t('train_cur_choice'):'')+'</div>'+
+      '<div style="border:1px solid var(--gl);padding:10px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div style="color:var(--am);font-size:var(--fs-meta);margin-bottom:6px">'+cur.l+(G.trainIntensity===cur.k?t('train_cur_choice'):'')+'</div>'+
         '<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;color:var(--gr)">'+
           '<span>'+t('train_gain_label')+'</span><span style="color:var(--wh)">'+t('train_gain_val').replace('{a}',cur.gain[0]).replace('{b}',cur.gain[1])+'</span>'+
           '<span>'+t('train_form_label')+'</span><span style="color:var(--wh)">'+(cur.k==='LOW'?t('train_form_low'):cur.k==='HIGH'?t('train_form_high'):t('train_form_nor'))+'</span>'+
@@ -13627,8 +13627,8 @@ function renderTCPanel(){
   // W budowie
   if(tc.building){
     return '<div style="border:1px solid var(--am);padding:10px;margin-top:10px;font-family:VT323,monospace">'+
-      '<div style="color:var(--am);font-size:10px;margin-bottom:4px">'+t('train_tc_building')+'</div>'+
-      '<div style="color:var(--gr);font-size:9px">'+tc.building.name+' — '+t('train_tc_done_in').replace('{n}',tc.building.weeksLeft)+'</div>'+
+      '<div style="color:var(--am);font-size:var(--fs-dense);margin-bottom:4px">'+t('train_tc_building')+'</div>'+
+      '<div style="color:var(--gr);font-size:var(--fs-dense)">'+tc.building.name+' — '+t('train_tc_done_in').replace('{n}',tc.building.weeksLeft)+'</div>'+
       '<div style="background:#000;height:6px;margin-top:6px"><div style="height:100%;background:var(--am);width:'+Math.round((1-(tc.building.weeksLeft/tc.building.totalWeeks))*100)+'%"></div></div>'+
     '</div>';
   }
@@ -13637,11 +13637,11 @@ function renderTCPanel(){
     const cost0=tcCost(0);const upk0=tcUpkeep(0);
     const canBuild=G.budget>=cost0;
     return '<div style="border:1px solid var(--gl);padding:10px;margin-top:10px;font-family:VT323,monospace">'+
-      '<div style="color:var(--gr);font-size:10px;margin-bottom:6px">'+t('train_tc_none_title')+'</div>'+
-      '<div style="color:var(--gr);font-size:9px;margin-bottom:8px">'+t('train_tc_none_desc')+'</div>'+
-      '<div style="font-size:9px;color:var(--gr)">'+t('train_tc_cost_line').replace('{cost}',fmt(cost0)).replace('{upk}',fmt(upk0))+'</div>'+
-      (canBuild?'<button onclick="buildTC(0)" style="width:100%;margin-top:8px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">'+t('train_tc_build_btn').replace('{n}',fmt(cost0))+'</button>':
-        '<div style="color:var(--rd);font-size:9px;margin-top:6px">'+t('train_tc_no_funds').replace('{n}',fmt(cost0-G.budget))+'</div>')+
+      '<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:6px">'+t('train_tc_none_title')+'</div>'+
+      '<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">'+t('train_tc_none_desc')+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_cost_line').replace('{cost}',fmt(cost0)).replace('{upk}',fmt(upk0))+'</div>'+
+      (canBuild?'<button onclick="buildTC(0)" style="width:100%;margin-top:8px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('train_tc_build_btn').replace('{n}',fmt(cost0))+'</button>':
+        '<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:6px">'+t('train_tc_no_funds').replace('{n}',fmt(cost0-G.budget))+'</div>')+
     '</div>';
   }
   // Centrum aktywne
@@ -13653,8 +13653,8 @@ function renderTCPanel(){
   const changeCost=TRAINING_CENTER.changeCost[lvl-1]||5000;
   let html='<div style="border:1px solid var(--gb);padding:10px;margin-top:10px;font-family:VT323,monospace">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-  html+='<div style="color:var(--gb);font-size:10px">CENTRUM SZKOLENIOWE — '+((tcDef&&tcDef.name)||'').toUpperCase()+'</div>';
-  html+='<div style="font-size:8px;color:var(--gr)">'+t('train_tc_slots').replace('{a}',activeP.length).replace('{m}',maxP)+'</div>';
+  html+='<div style="color:var(--gb);font-size:var(--fs-dense)">CENTRUM SZKOLENIOWE — '+((tcDef&&tcDef.name)||'').toUpperCase()+'</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_slots').replace('{a}',activeP.length).replace('{m}',maxP)+'</div>';
   html+='</div>';
   // Profil sloty
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">';
@@ -13663,18 +13663,18 @@ function renderTCPanel(){
     const canAdd=!isActive&&activeP.length<maxP&&!locked;
     const canRemove=isActive&&!locked;
     html+='<div style="border:1px solid '+(isActive?'var(--gb)':'var(--gl)')+';padding:6px;cursor:'+(canAdd||canRemove?'pointer':'default')+';background:'+(isActive?'var(--gm)':'var(--tb)')+'" data-tcid="'+pr.id+'" onclick="toggleTCProfile(this.dataset.tcid)">'+
-      '<div style="font-size:8px;color:var(--gr);margin-top:2px">'+pr.effect+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+pr.effect+'</div>'+
     '</div>';
   });
   html+='</div>';
-  if(locked&&!inFocusWindow)html+='<div style="font-size:9px;color:var(--am);margin-bottom:6px">'+t('train_tc_change_hint').replace('{n}',fmt(changeCost))+'</div>';
-  if(locked&&!inFocusWindow)html+='<button onclick="unlockTCProfiles()" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:10px;padding:6px;cursor:pointer">'+t('train_tc_change_btn').replace('{n}',fmt(changeCost))+'</button>';
+  if(locked&&!inFocusWindow)html+='<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('train_tc_change_hint').replace('{n}',fmt(changeCost))+'</div>';
+  if(locked&&!inFocusWindow)html+='<button onclick="unlockTCProfiles()" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-dense);padding:6px;cursor:pointer">'+t('train_tc_change_btn').replace('{n}',fmt(changeCost))+'</button>';
   // Ulepszenie
   if(lvl<3){
     const nc=tcCost(lvl);const nu=tcUpkeep(lvl);const nd=TRAINING_CENTER.levels[lvl];
     const canUp=G.budget>=nc&&(G.reputation||0)>=(nd.req.rep||0)&&((G.stadium&&G.stadium.capacity)||0)>=(nd.req.stad||0);
-    html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px;font-size:9px;color:var(--gr)">'+t('train_tc_upgrade_line').replace('{name}',nd.name).replace('{cost}',fmt(nc)).replace('{upk}',fmt(nu)).replace('{rep}',nd.req.rep).replace('{stad}',nd.req.stad)+'</div>';
-    if(canUp)html+='<button onclick="buildTC('+lvl+')" style="width:100%;margin-top:6px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:11px;padding:6px;cursor:pointer">'+t('train_tc_upgrade_btn').replace('{n}',fmt(nc))+'</button>';
+    html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px;font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_upgrade_line').replace('{name}',nd.name).replace('{cost}',fmt(nc)).replace('{upk}',fmt(nu)).replace('{rep}',nd.req.rep).replace('{stad}',nd.req.stad)+'</div>';
+    if(canUp)html+='<button onclick="buildTC('+lvl+')" style="width:100%;margin-top:6px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('train_tc_upgrade_btn').replace('{n}',fmt(nc))+'</button>';
   }
   html+='</div>';
   return html;
@@ -13764,7 +13764,7 @@ function fillCampPanel(){
   if(il)il.innerHTML=myPl().map(p=>{
     const sel=G.indCampSelected.includes(p.id);
     const disabled=!sel&&G.indCampSelected.length>=4;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:9px;cursor:pointer;opacity:'+(disabled?'0.4':'1')+'" onclick="toggleIndCamp('+p.id+')">'+
+    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense);cursor:pointer;opacity:'+(disabled?'0.4':'1')+'" onclick="toggleIndCamp('+p.id+')">'+
       '<span style="color:'+(sel?'var(--am)':'var(--gr)')+'">['+(sel?'✔':' ')+']</span>'+
       '<span style="color:var(--wh)">'+p.name+'</span>'+
       '<span style="color:var(--gr);margin-left:auto">OVR '+ovr(p)+'</span>'+
@@ -13866,18 +13866,18 @@ function fillProgressPanel(){
     }).join('');
     const rc='showById('+p.id+')';
     return '<tr style="cursor:pointer" onclick="'+rc+'">'+
-      '<td style="font-size:8px;color:var(--am);cursor:pointer" onclick="'+rc+'">'+p.name.split(' ')[1]+'</td>'+
+      '<td style="font-size:var(--fs-dense);color:var(--am);cursor:pointer" onclick="'+rc+'">'+p.name.split(' ')[1]+'</td>'+
       attrCells+
       '<td style="text-align:center;color:'+ovrCol+';cursor:pointer" onclick="'+rc+'">'+(ovrDiff>0?'+':'')+ovrDiff+'</td>'+
     '</tr>';
   }).join('');
   el.innerHTML=
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:4px 0 8px">'+statusMsg+'</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">'+statusMsg+'</div>'+
     '<table class="rtbl"><thead><tr>'+
       '<th>ZAWODNIK</th>'+thAttrs+
       '<th style="color:var(--gb)">OVR</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
       '<b style="color:var(--am)">Legenda OVR:</b> OVR = ważona średnia atrybutów zależna od pozycji.<br>'+
       'NAP: SHT×35% + TEC×35% + PHY×10% + MEN×10% + PAS×5% + OBR×5%<br>'+
       'POL: PAS×35% + TEC×35% + MEN×10% + PHY×10% + SHT×5% + OBR×5%<br>'+
@@ -14099,26 +14099,26 @@ function renderStadPrzeglad(){
   el.innerHTML=
     drawStadiumTopDown(cap,freq,s.modules||{})+
     '<div style="background:var(--tb);border:1px solid var(--gl);border-top:none;padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||'Stadion')+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:9px">'+
-        '<div><div style="color:var(--gr)">Pojemność</div><div style="color:var(--wh);font-size:12px">'+cap.toLocaleString('pl-PL')+' miejsc</div></div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||'Stadion')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div><div style="color:var(--gr)">Pojemność</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString('pl-PL')+' miejsc</div></div>'+
         '<div><div style="color:var(--gr)">Max ('+LEAGUE_NAMES[lvl]+')</div><div style="color:var(--gr)">'+maxCap.toLocaleString('pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">Frekwencja</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
         '<div><div style="color:var(--gr)">Widzów/mecz</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString('pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">Cena biletu</div><div style="color:var(--am)">'+tp+' zł</div></div>'+
-        '<div><div style="color:var(--gr)">Bilety/tyg</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:8px">'+fmt(perMatch)+' zł/mecz</div></div>'+
+        '<div><div style="color:var(--gr)">Bilety/tyg</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:var(--fs-dense)">'+fmt(perMatch)+' zł/mecz</div></div>'+
       '</div>'+
     '</div>'+
     '<div style="background:#000;border:1px solid var(--gl);height:10px;margin-bottom:10px;position:relative">'+
       '<div style="height:100%;background:var(--gb);width:'+Math.min(100,Math.round(cap/maxCap*100))+'%"></div>'+
-      '<div style="position:absolute;right:4px;top:0;font-family:VT323,monospace;font-size:9px;color:var(--wh)">'+Math.min(100,Math.round(cap/maxCap*100))+'%</div>'+
+      '<div style="position:absolute;right:4px;top:0;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+Math.min(100,Math.round(cap/maxCap*100))+'%</div>'+
     '</div>'+
  
     (activeMods.length?
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb);margin-bottom:4px">AKTYWNE MODUŁY</div>'+
-      activeMods.map(([k,m])=>'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">AKTYWNE MODUŁY</div>'+
+      activeMods.map(([k,m])=>'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
       '<div style="margin-bottom:8px"></div>':'')+
-    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:14px;padding:12px;cursor:pointer">ROZBUDUJ STADION</button>':'');
+    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-body);padding:12px;cursor:pointer">ROZBUDUJ STADION</button>':'');
 }
 function renderStadRozbudowa(){
   const el=document.getElementById('stad-rozbudowa');if(!el||!G)return;
@@ -14130,18 +14130,18 @@ function renderStadRozbudowa(){
     const pct=Math.min(100,Math.round((1-(s.building.weeksLeft/_tw))*100));
     const done=_tw-s.building.weeksLeft;
     return '<div class="stad-build-bar" style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:12px">'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);margin-bottom:6px">🔨 W BUDOWIE: +'+s.building.seats.toLocaleString('pl-PL')+' miejsc</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">🔨 W BUDOWIE: +'+s.building.seats.toLocaleString('pl-PL')+' miejsc</div>'+
       '<div style="background:#000;height:10px;border:1px solid var(--gl);margin-bottom:5px;position:relative">'+
         '<div class="stad-bar-fill" style="height:100%;background:var(--am);width:'+pct+'%;transition:width 0.3s"></div>'+
       '</div>'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px">'+
+      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
         '<span class="stad-bar-left" style="color:var(--gr)">Tydzień '+done+' / '+_tw+'</span>'+
         '<span class="stad-bar-right" style="color:var(--am)">'+pct+'% — zostało '+s.building.weeksLeft+' tyg.</span>'+
       '</div>'+
     '</div>';
   })():'';
   if(cap>=maxCap){
-    el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:16px;text-align:center">Osiągnięto limit dla '+LEAGUE_NAMES[lvl]+'. Awansuj wyżej.</div>'+
+    el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px;text-align:center">Osiągnięto limit dla '+LEAGUE_NAMES[lvl]+'. Awansuj wyżej.</div>'+
       '<div class="fsec" style="margin:12px 0 8px">MODUŁY</div><div id="stad-rozb-moduly"></div>';
     _renderStadModulyInRozb();return;
   }
@@ -14157,27 +14157,27 @@ function renderStadRozbudowa(){
   const canAfford=G.budget>=cost;
   el.innerHTML=
     buildBar+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:8px">Pojemność: <span style="color:var(--wh)">'+cap.toLocaleString('pl-PL')+'</span> / Max: '+maxCap.toLocaleString('pl-PL')+'</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">Pojemność: <span style="color:var(--wh)">'+cap.toLocaleString('pl-PL')+'</span> / Max: '+maxCap.toLocaleString('pl-PL')+'</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb);margin-bottom:8px">ILE MIEJSC DODAĆ?</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">ILE MIEJSC DODAĆ?</div>'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-        '<button onclick="changeStadAdd(-100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:18px;width:40px;height:40px;cursor:pointer">-</button>'+
-        '<div style="flex:1;text-align:center;font-family:VT323,monospace;font-size:18px;color:var(--am)">'+n.toLocaleString('pl-PL')+' miejsc</div>'+
-        '<button onclick="changeStadAdd(100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:18px;width:40px;height:40px;cursor:pointer">+</button>'+
+        '<button onclick="changeStadAdd(-100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">-</button>'+
+        '<div style="flex:1;text-align:center;font-family:VT323,monospace;font-size:var(--fs-display);color:var(--am)">'+n.toLocaleString('pl-PL')+' miejsc</div>'+
+        '<button onclick="changeStadAdd(100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">+</button>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:9px;margin-bottom:10px">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:10px">'+
         '<div><div style="color:var(--gr)">Nowa pojemność</div><div style="color:var(--wh)">'+newCap.toLocaleString('pl-PL')+' miejsc</div></div>'+
         '<div><div style="color:var(--gr)">Koszt</div><div style="color:'+(canAfford?'var(--am)':'var(--rd)')+'">'+fmt(cost)+'</div></div>'+
         '<div><div style="color:var(--gr)">Czas budowy</div><div style="color:var(--wh)">'+weeks+' tyg.</div></div>'+
         '<div><div style="color:var(--gr)">Bilety/tyg po</div><div style="color:var(--gb)">+'+fmt(newBil)+' (+'+fmt(newBil-curBil)+')</div></div>'+
       '</div>'+
       (s.building?
-        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:12px;cursor:not-allowed;opacity:0.5">BUDOWA W TOKU...</button>'
+        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:12px;cursor:not-allowed;opacity:0.5">BUDOWA W TOKU...</button>'
       :canAfford?
-        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:12px;cursor:pointer">ROZPOCZNIJ BUDOWĘ — '+fmt(cost)+'</button>'
-      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-family:VT323,monospace;font-size:9px;color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>')+
+        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:12px;cursor:pointer">ROZPOCZNIJ BUDOWĘ — '+fmt(cost)+'</button>'
+      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>')+
     '</div>'+
-    '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">Koszt/miejsce: '+(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900')+' zł</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Koszt/miejsce: '+(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900')+' zł</div>'+
     '<div class="fsec" style="margin:14px 0 8px">MODUŁY</div>'+
     '<div id="stad-rozb-moduly"></div>';
   _renderStadModulyInRozb();
@@ -14192,11 +14192,11 @@ function renderStadModuly(){
     const mod=STAD_MODULES[mb.key];
     const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
     buildingHtml='<div style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:10px">'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);margin-bottom:4px">🔨 W BUDOWIE: '+(mod?mod.icon+' '+mod.name:'?')+' L'+(mb.lvl+1)+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 W BUDOWIE: '+(mod?mod.icon+' '+mod.name:'?')+' L'+(mb.lvl+1)+'</div>'+
       '<div style="background:#000;height:8px;border:1px solid var(--gl);margin-bottom:4px">'+
         '<div style="height:100%;background:var(--am);width:'+pct+'%"></div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Pozostało: '+mb.weeksLeft+' tyg. z '+mb.totalWeeks+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Pozostało: '+mb.weeksLeft+' tyg. z '+mb.totalWeeks+'</div>'+
     '</div>';
   }
   el.innerHTML=buildingHtml+Object.entries(STAD_MODULES).map(([key,mod])=>{
@@ -14209,21 +14209,21 @@ function renderStadModuly(){
     const prog=Array.from({length:maxLvl},(_,i)=>'<div style="flex:1;height:5px;margin:0 1px;background:'+(i<lvl?'var(--gb)':isBuilding&&i===lvl?'var(--am)':'#0d1f0d')+'"></div>').join('');
     return '<div style="background:var(--tb);border:1px solid '+(isBuilding?'var(--am)':lvl>0?'var(--gb)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
-        '<span style="font-size:20px">'+mod.icon+'</span>'+
-        '<div style="flex:1"><div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">'+mod.name+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
-        (isBuilding?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--am)">🔨 '+mb.weeksLeft+' tyg.</div>':
-         lvl>0?'<div style="font-family:VT323,monospace;font-size:10px;color:var(--gb)">L'+lvl+'</div>':'')+
+        '<span style="font-size:var(--fs-display)">'+mod.icon+'</span>'+
+        '<div style="flex:1"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+mod.name+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
+        (isBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' tyg.</div>':
+         lvl>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">L'+lvl+'</div>':'')+
       '</div>'+
       '<div style="display:flex;margin-bottom:6px">'+prog+'</div>'+
-      (lvl>0?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
-      (isMax?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);text-align:center">MAX</div>':
-       isBuilding?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--am)">W budowie: L'+(lvl+1)+' — '+next.effect+'</div>':
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:4px">L'+(lvl+1)+': '+next.effect+' • '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</div>'+
-        (otherBuilding?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">🔒 Inny moduł w budowie</div>':
-         !req.ok?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">'+req.msg+'</div>':
-         !canAfford?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>':
-         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">BUDUJ — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>')
+      (lvl>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
+      (isMax?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);text-align:center">MAX</div>':
+       isBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">W budowie: L'+(lvl+1)+' — '+next.effect+'</div>':
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">L'+(lvl+1)+': '+next.effect+' • '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</div>'+
+        (otherBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>':
+         !req.ok?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+req.msg+'</div>':
+         !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>':
+         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">BUDUJ — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>')
       )+
     '</div>';
   }).join('');
@@ -14232,7 +14232,7 @@ function renderStadHistoria(){
   const el=document.getElementById('stad-historia');if(!el||!G)return;
   const hist=(G.stadium&&G.stadium.hist)||[];
   el.innerHTML=hist.length?
-    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:9px">'+
+    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
     '<thead><tr>'+
       '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">S/T</th>'+
       '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">INWESTYCJA</th>'+
@@ -14245,7 +14245,7 @@ function renderStadHistoria(){
         '<td style="text-align:right;padding:4px 6px;color:var(--rd)">-'+fmt(h.cost)+'</td>'+
       '</tr>'
     ).join('')+'</tbody></table>'
-  :'<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:12px">Brak historii inwestycji</div>';
+  :'<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:12px">Brak historii inwestycji</div>';
 }
 function changeStadAdd(delta){
   const s=G.stadium||{};const cap=s.capacity||200;
@@ -14284,34 +14284,34 @@ function _renderStadModulyInRozb(){
     // Blok statusu / akcji
     let actionHtml='';
     if(isMax){
-      actionHtml='<div style="text-align:center;color:var(--am);font-family:VT323,monospace;font-size:9px;padding:4px 0">✓ MAX</div>';
+      actionHtml='<div style="text-align:center;color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0">✓ MAX</div>';
     } else if(isBuilding){
       const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
       actionHtml=
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);margin-bottom:4px">🔨 Buduje się L'+(lvl+1)+' — pozostało '+mb.weeksLeft+' tyg.</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 Buduje się L'+(lvl+1)+' — pozostało '+mb.weeksLeft+' tyg.</div>'+
         '<div style="background:#000;height:5px;border:1px solid var(--gl)"><div style="height:100%;background:var(--am);width:'+pct+'%"></div></div>';
     } else if(otherBuilding){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">🔒 Inny moduł w budowie</div>';
+      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>';
     } else if(!req.ok){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">🔒 '+req.msg+'</div>';
+      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 '+req.msg+'</div>';
     } else if(!canAfford){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>';
+      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>';
     } else {
-      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:11px;padding:7px;cursor:pointer;letter-spacing:1px">BUDUJ L'+(lvl+1)+' — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>';
+      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:7px;cursor:pointer;letter-spacing:1px">BUDUJ L'+(lvl+1)+' — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>';
     }
 
     html+=
       '<div style="background:var(--tb);border:1px solid '+border+';border-radius:3px;padding:10px 12px;margin-bottom:8px">'+
         // Nagłówek: ikona + nazwa + poziom
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
-          '<span style="font-size:18px;line-height:1">'+mod.icon+'</span>'+
+          '<span style="font-size:var(--fs-display);line-height:1">'+mod.icon+'</span>'+
           '<div style="flex:1">'+
-            '<div style="font-family:VT323,monospace;font-size:11px;color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
-            '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
               (isMax?'MAX':'L'+lvl+'/'+maxLvl+(next?' • następny: '+next.effect:''))+
             '</div>'+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
             (lvl>0?'<div style="color:var(--gb)">'+curEffect+'</div>':'')+
           '</div>'+
         '</div>'+
@@ -14385,7 +14385,7 @@ function renderFinZarzad(){
   const b=G.board;
   // --- sub-tabs wewnątrz zarząd ---
   const activeInner=el.dataset.inner||'cele';
-  const mkTab=(id,label)=>`<button onclick="finZarzadInner('${id}',this)" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid ${activeInner===id?'var(--am)':'transparent'};font-family:\x27Press Start 2P\x27,monospace;font-size:5.5px;color:${activeInner===id?'var(--am)':'var(--gr)'};cursor:pointer">${label}</button>`;
+  const mkTab=(id,label)=>`<button onclick="finZarzadInner('${id}',this)" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid ${activeInner===id?'var(--am)':'transparent'};font-family:\x27Press Start 2P\x27,monospace;font-size:var(--fs-micro);color:${activeInner===id?'var(--am)':'var(--gr)'};cursor:pointer">${label}</button>`;
   el.innerHTML=`<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">${mkTab('cele','CELE')}${mkTab('historia','HISTORIA')}</div><div id="fin-zarzad-inner" style="padding:0 2px"></div>`;
   renderFinZarzadInner(activeInner);
 }
@@ -14402,12 +14402,12 @@ function renderFinZarzadInner(tab){
   if(tab==='cele'){
     // Użyj board-cele jako bufor, potem przepisz
     const buf=document.getElementById('board-cele');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:16px">Błąd: brak bufora zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:var(--fs-body)">Błąd: brak bufora zarządu.</div>';return;}
     renderBoardCele();
     inner.innerHTML=buf.innerHTML;
   } else {
     const buf=document.getElementById('board-historia');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:16px">Błąd: brak bufora historii zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:var(--fs-body)">Błąd: brak bufora historii zarządu.</div>';return;}
     renderBoardHistoria();
     inner.innerHTML=buf.innerHTML;
   }
@@ -14536,7 +14536,7 @@ function renderFinPrzeglad(){
   html+='<div class="fc-legend">';
   html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">Przychód</span><span class="fc-leg-val pos">+${fmt(curData.totalInc)}</span></div>`;
   html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">Koszty</span><span class="fc-leg-val neg">-${fmt(curData.totalCost)}</span></div>`;
-  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:9px;color:var(--gr)">Stan: <span style="font-family:'Press Start 2P',monospace;font-size:9px;color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
+  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">Stan: <span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
   html+='</div></div>';
 
   // Lista miesięcy
@@ -14641,7 +14641,7 @@ function renderFinSezony(){
     const fd=seasonFinData(s);
     seasons.push({s,ch,fd,isCur:s===G.season&&!G.seasonEnded});
   }
-  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:16px">Brak danych sezonowych.</div>';return;}
+  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px">Brak danych sezonowych.</div>';return;}
 
   const totInc=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.inc||0),0);
   const totCost=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.cost||0),0);
@@ -14673,11 +14673,11 @@ function renderFinSezony(){
     html+=`<div style="border-bottom:1px solid var(--gl);padding:8px 12px;background:${bgCol};border-left:3px solid ${borderCol}">`;
     // Nagłówek karty
     html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">`;
-    html+=`<span style="font-family:'Press Start 2P',monospace;font-size:9px;color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' \u25c4':''}</span>`;
-    html+=`<span style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">${leagueShort} \u2022 ${posStr}</span>`;
+    html+=`<span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' \u25c4':''}</span>`;
+    html+=`<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">${leagueShort} \u2022 ${posStr}</span>`;
     html+='</div>';
     // Przychody / Koszty
-    html+=`<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:9px;margin-bottom:3px">`;
+    html+=`<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">`;
     html+=`<span>\u25b2 Przychody: ${salStr}</span>`;
     html+=`<span>\u25bc Koszty: ${costStr}</span>`;
     html+='</div>';
@@ -14691,19 +14691,19 @@ function renderFinSezony(){
       html+='<div style="height:7px;background:#0a150a;margin-bottom:4px"></div>';
     }
     // Saldo
-    html+=`<div style="text-align:right;font-family:'Press Start 2P',monospace;font-size:9px;color:${netCol}">SALDO: ${netStr}</div>`;
+    html+=`<div style="text-align:right;font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${netCol}">SALDO: ${netStr}</div>`;
     html+='</div>';
   });
 
   // ŁĄCZNIE
   const totNet2=totNet;
   html+=`<div style="background:var(--tb);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--gb)">`;
-  html+=`<span style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--wh)">\u0141\u0104CZNIE</span>`;
-  html+=`<div style="text-align:right;font-family:VT323,monospace;font-size:9px">`;
+  html+=`<span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:var(--wh)">\u0141\u0104CZNIE</span>`;
+  html+=`<div style="text-align:right;font-family:VT323,monospace;font-size:var(--fs-dense)">`;
   html+=`<div><span style="color:var(--gb)">+${fmt(totInc)}</span> / <span style="color:var(--rd)">-${fmt(totCost)}</span></div>`;
-  html+=`<div style="font-family:'Press Start 2P',monospace;font-size:9px;color:${totNet2>=0?'var(--gb)':'var(--rd)'}">${totNet2>=0?'+':''}${fmt(totNet2)}</div>`;
+  html+=`<div style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${totNet2>=0?'var(--gb)':'var(--rd)'}">${totNet2>=0?'+':''}${fmt(totNet2)}</div>`;
   html+='</div></div>';
-  html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:5px 12px 8px">\u2605 Przychody = regularne + premia + sprzeda\u017ce. Koszty = sta\u0142e + zakupy.</div>';
+  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:5px 12px 8px">\u2605 Przychody = regularne + premia + sprzeda\u017ce. Koszty = sta\u0142e + zakupy.</div>';
 
   el.innerHTML=html;
 }
@@ -14755,41 +14755,41 @@ function renderFinKontrakty(){
     const seasonsLeft=G.contracts[slot]?G.contracts[slot].seasonsLeft:0;
     return '<div style="background:var(--tb);border:1px solid '+(hasActive?'var(--gb)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
-        '<span style="font-size:18px">'+icon+'</span>'+
+        '<span style="font-size:var(--fs-display)">'+icon+'</span>'+
         '<div style="flex:1">'+
-          '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">'+label+'</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+label+'</div>'+
           (hasActive?(function(){
             const _repMC=Math.max(0.8,Math.min(1.8,0.8+(G.reputation||30)/1000*1.0));
             const _actual=Math.round(G.contracts[slot].weekly*_repMC);
             const _base=G.contracts[slot].weekly;
-            return '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">'+fmt(_base)+'/tyg • '+seasonsLeft+' sez.</div>'+
-              '<div style="font-family:VT323,monospace;font-size:9px;color:var(--am)">Faktycznie: <span style="color:var(--gb)">'+fmt(_actual)+'/tyg</span> (Rep ×'+_repMC.toFixed(2)+')</div>';
+            return '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">'+fmt(_base)+'/tyg • '+seasonsLeft+' sez.</div>'+
+              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">Faktycznie: <span style="color:var(--gb)">'+fmt(_actual)+'/tyg</span> (Rep ×'+_repMC.toFixed(2)+')</div>';
           })():
-           '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Brak kontraktu</div>')+
+           '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Brak kontraktu</div>')+
         '</div>'+
       '</div>'+
       (!hasActive?
-        '<div style="font-family:VT323,monospace;font-size:9px;margin-bottom:3px">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">'+
           'Sponsor: <span style="color:'+curTier.color+'">'+curTier.name+'</span>'+
           ' <span style="color:var(--gr)">(Rep. '+curTier.minRep+'–'+curTier.maxRep+')</span>'+
         '</div>'+
         (nextTier?
-          '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);margin-bottom:5px">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">'+
             'Następny: <span style="color:'+nextTier.color+'">'+nextTier.name+'</span>'+
             ' przy Rep. <span style="color:var(--am)">'+nextTier.minRep+'</span>'+
             ' <span style="color:var(--gr)">(brakuje '+(nextTier.minRep-curRep)+')</span>'+
           '</div>'
-        :'<div style="font-family:VT323,monospace;font-size:8px;color:#ffd700;margin-bottom:5px">Maksymalny poziom!</div>')
+        :'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ffd700;margin-bottom:5px">Maksymalny poziom!</div>')
       :'')+
       (hasActive?
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">Aktywny kontrakt</div>'
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">Aktywny kontrakt</div>'
       :!req?
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">'+reqMsg+'</div>'
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+reqMsg+'</div>'
       :weekly===0?
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Brak ofert (za niska reputacja)</div>'
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Brak ofert (za niska reputacja)</div>'
       :
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:5px">Oferta: <span style="color:var(--am)">+'+fmt(weekly)+'/tyg</span> • 1 sezon</div>'+
-        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">PODPISZ</button>'
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">Oferta: <span style="color:var(--am)">+'+fmt(weekly)+'/tyg</span> • 1 sezon</div>'+
+        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">PODPISZ</button>'
       )+
     '</div>';
   }
@@ -14839,15 +14839,15 @@ function renderFinHistoria(){
     else allEvents[w].push({lbl:'\u2794 KUP: '+t.name,inc:0,cost:t.val||t.fee||0});
   });
 
-  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px;padding:16px">Brak historii \u2014 zacznij sezon aby zobaczy\u0107 dane finansowe.</div>';return;}
+  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px">Brak historii \u2014 zacznij sezon aby zobaczy\u0107 dane finansowe.</div>';return;}
 
-  let html='<div style="font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--gr);padding:6px 0 8px;letter-spacing:1px">SEZON '+G.season+' — '+weekly.length+' TYGODNI</div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:9px">';
+  let html='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">SEZON '+G.season+' — '+weekly.length+' TYGODNI</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">';
   html+='<thead><tr>';
-  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--gr)">TYG</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--gb)">PRZYCH.</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--rd)">KOSZTY</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--am)">STAN</th>';
+  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gr)">TYG</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gb)">PRZYCH.</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--rd)">KOSZTY</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--am)">STAN</th>';
   html+='</tr></thead><tbody>';
 
   // Tygodnie z wpisami tygodniowymi + tygodnie ze zdarzeniami bez wpisu (np. transfer w T1 bez meczu)
@@ -14873,15 +14873,15 @@ function renderFinHistoria(){
     // Zdarzenia jednorazowe tego tygodnia
     (allEvents[w]||[]).forEach(function(ev){
       html+='<tr style="background:#080f08">';
-      html+=`<td colspan="2" style="padding:2px 5px 2px 12px;color:var(--am);font-size:9px">\u21b3 ${ev.lbl}</td>`;
-      html+=`<td style="text-align:right;padding:2px 5px;font-size:9px;color:${ev.inc>0?'var(--gb)':'var(--rd)'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</td>`;
+      html+=`<td colspan="2" style="padding:2px 5px 2px 12px;color:var(--am);font-size:var(--fs-dense)">\u21b3 ${ev.lbl}</td>`;
+      html+=`<td style="text-align:right;padding:2px 5px;font-size:var(--fs-dense);color:${ev.inc>0?'var(--gb)':'var(--rd)'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</td>`;
       html+=`<td style="padding:2px 5px;color:var(--gr);text-align:right">\u2014</td>`;
       html+='</tr>';
     });
   });
 
   html+='</tbody></table>';
-  html+='<div style="font-size:9px;color:var(--gr);padding:4px 0 8px;font-family:VT323,monospace">\u2605 = tydzie\u0144 wyp\u0142aty pensji (co 4 tyg.).</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px;font-family:VT323,monospace">\u2605 = tydzie\u0144 wyp\u0142aty pensji (co 4 tyg.).</div>';
   el.innerHTML=html;
 }
 
@@ -14956,24 +14956,24 @@ function renderAcadPrzeglad(){
   const prospects=(G.academy.prospects||[]).filter(p=>p.status==='pending');
   el.innerHTML=
     '<div style="background:var(--tb);border:1px solid '+(lvl>0?'var(--gb)':'var(--gl)')+';padding:12px;margin-bottom:10px">'+
-      '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-bottom:6px">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+
         (lvl===0?'Brak Akademii':'Akademia '+acad.name+' (L'+lvl+')')+
       '</div>'+
       (lvl>0?
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:9px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
           '<div><span style="color:var(--gr)">Juniorzy/sez: </span><span style="color:var(--gb)">'+acad.perSeason+'</span></div>'+
           '<div><span style="color:var(--gr)">Max pot: </span><span style="color:var(--am)">'+acad.maxPot+'</span></div>'+
           '<div><span style="color:var(--gr)">Utrzym/tyg: </span><span style="color:var(--rd)">-'+fmt(acadUpkeep(lvl-1))+'</span></div>'+
         '</div>'+
         (lvl<ACADEMY.levels.length?
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-top:6px">Nast. poziom: <span style="color:var(--am)">'+ACADEMY.levels[lvl].name+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+' zł</span>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:6px">Nast. poziom: <span style="color:var(--am)">'+ACADEMY.levels[lvl].name+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+' zł</span>'+
           (ACADEMY.levels[lvl].req>0?' (Rep: '+ACADEMY.levels[lvl].req+')':'')+
           '</div>'
         :'')
-      :'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Zbuduj akademię aby co sezon pojawiał się utalentowany junior.</div>')+
+      :'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Zbuduj akademię aby co sezon pojawiał się utalentowany junior.</div>')+
     '</div>'+
     (prospects.length?
-      '<div style="font-family:VT323,monospace;font-size:10px;color:var(--am);margin-bottom:6px">NOWI JUNIORZY</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">NOWI JUNIORZY</div>'+
       prospects.map(function(pr){
         var trLabel=pr.trainRate>=1.5?'🌟 Talent':pr.trainRate>=1.1?'⚡ Szybki':'📊 Normalny';
         var trCol=pr.trainRate>=1.5?'#00e676':pr.trainRate>=1.1?'var(--am)':'var(--wh)';
@@ -14987,40 +14987,40 @@ function renderAcadPrzeglad(){
           var isHigh5=archM5>1;
           var barCol5=isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gl)';
           return '<div style="flex:1;text-align:center">'+
-            '<div style="font-family:VT323,monospace;font-size:8px;color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">'+ATTR_LBL5[a]+'</div>'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">'+ATTR_LBL5[a]+'</div>'+
             '<div style="height:18px;background:#0a0f0a;margin:2px 0;position:relative">'+
               '<div style="position:absolute;bottom:0;left:0;right:0;height:'+pct5+'%;background:'+barCol5+';opacity:0.85"></div>'+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:7px;color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">×'+total5.toFixed(1)+'</div>'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">×'+total5.toFixed(1)+'</div>'+
           '</div>';
         }).join('');
         return '<div style="background:#0d2b0d;border:1px solid var(--gb);padding:10px 12px;margin-bottom:6px">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
-            '<div style="font-family:VT323,monospace;font-size:11px;color:var(--wh)">🎓 '+pr.name+'</div>'+
-            (arch5?'<span style="font-family:VT323,monospace;font-size:9px;color:'+arch5.color+';border:1px solid '+arch5.color+';padding:1px 5px">'+arch5.icon+' '+arch5.name+'</span>':'')+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">🎓 '+pr.name+'</div>'+
+            (arch5?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch5.color+';border:1px solid '+arch5.color+';padding:1px 5px">'+arch5.icon+' '+arch5.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:4px">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
             (POS_SHORT[pr.pos]||pr.pos)+' • '+pr.age+'l • OVR '+pr.ovr+' • Pot: <span style="color:var(--am)">'+pr.potential+'</span>'+
           '</div>'+
           '<div style="background:#0a0f0a;border:1px solid var(--gl);padding:5px 8px;margin-bottom:6px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
-              '<div style="font-family:VT323,monospace;font-size:9px"><span style="color:var(--gr)">Talent: </span><span style="color:'+trCol+'">'+trLabel+'</span></div>'+
-              '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">×'+pr.trainRate.toFixed(2)+' ogólny</div>'+
+              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense)"><span style="color:var(--gr)">Talent: </span><span style="color:'+trCol+'">'+trLabel+'</span></div>'+
+              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">×'+pr.trainRate.toFixed(2)+' ogólny</div>'+
             '</div>'+
-            (arch5?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);font-style:italic">"'+arch5.desc+'"</div>':'')+
+            (arch5?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-style:italic">"'+arch5.desc+'"</div>':'')+
             '<div style="display:flex;gap:3px;margin-top:5px;padding-top:4px;border-top:1px solid var(--gl)">'+barHtml5+'</div>'+
           '</div>'+
           '<div style="display:flex;gap:6px">'+
-            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">✓ PRZYJMIJ</button>'+
-            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:#3d0000;border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">✗ ZWOLNIJ</button>'+
+            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">✓ PRZYJMIJ</button>'+
+            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:#3d0000;border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">✗ ZWOLNIJ</button>'+
           '</div>'+
         '</div>';
       }).join('')
     :lvl>0?
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px;text-align:center">Juniorzy pojawią się na początku nowego sezonu.</div>'
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Juniorzy pojawią się na początku nowego sezonu.</div>'
     :
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:6px">Koszt budowy: <span style="color:var(--am)">'+fmt(acadCost(0))+'</span> zł</div>'+
-      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:14px;padding:12px;cursor:pointer">ZBUDUJ AKADEMIĘ</button>'
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">Koszt budowy: <span style="color:var(--am)">'+fmt(acadCost(0))+'</span> zł</div>'+
+      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-body);padding:12px;cursor:pointer">ZBUDUJ AKADEMIĘ</button>'
     );
   // Sekcja rozbudowy
   _renderAcadRozbudowaInPrzeglad();
@@ -15038,10 +15038,10 @@ function _renderAcadRozbudowaInPrzeglad(){
       const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
       return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
         '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-          '<div style="font-family:VT323,monospace;font-size:10px;color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-          (isOwned?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">AKTYWNA</div>':'')+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+          (isOwned?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:9px;margin-bottom:6px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
           '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
           '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
           '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
@@ -15051,9 +15051,9 @@ function _renderAcadRozbudowaInPrzeglad(){
           (a.req>0?'<div><span style="color:var(--gr)">Wymaga rep: </span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'">'+a.req+(reqOk?' OK':' brakuje '+(a.req-rep))+'</span></div>':'')+
         '</div>'+
         (!isOwned&&isNext?
-          (!reqOk?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-           !canAfford?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
+          (!reqOk?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
+           !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
+           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
         :'')+
       '</div>';
     }).join('');
@@ -15070,7 +15070,7 @@ function renderAcadWychowankowie(){
   var odpuszczeni=hist.filter(function(h){return h.isRejected;});
 
   function mkSubTab(id,label,active){
-    return '<button onclick="window._acadWychTab=\''+id+'\';renderAcadWychowankowie()" style="font-family:VT323,monospace;font-size:10px;padding:5px 8px;background:'+(active?'var(--gb)':'var(--tb)')+';color:'+(active?'#000':'var(--gr)')+';border:1px solid '+(active?'var(--gb)':'var(--gl)')+';cursor:pointer;text-transform:uppercase">'+label+'</button>';
+    return '<button onclick="window._acadWychTab=\''+id+'\';renderAcadWychowankowie()" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 8px;background:'+(active?'var(--gb)':'var(--tb)')+';color:'+(active?'#000':'var(--gr)')+';border:1px solid '+(active?'var(--gb)':'var(--gl)')+';cursor:pointer;text-transform:uppercase">'+label+'</button>';
   }
 
   var html='<div style="display:flex;gap:4px;margin-bottom:10px">'+
@@ -15089,13 +15089,13 @@ function renderAcadWychowankowie(){
         var talCol9=p.trainRate>=1.5?'var(--gb)':p.trainRate>=1.1?'var(--am)':'var(--wh)';
         return '<div style="background:var(--tb);border:1px solid var(--gb);padding:8px 12px;margin-bottom:4px;cursor:pointer" onclick="showById('+p.id+')">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">🎓 '+p.name+'</div>'+
-            (arch9?'<span style="font-family:VT323,monospace;font-size:8px;color:'+arch9.color+'">'+arch9.icon+' '+arch9.name+'</span>':'')+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">🎓 '+p.name+'</div>'+
+            (arch9?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9.color+'">'+arch9.icon+' '+arch9.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
             (POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR <span style="color:var(--wh)">'+ovr(p)+'</span> • Pot: <span style="color:var(--am)">'+p.potential+'</span>'+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;margin-top:2px">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px">'+
             '<span style="color:var(--gr)">Talent: </span><span style="color:'+talCol9+'">'+tal9+'</span>'+
             (debH9&&growth9>0?' <span style="color:var(--gr)"> • Wzrost: </span><span style="color:var(--gb)">+'+growth9+' OVR</span>':'')+ 
             (debH9?' <span style="color:var(--gr)"> od S'+debH9.season+'</span>':'')+
@@ -15103,7 +15103,7 @@ function renderAcadWychowankowie(){
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px;text-align:center">Brak wychowanków w składzie</div>';
+      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Brak wychowanków w składzie</div>';
     }
   } else if(tab==='absolwenci'){
     if(absolwenci.length){
@@ -15111,19 +15111,19 @@ function renderAcadWychowankowie(){
         var arch9b=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
         return '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:4px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:10px;color:var(--gr)">🎓 '+h.name+' <span style="font-size:9px;color:#555">(odszedł)</span></div>'+
-            (arch9b?'<span style="font-family:VT323,monospace;font-size:8px;color:'+arch9b.color+'">'+arch9b.icon+' '+arch9b.name+'</span>':'')+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🎓 '+h.name+' <span style="font-size:var(--fs-dense);color:#555">(odszedł)</span></div>'+
+            (arch9b?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9b.color+'">'+arch9b.icon+' '+arch9b.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
             h.pos+
             (h.joinedSeason?' • dołączył S'+h.joinedSeason:'')+
             (h.peakOvr?' • Szczyt OVR: <span style="color:var(--am)">'+h.peakOvr+'</span>':'')+
           '</div>'+
-          (h.soldTo?'<div style="font-family:VT323,monospace;font-size:9px;margin-top:2px"><span style="color:var(--gr)">Sprzedany do: </span><span style="color:var(--wh)">'+h.soldTo+'</span>'+(h.fee?' <span style="color:var(--gb)">za '+fmtVal(h.fee)+'</span>':'')+'</div>':'')+
+          (h.soldTo?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px"><span style="color:var(--gr)">Sprzedany do: </span><span style="color:var(--wh)">'+h.soldTo+'</span>'+(h.fee?' <span style="color:var(--gb)">za '+fmtVal(h.fee)+'</span>':'')+'</div>':'')+
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px;text-align:center">Żaden wychowanek jeszcze nie odszedł.</div>';
+      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden wychowanek jeszcze nie odszedł.</div>';
     }
   } else if(tab==='odpuszczeni'){
     if(odpuszczeni.length){
@@ -15131,19 +15131,19 @@ function renderAcadWychowankowie(){
         var arch9c=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
         return '<div style="background:var(--tb);border:1px solid #3d0000;padding:8px 12px;margin-bottom:4px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:10px;color:#888">🎓 '+h.name+' <span style="color:var(--rd);font-size:9px">✗ zwolniony</span></div>'+
-            (arch9c?'<span style="font-family:VT323,monospace;font-size:8px;color:'+arch9c.color+'">'+arch9c.icon+' '+arch9c.name+'</span>':'')+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#888">🎓 '+h.name+' <span style="color:var(--rd);font-size:9px">✗ zwolniony</span></div>'+
+            (arch9c?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9c.color+'">'+arch9c.icon+' '+arch9c.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
             h.pos+' • S'+h.season+
             (h.releaseOvr?' • OVR przy zwolnieniu: <span style="color:#888">'+h.releaseOvr+'</span>':'')+
             (h.pot?' • Pot było: <span style="color:var(--am)">'+h.pot+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:8px;color:#555;margin-top:3px;font-style:italic">Czy to była dobra decyzja?</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#555;margin-top:3px;font-style:italic">Czy to była dobra decyzja?</div>'+
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px;text-align:center">Żaden junior nie został odpuszczony.</div>';
+      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden junior nie został odpuszczony.</div>';
     }
   }
 
@@ -15171,10 +15171,10 @@ function renderAcadHistoryTab(p){
   var html='';
   // Nagłówek wychowanka
   html+='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:10px 12px;margin-bottom:10px">'+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:#ce93d8;margin-bottom:4px">🎓 WYCHOWANEK AKADEMII</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ce93d8;margin-bottom:4px">🎓 WYCHOWANEK AKADEMII</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-      (arch?'<span style="font-family:VT323,monospace;font-size:9px;color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
-      '<span style="font-family:VT323,monospace;font-size:9px;color:var(--gb);border:1px solid var(--gb);padding:1px 5px">W Akademii od S'+debSzn+'</span>'+
+      (arch?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
+      '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 5px">W Akademii od S'+debSzn+'</span>'+
     '</div>'+
   '</div>';
 
@@ -15182,28 +15182,28 @@ function renderAcadHistoryTab(p){
   html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px">'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
       '<div style="font-family:VT323,monospace;font-size:'+(growth>0?'16px':'12px')+';color:'+(growth>0?'var(--gb)':'var(--gr)')+'">+'+(growth>0?growth:0)+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">wzrost OVR</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">wzrost OVR</div>'+
     '</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:16px;color:var(--am)">'+seasonsInClub+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">sez. u nas</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am)">'+seasonsInClub+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">sez. u nas</div>'+
     '</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:16px;color:var(--wh)">'+totalM+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr)">mecze</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--wh)">'+totalM+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">mecze</div>'+
     '</div>'+
   '</div>';
 
   // Porównanie
   if(myPls.length>1){
-    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-family:VT323,monospace;font-size:9px">'+
+    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
       '<span style="color:var(--gr)">Na debiucie był gorszy od </span><span style="color:var(--rd)">'+pctWeak+'% składu</span>'+
       (rankNow>0?'<span style="color:var(--gr)">. Dziś jest </span><span style="color:var(--gb)">'+(rankNow===1?'najlepszym':''+rankNow+'.')+'</span><span style="color:var(--gr)"> zawodnikiem drużyny</span>':'')+'.'+
     '</div>';
   }
 
   // Oś czasu sezonów
-  html+='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">OŚ CZASU</div>';
+  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">OŚ CZASU</div>';
   var allHist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
   allHist.forEach(function(h,i){
     var isFirst=i===0;
@@ -15219,14 +15219,14 @@ function renderAcadHistoryTab(p){
     else if(ovrGrowth>=10)noteIcon='📈 Przełomowy sezon (+'+ovrGrowth+' OVR)';
     html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
-        (ovrGrowth>0?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
+        (ovrGrowth>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
         (h.m||0)+' meczów'+(h.g?(' • '+(h.g||0)+' goli'):'')+((h.a||0)>0?(' • '+(h.a||0)+' asyst'):'')+
         (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
       '</div>'+
-      (noteIcon?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
+      (noteIcon?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
     '</div>';
   });
 
@@ -15243,10 +15243,10 @@ function renderAcadRozbudowa(){
     const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
     return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-        (isOwned?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">AKTYWNA</div>':'')+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+        (isOwned?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:9px;margin-bottom:6px">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
         '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
         '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
         '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
@@ -15257,9 +15257,9 @@ function renderAcadRozbudowa(){
         (a.ekstraOnly?'<div><span style="color:var(--gr)">Liga: </span><span style="color:var(--am)">Tylko Premier Division</span></div>':a.req>=500?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">I Ligi (rep 500+)</span></div>':a.req>=250?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">III Ligi (rep 250+)</span></div>':a.req>=100?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">V Ligi (rep 100+)</span></div>':'')+
       '</div>'+
       (!isOwned&&isNext?
-        (!reqOk?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-         !canAfford?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
+        (!reqOk?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
+         !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
+         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
       :'')+
     '</div>';
   }).join('');
@@ -16457,8 +16457,8 @@ function buildWorldTransferLog(){
 
 function renderWorldTransfers(){
   const el=document.getElementById('world-transfers');if(!el||!G)return;
-  const F='font-family:VT323,monospace;font-size:9px;';
-  const Fs='font-family:VT323,monospace;font-size:9px;';
+  const F='font-family:VT323,monospace;font-size:var(--fs-dense);';
+  const Fs='font-family:VT323,monospace;font-size:var(--fs-dense);';
   const list=buildWorldTransferLog();
   if(!list.length){
     el.innerHTML=`<div style="${F}color:var(--gr);text-align:center;padding:30px">Brak danych transferowych.<br>Zagraj kilka sezonów!</div>`;
@@ -16490,7 +16490,7 @@ function renderWorldTransfers(){
       <div style="${F}color:${c};margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:3px">${faceSlot}#${rank} ${shortName}</div>
       <div style="${Fs}color:${c}99;margin-bottom:3px">${shortFrom}→${shortTo}</div>
       <div style="background:${c}18;border:1px solid ${c};border-bottom:none;height:${podiumHeights[col]};display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px">
-        <div style="font-size:18px">${podiumMedals[col]}</div>
+        <div style="font-size:var(--fs-display)">${podiumMedals[col]}</div>
         <div style="${F}color:${c};margin-top:2px">${fmtVal(t.price)}</div>
         ${t.mine?`<div style="${Fs}color:#000;background:var(--am);padding:1px 5px;margin-top:2px">MÓJ</div>`:''}
       </div>
@@ -16528,7 +16528,7 @@ function renderWorldClubs(sortBy){
   const el=document.getElementById('world-clubs');if(!el||!G)return;
   const sort=sortBy||el.dataset.sort||'spent';
   el.dataset.sort=sort;
-  const F='font-family:VT323,monospace;font-size:9px;';
+  const F='font-family:VT323,monospace;font-size:var(--fs-dense);';
   const leagues=G.leagues||[];
 
   // Zbierz statsy per klub
@@ -16644,7 +16644,7 @@ function renderBoardCele(){
   const el=document.getElementById('board-cele');if(!el||!G)return;
   const b=G.board;
   if(!b||!b.mainOptions){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px;text-align:center">Cele zostaną przydzielone na początku nowego sezonu.</div>';
+    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Cele zostaną przydzielone na początku nowego sezonu.</div>';
     return;
   }
   const streak=b.streakFailed||0;
@@ -16653,7 +16653,7 @@ function renderBoardCele(){
 
   // Baner PRESJI
   const pressBanner=streak>=2?
-    '<div style="background:#2e0000;border:2px solid var(--rd);padding:8px 12px;margin-bottom:10px;font-family:VT323,monospace;font-size:10px;color:var(--rd)">'+
+    '<div style="background:#2e0000;border:2px solid var(--rd);padding:8px 12px;margin-bottom:10px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+
     '⚠️ PRESJA ZARZĄDU — '+streak+'. sezon bez wykonania celu!'+
     (streak>=3?' Cel narzucony przez zarząd.':' Kary zwiększone ×'+(streak>=3?'1.6':'1.3')+'.')+
     '</div>':'';
@@ -16663,7 +16663,7 @@ function renderBoardCele(){
   let contextBanner='';
   if(lastHist){
     const ctx=b.mainOptions[0]&&b.mainOptions[0].context;
-    if(ctx)contextBanner='<div style="background:#0d2200;border-left:3px solid var(--gb);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+
+    if(ctx)contextBanner='<div style="background:#0d2200;border-left:3px solid var(--gb);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
       '📋 '+ctx+' (Poprzedni sezon: '+lastHist.pos+'. miejsce, '+lastHist.gf+':'+lastHist.ga+')</div>';
   }
 
@@ -16671,11 +16671,11 @@ function renderBoardCele(){
   const mainHtml=b.mainGoal?
     '<div style="background:var(--tb);border:2px solid var(--gb);padding:10px 12px;margin-bottom:12px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">'+b.mainGoal.label+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:var(--am)">'+starsHtml(b.mainGoal.stars||3)+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+b.mainGoal.label+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">'+starsHtml(b.mainGoal.stars||3)+'</div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:6px">'+b.mainGoal.desc+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:9px">'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+b.mainGoal.desc+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
         '<div><div style="color:var(--gr)">Nagroda</div><div style="color:var(--gb)">'+
           (b.mainGoal.reward.budget?'+'+fmt(b.mainGoal.reward.budget):'')+(b.mainGoal.reward.rep?' +Rep '+b.mainGoal.reward.rep:'')+'</div></div>'+
         '<div><div style="color:var(--gr)">Kara</div><div style="color:var(--rd)">'+
@@ -16688,17 +16688,17 @@ function renderBoardCele(){
       const forced=b.pressureForced;
       return '<div style="background:var(--tb);border:1px solid '+(forced?'var(--rd)':'var(--gl)')+';padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">'+g.label+'</div>'+
-          '<div style="font-family:VT323,monospace;font-size:10px;color:'+(g.difficulty==='hard'?'var(--rd)':g.difficulty==='medium'?'var(--am)':'var(--gb)')+'">'+starsHtml(g.stars||3)+'</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+g.label+'</div>'+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(g.difficulty==='hard'?'var(--rd)':g.difficulty==='medium'?'var(--am)':'var(--gb)')+'">'+starsHtml(g.stars||3)+'</div>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:6px">'+g.desc+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:9px;margin-bottom:6px">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+g.desc+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
           '<div><div style="color:var(--gr)">Nagroda</div><div style="color:var(--gb)">'+
             (g.reward.budget?'+'+fmt(g.reward.budget):'')+(g.reward.rep?' +Rep '+g.reward.rep:'')+(g.reward.transferBudget?' +Tr.'+fmt(g.reward.transferBudget):'')+'</div></div>'+
           '<div><div style="color:var(--gr)">Kara</div><div style="color:var(--rd)">'+
             (g.penalty.budget&&g.penalty.budget<0?fmt(g.penalty.budget):'')+(g.penalty.rep?' Rep '+g.penalty.rep:'')+(g.penalty.transferLock?' ⛔blokada':'')+'</div></div>'+
         '</div>'+
-        '<button onclick="selectMainGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:'+(forced?'var(--rd)':'var(--gb)')+';color:#000;border:none;font-family:VT323,monospace;font-size:12px;padding:8px;cursor:pointer">'+
+        '<button onclick="selectMainGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:'+(forced?'var(--rd)':'var(--gb)')+';color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+
           (forced?'NARZUCONY PRZEZ ZARZĄD':'WYBIERZ')+
         '</button>'+
       '</div>';
@@ -16707,50 +16707,50 @@ function renderBoardCele(){
   // Cel opcjonalny
   const optHtml=b.optGoal?
     '<div style="background:var(--tb);border:1px solid var(--gb);padding:8px 12px">'+
-      '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh);margin-bottom:2px">'+b.optGoal.label+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:4px">'+b.optGoal.desc+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb)">Bonus: '+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+b.optGoal.label+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+b.optGoal.desc+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">Bonus: '+
         (b.optGoal.reward.budget?'+'+fmt(b.optGoal.reward.budget):'')+(b.optGoal.reward.rep?' +Rep '+b.optGoal.reward.rep:'')+(b.optGoal.reward.sponsorBonus?' Sponsorzy +'+Math.round(b.optGoal.reward.sponsorBonus*100)+'%':'')+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd)">Kara za niewykonanie: Rep '+(b.optGoal.penalty&&b.optGoal.penalty.rep?b.optGoal.penalty.rep:'-8')+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Kara za niewykonanie: Rep '+(b.optGoal.penalty&&b.optGoal.penalty.rep?b.optGoal.penalty.rep:'-8')+'</div>'+
     '</div>'
   :
     (b.optOptions||[]).map(g=>
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh);margin-bottom:2px">'+g.label+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:4px">'+g.desc+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gb);margin-bottom:2px">Bonus: '+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+g.label+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+g.desc+'</div>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:2px">Bonus: '+
           (g.reward.budget?'+'+fmt(g.reward.budget):'')+(g.reward.rep?' +Rep '+g.reward.rep:'')+(g.reward.sponsorBonus?' Sponsorzy +'+Math.round(g.reward.sponsorBonus*100)+'%':'')+(g.reward.formBonus?' Forma +'+g.reward.formBonus:'')+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd);margin-bottom:6px">Kara za niewykonanie: Rep '+(g.penalty&&g.penalty.rep?g.penalty.rep:'-8')+'</div>'+
-        '<button onclick="selectOptGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:var(--gm);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:12px;padding:6px;cursor:pointer">PODEJMIJ WYZWANIE</button>'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-bottom:6px">Kara za niewykonanie: Rep '+(g.penalty&&g.penalty.rep?g.penalty.rep:'-8')+'</div>'+
+        '<button onclick="selectOptGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:var(--gm);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODEJMIJ WYZWANIE</button>'+
       '</div>'
     ).join('');
 
   el.innerHTML=
     pressBanner+contextBanner+
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-bottom:8px">CEL GŁÓWNY — Sezon '+G.season+'</div>'+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:6px">'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">CEL GŁÓWNY — Sezon '+G.season+'</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
       (b.mainGoal?'Wybrany: <span style="color:var(--gb)">'+b.mainGoal.label+'</span>':
        b.pressureForced?'<span style="color:var(--rd)">Zarząd narzucił cel — brak wyboru.</span>':'Wybierz jeden z celów:')+
     '</div>'+mainHtml+
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin:10px 0 8px">CEL OPCJONALNY</div>'+
-    '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);margin-bottom:6px">'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 8px">CEL OPCJONALNY</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
       (b.optGoal?'Wybrany: <span style="color:var(--gb)">'+b.optGoal.label+'</span>':
       'Podejmij dodatkowe wyzwanie (kara Rep -8 za niewykonanie):')+
     '</div>'+optHtml+
-    (streak>=1?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--rd);margin-top:8px;padding:6px;border-top:1px solid #3d0000">Seria niewykonanych celów: '+streak+(streak>=2?' — kary ×'+(streak>=3?'1.6':'1.3'):'')+'</div>':'');
+    (streak>=1?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-top:8px;padding:6px;border-top:1px solid #3d0000">Seria niewykonanych celów: '+streak+(streak>=2?' — kary ×'+(streak>=3?'1.6':'1.3'):'')+'</div>':'');
 }
 
 function renderBoardHistoria(){
   const el=document.getElementById('board-historia');if(!el||!G)return;
   const hist=(G.board&&G.board.goalsHistory)||[];
   if(!hist.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px">Historia celów pojawi się po zakończeniu pierwszego sezonu z wybranym celem.</div>';
+    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia celów pojawi się po zakończeniu pierwszego sezonu z wybranym celem.</div>';
     return;
   }
   // Streak info na górze
   const streak=G.board&&G.board.streakFailed||0;
   const streakBanner=streak>=2?
-    '<div style="background:#2e0000;border:1px solid var(--rd);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:9px;color:var(--rd)">⚠️ Seria nieudanych sezonów: '+streak+'</div>':'';
+    '<div style="background:#2e0000;border:1px solid var(--rd);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">⚠️ Seria nieudanych sezonów: '+streak+'</div>':'';
 
   el.innerHTML=streakBanner+hist.slice().reverse().map((h,i)=>{
     const prev=hist.slice().reverse()[i+1];
@@ -16758,16 +16758,16 @@ function renderBoardHistoria(){
     const trendCol=trend.includes('↑')?'var(--gb)':trend.includes('↓')?'var(--rd)':'var(--gr)';
     return '<div style="background:var(--tb);border:1px solid '+(h.mainDone?'var(--gb)':'var(--rd)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:var(--wh)">Sezon '+h.season+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">Sezon '+h.season+
           ' <span style="color:'+trendCol+'">'+trend+'</span></div>'+
-        '<div style="font-family:VT323,monospace;font-size:10px;color:'+(h.mainDone?'var(--gb)':'var(--rd)')+'">'+
+        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(h.mainDone?'var(--gb)':'var(--rd)')+'">'+
           (h.mainDone?'✓ WYKONANY':'✗ NIEWYKONANY')+
         '</div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Cel: <span style="color:var(--wh)">'+h.mainGoal+'</span></div>'+
-      (h.optGoal?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Bonus: <span style="color:'+(h.optDone?'var(--gb)':'var(--rd)')+'">'+h.optGoal+(h.optDone?' ✓':' ✗')+'</span></div>':
-      '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Bonus: <span style="color:var(--gr)">nie wybrano</span></div>')+
-      (h.streakAfter&&h.streakAfter>=2?'<div style="font-family:VT323,monospace;font-size:8px;color:var(--rd);margin-top:4px">Presja: '+h.streakAfter+' sezony z rzędu</div>':'')+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Cel: <span style="color:var(--wh)">'+h.mainGoal+'</span></div>'+
+      (h.optGoal?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:'+(h.optDone?'var(--gb)':'var(--rd)')+'">'+h.optGoal+(h.optDone?' ✓':' ✗')+'</span></div>':
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:var(--gr)">nie wybrano</span></div>')+
+      (h.streakAfter&&h.streakAfter>=2?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-top:4px">Presja: '+h.streakAfter+' sezony z rzędu</div>':'')+
     '</div>';
   }).join('');
 }
@@ -16865,7 +16865,7 @@ function fillFinance(){if(!G)return;
     (inc.tv>0?'<div class="frow"><span class="flbl">Telewizja</span><span class="fpos">+'+fmt(inc.tv)+'</span></div>':'')+
     (inc.vip>0?'<div class="frow"><span class="flbl">Loże VIP</span><span class="fpos">+'+fmt(inc.vip)+'</span></div>':'')+
     '<div class="frow" style="border-top:1px solid var(--gb);margin-top:2px"><span class="flbl" style="color:var(--gb)">RAZEM/TYG</span><span class="fpos" style="color:var(--gb)">+'+fmt(inc.total)+'</span></div>'+
-    '<div style="color:var(--gr);font-family:VT323,monospace;font-size:8px;padding:4px 0">⭐ Rep: '+(G.reputation||10)+' • Mn: ×'+(Math.round((G.reputation||10)/50*100)/100).toFixed(2)+' • Frekw: '+(G.frequency||40)+'% • Stadion: '+((G.stadium&&G.stadium.capacity)||200)+' m.</div>';
+    '<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0">⭐ Rep: '+(G.reputation||10)+' • Mn: ×'+(Math.round((G.reputation||10)/50*100)/100).toFixed(2)+' • Frekw: '+(G.frequency||40)+'% • Stadion: '+((G.stadium&&G.stadium.capacity)||200)+' m.</div>';
   const fc=document.getElementById('fin-cost');
   if(fc)fc.innerHTML=
     '<div class="fsec">KOSZTY</div>'+
@@ -16888,7 +16888,7 @@ function fillFinance(){if(!G)return;
     const rows=G.fin.hist.slice(-8).reverse();
     fh.innerHTML='<div class="fsec">HISTORIA</div>'+
       (rows.length?
-        '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:9px">'+
+        '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
         '<thead><tr>'+
           '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">TYG</th>'+
           '<th style="text-align:right;padding:4px 6px;color:var(--gb);border-bottom:1px solid var(--gl)">PRZYCHÓD</th>'+
@@ -16904,7 +16904,7 @@ function fillFinance(){if(!G)return;
           '</tr>'
         ).join('')+
         '</tbody></table>'
-      :'<div style="color:var(--gr);padding:8px;font-size:9px">Brak historii</div>');
+      :'<div style="color:var(--gr);padding:8px;font-size:var(--fs-dense)">Brak historii</div>');
   }
 }
 
@@ -16959,7 +16959,7 @@ function histTab(tab,btn){
 }
 function renderHistSezony(){
   const el=document.getElementById('hist-sezony');if(!el||!G)return;
-  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr);padding:12px">Historia pojawi sie po zakonczeniu pierwszego sezonu.</div>';return;}
+  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia pojawi sie po zakonczeniu pierwszego sezonu.</div>';return;}
   el.innerHTML=G.cHist.slice().reverse().map((h,ri)=>{
     const myName=G.myClub.n;
     const oi=G.cHist.indexOf(h);
@@ -16972,11 +16972,11 @@ function renderHistSezony(){
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
         '<div class="hentry-s">SEZON '+(h.season||'?')+(h.reconstructed?' *':'')+'</div>'+
         '<div style="display:flex;gap:6px;align-items:center">'+
-          '<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+(h.league||'?')+'</div>'+
-          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-family:VT323,monospace;font-size:8px;color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">TABELA</div>':'')+
+          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(h.league||'?')+'</div>'+
+          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">TABELA</div>':'')+
         '</div>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:VT323,monospace;font-size:9px">'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
         '<div><div style="color:var(--gr)">Miejsce</div><div style="color:'+pc+'">'+(h.pos||'?')+(isP?' ⬆':isR?' ⬇':'')+'</div></div>'+
         '<div><div style="color:var(--gr)">Punkty</div><div style="color:var(--wh)">'+(h.pts||0)+'</div></div>'+
         '<div><div style="color:var(--gr)">Bramki</div><div style="color:var(--wh)">'+(h.gf||0)+':'+(h.ga||0)+'</div></div>'+
@@ -16988,9 +16988,9 @@ function renderHistSezony(){
         '<div><div style="color:var(--gr)">Reputacja</div><div style="color:var(--wh)">'+(h.reputation||'?')+'</div></div>'+
         (h.bonus>0?'<div><div style="color:var(--gr)">Premia</div><div style="color:var(--gb)">+'+fmt(h.bonus)+'</div></div>':'<div></div>')+
       '</div>'+
-      (isP?'<div style="color:var(--gb);font-family:VT323,monospace;font-size:9px;margin-top:4px">⬆ AWANS</div>':isR?'<div style="color:var(--rd);font-family:VT323,monospace;font-size:9px;margin-top:4px">⬇ SPADEK</div>':'')+
+      (isP?'<div style="color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:4px">⬆ AWANS</div>':isR?'<div style="color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:4px">⬇ SPADEK</div>':'')+
     '</div>';
-  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-family:VT323,monospace;font-size:8px;color:var(--gr);padding:6px">* dane zrekonstruowane</div>':'');
+  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:6px">* dane zrekonstruowane</div>':'');
 }
 
 function showMatchDetail(mHistIdx){
@@ -17087,8 +17087,8 @@ function showSeasonTable(histIdx){
   const h=G.cHist&&G.cHist[histIdx];
   if(!h||!h.table||!h.table.length)return;
   const myId=G.myClubId;
-  let html='<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-bottom:8px">TABELA — SEZON '+h.season+' — '+h.league+'</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:9px">'+
+  let html='<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">TABELA — SEZON '+h.season+' — '+h.league+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
     '<thead><tr style="color:var(--gr);border-bottom:1px solid var(--gl)">'+
       '<th style="text-align:left;padding:3px 2px">#</th><th style="text-align:left;padding:3px 2px">KLUB</th>'+
       '<th style="padding:3px 4px">M</th><th style="padding:3px 4px;color:var(--gb)">W</th><th style="padding:3px 4px">R</th><th style="padding:3px 4px;color:var(--rd)">P</th>'+
@@ -17118,7 +17118,7 @@ function showSeasonTable(histIdx){
     document.body.appendChild(modal);
   }
   modal.innerHTML='<div style="background:var(--bg);border:2px solid var(--gl);padding:16px;max-width:95vw;width:380px;max-height:85vh;overflow-y:auto;position:relative">'+
-    '<div onclick="document.getElementById(\'modal-season-table\').remove()" style="position:absolute;top:8px;right:12px;cursor:pointer;font-family:VT323,monospace;font-size:14px;color:var(--gr)">✕</div>'+
+    '<div onclick="document.getElementById(\'modal-season-table\').remove()" style="position:absolute;top:8px;right:12px;cursor:pointer;font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr)">✕</div>'+
     html+'</div>';
   modal.style.display='flex';
 }
@@ -17158,9 +17158,9 @@ function renderHistRekordy(){
   const totCupM=cupW+cupD+cupL;
   const totCupWins=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===1).length;
   const totCupFinals=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===2).length;
-  function row(lbl,val,col){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:9px"><span style="color:var(--gr)">'+lbl+'</span><span style="color:'+(col||'var(--wh)')+'">'+val+'</span></div>';}
+  function row(lbl,val,col){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)"><span style="color:var(--gr)">'+lbl+'</span><span style="color:'+(col||'var(--wh)')+'">'+val+'</span></div>';}
   el.innerHTML=
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin-bottom:8px">REKORDY DRUZYNY</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">REKORDY DRUZYNY</div>'+
     row('Najlepsza liga',tl?tl.league:'?','var(--gb)')+
     row('Najlepsze miejsce',bp?bp.pos+'. (S'+bp.season+')':'?','var(--am)')+
     row('Awanse',prom,'var(--gb)')+
@@ -17170,17 +17170,17 @@ function renderHistRekordy(){
     row('Max reputacja',mr,'var(--am)')+
     row('Puchar Mistrzowski',totCupWins?totCupWins+'x 🥇':'—','var(--am)')+
     row('Finalista Pucharu',totCupFinals?totCupFinals+'x 🥈':'—','var(--gr)')+
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin:10px 0 4px">BILANS MECZOWY</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">BILANS MECZOWY</div>'+
     row('Razem meczów',totM+totCupM+(totCupM?' (liga: '+totM+' | puchar: '+totCupM+')':''))+
     row('Wygrane',totW+cupW+(totCupM?' ('+totW+'+'+cupW+')':''),'var(--gb)')+
     row('Remisy',totD+cupD+(totCupM?' ('+totD+'+'+cupD+')':''),'var(--gr)')+
     row('Porażki',totL+cupL+(totCupM?' ('+totL+'+'+cupL+')':''),'var(--rd)')+
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin:10px 0 4px">REKORDY MECZOWE</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY MECZOWE</div>'+
     row('Seria wygranych',(rec.maxWinStreak||0),'var(--gb)')+
     row('Seria bez porazki',(rec.maxUnbeatenStreak||0),'var(--gb)')+
     row('Seria porazek',(rec.maxLoseStreak||0),'var(--rd)')+
     row('Najwyzsza wygrana',rec.bestWin?rec.bestWin.myG+':'+rec.bestWin.oppG+' vs '+rec.bestWin.opp:'?','var(--gb)')+
-    '<div style="font-family:VT323,monospace;font-size:11px;color:var(--am);margin:10px 0 4px">REKORDY BRAMKOWE</div>'+
+    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY BRAMKOWE</div>'+
     (()=>{
       // Oblicz z cHist jako fallback jeśli records nie ma danych
       const ch=G.cHist||[];
@@ -17222,7 +17222,7 @@ function renderHistZawodnicy(){
     if(found){
       const isRetired=!!(G.retiredPlayers&&G.retiredPlayers.some(x=>x.id===found.id));
       return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+found.id+')">'+p.name+'</span>'
-        +(isRetired?' <span style="font-size:11px;color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">EMERYT</span>':'');
+        +(isRetired?' <span style="font-size:var(--fs-meta);color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">EMERYT</span>':'');
     }
     // Naprawdę brak obiektu (wpisy bez id ze starszych wersji) — szukaj jeszcze po nazwie w players
     const byName=(G.players||[]).find(x=>x.name===p.name);
@@ -17233,17 +17233,17 @@ function renderHistZawodnicy(){
   }
   function top5(key,icon){
     const s=players.filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
-    if(!s.length)return '<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px">Brak danych</div>';
-    return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:9px"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
+    if(!s.length)return '<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">Brak danych</div>';
+    return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
   }
   const at=G.allTimeStats||{};
   el.innerHTML=
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">KRÓL STRZELCÓW</div>'+top5('goals','goli')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">KRÓL ASYSTENTÓW</div>'+top5('assists','asyst')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">NAJWIĘCEJ MECZÓW</div>'+top5('matches','mecz.')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">REKORDY TRANSFEROWE</div>'+
-    (at.bestSeller?'<div style="font-family:VT323,monospace;font-size:9px;padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">Sprzedany: </span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-family:VT323,monospace;font-size:9px">Brak danych</div>')+
-    (at.bestBuyer?'<div style="font-family:VT323,monospace;font-size:9px;padding:5px 0"><span style="color:var(--gr)">Kupiony: </span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
+    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">KRÓL STRZELCÓW</div>'+top5('goals','goli')+
+    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">KRÓL ASYSTENTÓW</div>'+top5('assists','asyst')+
+    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">NAJWIĘCEJ MECZÓW</div>'+top5('matches','mecz.')+
+    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">REKORDY TRANSFEROWE</div>'+
+    (at.bestSeller?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">Sprzedany: </span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">Brak danych</div>')+
+    (at.bestBuyer?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">Kupiony: </span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
 }
 function renderHistDynastia(){
   const el=document.getElementById('hist-dynastia');if(!el||!G)return;
@@ -17267,9 +17267,9 @@ function renderHistDynastia(){
   html+='</div>';
   const hasAnyTrophy=lt.length>0||ctWon.length>0||ctFin.length>0;
   html+='<div style="border-bottom:2px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">GABLOTA TROFE\u00d3W</div>';
+  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">GABLOTA TROFE\u00d3W</div>';
   if(!hasAnyTrophy){
-    html+='<div style="font-size:9px;color:var(--gr);padding:10px 12px 12px">Brak trofe\u00f3w \u2014 buduj dynasti\u0119!</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px 12px">Brak trofe\u00f3w \u2014 buduj dynasti\u0119!</div>';
   } else {
     if(lt.length>0){
       [1,2,3,4,5,6,7,8].forEach(function(lvl){
@@ -17281,10 +17281,10 @@ function renderHistDynastia(){
         won.forEach(function(){html+='<span style="font-size:22px;display:inline-block;filter:'+cup.filter+'">&#127942;</span>';});
         html+='</div>';
         html+='<div style="flex:1">';
-        html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:'+cup.color+';margin-bottom:3px">'+cup.label.toUpperCase()+'</div>';
-        html+='<div style="font-size:9px;color:var(--gr)">'+won.map(function(t){return 'S'+t.season;}).join(' \u2022 ')+'</div>';
+        html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+cup.color+';margin-bottom:3px">'+cup.label.toUpperCase()+'</div>';
+        html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+won.map(function(t){return 'S'+t.season;}).join(' \u2022 ')+'</div>';
         html+='</div>';
-        if(won.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:11px;color:'+cup.color+'">\u00d7'+won.length+'</div>';
+        if(won.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h1);color:'+cup.color+'">\u00d7'+won.length+'</div>';
         html+='</div>';
       });
     }
@@ -17295,12 +17295,12 @@ function renderHistDynastia(){
       ctFin.forEach(function(){html+='<span style="font-size:22px;filter:grayscale(0.5) brightness(1.3)">&#129352;</span>';});
       html+='</div>';
       html+='<div style="flex:1">';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--am);margin-bottom:3px">PUCHAR MISTRZOWSKI</div>';
-      html+='<div style="font-size:9px;color:var(--gr)">';
+      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">PUCHAR MISTRZOWSKI</div>';
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr)">';
       if(ctWon.length>0)html+='Wygrany: '+ctWon.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
       if(ctFin.length>0)html+=(ctWon.length?' \u2022 ':'')+' Fina\u0142y: '+ctFin.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
       html+='</div></div>';
-      if(ctWon.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:11px;color:var(--am)">\u00d7'+ctWon.length+'</div>';
+      if(ctWon.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h1);color:var(--am)">\u00d7'+ctWon.length+'</div>';
       html+='</div>';
     }
   }
@@ -17310,7 +17310,7 @@ function renderHistDynastia(){
   html+='<div class="dyn-tl-hdr">OŚ CZASU — SEZON PO SEZONIE</div>';
 
   if(!cHist.length){
-    html+='<div style="font-size:9px;color:var(--gr);padding:8px 0">Historia pojawi się po zakończeniu pierwszego sezonu.</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 0">Historia pojawi się po zakończeniu pierwszego sezonu.</div>';
   } else {
     cHist.forEach(function(h,i){
       const isLast=i===cHist.length-1;
@@ -17368,7 +17368,7 @@ function renderHistDynastia(){
         html+='<div class="dyn-milestones" style="margin-top:5px">';
         _tlSeason.forEach(function(tl){
           var _clickable=tl.pid!=null;
-          var _style='font-family:VT323,monospace;font-size:9px;color:'+(_clickable?'var(--am)':'var(--gr)')+';padding:2px 0;display:flex;gap:5px'+(_clickable?';cursor:pointer':'');
+          var _style='font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(_clickable?'var(--am)':'var(--gr)')+';padding:2px 0;display:flex;gap:5px'+(_clickable?';cursor:pointer':'');
           var _click=_clickable?' onclick="showById('+tl.pid+')"':'';
           html+='<div style="'+_style+'"'+_click+'><span>'+tl.icon+'</span><span>'+tl.label+(_clickable?' ↗':'')+'</span></div>';
         });
@@ -17466,7 +17466,7 @@ function dcChart(parent,title,renderFn){
 function dcLegend(parent,items){
   const leg=document.createElement('div');leg.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;';
   items.forEach(([color,label])=>{
-    leg.innerHTML+='<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';margin-right:3px;vertical-align:middle;"></span><span style="font-size:13px;color:var(--gr)">'+label+'</span></span>';
+    leg.innerHTML+='<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';margin-right:3px;vertical-align:middle;"></span><span style="font-size:var(--fs-body);color:var(--gr)">'+label+'</span></span>';
   });
   parent.lastChild.appendChild(leg);
 }
@@ -17476,7 +17476,7 @@ function dcRenderWzrost(){
   const el=document.getElementById('dc-wzrost');if(!el||!G)return;
   const h=G.cHist||[];
   if(!h.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:15px;color:var(--gr);padding:20px 10px;text-align:center;line-height:1.6;">Wykresy wzrostu pojawią się<br>po zakończeniu pierwszego sezonu.</div>';
+    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr);padding:20px 10px;text-align:center;line-height:1.6;">Wykresy wzrostu pojawią się<br>po zakończeniu pierwszego sezonu.</div>';
     return;
   }
   el.innerHTML='';
@@ -17631,13 +17631,13 @@ function dcRenderLegенды(){
   // ── Brak legend / Brak danych ────────────────────────
   if(!legends.length&&!candidates.length){
     const nd=document.createElement('div');
-    nd.style.cssText='font-size:15px;color:var(--gr);text-align:center;padding:16px 0;';
+    nd.style.cssText='font-size:var(--fs-body);color:var(--gr);text-align:center;padding:16px 0;';
     nd.textContent='Brak legend — historia się pisze!';
     el.appendChild(nd);
   }
   if(!legends.length&&candidates.length){
     const nd=document.createElement('div');
-    nd.style.cssText='font-size:15px;color:var(--gr);text-align:center;padding:8px 0 14px;';
+    nd.style.cssText='font-size:var(--fs-body);color:var(--gr);text-align:center;padding:8px 0 14px;';
     nd.textContent='Brak legend — jeszcze nikt nie przekroczył progu '+LEG_THRESHOLD+' pkt.';
     el.appendChild(nd);
   }
@@ -17775,9 +17775,9 @@ function dcRenderKadra(){
     const tr=document.createElement('tr');
     tr.style.cursor='pointer';
     tr.onclick=()=>showById(p.id);
-    tr.innerHTML='<td style="color:var(--am);text-decoration:underline">'+(p.name||'?')+(p.fromAcademy?' <span style="font-size:11px;color:#9c27b0">🎓</span>':'')+'</td>'+
+    tr.innerHTML='<td style="color:var(--am);text-decoration:underline">'+(p.name||'?')+(p.fromAcademy?' <span style="font-size:var(--fs-meta);color:#9c27b0">🎓</span>':'')+'</td>'+
       '<td style="color:var(--gr)">'+(p.pos||'?')+'</td>'+
-      '<td style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:8px">'+o+'</td>'+
+      '<td style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3)">'+o+'</td>'+
       '<td style="color:#00bcd4">'+pot+'</td>'+
       '<td style="color:'+deltaColor+'">'+(delta>0?'+':'')+delta+'</td>'+
       '<td style="color:var(--wh)">'+fmtVal(p.value||0)+'</td>';
@@ -17793,9 +17793,9 @@ function dcRenderKadra(){
     grads.forEach(p=>{
       const card=document.createElement('div');
       card.style.cssText='background:var(--tb);border-left:3px solid #9c27b0;padding:7px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;';
-      card.innerHTML='<div><div style="font-size:15px;color:var(--wh)">'+p.name+' <span style="color:#9c27b0;font-size:12px">🎓</span></div>'+
-        '<div style="font-size:12px;color:var(--gr)">OVR '+ovr(p)+' → POT '+(p.potential||ovr(p))+' · '+(p.pos||'?')+'</div></div>'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:var(--gb)">'+fmtVal(p.value||0)+'</div>';
+      card.innerHTML='<div><div style="font-size:var(--fs-body);color:var(--wh)">'+p.name+' <span style="color:#9c27b0;font-size:12px">🎓</span></div>'+
+        '<div style="font-size:var(--fs-meta);color:var(--gr)">OVR '+ovr(p)+' → POT '+(p.potential||ovr(p))+' · '+(p.pos||'?')+'</div></div>'+
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gb)">'+fmtVal(p.value||0)+'</div>';
       el.appendChild(card);
     });
   }
@@ -17816,10 +17816,10 @@ function dcRenderKlub(){
   // Legenda
   el.innerHTML=
     '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">'+
-    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--gb);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:13px;color:var(--gr)">Wygrana</span></span>'+
-    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--am);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:13px;color:var(--gr)">Remis</span></span>'+
-    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--rd);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:13px;color:var(--gr)">Porażka</span></span>'+
-    '<span style="font-size:13px;color:var(--gr)">🏠=dom ✈=wyjazd</span>'+
+    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--gb);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:var(--fs-body);color:var(--gr)">Wygrana</span></span>'+
+    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--am);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:var(--fs-body);color:var(--gr)">Remis</span></span>'+
+    '<span><span style="display:inline-block;width:11px;height:11px;background:var(--rd);border-radius:2px;margin-right:3px;vertical-align:middle"></span><span style="font-size:var(--fs-body);color:var(--gr)">Porażka</span></span>'+
+    '<span style="font-size:var(--fs-body);color:var(--gr)">🏠=dom ✈=wyjazd</span>'+
     '</div>';
 
   // Buduj listę sezonów do wyświetlenia — deduplikacja po season
@@ -17866,11 +17866,11 @@ function dcRenderKlub(){
     const hdr=document.createElement('div');
     hdr.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:5px;'+(di>0?'margin-top:14px;':'');
     hdr.innerHTML=
-      '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:var(--cy)">S'+d.season+'</span>'+
-      '<span style="font-size:13px;color:var(--gr)">'+(d.league||'?')+'</span>'+
-      (pos?'<span style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:'+posColor+'">'+pos+'. msc</span>':
-           '<span style="font-size:13px;color:var(--gr)">w trakcie</span>')+
-      (d.pts?'<span style="font-size:13px;color:var(--gr)">'+d.pts+' pkt</span>':'')+
+      '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--cy)">S'+d.season+'</span>'+
+      '<span style="font-size:var(--fs-body);color:var(--gr)">'+(d.league||'?')+'</span>'+
+      (pos?'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+posColor+'">'+pos+'. msc</span>':
+           '<span style="font-size:var(--fs-body);color:var(--gr)">w trakcie</span>')+
+      (d.pts?'<span style="font-size:var(--fs-body);color:var(--gr)">'+d.pts+' pkt</span>':'')+
       (isChamp?'<span style="font-size:14px">🏆</span>':'')+
       (isCup?'<span style="font-size:14px">🥇</span>':'');
     el.appendChild(hdr);
@@ -17888,7 +17888,7 @@ function dcRenderKlub(){
         const rowH=document.createElement('div');
         rowH.style.cssText='display:flex;align-items:center;gap:2px;margin-bottom:3px;';
         const lbl=document.createElement('span');
-        lbl.style.cssText='font-size:11px;color:var(--gr);margin-right:4px;flex-shrink:0';
+        lbl.style.cssText='font-size:var(--fs-meta);color:var(--gr);margin-right:4px;flex-shrink:0';
         lbl.textContent='🏠';
         rowH.appendChild(lbl);
         homeMatches.sort((a,b)=>(a.rnd||0)-(b.rnd||0)).forEach((m,i)=>{
@@ -17902,7 +17902,7 @@ function dcRenderKlub(){
         const rowA=document.createElement('div');
         rowA.style.cssText='display:flex;align-items:center;gap:2px;margin-bottom:3px;';
         const lbl=document.createElement('span');
-        lbl.style.cssText='font-size:11px;color:var(--gr);margin-right:4px;flex-shrink:0';
+        lbl.style.cssText='font-size:var(--fs-meta);color:var(--gr);margin-right:4px;flex-shrink:0';
         lbl.textContent='✈';
         rowA.appendChild(lbl);
         awayMatches.sort((a,b)=>(a.rnd||0)-(b.rnd||0)).forEach((m,i)=>{
@@ -17918,7 +17918,7 @@ function dcRenderKlub(){
       const total=w+dr+l;
       if(!total){
         const nd=document.createElement('div');
-        nd.style.cssText='font-size:13px;color:var(--gr);padding:2px 0 6px';
+        nd.style.cssText='font-size:var(--fs-body);color:var(--gr);padding:2px 0 6px';
         nd.textContent='Brak danych meczowych.';el.appendChild(nd);
       } else {
         const heat=document.createElement('div');heat.className='dc-heat';heat.style.marginBottom='4px';
@@ -17936,7 +17936,7 @@ function dcRenderKlub(){
       }
     } else {
       const nd=document.createElement('div');
-      nd.style.cssText='font-size:13px;color:var(--gr);padding:2px 0 6px';
+      nd.style.cssText='font-size:var(--fs-body);color:var(--gr);padding:2px 0 6px';
       nd.textContent='Brak rozegranych meczów.';el.appendChild(nd);
     }
   });
@@ -17951,9 +17951,9 @@ function openSaveModal(){
   if(!el)return;
   el.innerHTML=[1,2,3].map(s=>{
     const i=saveInfo(s);
-    const info=i?'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">'+i.club+' • Sezon '+i.season+' • Kolejka '+i.round+'</div>':'<div style="font-family:VT323,monospace;font-size:9px;color:var(--gr)">Pusty slot</div>';
+    const info=i?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+i.club+' • Sezon '+i.season+' • Kolejka '+i.round+'</div>':'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Pusty slot</div>';
     return '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;margin-bottom:8px;cursor:pointer" onclick="doSaveSlot('+s+')">'+
-      '<div style="font-family:VT323,monospace;font-size:10px;color:var(--am);margin-bottom:4px">SLOT '+s+(i?' ✔':'')+'</div>'+
+      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">SLOT '+s+(i?' ✔':'')+'</div>'+
       info+'</div>';
   }).join('');
   openModal('m-save');
@@ -17964,7 +17964,7 @@ function doSaveSlot(slot){
   closeModal('m-save');
 }
 
-function goSaves(){const el=document.getElementById('saves-list');if(el)el.innerHTML=[1,2,3].map(s=>{const i=saveInfo(s);if(!i)return'<div class="save-slot empty"><div class="save-slot-title">'+t('saves_slot')+' '+s+'</div><div class="save-slot-info" style="font-size:9px">'+t('saves_empty')+'</div></div>';return'<div class="save-slot"><div class="save-slot-title">'+t('saves_slot')+' '+s+' \u2014 '+i.club+'</div><div class="save-slot-info" style="font-size:9px">'+t('saves_season')+' '+i.season+' \u2022 '+t('saves_round')+' '+i.round+'</div><div class="save-slot-date">'+new Date(i.savedAt).toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div><div class="save-slot-btns"><div class="ssb" onclick="doLoad('+s+')">'+t('saves_load')+'</div><div class="ssb del" onclick="doDel('+s+')">'+t('saves_delete')+'</div></div></div>';}).join('');go('v-saves');}
+function goSaves(){const el=document.getElementById('saves-list');if(el)el.innerHTML=[1,2,3].map(s=>{const i=saveInfo(s);if(!i)return'<div class="save-slot empty"><div class="save-slot-title">'+t('saves_slot')+' '+s+'</div><div class="save-slot-info" style="font-size:var(--fs-dense)">'+t('saves_empty')+'</div></div>';return'<div class="save-slot"><div class="save-slot-title">'+t('saves_slot')+' '+s+' \u2014 '+i.club+'</div><div class="save-slot-info" style="font-size:var(--fs-dense)">'+t('saves_season')+' '+i.season+' \u2022 '+t('saves_round')+' '+i.round+'</div><div class="save-slot-date">'+new Date(i.savedAt).toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div><div class="save-slot-btns"><div class="ssb" onclick="doLoad('+s+')">'+t('saves_load')+'</div><div class="ssb del" onclick="doDel('+s+')">'+t('saves_delete')+'</div></div></div>';}).join('');go('v-saves');}
 function doLoad(s){if(loadGame(s)){go('v-game');updateHdr();notif(t('saves_loaded_ok').replace('{name}',G.myClub.n),'ok');}else notif(t('saves_loaded_err'),'err');}
 function doDel(s){delSave(s);goSaves();}
 // Wyczysc uszkodzone zapisy przy starcie
@@ -18107,11 +18107,11 @@ function showBriefingModal(){
     var checkMark=done?'<span style="color:#4caf50;margin-left:6px;">✓</span>':'';
     var q='"';
     var btnHtml=(!done&&btnLabel)
-      ?('<button onclick='+q+'tutorialOpenPanel(\'' +panel+ '\',\'' +action+ '\')'+q+' style='+q+'font-family:VT323,monospace;font-size:11px;background:rgba(255,193,7,0.08);border:1px solid var(--am);color:var(--am);padding:2px 8px;cursor:pointer'+q+'>▶ '+btnLabel+'</button>')
+      ?('<button onclick='+q+'tutorialOpenPanel(\'' +panel+ '\',\'' +action+ '\')'+q+' style='+q+'font-family:VT323,monospace;font-size:var(--fs-meta);background:rgba(255,193,7,0.08);border:1px solid var(--am);color:var(--am);padding:2px 8px;cursor:pointer'+q+'>▶ '+btnLabel+'</button>')
       :'';
-    var descHtml=desc?('<div style="font-size:9px;color:var(--gr);margin-bottom:4px;">'+desc+'</div>'):'';
+    var descHtml=desc?('<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px;">'+desc+'</div>'):'';
     return '<div style="border-left:2px solid '+borderCol+';padding-left:10px;margin-bottom:10px;">'
-      +'<div style="font-size:11px;color:'+titleCol+';margin-bottom:2px;">'+icon+' '+title+checkMark+'</div>'
+      +'<div style="font-size:var(--fs-meta);color:'+titleCol+';margin-bottom:2px;">'+icon+' '+title+checkMark+'</div>'
       +descHtml
       +btnHtml
       +'</div>';
@@ -18120,31 +18120,31 @@ function showBriefingModal(){
   function _infoRow(icon,title,desc,btnLabel,panel,action){
     var q='"';
     var btnHtml=btnLabel
-      ?('<button onclick='+q+'tutorialOpenPanel(\'' +panel+ '\',\'' +action+ '\')'+q+' style='+q+'font-family:VT323,monospace;font-size:11px;background:rgba(255,193,7,0.08);border:1px solid var(--am);color:var(--am);padding:2px 8px;cursor:pointer'+q+'>▶ '+btnLabel+'</button>')
+      ?('<button onclick='+q+'tutorialOpenPanel(\'' +panel+ '\',\'' +action+ '\')'+q+' style='+q+'font-family:VT323,monospace;font-size:var(--fs-meta);background:rgba(255,193,7,0.08);border:1px solid var(--am);color:var(--am);padding:2px 8px;cursor:pointer'+q+'>▶ '+btnLabel+'</button>')
       :'';
-    var descHtml=desc?('<div style="font-size:9px;color:var(--gr);margin-bottom:4px;">'+desc+'</div>'):'';
+    var descHtml=desc?('<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px;">'+desc+'</div>'):'';
     return '<div style="border-left:2px solid #1a2d1a;padding-left:10px;margin-bottom:10px;">'
-      +'<div style="font-size:11px;color:var(--wh);margin-bottom:2px;">'+icon+' '+title+'</div>'
+      +'<div style="font-size:var(--fs-meta);color:var(--wh);margin-bottom:2px;">'+icon+' '+title+'</div>'
       +descHtml
       +btnHtml
       +'</div>';
   }
 
   var bodyHtml=''
-    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:9px;letter-spacing:1px;margin:8px 0 10px;">&#9679; TYG. 1-2 &#8212; PRZYGOTOWANIA</div>'
+    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);letter-spacing:1px;margin:8px 0 10px;">&#9679; TYG. 1-2 &#8212; PRZYGOTOWANIA</div>'
     +_row(_doneBoard,'📋','Wybierz cel sezonu.','Cel główny = premia na koniec. Cel bonusowy = punkty rep.','ZARZĄD','p-finance','board')
     +_row(_doneContracts,'💰','Podpisz kontrakty sponsorskie.','Bez nich tracisz główny dochód.','FINANSE','p-finance','finance_contracts')
     +_row(_doneFocus,'🎯','Ustaw fokus treningowy.','Zawodnicy bez fokusa nie rosną.','TRENING','p-training','training_plan')
     +_row(_doneScout,'🔍','Wyślij obserwację skauta.','','TRANSFERY / SKAUCI','p-transfers','skauci')
     +_infoRow('🏕','Obóz — opcjonalny, tylko T1-2.','Forma → 100%, OVR +1 na 4 kolejki.','TRENING / OBÓZ','p-training','camp')
     +_infoRow('🔓','Transfery — okno letnie T1-2.','Max 3 zakupy. Kolejne okno: T16.','TRANSFERY','p-transfers','transfers')
-    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:5px;letter-spacing:1px;margin:12px 0 10px;">○ TYG. 3-15 — SEZON REGULARNY</div>'
+    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ TYG. 3-15 — SEZON REGULARNY</div>'
     +_infoRow('⚽','Jeden mecz na tydzień.','Przed meczem ustaw taktykę.','TAKTYKA','p-tactics','tactics')
     +_infoRow('👥','Pilnuj składu.','Kontuzje i zawieszenia zmieniają jedenastkę.','SKŁAD','p-squad','squad')
     +_infoRow('📊','TOP 2 to awans, ostatnie 2 to spadek.','','TABELA','p-table','table')
-    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:5px;letter-spacing:1px;margin:12px 0 10px;">○ TYG. 16-17 — ZIMOWE OKNO</div>'
+    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ TYG. 16-17 — ZIMOWE OKNO</div>'
     +_infoRow('🔓','Transfery znów otwarte, 2 tyg.','','TRANSFERY','p-transfers','transfers')
-    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:5px;letter-spacing:1px;margin:12px 0 10px;">○ NOWY SEZON — AKADEMIA</div>'
+    +'<div style="color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ NOWY SEZON — AKADEMIA</div>'
     +_infoRow('🎓','Jeśli masz Akademię, na starcie każdego sezonu możesz dobrać juniora.','','AKADEMIA','p-academy','academy');
 
   const m=document.createElement('div');
@@ -18152,7 +18152,7 @@ function showBriefingModal(){
   m.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:10100;background:rgba(0,0,0,0.93);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;';
   m.innerHTML=
     '<div style="font-family:VT323,monospace;color:var(--wh);width:100%;max-width:420px;padding:16px 12px 24px;">'
-    +'<div style="border:1px solid var(--gb);background:#030f03;padding:10px 12px;margin-bottom:10px;font-size:9px;color:var(--gr);line-height:1.8;">'
+    +'<div style="border:1px solid var(--gb);background:#030f03;padding:10px 12px;margin-bottom:10px;font-size:var(--fs-dense);color:var(--gr);line-height:1.8;">'
     +'<span style="color:var(--gb)">&gt; INICJALIZACJA NOWEJ KARIERY... <span style="color:var(--gb)">OK</span></span><br>'
     +'<span style="color:var(--gb)">&gt; KLUB: <span style="color:var(--wh)">'+club+'</span></span><br>'
     +'<span style="color:var(--gb)">&gt; LIGA: <span style="color:var(--wh)">'+liga+'</span></span><br>'
@@ -18160,12 +18160,12 @@ function showBriefingModal(){
     +'</div>'
     +'<div style="border:2px solid var(--gb);background:#050f05;">'
     +'<div style="background:var(--gb);padding:6px 12px;">'
-    +'<span style="font-family:\x27Press Start 2P\x27,monospace;font-size:6px;color:#000;letter-spacing:1px;">TUTORIAL — SEZON 1</span>'
+    +'<span style="font-family:\x27Press Start 2P\x27,monospace;font-size:var(--fs-h3);color:#000;letter-spacing:1px;">TUTORIAL — SEZON 1</span>'
     +'</div>'
     +'<div style="padding:10px 12px;">'+bodyHtml+'</div>'
-    +'<div style="font-size:9px;color:var(--gr);padding:8px 12px;border-top:1px solid var(--gl);text-align:center;line-height:1.8;">'+'Po zamknięciu możesz wrócić do tutorialu z Głównego Menu.<br>'+'<span onclick="showGuideModal()" style="color:var(--am);text-decoration:none;cursor:pointer;">&#9654; PRZEWODNIK GRACZA</span>'+'</div>'+'<div style="display:flex;gap:8px;padding:10px 12px;">'
-    +'<button onclick="tutorialDisable()" style="flex:1;font-family:\x27Press Start 2P\x27,monospace;font-size:5px;background:#0a0a0a;border:1px solid var(--gr);color:var(--gr);padding:8px 4px;cursor:pointer;">✕ WYŁĄCZ TUTORIAL</button>'
-    +'<button onclick="tutorialClose()" style="flex:1;font-family:\x27Press Start 2P\x27,monospace;font-size:5px;background:#0a1f0a;border:2px solid var(--gb);color:var(--gb);padding:8px 4px;cursor:pointer;">✓ ZACZYNAMY</button>'
+    +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 12px;border-top:1px solid var(--gl);text-align:center;line-height:1.8;">'+'Po zamknięciu możesz wrócić do tutorialu z Głównego Menu.<br>'+'<span onclick="showGuideModal()" style="color:var(--am);text-decoration:none;cursor:pointer;">&#9654; PRZEWODNIK GRACZA</span>'+'</div>'+'<div style="display:flex;gap:8px;padding:10px 12px;">'
+    +'<button onclick="tutorialDisable()" style="flex:1;font-family:\x27Press Start 2P\x27,monospace;font-size:var(--fs-micro);background:#0a0a0a;border:1px solid var(--gr);color:var(--gr);padding:8px 4px;cursor:pointer;">✕ WYŁĄCZ TUTORIAL</button>'
+    +'<button onclick="tutorialClose()" style="flex:1;font-family:\x27Press Start 2P\x27,monospace;font-size:var(--fs-micro);background:#0a1f0a;border:2px solid var(--gb);color:var(--gb);padding:8px 4px;cursor:pointer;">✓ ZACZYNAMY</button>'
     +'</div>'
     +'</div>'
     +'</div>';
@@ -18227,19 +18227,19 @@ function toggleTutorial(){
 function showGuideModal(){
   var existing=document.getElementById('modal-guide');
   if(existing){existing.style.display='flex';return;}
-  var guideStyle="\n  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');\n  :root{\n    --bg:#0a0a0a;--gd:#050f05;--gb:#4caf50;--gl:#1a3d1a;--gm:#0d1a0d;\n    --am:#ffc107;--rd:#f44336;--wh:#e8f5e9;--gr:#546e54;--tb:#080f08;\n  }\n  *{box-sizing:border-box;margin:0;padding:0;}\n  body{background:var(--bg);color:var(--wh);font-family:'VT323',monospace;font-size:14px;line-height:1.6;max-width:680px;margin:0 auto;padding:16px 12px 40px;}\n  h1{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gb);letter-spacing:2px;text-align:center;padding:16px 0 4px;}\n  .subtitle{font-size:11px;color:var(--gr);text-align:center;margin-bottom:20px;}\n  h2{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--am);letter-spacing:1px;margin:24px 0 10px;padding:6px 10px;border-left:3px solid var(--am);background:rgba(255,193,7,0.05);}\n  h3{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gb);letter-spacing:1px;margin:14px 0 6px;}\n  p{color:var(--wh);margin-bottom:8px;font-size:13px;}\n  .tip{background:#030f03;border-left:3px solid var(--gb);padding:8px 10px;margin:10px 0;font-size:12px;color:#a5d6a7;}\n  .tip b{color:var(--gb);}\n  .warn{background:#0f0303;border-left:3px solid var(--rd);padding:8px 10px;margin:10px 0;font-size:12px;color:#ef9a9a;}\n  .warn b{color:var(--rd);}\n  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px;}\n  th{background:var(--gm);color:var(--am);padding:5px 8px;text-align:left;border-bottom:1px solid var(--gl);font-family:'Press Start 2P',monospace;font-size:4px;}\n  td{padding:5px 8px;border-bottom:1px solid #0d1a0d;color:var(--wh);}\n  td.gr{color:var(--gr);}\n  td.gb{color:var(--gb);}\n  td.am{color:var(--am);}\n  td.rd{color:var(--rd);}\n  .divider{height:1px;background:var(--gl);margin:20px 0;}\n  .tag{display:inline-block;padding:1px 6px;border:1px solid;font-size:10px;margin-right:4px;}\n  .tag-gb{border-color:var(--gb);color:var(--gb);}\n  .tag-am{border-color:var(--am);color:var(--am);}\n  .tag-rd{border-color:var(--rd);color:var(--rd);}\n  ul{margin:6px 0 10px 16px;}\n  li{margin-bottom:4px;font-size:13px;}\n  .toc{background:var(--gm);border:1px solid var(--gl);padding:10px 14px;margin-bottom:20px;}\n  .toc a{color:var(--am);text-decoration:none;font-size:11px;display:block;padding:2px 0;}\n  .toc a:hover{color:var(--gb);}\n  .season-bar{display:flex;gap:0;margin:10px 0;font-size:10px;}\n  .sb{padding:4px 6px;text-align:center;flex:1;}\n  .sb-prep{background:#0d1f0d;border:1px solid var(--gl);color:var(--gb);}\n  .sb-season{background:#0a130a;border:1px solid #1a2d1a;color:var(--wh);}\n  .sb-winter{background:#0f0f03;border:1px solid #2d2d0d;color:var(--am);}\n  .sb-end{background:#0f0303;border:1px solid #2d0d0d;color:var(--rd);}\n";
-  var guideBody="<h1>GRASSROOTS TO GLORY</h1>\n<div class=\"subtitle\">\u2014 PRZEWODNIK GRACZA \u2014</div>\n\n<div class=\"toc\">\n  <div style=\"font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gr);margin-bottom:8px;\">SPIS TRE\u015aCI</div>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-sezon');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">1. Struktura sezonu</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-liga');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">2. Liga i awans</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-budzet');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">3. Bud\u017cet i finanse</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-skad');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">4. Sk\u0142ad i zawodnicy</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-trening');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">5. Trening i Centrum Szkoleniowe</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-transfery');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">6. Transfery i okna</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-skaut');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">7. Skaut</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-stadion');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">8. Stadion i modu\u0142y</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-akademia');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">9. Akademia</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-zarzad');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">10. Zarz\u0105d i cele</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-reputacja');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">11. Reputacja i frekwencja</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-puchar');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">12. Puchar Mistrzowski</a>\n</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<h2 id=\"g-sezon\">1. STRUKTURA SEZONU</h2>\n\n<p>Sezon trwa ok. 34 tygodnie. Ka\u017cdy tydzie\u0144 to jedna kolejka \u2014 jedno dzia\u0142anie (mecz lub przygotowania).</p>\n\n<div class=\"season-bar\">\n  <div class=\"sb sb-prep\">T1\u20132<br>Przygot.</div>\n  <div class=\"sb sb-season\">T3\u201315<br>Runda I</div>\n  <div class=\"sb sb-winter\">T16\u201317<br>Okno</div>\n  <div class=\"sb sb-season\">T18\u201332<br>Runda II</div>\n  <div class=\"sb sb-end\">T33\u201334<br>Koniec</div>\n</div>\n\n<h3>TYGODNIE 1\u20132: PRZYGOTOWANIA</h3>\n<p>Przed startem sezonu nie grasz mecz\u00f3w. To czas na:</p>\n<ul>\n  <li>Wyb\u00f3r <b>celu zarz\u0105du</b> (wymagany) i celu bonusowego</li>\n  <li>Podpisanie <b>kontrakt\u00f3w sponsorskich</b> (koszulki, stadion, TV)</li>\n  <li>Ustawienie <b>fokusa treningowego</b></li>\n  <li>Wys\u0142anie <b>skauta</b> na obserwacj\u0119</li>\n  <li>Opcjonalny <b>ob\u00f3z przygotowawczy</b> (tylko T1\u20132)</li>\n  <li>Zakupy na <b>letnim oknie transferowym</b> (T1\u20132)</li>\n</ul>\n\n<h3>TYGODNIE 3\u201332: SEZON REGULARNY</h3>\n<p>Jeden mecz na tydzie\u0144. Po ka\u017cdym meczu mo\u017cesz zarz\u0105dza\u0107 sk\u0142adem, treningiem i transferami (gdy okno otwarte).</p>\n\n<h3>TYGODNIE 16\u201317: ZIMOWE OKNO</h3>\n<p>Kr\u00f3tkie okno transferowe w \u015brodku sezonu. Obowi\u0105zuje \u0142\u0105czny limit 3 zakup\u00f3w na sezon (letnie + zimowe razem).</p>\n\n<h3>TYGODNIE 33\u201334: KONIEC SEZONU</h3>\n<p>Rozliczenie cel\u00f3w zarz\u0105du, premie lub kary, awans/spadek, podsumowanie sezonu. Nowy sezon startuje automatycznie.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-liga\">2. LIGA I AWANS</h2>\n\n<p>Gr\u0119 zaczynasz zawsze w <b>VII Lidze</b> (najni\u017cszy poziom). Celem jest awansowanie przez kolejne poziomy a\u017c do Ekstraklasy. Ka\u017cda liga to wy\u017csze dochody, lepsi rywale i wy\u017cszy pu\u0142ap dla zawodnik\u00f3w.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>LIGA</th><th>DOCH\u00d3D SPONSOR\u00d3W/TYG</th><th>MAX POT. ZAWODNIKA</th></tr>\n  <tr><td class=\"rd\">8</td><td class=\"rd\">VII Liga (START)</td><td>~200 z\u0142</td><td>~42</td></tr>\n  <tr><td>7</td><td>VI Liga</td><td>~300 z\u0142</td><td>~52</td></tr>\n  <tr><td>6</td><td>V Liga</td><td>~500 z\u0142</td><td>~60</td></tr>\n  <tr><td>5</td><td>IV Liga</td><td>~800 z\u0142</td><td>~68</td></tr>\n  <tr><td>4</td><td>III Liga</td><td>~1 500 z\u0142</td><td>~76</td></tr>\n  <tr><td>3</td><td>II Liga</td><td>~3 000 z\u0142</td><td>~84</td></tr>\n  <tr><td>2</td><td>I Liga</td><td>~8 000 z\u0142</td><td>~92</td></tr>\n  <tr><td class=\"am\">1</td><td class=\"am\">Premier Division</td><td class=\"am\">~20 000 z\u0142</td><td class=\"am\">99</td></tr>\n</table>\n\n<p><span class=\"tag tag-gb\">\u25b2 AWANS</span> TOP 2 w tabeli awansuje. Po awansie bud\u017cet jest uzupe\u0142niany do progu nowej ligi.</p>\n<p><span class=\"tag tag-rd\">\u25bc SPADEK</span> Ostatnie 2 miejsca w tabeli spadaj\u0105 do ni\u017cszej ligi.</p>\n\n<div class=\"tip\"><b>Zale\u017cno\u015b\u0107:</b> Liga okre\u015bla potencja\u0142 zawodnik\u00f3w \u2014 w VII Lidze \u017caden zawodnik nie przekroczy ~42 OVR bez wzgl\u0119du na trening. Awans odblokowuje wy\u017cszy pu\u0142ap rozwoju ca\u0142ego sk\u0142adu.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-budzet\">3. BUD\u017bET I FINANSE</h2>\n\n<h3>\u0179R\u00d3D\u0141A DOCHODU (cotygodniowe)</h3>\n<ul>\n  <li><b>Kontrakty sponsorskie</b> \u2014 trzy niezale\u017cne kontrakty: koszulki, prawa do nazwy stadionu, TV. Podpisuj na pocz\u0105tku ka\u017cdego sezonu \u2014 nie mo\u017cna tego zrobi\u0107 p\u00f3\u017aniej. Kwoty zale\u017c\u0105 od ligi i reputacji.</li>\n  <li><b>Bilety</b> \u2014 doch\u00f3d po ka\u017cdym meczu domowym. Zale\u017cy od: pojemno\u015bci stadionu \u00d7 frekwencja \u00d7 cena biletu (ustalana przez lig\u0119). Gastronomia na stadionie zwi\u0119ksza przych\u00f3d z bilet\u00f3w.</li>\n  <li><b>Gad\u017cety</b> \u2014 procent z bilet\u00f3w, mno\u017cony przez poziom Sklepu Klubowego. Sklep L3 to 4\u00d7 wi\u0119cej ni\u017c bez sklepu.</li>\n  <li><b>Reklamy</b> \u2014 sta\u0142y tygodniowy doch\u00f3d, zwi\u0119kszany przez Tablic\u0119 \u015awietln\u0105 na stadionie.</li>\n  <li><b>Lo\u017ce VIP</b> \u2014 sta\u0142y cotygodniowy bonus z modu\u0142u VIP na stadionie. Nie zale\u017cy od meczu.</li>\n  <li><b>Sprzeda\u017c zawodnik\u00f3w</b> \u2014 jednorazowy przych\u00f3d. Uwaga na podatek 25% od zysku przy szybkiej odsprzeda\u017cy.</li>\n  <li><b>Premie zarz\u0105du</b> \u2014 za wykonanie celu g\u0142\u00f3wnego i bonusowego na koniec sezonu.</li>\n  <li><b>Puchar</b> \u2014 nagrody za kolejne rundy.</li>\n</ul>\n\n<h3>WP\u0141YW REPUTACJI NA DOCHODY</h3>\n<p>Reputacja (\u2b50) bezpo\u015brednio mno\u017cy trzy strumienie przychod\u00f3w:</p>\n<ul>\n  <li><b>Sponsorzy</b> \u2014 mno\u017cnik 0.7\u00d7 (Rep 0) do 1.5\u00d7 (Rep 1000). Przy Rep 30 (start) dostajesz 72% maksymalnej kwoty.</li>\n  <li><b>Reklamy</b> \u2014 mno\u017cnik 0.6\u00d7 do 2.0\u00d7. Najbardziej czu\u0142y na reputacj\u0119 \u2014 Rep 1000 to dwukrotny doch\u00f3d z reklam.</li>\n  <li><b>Kontrakty sponsorskie</b> \u2014 mno\u017cnik 0.8\u00d7 do 1.8\u00d7. Wy\u017csza rep = lepsze oferty kontrakt\u00f3w.</li>\n</ul>\n<p>Reputacja wp\u0142ywa te\u017c na <b>frekwencj\u0119</b> (mno\u017cnik 0.9\u00d7 do 1.3\u00d7) i <b>warto\u015b\u0107 sprzedawanych zawodnik\u00f3w</b> (+10% przy Rep 500+).</p>\n\n<div class=\"tip\"><b>Priorytet:</b> Budowanie reputacji przez wyniki i wykonywanie cel\u00f3w zarz\u0105du to najszybsza droga do wyra\u017anego wzrostu dochod\u00f3w \u2014 szczeg\u00f3lnie z reklam i kontrakt\u00f3w.</div>\n\n<h3>KOSZTY STA\u0141E</h3>\n<ul>\n  <li><b>Pensje zawodnik\u00f3w</b> \u2014 p\u0142acone tygodniowo. Pilnuj \u017ceby sk\u0142ad nie by\u0142 za drogi dla aktualnej ligi.</li>\n  <li><b>Utrzymanie stadionu</b> \u2014 ok. 0,5% warto\u015bci pojemno\u015bci tygodniowo. Du\u017cy stadion = du\u017ce utrzymanie.</li>\n  <li><b>Skaut</b> \u2014 jednorazowa op\u0142ata przy zatrudnieniu + odnawiana co sezon.</li>\n  <li><b>Akademia</b> \u2014 tygodniowy koszt utrzymania zale\u017cny od poziomu akademii i ligi.</li>\n  <li><b>Centrum Szkoleniowe</b> \u2014 tygodniowy koszt utrzymania po wybudowaniu.</li>\n</ul>\n\n<div class=\"warn\"><b>Uwaga:</b> Je\u015bli zapomnisz podpisa\u0107 kontrakty sponsorskie na pocz\u0105tku sezonu, tracisz ten doch\u00f3d na ca\u0142y rok. Nie mo\u017cna ich podpisa\u0107 retroaktywnie.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-skad\">4. SK\u0141AD I ZAWODNICY</h2>\n\n<h3>OVR \u2014 OCENA OG\u00d3LNA</h3>\n<p>Ka\u017cdy zawodnik ma 6 atrybut\u00f3w: <b>TEC</b> (technika), <b>PAS</b> (podania), <b>SHT</b> (strza\u0142), <b>DEF</b> (obrona), <b>PHY</b> (fizyczno\u015b\u0107), <b>MEN</b> (mentalno\u015b\u0107). OVR to wa\u017cona \u015brednia zale\u017cna od pozycji:</p>\n<ul>\n  <li><b>GK</b> \u2014 DEF + MEN (g\u0142\u00f3wne)</li>\n  <li><b>OBR</b> \u2014 DEF + PHY</li>\n  <li><b>POL</b> \u2014 PAS + TEC</li>\n  <li><b>NAP</b> \u2014 SHT + TEC</li>\n</ul>\n\n<h3>POTENCJA\u0141</h3>\n<p>Ka\u017cdy zawodnik ma ukryty potencja\u0142 \u2014 maksymalny OVR jaki mo\u017ce osi\u0105gn\u0105\u0107. Potencja\u0142 jest ograniczony przez poziom ligi w kt\u00f3rej grasz. Awans do wy\u017cszej ligi odblokowuje wy\u017cszy pu\u0142ap dla ca\u0142ego sk\u0142adu.</p>\n\n<div class=\"tip\"><b>Strategia:</b> Kupuj zawodnik\u00f3w z wysokim potencja\u0142em gdy jeste\u015b w ni\u017cszej lidze \u2014 rozwijaj\u0105 si\u0119 razem z tob\u0105 i b\u0119d\u0105 wart znacznie wi\u0119cej po awansie.</div>\n\n<h3>FORMA I ZM\u0118CZENIE</h3>\n<p>Forma (0\u2013100) wp\u0142ywa na skuteczno\u015b\u0107 w meczu i warto\u015b\u0107 rynkow\u0105. Spada po przegranej i przy wysokiej intensywno\u015bci treningu. Zm\u0119czenie kumuluje si\u0119 przy intensywnym treningu \u2014 przy zm\u0119czeniu powy\u017cej 85% ro\u015bnie ryzyko kontuzji.</p>\n\n<h3>KONTRAKTY ZAWODNIK\u00d3W</h3>\n<p>Zawodnicy maj\u0105 kontrakty na 1\u20134 sezony. Przed wyga\u015bni\u0119ciem dostajesz ostrze\u017cenie w aktualno\u015bciach. Szczeg\u00f3lnie pilnuj bramkarzy \u2014 bez GK nie mo\u017cesz rozgrywa\u0107 mecz\u00f3w.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-trening\">5. TRENING I CENTRUM SZKOLENIOWE</h2>\n\n<h3>FOKUS TRENINGOWY</h3>\n<p>Wybierasz jeden z trzech profili atrybut\u00f3w na 8 kolejek. Bez aktywnego fokusa zawodnicy <b>nie rozwijaj\u0105 atrybut\u00f3w</b> \u2014 to podstawowy mechanizm rozwoju sk\u0142adu.</p>\n\n<table>\n  <tr><th>FOKUS</th><th>ATRYBUTY</th><th>NAJLEPSZY DLA</th></tr>\n  <tr><td class=\"am\">\u26bd ATAK</td><td>SHT +2, TEC +1</td><td>Napastnicy, pomocnicy ofensywni</td></tr>\n  <tr><td class=\"am\">\ud83c\udfaf POMOC</td><td>PAS +2, MEN +1</td><td>Pomocnicy, rozgrywaj\u0105cy</td></tr>\n  <tr><td class=\"am\">\ud83d\udee1 OBRONA</td><td>DEF +2, PHY +1</td><td>Obro\u0144cy, bramkarze</td></tr>\n</table>\n\n<h3>INTENSYWNO\u015a\u0106 TRENINGU</h3>\n<p>Niezale\u017cnie od fokusa wybierasz intensywno\u015b\u0107 \u2014 wp\u0142ywa na tempo wzrostu i ryzyko kontuzji:</p>\n\n<table>\n  <tr><th>POZIOM</th><th>WZROST ATRYB.</th><th>EFEKT NA FORM\u0118</th><th>RYZYKO</th></tr>\n  <tr><td>NISKA</td><td class=\"rd\">brak</td><td class=\"gb\">Forma +2/tyg, zm\u0119czenie -15/tyg</td><td class=\"gb\">zero \u2014 czysta regeneracja</td></tr>\n  <tr><td>NORMALNA</td><td class=\"gb\">+1\u20132/tyg</td><td class=\"gr\">zm\u0119czenie -3/tyg</td><td class=\"gb\">niskie (0,3%/tyg)</td></tr>\n  <tr><td class=\"rd\">WYSOKA</td><td class=\"gb\">+2\u20133/tyg</td><td class=\"rd\">zm\u0119czenie +8/tyg</td><td class=\"rd\">ro\u015bnie ze zm\u0119czeniem (1,2%/tyg)</td></tr>\n</table>\n\n<div class=\"tip\"><b>Taktyka:</b> Wysoka intensywno\u015b\u0107 przed oknami transferowymi zwi\u0119ksza OVR i warto\u015b\u0107 zawodnik\u00f3w. Niska intensywno\u015b\u0107 po serii mecz\u00f3w szybko regeneruje form\u0119 i zm\u0119czenie.</div>\n\n<h3>CENTRUM SZKOLENIOWE</h3>\n<p>Budynek kt\u00f3ry zwi\u0119ksza efekty treningu. Budujesz go w zak\u0142adce TRENING. Po wybudowaniu odblokowujesz <b>profile treningowe</b> \u2014 specjalizacje nak\u0142adaj\u0105ce si\u0119 na aktywny fokus.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>NAZWA</th><th>PROFILE</th><th>WYMAGANIA</th></tr>\n  <tr><td>1</td><td>Podstawowe</td><td>1 profil</td><td>brak</td></tr>\n  <tr><td>2</td><td>Zaawansowane</td><td>2 profile</td><td>Rep 150, Stadion 1000+</td></tr>\n  <tr><td class=\"am\">3</td><td class=\"am\">Elitarne</td><td class=\"am\">3 profile</td><td class=\"am\">Rep 400, Stadion 5000+</td></tr>\n</table>\n\n<h3>PROFILE CENTRUM SZKOLENIOWEGO</h3>\n<p>Ka\u017cdy wybudowany poziom CS odblokowuje dodatkowy slot na profil. Profile aktywujesz w zak\u0142adce <b>TRENING \u2192 PLAN</b> \u2014 dzia\u0142aj\u0105 r\u00f3wnolegle z fokusem atrybut\u00f3w:</p>\n\n<table>\n  <tr><th>PROFIL</th><th>EFEKT</th><th>DLA KOGO</th></tr>\n  <tr><td class=\"am\">Kondycja</td><td>PHY +50%, zm\u0119czenie odpada 2\u00d7 szybciej</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Technika</td><td>TEC i PAS +40% szybciej</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Atak</td><td>SHT i TEC +50% (tylko NAP)</td><td>napastnicy</td></tr>\n  <tr><td class=\"am\">Obrona</td><td>DEF i MEN +50% (tylko OBR/GK)</td><td>obro\u0144cy, bramkarze</td></tr>\n  <tr><td class=\"am\">Mentalno\u015b\u0107</td><td>MEN +60%, Forma +3/tyg</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Regeneracja</td><td>kontuzje -15%, leczenie -25% czasu</td><td>ca\u0142y sk\u0142ad</td></tr>\n</table>\n\n<h3>OB\u00d3Z PRZYGOTOWAWCZY</h3>\n<p>Dost\u0119pny tylko w tygodniach 1\u20132 sezonu (zak\u0142adka TRENING \u2192 OBOZY). Kosztuje bud\u017cet, ale daje: forma wszystkich \u2192 100%, OVR +1 dla ka\u017cdego zawodnika przez 4 kolejki. Op\u0142aca si\u0119 przed trudnym startem sezonu.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-transfery\">6. TRANSFERY I OKNA</h2>\n\n<h3>OKNA TRANSFEROWE</h3>\n<ul>\n  <li><b>Letnie</b> \u2014 tygodnie 1\u20132 ka\u017cdego sezonu</li>\n  <li><b>Zimowe</b> \u2014 tygodnie 16\u201317</li>\n  <li><b>Limit:</b> max 3 zakupy \u0142\u0105cznie w sezonie (letnie + zimowe razem)</li>\n</ul>\n\n<h3>RODZAJE OFERT NA RYNKU</h3>\n<ul>\n  <li><b>Plotki</b> \u2014 zawodnicy niedost\u0119pni od razu, pojawi\u0105 si\u0119 w nast\u0119pnym oknie</li>\n  <li><b>PREMIUM \u2b50</b> \u2014 zawodnicy z wy\u017cszej ligi, wy\u017cszy OVR, wy\u017csza cena</li>\n  <li><b>Oferta czasowa</b> \u2014 ograniczony czas na decyzj\u0119, potem zawodnik odchodzi</li>\n</ul>\n\n<h3>WARTO\u015a\u0106 ZAWODNIKA</h3>\n<p>Na cen\u0119 wp\u0142ywa: OVR, wiek, forma, status HOT (3+ gole/asysty w meczu), reputacja twojego klubu. Sprzedaj\u0105c z zyskiem pami\u0119taj o <b>podatku 25%</b> je\u015bli sprzedajesz rok po zakupie.</p>\n\n<div class=\"warn\"><b>Blokada odsprzeda\u017cy:</b> Nie mo\u017cesz sprzeda\u0107 zawodnika w tym samym sezonie w kt\u00f3rym go kupi\u0142e\u015b. Planuj transfery z wyprzedzeniem.</div>\n\n<h3>WOLNI AGENCI</h3>\n<p>Zawodnicy bez klubu \u2014 dost\u0119pni zawsze, bez op\u0142aty transferowej (p\u0142acisz tylko pensj\u0119). Przydatni w nag\u0142ych sytuacjach kadrowych, np. przy braku zdrowego bramkarza.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-skaut\">7. SKAUT</h2>\n\n<h3>TRYB A \u2014 OBSERWACJA ZAWODNIKA</h3>\n<p>Wysy\u0142asz skauta na obserwacj\u0119 konkretnego zawodnika z rynku, plotki lub losowego z klubu. Po kilku kolejkach dostajesz raport z dok\u0142adniejszym OVR. Bez skauta OVR na rynku jest ukryty lub obarczony du\u017cym b\u0142\u0119dem \u2014 kupujesz w ciemno.</p>\n\n<h3>TRYB B \u2014 SZUKANIE TALENT\u00d3W</h3>\n<p>Wymaga zbudowanej Akademii. Skaut szuka m\u0142odych zawodnik\u00f3w z wysokim potencja\u0142em. Po znalezieniu masz 2 kolejki na decyzj\u0119 \u2014 potem talent odchodzi do innego klubu.</p>\n\n<h3>POZIOMY SKAUT\u00d3W</h3>\n<table>\n  <tr><th>SKAUT</th><th>KOSZT/ROK</th><th>B\u0141\u0104D OVR</th><th>SLOTY OBS.</th><th>DOST\u0118PNY OD</th></tr>\n  <tr><td>Amator</td><td class=\"gb\">darmowy</td><td class=\"rd\">\u00b120</td><td>1</td><td>zawsze</td></tr>\n  <tr><td>Lokalny</td><td>5 000 z\u0142</td><td class=\"rd\">\u00b112</td><td>2</td><td>VII Liga</td></tr>\n  <tr><td>Regionalny</td><td>18 000 z\u0142</td><td class=\"am\">\u00b18</td><td>2</td><td>V Liga</td></tr>\n  <tr><td>Krajowy</td><td>50 000 z\u0142</td><td class=\"am\">\u00b16</td><td>3</td><td>III Liga</td></tr>\n  <tr><td>Profesjonalny</td><td>120 000 z\u0142</td><td class=\"gb\">\u00b14</td><td>3</td><td>I Liga</td></tr>\n  <tr><td class=\"am\">Elitarny</td><td class=\"am\">300 000 z\u0142</td><td class=\"gb\">\u00b12</td><td>4</td><td>Premier Division</td></tr>\n</table>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-stadion\">8. STADION I MODU\u0141Y</h2>\n\n<p>Stadion startuje z pojemno\u015bci\u0105 200 miejsc. Rozbudowujesz go kupuj\u0105c nowe trybuny i modu\u0142y w zak\u0142adce STADION.</p>\n\n<h3>DOCH\u00d3D Z BILET\u00d3W</h3>\n<p>Zale\u017cy od: pojemno\u015b\u0107 \u00d7 frekwencja \u00d7 cena biletu. Frekwencja zale\u017cy od wynik\u00f3w, serii wygranych i reputacji. Doch\u00f3d z bilet\u00f3w to baza dla gad\u017cet\u00f3w (sklep) i gastronomii.</p>\n\n<h3>MODU\u0141Y STADIONU</h3>\n<table>\n  <tr><th>MODU\u0141</th><th>EFEKT</th><th>WYMAGA</th></tr>\n  <tr><td>\ud83c\udfad Lo\u017ce VIP (L1\u2013L4)</td><td class=\"gb\">+800 do +35 000 z\u0142/tyg sta\u0142e</td><td>Stadion 1000+</td></tr>\n  <tr><td>\ud83c\udf54 Gastronomia (L1\u2013L3)</td><td class=\"gb\">Bilety +8% do +40%</td><td>Stadion 500+</td></tr>\n  <tr><td>\ud83d\udecd Sklep klubowy (L1\u2013L3)</td><td class=\"gb\">Gad\u017cety \u00d71.5 do \u00d74.0</td><td>brak</td></tr>\n  <tr><td>\ud83d\udca1 O\u015bwietlenie (L1\u2013L2)</td><td class=\"gb\">Frekwencja +5\u201310%, Rep +30</td><td>Stadion 1500+</td></tr>\n  <tr><td>\ud83d\udcfa Tablica \u015bwietlna (L1)</td><td class=\"gb\">Reklamy +15%, Rep +20</td><td>Stadion 1500+, O\u015bw. L1</td></tr>\n</table>\n\n<div class=\"tip\"><b>Priorytet modu\u0142\u00f3w:</b> Gastronomia L1 (8000 z\u0142) jest najta\u0144szym i najszybszym sposobem na zwi\u0119kszenie dochodu \u2014 od razu podnosi przych\u00f3d z ka\u017cdego meczu domowego o 8%. Sklep L1 te\u017c tani i szybki do zbudowania.</div>\n\n<div class=\"tip\"><b>Zale\u017cno\u015b\u0107:</b> Akademia wy\u017cszych poziom\u00f3w wymaga minimalnej pojemno\u015bci stadionu. Stadion 1000+ = Akademia L2, Stadion 5000+ = Akademia L3 (Elitarne CS).</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-akademia\">9. AKADEMIA</h2>\n\n<p>Akademia produkuje wychowank\u00f3w \u2014 m\u0142odych zawodnik\u00f3w kt\u00f3rzy rosn\u0105 razem z klubem. Budujesz j\u0105 w zak\u0142adce AKADEMIA.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>NAZWA</th><th>MAX POTENCJA\u0141</th><th>WYCHOWANK\u00d3W/SEZ</th></tr>\n  <tr><td>1</td><td>Podstawowa</td><td>60</td><td>1</td></tr>\n  <tr><td>2</td><td>Rozwini\u0119ta</td><td>72</td><td>2</td></tr>\n  <tr><td>3</td><td>Zaawansowana</td><td>82</td><td>3</td></tr>\n  <tr><td>4</td><td>Elitarna</td><td>92</td><td>5</td></tr>\n  <tr><td class=\"am\">5</td><td class=\"am\">Mistrz\u00f3w (Premier Division)</td><td class=\"am\">99</td><td class=\"am\">2</td></tr>\n</table>\n\n<p>Na starcie ka\u017cdego sezonu mo\u017cesz <b>dobra\u0107 juniora</b> odkrytego przez Skauta B. Juniorzy maj\u0105 niskie OVR (16\u201322 lat) ale wysoki potencja\u0142 \u2014 inwestycja d\u0142ugoterminowa. Masz 2 kolejki na decyzj\u0119.</p>\n\n<div class=\"tip\"><b>Legenda Klubu:</b> Wychowanek kt\u00f3ry osi\u0105gnie wystarczaj\u0105cy presti\u017c (mecze, gole, wzrost OVR) staje si\u0119 Legend\u0105 Klubu \u2014 trwa\u0142y bonus do reputacji.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-zarzad\">10. ZARZ\u0104D I CELE</h2>\n\n<h3>CEL G\u0141\u00d3WNY</h3>\n<p>Wybierasz jeden cel na sezon na pocz\u0105tku ka\u017cdego sezonu w zak\u0142adce FINANSE \u2192 ZARZ\u0104D. Zarz\u0105d dobiera pul\u0119 cel\u00f3w do twojej sytuacji \u2014 po awansie dostaniesz trudniejsze, po serii pora\u017cek \u0142atwiejsze. Wykonanie = premia bud\u017cetowa. Niewykonanie = kara (utrata reputacji, ewentualnie blokada transfer\u00f3w).</p>\n\n<h3>CEL BONUSOWY</h3>\n<p>Dodatkowy opcjonalny cel. Nagroda to punkty reputacji lub bonus sponsorski. Kara za niewykonanie jest mniejsza ni\u017c przy celu g\u0142\u00f3wnym.</p>\n\n<div class=\"warn\"><b>Presja zarz\u0105du:</b> 3 sezony z rz\u0119du bez wykonania celu = zarz\u0105d narzuca cel przymusowy (naj\u0142atwiejszy dost\u0119pny). Unikaj d\u0142ugich serii niewykonanych cel\u00f3w.</div>\n\n<h3>PRZYK\u0141ADOWE CELE</h3>\n<ul>\n  <li>Utrzymanie w lidze / TOP 5 / TOP 3 / Mistrzostwo</li>\n  <li>Strzeli\u0107 40+ goli w sezonie</li>\n  <li>Zwi\u0119kszy\u0107 reputacj\u0119 o 20 pkt.</li>\n  <li>Wype\u0142ni\u0107 stadion powy\u017cej 80% frekwencji</li>\n  <li>Pokona\u0107 najwi\u0119kszego rywala w sezonie</li>\n</ul>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-reputacja\">11. REPUTACJA I FREKWENCJA</h2>\n\n<h3>REPUTACJA \u2b50</h3>\n<p>Miara presti\u017cu klubu (0\u20131000). Ro\u015bnie po: wygranych meczach, awansie, wykonaniu cel\u00f3w zarz\u0105du, milestones wychowank\u00f3w, zdobyciu Pucharu, budowie stadionu (O\u015bwietlenie, Tablica). Spada po: pora\u017ckach, niewykonaniu cel\u00f3w, spadku z ligi.</p>\n<p>Wp\u0142ywa bezpo\u015brednio na: wysoko\u015b\u0107 dochod\u00f3w z reklam i sponsor\u00f3w, dost\u0119pno\u015b\u0107 wy\u017cszych poziom\u00f3w Akademii i Centrum Szkoleniowego, warto\u015b\u0107 sprzedawanych zawodnik\u00f3w (+10% przy Rep 500+).</p>\n\n<h3>FREKWENCJA \ud83d\udc65</h3>\n<p>Procent wype\u0142nienia stadionu na meczach domowych. Zale\u017cy od: bazy frekwencji dla ligi, wynik\u00f3w ostatnich 5 mecz\u00f3w, serii wygranych/przegranych i reputacji. Bezpo\u015brednio mno\u017cy doch\u00f3d z bilet\u00f3w \u2014 i tym samym z gad\u017cet\u00f3w i gastronomii.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-puchar\">12. PUCHAR MISTRZOWSKI</h2>\n\n<p>64 dru\u017cyny z wszystkich 8 lig (8 najlepszych z ka\u017cdej ligi) graj\u0105 w rozgrywkach pucharowych r\u00f3wnolegle z lig\u0105.</p>\n\n<table>\n  <tr><th>RUNDA</th><th>TYDZIE\u0143</th><th>DRU\u017bYNY</th></tr>\n  <tr><td>Runda 1</td><td>5</td><td>64 \u2192 32</td></tr>\n  <tr><td>Runda 2</td><td>10</td><td>32 \u2192 16</td></tr>\n  <tr><td>\u0106wier\u0107fina\u0142y</td><td>15</td><td>16 \u2192 8</td></tr>\n  <tr><td>P\u00f3\u0142fina\u0142y</td><td>21</td><td>8 \u2192 4</td></tr>\n  <tr><td>P\u00f3\u0142fina\u0142y</td><td>27</td><td>4 \u2192 2</td></tr>\n  <tr><td class=\"am\">Fina\u0142</td><td class=\"am\">33</td><td class=\"am\">2 \u2192 1</td></tr>\n</table>\n\n<p>Mecze pucharowe rozgrywasz po meczu ligowym \u2014 w zak\u0142adce MECZ pojawi si\u0119 osobny przycisk gdy nadejdzie twoja runda.</p>\n\n<div class=\"tip\"><b>Nagrody:</b> Ka\u017cda runda to premia finansowa i punkty reputacji. Zwyci\u0119stwo w Pucharze to osobne trofeum w historii klubu i znaczny bonus do reputacji.</div>\n\n<div class=\"divider\"></div>\n<div style=\"text-align:center;color:var(--gr);font-size:11px;padding:16px 0;\">\n  GRASSROOTS TO GLORY \u2014 PRZEWODNIK GRACZA<br>\n  <span style=\"font-size:9px;\">Wr\u00f3\u0107 do gry i zacznij pisa\u0107 histori\u0119 swojego klubu.</span>\n</div>";
+  var guideStyle="\n  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');\n  :root{\n    --bg:#0a0a0a;--gd:#050f05;--gb:#4caf50;--gl:#1a3d1a;--gm:#0d1a0d;\n    --am:#ffc107;--rd:#f44336;--wh:#e8f5e9;--gr:#546e54;--tb:#080f08;\n  }\n  *{box-sizing:border-box;margin:0;padding:0;}\n  body{background:var(--bg);color:var(--wh);font-family:'VT323',monospace;font-size:var(--fs-body);line-height:1.6;max-width:680px;margin:0 auto;padding:16px 12px 40px;}\n  h1{font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:var(--gb);letter-spacing:2px;text-align:center;padding:16px 0 4px;}\n  .subtitle{font-size:var(--fs-meta);color:var(--gr);text-align:center;margin-bottom:20px;}\n  h2{font-family:'Press Start 2P',monospace;font-size:var(--fs-micro);color:var(--am);letter-spacing:1px;margin:24px 0 10px;padding:6px 10px;border-left:3px solid var(--am);background:rgba(255,193,7,0.05);}\n  h3{font-family:'Press Start 2P',monospace;font-size:var(--fs-micro);color:var(--gb);letter-spacing:1px;margin:14px 0 6px;}\n  p{color:var(--wh);margin-bottom:8px;font-size:var(--fs-body);}\n  .tip{background:#030f03;border-left:3px solid var(--gb);padding:8px 10px;margin:10px 0;font-size:var(--fs-meta);color:#a5d6a7;}\n  .tip b{color:var(--gb);}\n  .warn{background:#0f0303;border-left:3px solid var(--rd);padding:8px 10px;margin:10px 0;font-size:var(--fs-meta);color:#ef9a9a;}\n  .warn b{color:var(--rd);}\n  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:var(--fs-meta);}\n  th{background:var(--gm);color:var(--am);padding:5px 8px;text-align:left;border-bottom:1px solid var(--gl);font-family:'Press Start 2P',monospace;font-size:var(--fs-micro);}\n  td{padding:5px 8px;border-bottom:1px solid #0d1a0d;color:var(--wh);}\n  td.gr{color:var(--gr);}\n  td.gb{color:var(--gb);}\n  td.am{color:var(--am);}\n  td.rd{color:var(--rd);}\n  .divider{height:1px;background:var(--gl);margin:20px 0;}\n  .tag{display:inline-block;padding:1px 6px;border:1px solid;font-size:var(--fs-dense);margin-right:4px;}\n  .tag-gb{border-color:var(--gb);color:var(--gb);}\n  .tag-am{border-color:var(--am);color:var(--am);}\n  .tag-rd{border-color:var(--rd);color:var(--rd);}\n  ul{margin:6px 0 10px 16px;}\n  li{margin-bottom:4px;font-size:var(--fs-body);}\n  .toc{background:var(--gm);border:1px solid var(--gl);padding:10px 14px;margin-bottom:20px;}\n  .toc a{color:var(--am);text-decoration:none;font-size:var(--fs-meta);display:block;padding:2px 0;}\n  .toc a:hover{color:var(--gb);}\n  .season-bar{display:flex;gap:0;margin:10px 0;font-size:var(--fs-dense);}\n  .sb{padding:4px 6px;text-align:center;flex:1;}\n  .sb-prep{background:#0d1f0d;border:1px solid var(--gl);color:var(--gb);}\n  .sb-season{background:#0a130a;border:1px solid #1a2d1a;color:var(--wh);}\n  .sb-winter{background:#0f0f03;border:1px solid #2d2d0d;color:var(--am);}\n  .sb-end{background:#0f0303;border:1px solid #2d0d0d;color:var(--rd);}\n";
+  var guideBody="<h1>GRASSROOTS TO GLORY</h1>\n<div class=\"subtitle\">\u2014 PRZEWODNIK GRACZA \u2014</div>\n\n<div class=\"toc\">\n  <div style=\"font-family:'Press Start 2P',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px;\">SPIS TRE\u015aCI</div>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-sezon');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">1. Struktura sezonu</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-liga');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">2. Liga i awans</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-budzet');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">3. Bud\u017cet i finanse</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-skad');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">4. Sk\u0142ad i zawodnicy</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-trening');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">5. Trening i Centrum Szkoleniowe</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-transfery');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">6. Transfery i okna</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-skaut');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">7. Skaut</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-stadion');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">8. Stadion i modu\u0142y</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-akademia');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">9. Akademia</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-zarzad');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">10. Zarz\u0105d i cele</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-reputacja');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">11. Reputacja i frekwencja</a>\n  <a href=\"javascript:void(0)\" onclick=\"var el=document.getElementById('g-puchar');if(el)el.scrollIntoView();\" style=\"cursor:pointer\">12. Puchar Mistrzowski</a>\n</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<h2 id=\"g-sezon\">1. STRUKTURA SEZONU</h2>\n\n<p>Sezon trwa ok. 34 tygodnie. Ka\u017cdy tydzie\u0144 to jedna kolejka \u2014 jedno dzia\u0142anie (mecz lub przygotowania).</p>\n\n<div class=\"season-bar\">\n  <div class=\"sb sb-prep\">T1\u20132<br>Przygot.</div>\n  <div class=\"sb sb-season\">T3\u201315<br>Runda I</div>\n  <div class=\"sb sb-winter\">T16\u201317<br>Okno</div>\n  <div class=\"sb sb-season\">T18\u201332<br>Runda II</div>\n  <div class=\"sb sb-end\">T33\u201334<br>Koniec</div>\n</div>\n\n<h3>TYGODNIE 1\u20132: PRZYGOTOWANIA</h3>\n<p>Przed startem sezonu nie grasz mecz\u00f3w. To czas na:</p>\n<ul>\n  <li>Wyb\u00f3r <b>celu zarz\u0105du</b> (wymagany) i celu bonusowego</li>\n  <li>Podpisanie <b>kontrakt\u00f3w sponsorskich</b> (koszulki, stadion, TV)</li>\n  <li>Ustawienie <b>fokusa treningowego</b></li>\n  <li>Wys\u0142anie <b>skauta</b> na obserwacj\u0119</li>\n  <li>Opcjonalny <b>ob\u00f3z przygotowawczy</b> (tylko T1\u20132)</li>\n  <li>Zakupy na <b>letnim oknie transferowym</b> (T1\u20132)</li>\n</ul>\n\n<h3>TYGODNIE 3\u201332: SEZON REGULARNY</h3>\n<p>Jeden mecz na tydzie\u0144. Po ka\u017cdym meczu mo\u017cesz zarz\u0105dza\u0107 sk\u0142adem, treningiem i transferami (gdy okno otwarte).</p>\n\n<h3>TYGODNIE 16\u201317: ZIMOWE OKNO</h3>\n<p>Kr\u00f3tkie okno transferowe w \u015brodku sezonu. Obowi\u0105zuje \u0142\u0105czny limit 3 zakup\u00f3w na sezon (letnie + zimowe razem).</p>\n\n<h3>TYGODNIE 33\u201334: KONIEC SEZONU</h3>\n<p>Rozliczenie cel\u00f3w zarz\u0105du, premie lub kary, awans/spadek, podsumowanie sezonu. Nowy sezon startuje automatycznie.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-liga\">2. LIGA I AWANS</h2>\n\n<p>Gr\u0119 zaczynasz zawsze w <b>VII Lidze</b> (najni\u017cszy poziom). Celem jest awansowanie przez kolejne poziomy a\u017c do Ekstraklasy. Ka\u017cda liga to wy\u017csze dochody, lepsi rywale i wy\u017cszy pu\u0142ap dla zawodnik\u00f3w.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>LIGA</th><th>DOCH\u00d3D SPONSOR\u00d3W/TYG</th><th>MAX POT. ZAWODNIKA</th></tr>\n  <tr><td class=\"rd\">8</td><td class=\"rd\">VII Liga (START)</td><td>~200 z\u0142</td><td>~42</td></tr>\n  <tr><td>7</td><td>VI Liga</td><td>~300 z\u0142</td><td>~52</td></tr>\n  <tr><td>6</td><td>V Liga</td><td>~500 z\u0142</td><td>~60</td></tr>\n  <tr><td>5</td><td>IV Liga</td><td>~800 z\u0142</td><td>~68</td></tr>\n  <tr><td>4</td><td>III Liga</td><td>~1 500 z\u0142</td><td>~76</td></tr>\n  <tr><td>3</td><td>II Liga</td><td>~3 000 z\u0142</td><td>~84</td></tr>\n  <tr><td>2</td><td>I Liga</td><td>~8 000 z\u0142</td><td>~92</td></tr>\n  <tr><td class=\"am\">1</td><td class=\"am\">Premier Division</td><td class=\"am\">~20 000 z\u0142</td><td class=\"am\">99</td></tr>\n</table>\n\n<p><span class=\"tag tag-gb\">\u25b2 AWANS</span> TOP 2 w tabeli awansuje. Po awansie bud\u017cet jest uzupe\u0142niany do progu nowej ligi.</p>\n<p><span class=\"tag tag-rd\">\u25bc SPADEK</span> Ostatnie 2 miejsca w tabeli spadaj\u0105 do ni\u017cszej ligi.</p>\n\n<div class=\"tip\"><b>Zale\u017cno\u015b\u0107:</b> Liga okre\u015bla potencja\u0142 zawodnik\u00f3w \u2014 w VII Lidze \u017caden zawodnik nie przekroczy ~42 OVR bez wzgl\u0119du na trening. Awans odblokowuje wy\u017cszy pu\u0142ap rozwoju ca\u0142ego sk\u0142adu.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-budzet\">3. BUD\u017bET I FINANSE</h2>\n\n<h3>\u0179R\u00d3D\u0141A DOCHODU (cotygodniowe)</h3>\n<ul>\n  <li><b>Kontrakty sponsorskie</b> \u2014 trzy niezale\u017cne kontrakty: koszulki, prawa do nazwy stadionu, TV. Podpisuj na pocz\u0105tku ka\u017cdego sezonu \u2014 nie mo\u017cna tego zrobi\u0107 p\u00f3\u017aniej. Kwoty zale\u017c\u0105 od ligi i reputacji.</li>\n  <li><b>Bilety</b> \u2014 doch\u00f3d po ka\u017cdym meczu domowym. Zale\u017cy od: pojemno\u015bci stadionu \u00d7 frekwencja \u00d7 cena biletu (ustalana przez lig\u0119). Gastronomia na stadionie zwi\u0119ksza przych\u00f3d z bilet\u00f3w.</li>\n  <li><b>Gad\u017cety</b> \u2014 procent z bilet\u00f3w, mno\u017cony przez poziom Sklepu Klubowego. Sklep L3 to 4\u00d7 wi\u0119cej ni\u017c bez sklepu.</li>\n  <li><b>Reklamy</b> \u2014 sta\u0142y tygodniowy doch\u00f3d, zwi\u0119kszany przez Tablic\u0119 \u015awietln\u0105 na stadionie.</li>\n  <li><b>Lo\u017ce VIP</b> \u2014 sta\u0142y cotygodniowy bonus z modu\u0142u VIP na stadionie. Nie zale\u017cy od meczu.</li>\n  <li><b>Sprzeda\u017c zawodnik\u00f3w</b> \u2014 jednorazowy przych\u00f3d. Uwaga na podatek 25% od zysku przy szybkiej odsprzeda\u017cy.</li>\n  <li><b>Premie zarz\u0105du</b> \u2014 za wykonanie celu g\u0142\u00f3wnego i bonusowego na koniec sezonu.</li>\n  <li><b>Puchar</b> \u2014 nagrody za kolejne rundy.</li>\n</ul>\n\n<h3>WP\u0141YW REPUTACJI NA DOCHODY</h3>\n<p>Reputacja (\u2b50) bezpo\u015brednio mno\u017cy trzy strumienie przychod\u00f3w:</p>\n<ul>\n  <li><b>Sponsorzy</b> \u2014 mno\u017cnik 0.7\u00d7 (Rep 0) do 1.5\u00d7 (Rep 1000). Przy Rep 30 (start) dostajesz 72% maksymalnej kwoty.</li>\n  <li><b>Reklamy</b> \u2014 mno\u017cnik 0.6\u00d7 do 2.0\u00d7. Najbardziej czu\u0142y na reputacj\u0119 \u2014 Rep 1000 to dwukrotny doch\u00f3d z reklam.</li>\n  <li><b>Kontrakty sponsorskie</b> \u2014 mno\u017cnik 0.8\u00d7 do 1.8\u00d7. Wy\u017csza rep = lepsze oferty kontrakt\u00f3w.</li>\n</ul>\n<p>Reputacja wp\u0142ywa te\u017c na <b>frekwencj\u0119</b> (mno\u017cnik 0.9\u00d7 do 1.3\u00d7) i <b>warto\u015b\u0107 sprzedawanych zawodnik\u00f3w</b> (+10% przy Rep 500+).</p>\n\n<div class=\"tip\"><b>Priorytet:</b> Budowanie reputacji przez wyniki i wykonywanie cel\u00f3w zarz\u0105du to najszybsza droga do wyra\u017anego wzrostu dochod\u00f3w \u2014 szczeg\u00f3lnie z reklam i kontrakt\u00f3w.</div>\n\n<h3>KOSZTY STA\u0141E</h3>\n<ul>\n  <li><b>Pensje zawodnik\u00f3w</b> \u2014 p\u0142acone tygodniowo. Pilnuj \u017ceby sk\u0142ad nie by\u0142 za drogi dla aktualnej ligi.</li>\n  <li><b>Utrzymanie stadionu</b> \u2014 ok. 0,5% warto\u015bci pojemno\u015bci tygodniowo. Du\u017cy stadion = du\u017ce utrzymanie.</li>\n  <li><b>Skaut</b> \u2014 jednorazowa op\u0142ata przy zatrudnieniu + odnawiana co sezon.</li>\n  <li><b>Akademia</b> \u2014 tygodniowy koszt utrzymania zale\u017cny od poziomu akademii i ligi.</li>\n  <li><b>Centrum Szkoleniowe</b> \u2014 tygodniowy koszt utrzymania po wybudowaniu.</li>\n</ul>\n\n<div class=\"warn\"><b>Uwaga:</b> Je\u015bli zapomnisz podpisa\u0107 kontrakty sponsorskie na pocz\u0105tku sezonu, tracisz ten doch\u00f3d na ca\u0142y rok. Nie mo\u017cna ich podpisa\u0107 retroaktywnie.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-skad\">4. SK\u0141AD I ZAWODNICY</h2>\n\n<h3>OVR \u2014 OCENA OG\u00d3LNA</h3>\n<p>Ka\u017cdy zawodnik ma 6 atrybut\u00f3w: <b>TEC</b> (technika), <b>PAS</b> (podania), <b>SHT</b> (strza\u0142), <b>DEF</b> (obrona), <b>PHY</b> (fizyczno\u015b\u0107), <b>MEN</b> (mentalno\u015b\u0107). OVR to wa\u017cona \u015brednia zale\u017cna od pozycji:</p>\n<ul>\n  <li><b>GK</b> \u2014 DEF + MEN (g\u0142\u00f3wne)</li>\n  <li><b>OBR</b> \u2014 DEF + PHY</li>\n  <li><b>POL</b> \u2014 PAS + TEC</li>\n  <li><b>NAP</b> \u2014 SHT + TEC</li>\n</ul>\n\n<h3>POTENCJA\u0141</h3>\n<p>Ka\u017cdy zawodnik ma ukryty potencja\u0142 \u2014 maksymalny OVR jaki mo\u017ce osi\u0105gn\u0105\u0107. Potencja\u0142 jest ograniczony przez poziom ligi w kt\u00f3rej grasz. Awans do wy\u017cszej ligi odblokowuje wy\u017cszy pu\u0142ap dla ca\u0142ego sk\u0142adu.</p>\n\n<div class=\"tip\"><b>Strategia:</b> Kupuj zawodnik\u00f3w z wysokim potencja\u0142em gdy jeste\u015b w ni\u017cszej lidze \u2014 rozwijaj\u0105 si\u0119 razem z tob\u0105 i b\u0119d\u0105 wart znacznie wi\u0119cej po awansie.</div>\n\n<h3>FORMA I ZM\u0118CZENIE</h3>\n<p>Forma (0\u2013100) wp\u0142ywa na skuteczno\u015b\u0107 w meczu i warto\u015b\u0107 rynkow\u0105. Spada po przegranej i przy wysokiej intensywno\u015bci treningu. Zm\u0119czenie kumuluje si\u0119 przy intensywnym treningu \u2014 przy zm\u0119czeniu powy\u017cej 85% ro\u015bnie ryzyko kontuzji.</p>\n\n<h3>KONTRAKTY ZAWODNIK\u00d3W</h3>\n<p>Zawodnicy maj\u0105 kontrakty na 1\u20134 sezony. Przed wyga\u015bni\u0119ciem dostajesz ostrze\u017cenie w aktualno\u015bciach. Szczeg\u00f3lnie pilnuj bramkarzy \u2014 bez GK nie mo\u017cesz rozgrywa\u0107 mecz\u00f3w.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-trening\">5. TRENING I CENTRUM SZKOLENIOWE</h2>\n\n<h3>FOKUS TRENINGOWY</h3>\n<p>Wybierasz jeden z trzech profili atrybut\u00f3w na 8 kolejek. Bez aktywnego fokusa zawodnicy <b>nie rozwijaj\u0105 atrybut\u00f3w</b> \u2014 to podstawowy mechanizm rozwoju sk\u0142adu.</p>\n\n<table>\n  <tr><th>FOKUS</th><th>ATRYBUTY</th><th>NAJLEPSZY DLA</th></tr>\n  <tr><td class=\"am\">\u26bd ATAK</td><td>SHT +2, TEC +1</td><td>Napastnicy, pomocnicy ofensywni</td></tr>\n  <tr><td class=\"am\">\ud83c\udfaf POMOC</td><td>PAS +2, MEN +1</td><td>Pomocnicy, rozgrywaj\u0105cy</td></tr>\n  <tr><td class=\"am\">\ud83d\udee1 OBRONA</td><td>DEF +2, PHY +1</td><td>Obro\u0144cy, bramkarze</td></tr>\n</table>\n\n<h3>INTENSYWNO\u015a\u0106 TRENINGU</h3>\n<p>Niezale\u017cnie od fokusa wybierasz intensywno\u015b\u0107 \u2014 wp\u0142ywa na tempo wzrostu i ryzyko kontuzji:</p>\n\n<table>\n  <tr><th>POZIOM</th><th>WZROST ATRYB.</th><th>EFEKT NA FORM\u0118</th><th>RYZYKO</th></tr>\n  <tr><td>NISKA</td><td class=\"rd\">brak</td><td class=\"gb\">Forma +2/tyg, zm\u0119czenie -15/tyg</td><td class=\"gb\">zero \u2014 czysta regeneracja</td></tr>\n  <tr><td>NORMALNA</td><td class=\"gb\">+1\u20132/tyg</td><td class=\"gr\">zm\u0119czenie -3/tyg</td><td class=\"gb\">niskie (0,3%/tyg)</td></tr>\n  <tr><td class=\"rd\">WYSOKA</td><td class=\"gb\">+2\u20133/tyg</td><td class=\"rd\">zm\u0119czenie +8/tyg</td><td class=\"rd\">ro\u015bnie ze zm\u0119czeniem (1,2%/tyg)</td></tr>\n</table>\n\n<div class=\"tip\"><b>Taktyka:</b> Wysoka intensywno\u015b\u0107 przed oknami transferowymi zwi\u0119ksza OVR i warto\u015b\u0107 zawodnik\u00f3w. Niska intensywno\u015b\u0107 po serii mecz\u00f3w szybko regeneruje form\u0119 i zm\u0119czenie.</div>\n\n<h3>CENTRUM SZKOLENIOWE</h3>\n<p>Budynek kt\u00f3ry zwi\u0119ksza efekty treningu. Budujesz go w zak\u0142adce TRENING. Po wybudowaniu odblokowujesz <b>profile treningowe</b> \u2014 specjalizacje nak\u0142adaj\u0105ce si\u0119 na aktywny fokus.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>NAZWA</th><th>PROFILE</th><th>WYMAGANIA</th></tr>\n  <tr><td>1</td><td>Podstawowe</td><td>1 profil</td><td>brak</td></tr>\n  <tr><td>2</td><td>Zaawansowane</td><td>2 profile</td><td>Rep 150, Stadion 1000+</td></tr>\n  <tr><td class=\"am\">3</td><td class=\"am\">Elitarne</td><td class=\"am\">3 profile</td><td class=\"am\">Rep 400, Stadion 5000+</td></tr>\n</table>\n\n<h3>PROFILE CENTRUM SZKOLENIOWEGO</h3>\n<p>Ka\u017cdy wybudowany poziom CS odblokowuje dodatkowy slot na profil. Profile aktywujesz w zak\u0142adce <b>TRENING \u2192 PLAN</b> \u2014 dzia\u0142aj\u0105 r\u00f3wnolegle z fokusem atrybut\u00f3w:</p>\n\n<table>\n  <tr><th>PROFIL</th><th>EFEKT</th><th>DLA KOGO</th></tr>\n  <tr><td class=\"am\">Kondycja</td><td>PHY +50%, zm\u0119czenie odpada 2\u00d7 szybciej</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Technika</td><td>TEC i PAS +40% szybciej</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Atak</td><td>SHT i TEC +50% (tylko NAP)</td><td>napastnicy</td></tr>\n  <tr><td class=\"am\">Obrona</td><td>DEF i MEN +50% (tylko OBR/GK)</td><td>obro\u0144cy, bramkarze</td></tr>\n  <tr><td class=\"am\">Mentalno\u015b\u0107</td><td>MEN +60%, Forma +3/tyg</td><td>ca\u0142y sk\u0142ad</td></tr>\n  <tr><td class=\"am\">Regeneracja</td><td>kontuzje -15%, leczenie -25% czasu</td><td>ca\u0142y sk\u0142ad</td></tr>\n</table>\n\n<h3>OB\u00d3Z PRZYGOTOWAWCZY</h3>\n<p>Dost\u0119pny tylko w tygodniach 1\u20132 sezonu (zak\u0142adka TRENING \u2192 OBOZY). Kosztuje bud\u017cet, ale daje: forma wszystkich \u2192 100%, OVR +1 dla ka\u017cdego zawodnika przez 4 kolejki. Op\u0142aca si\u0119 przed trudnym startem sezonu.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-transfery\">6. TRANSFERY I OKNA</h2>\n\n<h3>OKNA TRANSFEROWE</h3>\n<ul>\n  <li><b>Letnie</b> \u2014 tygodnie 1\u20132 ka\u017cdego sezonu</li>\n  <li><b>Zimowe</b> \u2014 tygodnie 16\u201317</li>\n  <li><b>Limit:</b> max 3 zakupy \u0142\u0105cznie w sezonie (letnie + zimowe razem)</li>\n</ul>\n\n<h3>RODZAJE OFERT NA RYNKU</h3>\n<ul>\n  <li><b>Plotki</b> \u2014 zawodnicy niedost\u0119pni od razu, pojawi\u0105 si\u0119 w nast\u0119pnym oknie</li>\n  <li><b>PREMIUM \u2b50</b> \u2014 zawodnicy z wy\u017cszej ligi, wy\u017cszy OVR, wy\u017csza cena</li>\n  <li><b>Oferta czasowa</b> \u2014 ograniczony czas na decyzj\u0119, potem zawodnik odchodzi</li>\n</ul>\n\n<h3>WARTO\u015a\u0106 ZAWODNIKA</h3>\n<p>Na cen\u0119 wp\u0142ywa: OVR, wiek, forma, status HOT (3+ gole/asysty w meczu), reputacja twojego klubu. Sprzedaj\u0105c z zyskiem pami\u0119taj o <b>podatku 25%</b> je\u015bli sprzedajesz rok po zakupie.</p>\n\n<div class=\"warn\"><b>Blokada odsprzeda\u017cy:</b> Nie mo\u017cesz sprzeda\u0107 zawodnika w tym samym sezonie w kt\u00f3rym go kupi\u0142e\u015b. Planuj transfery z wyprzedzeniem.</div>\n\n<h3>WOLNI AGENCI</h3>\n<p>Zawodnicy bez klubu \u2014 dost\u0119pni zawsze, bez op\u0142aty transferowej (p\u0142acisz tylko pensj\u0119). Przydatni w nag\u0142ych sytuacjach kadrowych, np. przy braku zdrowego bramkarza.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-skaut\">7. SKAUT</h2>\n\n<h3>TRYB A \u2014 OBSERWACJA ZAWODNIKA</h3>\n<p>Wysy\u0142asz skauta na obserwacj\u0119 konkretnego zawodnika z rynku, plotki lub losowego z klubu. Po kilku kolejkach dostajesz raport z dok\u0142adniejszym OVR. Bez skauta OVR na rynku jest ukryty lub obarczony du\u017cym b\u0142\u0119dem \u2014 kupujesz w ciemno.</p>\n\n<h3>TRYB B \u2014 SZUKANIE TALENT\u00d3W</h3>\n<p>Wymaga zbudowanej Akademii. Skaut szuka m\u0142odych zawodnik\u00f3w z wysokim potencja\u0142em. Po znalezieniu masz 2 kolejki na decyzj\u0119 \u2014 potem talent odchodzi do innego klubu.</p>\n\n<h3>POZIOMY SKAUT\u00d3W</h3>\n<table>\n  <tr><th>SKAUT</th><th>KOSZT/ROK</th><th>B\u0141\u0104D OVR</th><th>SLOTY OBS.</th><th>DOST\u0118PNY OD</th></tr>\n  <tr><td>Amator</td><td class=\"gb\">darmowy</td><td class=\"rd\">\u00b120</td><td>1</td><td>zawsze</td></tr>\n  <tr><td>Lokalny</td><td>5 000 z\u0142</td><td class=\"rd\">\u00b112</td><td>2</td><td>VII Liga</td></tr>\n  <tr><td>Regionalny</td><td>18 000 z\u0142</td><td class=\"am\">\u00b18</td><td>2</td><td>V Liga</td></tr>\n  <tr><td>Krajowy</td><td>50 000 z\u0142</td><td class=\"am\">\u00b16</td><td>3</td><td>III Liga</td></tr>\n  <tr><td>Profesjonalny</td><td>120 000 z\u0142</td><td class=\"gb\">\u00b14</td><td>3</td><td>I Liga</td></tr>\n  <tr><td class=\"am\">Elitarny</td><td class=\"am\">300 000 z\u0142</td><td class=\"gb\">\u00b12</td><td>4</td><td>Premier Division</td></tr>\n</table>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-stadion\">8. STADION I MODU\u0141Y</h2>\n\n<p>Stadion startuje z pojemno\u015bci\u0105 200 miejsc. Rozbudowujesz go kupuj\u0105c nowe trybuny i modu\u0142y w zak\u0142adce STADION.</p>\n\n<h3>DOCH\u00d3D Z BILET\u00d3W</h3>\n<p>Zale\u017cy od: pojemno\u015b\u0107 \u00d7 frekwencja \u00d7 cena biletu. Frekwencja zale\u017cy od wynik\u00f3w, serii wygranych i reputacji. Doch\u00f3d z bilet\u00f3w to baza dla gad\u017cet\u00f3w (sklep) i gastronomii.</p>\n\n<h3>MODU\u0141Y STADIONU</h3>\n<table>\n  <tr><th>MODU\u0141</th><th>EFEKT</th><th>WYMAGA</th></tr>\n  <tr><td>\ud83c\udfad Lo\u017ce VIP (L1\u2013L4)</td><td class=\"gb\">+800 do +35 000 z\u0142/tyg sta\u0142e</td><td>Stadion 1000+</td></tr>\n  <tr><td>\ud83c\udf54 Gastronomia (L1\u2013L3)</td><td class=\"gb\">Bilety +8% do +40%</td><td>Stadion 500+</td></tr>\n  <tr><td>\ud83d\udecd Sklep klubowy (L1\u2013L3)</td><td class=\"gb\">Gad\u017cety \u00d71.5 do \u00d74.0</td><td>brak</td></tr>\n  <tr><td>\ud83d\udca1 O\u015bwietlenie (L1\u2013L2)</td><td class=\"gb\">Frekwencja +5\u201310%, Rep +30</td><td>Stadion 1500+</td></tr>\n  <tr><td>\ud83d\udcfa Tablica \u015bwietlna (L1)</td><td class=\"gb\">Reklamy +15%, Rep +20</td><td>Stadion 1500+, O\u015bw. L1</td></tr>\n</table>\n\n<div class=\"tip\"><b>Priorytet modu\u0142\u00f3w:</b> Gastronomia L1 (8000 z\u0142) jest najta\u0144szym i najszybszym sposobem na zwi\u0119kszenie dochodu \u2014 od razu podnosi przych\u00f3d z ka\u017cdego meczu domowego o 8%. Sklep L1 te\u017c tani i szybki do zbudowania.</div>\n\n<div class=\"tip\"><b>Zale\u017cno\u015b\u0107:</b> Akademia wy\u017cszych poziom\u00f3w wymaga minimalnej pojemno\u015bci stadionu. Stadion 1000+ = Akademia L2, Stadion 5000+ = Akademia L3 (Elitarne CS).</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-akademia\">9. AKADEMIA</h2>\n\n<p>Akademia produkuje wychowank\u00f3w \u2014 m\u0142odych zawodnik\u00f3w kt\u00f3rzy rosn\u0105 razem z klubem. Budujesz j\u0105 w zak\u0142adce AKADEMIA.</p>\n\n<table>\n  <tr><th>POZIOM</th><th>NAZWA</th><th>MAX POTENCJA\u0141</th><th>WYCHOWANK\u00d3W/SEZ</th></tr>\n  <tr><td>1</td><td>Podstawowa</td><td>60</td><td>1</td></tr>\n  <tr><td>2</td><td>Rozwini\u0119ta</td><td>72</td><td>2</td></tr>\n  <tr><td>3</td><td>Zaawansowana</td><td>82</td><td>3</td></tr>\n  <tr><td>4</td><td>Elitarna</td><td>92</td><td>5</td></tr>\n  <tr><td class=\"am\">5</td><td class=\"am\">Mistrz\u00f3w (Premier Division)</td><td class=\"am\">99</td><td class=\"am\">2</td></tr>\n</table>\n\n<p>Na starcie ka\u017cdego sezonu mo\u017cesz <b>dobra\u0107 juniora</b> odkrytego przez Skauta B. Juniorzy maj\u0105 niskie OVR (16\u201322 lat) ale wysoki potencja\u0142 \u2014 inwestycja d\u0142ugoterminowa. Masz 2 kolejki na decyzj\u0119.</p>\n\n<div class=\"tip\"><b>Legenda Klubu:</b> Wychowanek kt\u00f3ry osi\u0105gnie wystarczaj\u0105cy presti\u017c (mecze, gole, wzrost OVR) staje si\u0119 Legend\u0105 Klubu \u2014 trwa\u0142y bonus do reputacji.</div>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-zarzad\">10. ZARZ\u0104D I CELE</h2>\n\n<h3>CEL G\u0141\u00d3WNY</h3>\n<p>Wybierasz jeden cel na sezon na pocz\u0105tku ka\u017cdego sezonu w zak\u0142adce FINANSE \u2192 ZARZ\u0104D. Zarz\u0105d dobiera pul\u0119 cel\u00f3w do twojej sytuacji \u2014 po awansie dostaniesz trudniejsze, po serii pora\u017cek \u0142atwiejsze. Wykonanie = premia bud\u017cetowa. Niewykonanie = kara (utrata reputacji, ewentualnie blokada transfer\u00f3w).</p>\n\n<h3>CEL BONUSOWY</h3>\n<p>Dodatkowy opcjonalny cel. Nagroda to punkty reputacji lub bonus sponsorski. Kara za niewykonanie jest mniejsza ni\u017c przy celu g\u0142\u00f3wnym.</p>\n\n<div class=\"warn\"><b>Presja zarz\u0105du:</b> 3 sezony z rz\u0119du bez wykonania celu = zarz\u0105d narzuca cel przymusowy (naj\u0142atwiejszy dost\u0119pny). Unikaj d\u0142ugich serii niewykonanych cel\u00f3w.</div>\n\n<h3>PRZYK\u0141ADOWE CELE</h3>\n<ul>\n  <li>Utrzymanie w lidze / TOP 5 / TOP 3 / Mistrzostwo</li>\n  <li>Strzeli\u0107 40+ goli w sezonie</li>\n  <li>Zwi\u0119kszy\u0107 reputacj\u0119 o 20 pkt.</li>\n  <li>Wype\u0142ni\u0107 stadion powy\u017cej 80% frekwencji</li>\n  <li>Pokona\u0107 najwi\u0119kszego rywala w sezonie</li>\n</ul>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-reputacja\">11. REPUTACJA I FREKWENCJA</h2>\n\n<h3>REPUTACJA \u2b50</h3>\n<p>Miara presti\u017cu klubu (0\u20131000). Ro\u015bnie po: wygranych meczach, awansie, wykonaniu cel\u00f3w zarz\u0105du, milestones wychowank\u00f3w, zdobyciu Pucharu, budowie stadionu (O\u015bwietlenie, Tablica). Spada po: pora\u017ckach, niewykonaniu cel\u00f3w, spadku z ligi.</p>\n<p>Wp\u0142ywa bezpo\u015brednio na: wysoko\u015b\u0107 dochod\u00f3w z reklam i sponsor\u00f3w, dost\u0119pno\u015b\u0107 wy\u017cszych poziom\u00f3w Akademii i Centrum Szkoleniowego, warto\u015b\u0107 sprzedawanych zawodnik\u00f3w (+10% przy Rep 500+).</p>\n\n<h3>FREKWENCJA \ud83d\udc65</h3>\n<p>Procent wype\u0142nienia stadionu na meczach domowych. Zale\u017cy od: bazy frekwencji dla ligi, wynik\u00f3w ostatnich 5 mecz\u00f3w, serii wygranych/przegranych i reputacji. Bezpo\u015brednio mno\u017cy doch\u00f3d z bilet\u00f3w \u2014 i tym samym z gad\u017cet\u00f3w i gastronomii.</p>\n\n<!-- \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 -->\n<div class=\"divider\"></div>\n<h2 id=\"g-puchar\">12. PUCHAR MISTRZOWSKI</h2>\n\n<p>64 dru\u017cyny z wszystkich 8 lig (8 najlepszych z ka\u017cdej ligi) graj\u0105 w rozgrywkach pucharowych r\u00f3wnolegle z lig\u0105.</p>\n\n<table>\n  <tr><th>RUNDA</th><th>TYDZIE\u0143</th><th>DRU\u017bYNY</th></tr>\n  <tr><td>Runda 1</td><td>5</td><td>64 \u2192 32</td></tr>\n  <tr><td>Runda 2</td><td>10</td><td>32 \u2192 16</td></tr>\n  <tr><td>\u0106wier\u0107fina\u0142y</td><td>15</td><td>16 \u2192 8</td></tr>\n  <tr><td>P\u00f3\u0142fina\u0142y</td><td>21</td><td>8 \u2192 4</td></tr>\n  <tr><td>P\u00f3\u0142fina\u0142y</td><td>27</td><td>4 \u2192 2</td></tr>\n  <tr><td class=\"am\">Fina\u0142</td><td class=\"am\">33</td><td class=\"am\">2 \u2192 1</td></tr>\n</table>\n\n<p>Mecze pucharowe rozgrywasz po meczu ligowym \u2014 w zak\u0142adce MECZ pojawi si\u0119 osobny przycisk gdy nadejdzie twoja runda.</p>\n\n<div class=\"tip\"><b>Nagrody:</b> Ka\u017cda runda to premia finansowa i punkty reputacji. Zwyci\u0119stwo w Pucharze to osobne trofeum w historii klubu i znaczny bonus do reputacji.</div>\n\n<div class=\"divider\"></div>\n<div style=\"text-align:center;color:var(--gr);font-size:var(--fs-meta);padding:16px 0;\">\n  GRASSROOTS TO GLORY \u2014 PRZEWODNIK GRACZA<br>\n  <span style=\"font-size:var(--fs-dense);\">Wr\u00f3\u0107 do gry i zacznij pisa\u0107 histori\u0119 swojego klubu.</span>\n</div>";
   var m=document.createElement('div');
   m.id='modal-guide';
   m.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:10200;background:#0a0a0a;display:flex;flex-direction:column;';
   var styleEl=document.createElement('style');
   styleEl.id='guide-style';
   styleEl.textContent='#modal-guide-body{'+guideStyle.replace(/body\s*\{/g,'#modal-guide-body{').replace(/:root\s*\{[^}]*\}/,'')+'}'
-    +'#modal-guide-body{background:#0a0a0a;color:#e8f5e9;font-family:VT323,monospace;font-size:14px;line-height:1.6;padding:16px 12px 40px;--bg:#0a0a0a;--gd:#050f05;--gb:#4caf50;--gl:#1a3d1a;--gm:#0d1a0d;--am:#ffc107;--rd:#f44336;--wh:#e8f5e9;--gr:#546e54;--tb:#080f08;}';
+    +'#modal-guide-body{background:#0a0a0a;color:#e8f5e9;font-family:VT323,monospace;font-size:var(--fs-body);line-height:1.6;padding:16px 12px 40px;--bg:#0a0a0a;--gd:#050f05;--gb:#4caf50;--gl:#1a3d1a;--gm:#0d1a0d;--am:#ffc107;--rd:#f44336;--wh:#e8f5e9;--gr:#546e54;--tb:#080f08;}';
   document.head.appendChild(styleEl);
   m.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#050f05;border-bottom:2px solid #1a3d1a;flex-shrink:0;">'
-    +'<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#4caf50;letter-spacing:1px;">&#9654; PRZEWODNIK GRACZA</span>'
-    +'<button onclick="var mg=document.getElementById(\'modal-guide\');if(mg)mg.style.display=\'none\';" style="font-family:VT323,monospace;font-size:14px;background:none;border:1px solid #546e54;color:#546e54;padding:2px 10px;cursor:pointer;">&#10005; ZAMKNIJ</button>'
+    +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:#4caf50;letter-spacing:1px;">&#9654; PRZEWODNIK GRACZA</span>'
+    +'<button onclick="var mg=document.getElementById(\'modal-guide\');if(mg)mg.style.display=\'none\';" style="font-family:VT323,monospace;font-size:var(--fs-body);background:none;border:1px solid #546e54;color:#546e54;padding:2px 10px;cursor:pointer;">&#10005; ZAMKNIJ</button>'
     +'</div>'
     +'<div id="modal-guide-body" style="flex:1;overflow-y:auto;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;">'+guideBody+'</div>';
   document.body.appendChild(m);
