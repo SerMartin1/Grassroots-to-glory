@@ -584,16 +584,18 @@ body::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;pointer-e
 .dyn-badge.rec{background:#0a001a;border:1px solid #9b59b6;color:#9b59b6;}
 .dyn-badge.fin{background:#111;border:1px solid #c0c0c0;color:#c0c0c0;}
 
-/* ==========================================
-   POPRAWKA SYSTEMU WIDOKÓW (ZAPOBIEGANIE NAKŁADANIU)
-   ========================================== */
-
-/* Domyślnie ukrywamy absolutnie każdy ekran */
+/* Bezpieczne ukrywanie nieaktywnych ekranów */
 .view {
-    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
-/* Pokazujemy tylko ten ekran, który aktualnie ma klasę .show */
+/* Bezpieczne pokazywanie aktywnego ekranu */
 .view.show {
-    display: block !important; /* Jeśli gra używa flexboxa, zmień block na flex */
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    overflow: unset !important;
 }
