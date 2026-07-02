@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
-:root{--gd:#0a1f0a;--gm:#1a3d1a;--gl:#2d6b2d;--gb:#4caf50;--am:#ffc107;--ad:#e6a800;--rd:#f44336;--wh:#e8f5e9;--gr:#7a9a7a;--tb:#122412;
+:root{--gd:#0a1f0a;--gm:#1a3d1a;--gl:#2d6b2d;--gb:#4caf50;--am:#ffc107;--ad:#e6a800;--rd:#f44336;--wh:#e8f5e9;--gr:#a3b0a3;--tb:#122412;
 /* ── SYSTEM TYPOGRAFICZNY ── */
 /* Press Start 2P — marka/UI: tytuły, przyciski, etykiety, statusy */
 --fs-hero:20px;   /* tytuł gry / splash */
---fs-h1:12px;     /* nagłówek panelu */
---fs-h2:10px;     /* przycisk / CTA — wzorcowy rozmiar */
---fs-h3:10px;     /* tab, tile, etykieta interaktywna */
---fs-micro:9px;   /* tag, badge — twardy dolny limit */
+--fs-h1:13px;     /* nagłówek panelu */
+--fs-h2:11px;     /* przycisk / CTA — wzorcowy rozmiar */
+--fs-h3:11px;     /* tab, tile, etykieta interaktywna */
+--fs-micro:10px;  /* tag, badge — twardy dolny limit */
 /* VT323 — treść czytana: opisy, dane, tabele */
 --fs-display:24px;/* duże liczby, input, wynik */
 --fs-body:14px;   /* tekst do czytania */
 --fs-meta:13px;   /* dane pomocnicze, etykiety w tabelach */
---fs-dense:11px;  /* sztywne UI (koszulki, boisko) — dolny limit */
+--fs-dense:13px;  /* sztywne UI (koszulki, boisko) — dolny limit */
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 /* ── RAMKA TELEFONU NA DESKTOPIE ──
