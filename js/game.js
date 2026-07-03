@@ -11678,7 +11678,8 @@ function fillTable(){
   if(!G)return;
   if(G.allStandings&&G.myLeague)G.allStandings[G.myLeague]=[...G.standing];
   fillLeaguesOverview();
-  // Auto-scroll + auto-expand do mojej ligi po krótkim opóźnieniu
+  // Auto-scroll + auto-expand do mojej ligi po opóźnieniu dłuższym niż animacja otwarcia panelu (0.2s),
+  // żeby scrollIntoView nie łapało elementu w trakcie wjeżdżania i nie przewijało strony w poziomie
   setTimeout(()=>{
     const myHdr=document.getElementById('lghdr'+G.myLeague);
     const myPanel=document.getElementById('lgexp'+G.myLeague);
@@ -11688,9 +11689,9 @@ function fillTable(){
       if(arr)arr.textContent='▲';
     }
     if(myHdr){
-      myHdr.scrollIntoView({behavior:'smooth',block:'start'});
+      myHdr.scrollIntoView({behavior:'smooth',block:'start',inline:'nearest'});
     }
-  },80);
+  },220);
 }
 
 // ── TRANSFER WINDOW SYSTEM ──────────────────────────────────────────────
