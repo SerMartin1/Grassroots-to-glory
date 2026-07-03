@@ -478,7 +478,7 @@ function squadTab(tab,btn){
 }
 function _sqTbl(headers, rows, footer){
   return '<div style="overflow-x:auto;padding:0 14px 0 0">'+
-  '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-meta)">'+
+  '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-meta)">'+
     '<thead><tr>'+headers.map(h=>'<th style="padding:6px 8px 6px '+(h.right?'12px':'8px')+';border-bottom:2px solid var(--gl);color:var(--gr);text-align:'+(h.right?'right':'left')+';cursor:'+(h.sort?'pointer':'default')+'" '+(h.sort?'onclick="'+h.sort+'"':'')+'>'+h.label+(h.active?' ↓':'')+'</th>').join('')+'</tr></thead>'+
     '<tbody>'+rows+'</tbody>'+
     (footer?'<tfoot><tr><td colspan="'+headers.length+'" style="padding:6px 8px;border-top:2px solid var(--gl);color:var(--gr);font-size:var(--fs-dense)">'+footer+'</td></tr></tfoot>':'')+

@@ -40,6 +40,10 @@
 .fs-body{font-size:var(--fs-body);}
 .fs-meta{font-size:var(--fs-meta);}
 .fs-dense{font-size:var(--fs-dense);}
+/* Pogrubienie zamiast osobnego fontu — JS NIGDY nie ustawia font-family inline,
+   tylko ewentualnie font-weight:700 (lub klasę .em). Cały krój steruje się z tego
+   jednego pliku przez body{font-family}. */
+.em{font-weight:700;}
 body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace;font-size:var(--fs-body);min-height:100vh;overflow-x:hidden;}
 .view{display:none;flex-direction:column;min-height:100vh;}
 .view.show .panel,.view .panel.open{display:flex;}

@@ -74,7 +74,7 @@ function _newsItemHtml(n,dimmed){
     msg=newsClickable(n.msg||'');
   }
   const actionHtml=(!dimmed&&n.action)
-    ?'<div style="margin-top:3px"><span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||'PRZEJDŹ')+'</span></div>'
+    ?'<div style="margin-top:3px"><span style="font-weight:700;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||'PRZEJDŹ')+'</span></div>'
     :'';
   const opacity=dimmed?'opacity:0.6;':'' ;
   return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a;'+opacity+'">'
@@ -82,7 +82,7 @@ function _newsItemHtml(n,dimmed){
     +'<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 10px;flex:1">'
       +'<span style="font-size:var(--fs-body);flex-shrink:0;margin-top:1px">'+ico+'</span>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+col+';line-height:1.3">'+msg+'</div>'
+        +'<div style="font-size:var(--fs-dense);color:'+col+';line-height:1.3">'+msg+'</div>'
         +actionHtml
       +'</div>'
     +'</div>'
@@ -143,12 +143,12 @@ function _renderPrevList(filter){
   const prevWeeks=[...new Set(prevNews.map(n=>n.week))].sort((a,b)=>b-a);
   let html='';
   if(!prevNews.length){
-    html='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:10px 12px">Brak zdarzeń w tej kategorii</div>';
+    html='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px">Brak zdarzeń w tej kategorii</div>';
   } else {
     prevWeeks.forEach(w=>{
       const wNews=prevNews.filter(n=>n.week===w);
       html+='<div style="display:flex;align-items:center;gap:6px;padding:3px 12px;background:#0a130a;border-bottom:1px solid #0d1f0d">'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px">TYG. '+w+'</span>'
+        +'<span style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px">TYG. '+w+'</span>'
         +'<div style="flex:1;height:1px;background:#1a2d1a"></div>'
         +'</div>';
       wNews.forEach(n=>{html+=_newsItemHtml(n,false);});
@@ -161,7 +161,7 @@ function _renderPrevList(filter){
 function renderNews(){
   const el=document.getElementById('news-list');if(!el)return;
   if(!G||!G.news||!G.news.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:10px 12px;border-left:3px solid var(--gl)">'+t('news_none')+'</div>';
+    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px;border-left:3px solid var(--gl)">'+t('news_none')+'</div>';
     return;
   }
   const prio={err:0,inj:0,budget:1,card:2,premium:3,ok:4,back:4,train:5,scout:5,academy:5,club:6,info:6,rumour:7,contract:8};
@@ -191,7 +191,7 @@ function renderNews(){
     const badge=_newsBadge(t.id, curAll);
     const isActive=_newsTab===t.id;
     const badgeHtml=badge>0
-      ?'<span style="background:'+(isActive?'#000':'var(--am)')+';color:'+(isActive?'var(--am)':'#000')+';font-family:VT323,monospace;font-size:var(--fs-dense);padding:0 4px;margin-left:3px;min-width:14px;text-align:center;display:inline-block">'+badge+'</span>'
+      ?'<span style="background:'+(isActive?'#000':'var(--am)')+';color:'+(isActive?'var(--am)':'#000')+';font-size:var(--fs-dense);padding:0 4px;margin-left:3px;min-width:14px;text-align:center;display:inline-block">'+badge+'</span>'
       :'';
     html+='<div onclick="newsSetTab(\''+t.id+'\')" style="'
       +'display:flex;flex-direction:column;align-items:center;gap:1px;'
@@ -200,31 +200,31 @@ function renderNews(){
       +'background:'+(isActive?'#0a1f0a':'transparent')+';'
       +'">'
       +'<span style="font-size:var(--fs-meta)">'+t.icon+'</span>'
-      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(isActive?'var(--gb)':'var(--gr)')+'">'+t.label+badgeHtml+'</span>'
+      +'<span style="font-weight:700;font-size:var(--fs-micro);color:'+(isActive?'var(--gb)':'var(--gr)')+'">'+t.label+badgeHtml+'</span>'
       +'</div>';
   });
   html+='</div>';
 
   // ── BIEŻĄCY TYDZIEŃ ───────────────────────────────────────────────────
   html+='<div style="display:flex;align-items:center;gap:8px;padding:4px 12px;background:#0a180a;border-bottom:1px solid var(--gl)">'
-    +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);letter-spacing:1px">'+t('news_week').replace('{n}',currentWeek)+'</span>'
+    +'<span style="font-weight:700;font-size:var(--fs-micro);color:var(--am);letter-spacing:1px">'+t('news_week').replace('{n}',currentWeek)+'</span>'
     +'<div style="flex:1;height:1px;background:var(--gl)"></div>'
-    +'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('news_events').replace('{n}',curFiltered.length)+'</span>'
+    +'<span style="font-size:var(--fs-dense);color:var(--gr)">'+t('news_events').replace('{n}',curFiltered.length)+'</span>'
     +'</div>';
 
   if(curFiltered.length){
     curFiltered.forEach(n=>{html+=_newsItemHtml(n,false);});
   } else {
-    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:8px 12px">'+t('news_none_cat')+'</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 12px">'+t('news_none_cat')+'</div>';
   }
 
   // ── POPRZEDNIE TYGODNIE ───────────────────────────────────────────────
   const prevFiltered=prevAll.filter(n=>_newsTabFilter(_newsTab,n));
   if(prevFiltered.length){
     html+='<div onclick="newsTogglePrev()" style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--gm);border-top:2px solid var(--gb);border-bottom:2px solid var(--gl);cursor:pointer;user-select:none">'
-      +'<span id="news-prev-arrow" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">▶</span>'
-      +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh);letter-spacing:1px">'+t('news_prev_weeks')+'</span>'
-      +'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-left:auto">'+prevFiltered.length+'</span>'
+      +'<span id="news-prev-arrow" style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">▶</span>'
+      +'<span style="font-weight:700;font-size:var(--fs-h3);color:var(--wh);letter-spacing:1px">'+t('news_prev_weeks')+'</span>'
+      +'<span style="font-size:var(--fs-dense);color:var(--gr);margin-left:auto">'+prevFiltered.length+'</span>'
       +'</div>';
     html+='<div id="news-prev-body" style="display:none">';
     html+='<div id="news-prev-list"></div>';
