@@ -2,13 +2,13 @@
 :root{--gd:#0a1f0a;--gm:#1a3d1a;--gl:#2d6b2d;--gb:#4caf50;--am:#ffc107;--ad:#e6a800;--rd:#f44336;--wh:#e8f5e9;--gr:#a3b0a3;--tb:#122412;
 /* ── SYSTEM TYPOGRAFICZNY ── */
 /* Press Start 2P — marka/UI: tytuły, przyciski, etykiety, statusy */
---fs-hero:15px;   /* tytuł gry / splash */
---fs-h1:11px;     /* nagłówek panelu */
---fs-h2:9px;     /* przycisk / CTA — wzorcowy rozmiar */
---fs-h3:9px;     /* tab, tile, etykieta interaktywna */
---fs-micro:8px;  /* tag, badge — twardy dolny limit */
+--fs-hero:20px;   /* tytuł gry / splash */
+--fs-h1:13px;     /* nagłówek panelu */
+--fs-h2:11px;     /* przycisk / CTA — wzorcowy rozmiar */
+--fs-h3:11px;     /* tab, tile, etykieta interaktywna */
+--fs-micro:10px;  /* tag, badge — twardy dolny limit */
 /* VT323 — treść czytana: opisy, dane, tabele */
---fs-display:20px;/* duże liczby, input, wynik */
+--fs-display:24px;/* duże liczby, input, wynik */
 --fs-body:14px;   /* tekst do czytania */
 --fs-meta:13px;   /* dane pomocnicze, etykiety w tabelach */
 --fs-dense:13px;  /* sztywne UI (koszulki, boisko) — dolny limit */
@@ -112,8 +112,8 @@ body{background:var(--gd);color:var(--wh);font-family:VT323,monospace;font-size:
 .tile-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
 .tile-lbl{font-family:'Press Start 2P',monospace;font-size:var(--fs-h3);color:var(--gb);letter-spacing:0.5px;line-height:1.5;}
 .tile.hi{border-color:var(--am);}
-.panel{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--gd);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.2s ease;overflow:hidden;}
-.panel.open{transform:translateX(0);}
+.panel{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--gd);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.2s ease,visibility 0s linear 0.2s;overflow:hidden;visibility:hidden;pointer-events:none;}
+.panel.open{transform:translateX(0);visibility:visible;pointer-events:auto;transition:transform 0.2s ease,visibility 0s linear 0s;}
 .panel-body{flex:1;overflow-y:auto;padding:12px 14px;}
 .tabs{display:flex;border-bottom:2px solid var(--gb);}
 .tab-btn{flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-family:'Press Start 2P',monospace;font-size:var(--fs-h3);padding:10px 4px;cursor:pointer;}
@@ -583,19 +583,3 @@ body::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;pointer-e
 .dyn-badge.cup{background:#1a0a00;border:1px solid var(--am);color:var(--am);}
 .dyn-badge.rec{background:#0a001a;border:1px solid #9b59b6;color:#9b59b6;}
 .dyn-badge.fin{background:#111;border:1px solid #c0c0c0;color:#c0c0c0;}
-
-/* Bezpieczne ukrywanie nieaktywnych ekranów */
-.view {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-
-/* Bezpieczne pokazywanie aktywnego ekranu */
-.view.show {
-    opacity: 1 !important;
-    visibility: visible !important;
-    height: auto !important;
-    overflow: unset !important;
-}

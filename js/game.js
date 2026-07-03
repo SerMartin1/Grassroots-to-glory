@@ -3308,6 +3308,33 @@ function go(vid){
     }
   }
 }
+// ── STRAŻNIK JEDNEGO PANELU ──────────────────────────────────────────────
+// Niezależnie od tego, KTÓRA funkcja doda klasę 'open' do panelu (nawet jeśli
+// pominie closeAllPanels/openPanel), ten obserwator natychmiast zamyka
+// wszystkie pozostałe panele z klasą 'open'. To twarda gwarancja na poziomie
+// DOM, że nigdy nie będą widoczne dwa panele naraz (np. Tabela + Kryzys Kadrowy).
+(function(){
+  function enforceSinglePanel(changedEl){
+    if(!changedEl||!changedEl.classList||!changedEl.classList.contains('panel'))return;
+    if(!changedEl.classList.contains('open'))return;
+    document.querySelectorAll('.panel.open').forEach(function(other){
+      if(other!==changedEl)other.classList.remove('open');
+    });
+  }
+  function start(){
+    var panels=document.querySelectorAll('.panel');
+    if(!panels.length){setTimeout(start,200);return;}
+    var observer=new MutationObserver(function(mutations){
+      mutations.forEach(function(m){enforceSinglePanel(m.target);});
+    });
+    panels.forEach(function(p){observer.observe(p,{attributes:true,attributeFilter:['class']});});
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',start);
+  } else {
+    start();
+  }
+})();
 function closeAllPanels(exceptId){
   // Zamyka wszystkie otwarte panele oprócz exceptId (naprawia nakładanie się np. Tabeli i Kryzysu kadrowego)
   document.querySelectorAll('.panel.open').forEach(function(el){
