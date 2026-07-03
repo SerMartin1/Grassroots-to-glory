@@ -3690,15 +3690,13 @@ function fillPanel(id){
   else if(id==='p-match')fillMatch();
 else if(id==='p-table'){
     // Ręczne wygaszenie panelu kryzysu kadrowego, jeśli był otwarty
-    ['p-crisis', 'modal-crisis', 'crisis-panel', 'free-agents-crisis'].forEach(function(crisisId) {
+    ['p-crisis', 'modal-crisis', 'crisis-panel', 'free-agents-crisis', 'p-fa', 'p-free-agents', 'free-agents', 'p-crisis-squad'].forEach(function(crisisId) {
       const crisisEl = document.getElementById(crisisId);
       if(crisisEl) {
         crisisEl.classList.remove('open', 'show', 'active');
-        crisisEl.style.display = 'none';
+        crisisEl.style.setProperty('display', 'none', 'important'); // Wymuszenie z dopiskiem important
       }
     });
-    fillTable();
-  }
   else if(id==='p-transfers')fillTransfers();
   else if(id==='p-training')fillTraining();
   else if(id==='p-finance')fillFinance();
