@@ -7,8 +7,8 @@ window.onerror=function(msg,src,line,col,err){
 
 // ══════════════════════════════════════════════════════════
 // i18n — FUNDAMENT TŁUMACZEŃ (Krok 1)
-// Język wybierany raz przy nowej grze — zapisany w localStorage
-// Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en
+// Język wybierany raz przy nowej grze — zapisany w localStorage 
+// Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en 
 // ══════════════════════════════════════════════════════════
 
 let LANG = localStorage.getItem('gtg_lang') || 'pl';
@@ -18292,4 +18292,5 @@ function showGuideModal(){
     +'<div id="modal-guide-body" style="flex:1;overflow-y:auto;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;">'+guideBody+'</div>';
   document.body.appendChild(m);
 }
+
 
