@@ -24,8 +24,7 @@
 #app-frame{position:relative;width:100%;min-height:100vh;min-height:100dvh;overflow-x:hidden;background:var(--gd);}
 @media (min-width:601px){
   html{background:#000;}
-  body{display:flex;justify-content:center;}
-  #app-frame{max-width:480px;width:100%;margin:0;box-shadow:0 0 60px rgba(0,0,0,0.8);}
+  #app-frame{max-width:480px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,0.8);}
 }
 /* ── KLASY NARZĘDZIOWE ROZMIARU CZCIONKI ──
    Preferowany sposób ustawiania font-size w nowym kodzie: class="fs-h2"
