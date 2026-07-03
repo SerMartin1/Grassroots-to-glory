@@ -2479,7 +2479,7 @@ function showById(id){
   closeModal('m-contract');
   showPlayer(p);
   var pp=document.getElementById('p-player');
-  if(pp){pp.style.zIndex='9995';}
+  // zIndex panelu usunięty - wyłączność panelu pilnuje MutationObserver
 }
 function newsAction(el){
   const panel=el.dataset&&el.dataset.panel;
@@ -4145,7 +4145,7 @@ function showPlayerFromClubModal(pid){
   showPlayer(p);
   // Ustaw z-index panelu gracza wyżej niż modal klubu, zamknij modal
   const pp=document.getElementById('p-player');
-  if(pp)pp.style.zIndex='950';
+  // zIndex panelu usunięty - wyłączność panelu pilnuje MutationObserver
   closeClubModal();
 }
 function _traitLabel(id){return t('trait_'+id+'_name')||TRAITS[id]&&TRAITS[id].name||id;}
@@ -5031,8 +5031,8 @@ function fillMatch(){
   }
   const isHome=m.h===G.myClubId;
   const hc=ALL_CLUBS.find(c=>c.id===m.h),ac=ALL_CLUBS.find(c=>c.id===m.a);
-  const hn=document.getElementById('m-home-name');if(hn){hn.textContent=hc.n+(isHome?' ⭐':'');hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.style.zIndex='300';sqp.classList.add('open');};}else openClubModal(m.h);}}
-  const an=document.getElementById('m-away-name');if(an){an.textContent=(isHome?'':' ⭐')+ac.n;an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.style.zIndex='300';sqp.classList.add('open');};}else openClubModal(m.a);}}
+  const hn=document.getElementById('m-home-name');if(hn){hn.textContent=hc.n+(isHome?' ⭐':'');hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.classList.add('open');};}else openClubModal(m.h);}}
+  const an=document.getElementById('m-away-name');if(an){an.textContent=(isHome?'':' ⭐')+ac.n;an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.classList.add('open');};}else openClubModal(m.a);}}
   const ls2=document.getElementById('m-live-score');if(ls2)ls2.textContent='0 - 0';
   const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_round').replace('{n}',m.rnd)+(isHome?(' '+t('match_home_label')):(' '+t('match_away_label')));
   // ── PUCHAR: banner jeśli to mecz pucharowy ────────────────────────────
@@ -5060,7 +5060,7 @@ function fillMatch(){
     _fixBaner.innerHTML='<div style="background:#3d0000;border:1px solid var(--rd);padding:10px 14px;margin:0 0 6px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+
       t('match_fix_squad_warn').replace('{a}',_validSt.length).replace('{b}',_req3)+'<br>'+
       '<div style="display:flex;gap:6px;margin-top:6px">'+
-        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
+        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
         '<button onclick="openFACrisis(checkSquadCrisis())" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
       '</div>'+
     '</div>';
@@ -5201,7 +5201,7 @@ function fillMatch(){
         '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">'+
           // LEWA = gospodarz
           '<div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
               (isHome?'⭐ ':'')+homeClub.n+
             '</div>'+
             '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
@@ -5218,7 +5218,7 @@ function fillMatch(){
           '</div>'+
           // PRAWA = gość
           '<div style="text-align:right">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.style.zIndex=\'300\';sqp.classList.add(\'open\');}')+'">'+
+            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}')+'">'+
               awayClub.n+(isHome?'':' ⭐')+
             '</div>'+
             '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
@@ -5327,9 +5327,9 @@ function fillMatch(){
 
       // ── PRZYCISKI TAKTYKA + SKŁAD ────────────────────────────────
       '<div style="display:flex;gap:6px;padding:7px 12px 8px">'+
-        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');document.getElementById(\'p-tactics\').style.zIndex=\'300\'" '+
+        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" '+
           'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
-        '<button onclick="fillPanel(\'p-squad\');openPanel(\'p-squad\');document.getElementById(\'p-squad\').style.zIndex=\'300\'" '+
+        '<button onclick="fillPanel(\'p-squad\');openPanel(\'p-squad\');" '+
           'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
       '</div>';
   }
@@ -13591,7 +13591,7 @@ function openClubSquad(clubId){
     });
   });
   const csp=document.getElementById('p-club-squad');
-  if(csp){csp.style.zIndex='300';csp.classList.add('open');}
+  if(csp){csp.classList.add('open');}
 }
 
 
