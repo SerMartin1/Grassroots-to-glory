@@ -3688,7 +3688,17 @@ function fillPanel(id){
   if(id==='p-squad')fillSquad();
   else if(id==='p-tactics'){fillTactics();fillTacSquad();}
   else if(id==='p-match')fillMatch();
-  else if(id==='p-table')fillTable();
+else if(id==='p-table'){
+    // Ręczne wygaszenie panelu kryzysu kadrowego, jeśli był otwarty
+    ['p-crisis', 'modal-crisis', 'crisis-panel', 'free-agents-crisis'].forEach(function(crisisId) {
+      const crisisEl = document.getElementById(crisisId);
+      if(crisisEl) {
+        crisisEl.classList.remove('open', 'show', 'active');
+        crisisEl.style.display = 'none';
+      }
+    });
+    fillTable();
+  }
   else if(id==='p-transfers')fillTransfers();
   else if(id==='p-training')fillTraining();
   else if(id==='p-finance')fillFinance();
