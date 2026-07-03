@@ -7,8 +7,8 @@ window.onerror=function(msg,src,line,col,err){
 
 // ══════════════════════════════════════════════════════════
 // i18n — FUNDAMENT TŁUMACZEŃ (Krok 1)
-// Język wybierany raz przy nowej grze — zapisany w localStorage 
-// Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en 
+// Język wybierany raz przy nowej grze — zapisany w localStorage
+// Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en
 // ══════════════════════════════════════════════════════════
 
 let LANG = localStorage.getItem('gtg_lang') || 'pl';
@@ -11101,7 +11101,7 @@ function fillLeaguesOverview(){
       '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
       '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
     '</tr>';};
-    let tblHtml='<table style="width:100%;font-family:VT323,monospace;font-size:var(--fs-dense);border-collapse:collapse">'+
+    let tblHtml='<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-family:VT323,monospace;font-size:var(--fs-dense);border-collapse:collapse">'+
       '<thead><tr>'+
         '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_num')+'</th>'+
         '<th style="color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_club')+'</th>'+
@@ -11116,7 +11116,7 @@ function fillLeaguesOverview(){
       '</tr></thead><tbody id="tbody'+lvl+'">'+
       top3.map((s,i)=>rowHtmlLg(s,i,s.cid===G.myClubId)).join('')+
       (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:var(--fs-dense);text-align:center">···</td></tr>'+rowHtmlLg(showMy,myPos-1,true):'')+
-      '</tbody></table>'+
+      '</tbody></table></div>'+
       '<div style="text-align:center;padding:4px">'+
         '<button onclick="toggleFullTable('+lvl+')" id="btnfull'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-dense);background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:3px 12px;cursor:pointer">'+t('tbl_full_table')+'</button>'+
       '</div>';
@@ -18292,5 +18292,4 @@ function showGuideModal(){
     +'<div id="modal-guide-body" style="flex:1;overflow-y:auto;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;">'+guideBody+'</div>';
   document.body.appendChild(m);
 }
-
 
