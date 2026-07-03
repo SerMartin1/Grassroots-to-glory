@@ -3689,14 +3689,16 @@ function fillPanel(id){
   else if(id==='p-tactics'){fillTactics();fillTacSquad();}
   else if(id==='p-match')fillMatch();
 else if(id==='p-table'){
-    // Ręczne wygaszenie panelu kryzysu kadrowego, jeśli był otwarty
     ['p-crisis', 'modal-crisis', 'crisis-panel', 'free-agents-crisis', 'p-fa', 'p-free-agents', 'free-agents', 'p-crisis-squad'].forEach(function(crisisId) {
       const crisisEl = document.getElementById(crisisId);
       if(crisisEl) {
         crisisEl.classList.remove('open', 'show', 'active');
-        crisisEl.style.setProperty('display', 'none', 'important'); // Wymuszenie z dopiskiem important
+        crisisEl.style.setProperty('display', 'none', 'important');
       }
-    });
+    }); // <-- Zamknięcie pętli .forEach
+    fillTable(); // <-- TO JEST KLUCZOWE! Bez tego tabela się nie wygeneruje
+  } // <-- Zamknięcie bloku else if
+
   else if(id==='p-transfers')fillTransfers();
   else if(id==='p-training')fillTraining();
   else if(id==='p-finance')fillFinance();
