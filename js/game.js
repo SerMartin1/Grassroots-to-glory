@@ -7,7 +7,7 @@ window.onerror=function(msg,src,line,col,err){
 
 // ══════════════════════════════════════════════════════════
 // i18n — FUNDAMENT TŁUMACZEŃ (Krok 1)
-// Język wybierany raz przy nowej grze — zapisany w localStorage
+// Język wybierany raz przy nowej grze — zapisany w localStorage 
 // Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en 
 // ══════════════════════════════════════════════════════════
 
