@@ -3315,8 +3315,9 @@ function closeAllPanels(exceptId){
   });
 }
 function openPanel(id){
- closeAllPanels(id); // <-- DODAJ TĘ LINIĘ
-fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');}
+  closeAllPanels(id); // wymusza tylko 1 aktywny panel naraz (naprawa nakładania się ekranów)
+  fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');
+}
 function closePanel(id){
   const el=document.getElementById(id);
   if(el){
