@@ -56,7 +56,7 @@ function demandsHtmlInteractive(p,o){
       const checked=(id==='starter'?o.starter:id==='signing'?o.signing:id==='bonus_perf'?o.bonus:o.loyalty)?'checked':'';
       chk='<input type="checkbox" '+checked+' data-f="'+field+'" onclick="toggleBuyOffer(this,this.dataset.f)" style="cursor:pointer;margin:0"> ';
     }
-    return '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--gl);font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+    return '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--gl);font-size:var(--fs-dense)">'+
       '<span style="color:'+(met?'var(--gb)':'var(--rd)')+';">'+(met?'OK':'NIE')+'</span>'+
       chk+
       '<span style="color:var(--gr)">'+dt.icon+' '+dt.label+':</span>'+
@@ -69,7 +69,7 @@ function demandsHtmlInteractive(p,o){
 function demandsHtml(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty){
   if(!p.demands)return'';
   const res=getDemandResults(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty);
-  return res.map(r=>'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+  return res.map(r=>'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:var(--fs-dense)">'+
     '<span style="color:'+(r.met?'var(--gb)':'var(--rd)')+';">'+(r.met?'OK':'NIE')+'</span>'+
     '<span style="color:var(--gr)">'+r.icon+' '+r.label+':</span>'+
     '<span style="color:'+(r.met?'var(--gb)':'var(--wh)')+'">'+r.text+'</span></div>').join('');
@@ -197,16 +197,16 @@ function genTransferContext(p,lvl){
 }
 function sectionBadge(p){
   const s=p.section||'sale';
-  if(s==='sale')return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">NA SPRZEDAZ</span>';
-  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);border:1px solid var(--am);padding:1px 4px">PLOTKA +'+(p.rumourWeeks||2)+' tyg.</span>';
+  if(s==='sale')return '<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">NA SPRZEDAZ</span>';
+  return '<span style="font-size:var(--fs-dense);color:var(--am);border:1px solid var(--am);padding:1px 4px">PLOTKA +'+(p.rumourWeeks||2)+' tyg.</span>';
 }
 function lastSeasonHtml(p){
   if(!p.lastSeason)return'';const s=p.lastSeason;
-  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(p.pos==='GK'?s.m+'M '+s.cs+'CS':s.m+'M '+s.g+'G '+s.a+'A')+'</span>';
+  return '<span style="font-size:var(--fs-dense);color:var(--gr)">'+(p.pos==='GK'?s.m+'M '+s.cs+'CS':s.m+'M '+s.g+'G '+s.a+'A')+'</span>';
 }
 function transferReasonHtml(p){
   if(!p.transferReason)return'';const rr=p.transferReason;
-  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+rr.icon+' '+rr.label+'</span>';
+  return '<span style="font-size:var(--fs-dense);color:var(--gr)">'+rr.icon+' '+rr.label+'</span>';
 }
 function genTransferMarket(){
   if(!G)return;
@@ -388,14 +388,14 @@ function renderBuyTab(){
   const _sortLbls={ovr:'OVR',age:'Wiek',price:'Cena',demands:'Zadania'};
   const _arrow=_f.sortDir>0?'\u2193':'\u2191'; // ↓ lub ↑
   const _filterBar=
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:8px;border-bottom:1px solid var(--gl);padding-bottom:8px">'+
+    '<div style="font-size:var(--fs-dense);margin-bottom:8px;border-bottom:1px solid var(--gl);padding-bottom:8px">'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin-bottom:5px">'+
       '<span style="color:var(--gr);margin-right:2px">POZ:</span>'+
-      _posOpts.map(v=>'<button data-key="pos" data-val="'+v+'" onclick="setTrFilter(this.dataset.key,this.dataset.val)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.pos===v?'var(--am)':'var(--gl)')+';background:'+(_f.pos===v?'var(--am)':'var(--tb)')+';color:'+(_f.pos===v?'#000':'var(--gr)')+';cursor:pointer">'+(_posLbls[v]||v)+'</button>').join('')+
+      _posOpts.map(v=>'<button data-key="pos" data-val="'+v+'" onclick="setTrFilter(this.dataset.key,this.dataset.val)" style="font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.pos===v?'var(--am)':'var(--gl)')+';background:'+(_f.pos===v?'var(--am)':'var(--tb)')+';color:'+(_f.pos===v?'#000':'var(--gr)')+';cursor:pointer">'+(_posLbls[v]||v)+'</button>').join('')+
     '</div>'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">'+
       '<span style="color:var(--gr);margin-right:2px">SORTUJ:</span>'+
-      _sortOpts.map(v=>'<button data-val="'+v+'" onclick="toggleTrSort(this.dataset.val)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.sortBy===v?'var(--gb)':'var(--gl)')+';background:'+(_f.sortBy===v?'var(--gm)':'var(--tb)')+';color:'+(_f.sortBy===v?'var(--gb)':'var(--gr)')+';cursor:pointer">'+(_sortLbls[v]||v)+(_f.sortBy===v?' '+_arrow:'')+  '</button>').join('')+
+      _sortOpts.map(v=>'<button data-val="'+v+'" onclick="toggleTrSort(this.dataset.val)" style="font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.sortBy===v?'var(--gb)':'var(--gl)')+';background:'+(_f.sortBy===v?'var(--gm)':'var(--tb)')+';color:'+(_f.sortBy===v?'var(--gb)':'var(--gr)')+';cursor:pointer">'+(_sortLbls[v]||v)+(_f.sortBy===v?' '+_arrow:'')+  '</button>').join('')+
     '</div>'+
     '</div>';
   // Zastosuj filtry
@@ -413,7 +413,7 @@ function renderBuyTab(){
   });
   const _sale=_mkt.filter(p=>p.section==='sale'||!p.section);
   const _rum=_mkt.filter(p=>p.section==='rumour');
-  function _sh(lbl,cnt,c){return cnt?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+c+';margin:8px 0 4px;border-bottom:1px solid '+c+';padding-bottom:2px">'+lbl+' ('+cnt+')</div>':'';}
+  function _sh(lbl,cnt,c){return cnt?'<div style="font-size:var(--fs-dense);color:'+c+';margin:8px 0 4px;border-bottom:1px solid '+c+';padding-bottom:2px">'+lbl+' ('+cnt+')</div>':'';}
   function _tcard(p,bought){
     const _isObs=!!(p._observed||(G&&G.scout&&(G.scout.observed||[]).find(x=>x.id===p.id)));
     const _isWatching=!_isObs&&G&&G.scout&&(G.scout.modeA||[]).find(x=>x.targetId===p.id);
@@ -436,20 +436,20 @@ function renderBuyTab(){
     const showSal=_isObs?fmt(p.salary):'~'+fmt(Math.round(p.salary*(0.85+Math.random()*0.30)/50)*50);
     return '<div class="tcard" style="margin-bottom:8px;border-left:3px solid '+bdr+'">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'+
-        (p._dedicated?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 4px">PASUJE DO SKLADU (Twoj '+POS_SHORT[p.pos]+' sr.OVR '+p._weakOvr+')</span>':
-         p._premium?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ffd700;border:1px solid #ffd700;padding:1px 4px">PREMIUM — raz na sezon</span>':
-         p._timed?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">WYGASA ZA 1 TYG.</span>':
+        (p._dedicated?'<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 4px">PASUJE DO SKLADU (Twoj '+POS_SHORT[p.pos]+' sr.OVR '+p._weakOvr+')</span>':
+         p._premium?'<span style="font-size:var(--fs-dense);color:#ffd700;border:1px solid #ffd700;padding:1px 4px">PREMIUM — raz na sezon</span>':
+         p._timed?'<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">WYGASA ZA 1 TYG.</span>':
          sectionBadge(p))+
-        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">OSTATNIA SZANSA</span>':'')+
-        (p.prevClub?(p._fromClubId?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);cursor:pointer;text-decoration:underline" onclick="openClubModal('+p._fromClubId+')">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>':'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>'):'')+
+        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-size:var(--fs-dense);color:var(--am)">OSTATNIA SZANSA</span>':'')+
+        (p.prevClub?(p._fromClubId?'<span style="font-size:var(--fs-dense);color:var(--am);cursor:pointer;text-decoration:underline" onclick="openClubModal('+p._fromClubId+')">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>':'<span style="font-size:var(--fs-dense);color:var(--gr)">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>'):'')+
       '</div>'+
       '<div style="flex:1">'+
         '<div style="display:flex;align-items:center;gap:6px">'+
           '<span class="tr-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;line-height:0;flex-shrink:0"></span>'+
           '<div class="tname">'+p.name+'</div>'+
-          (_isObs?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">✔ obserwowany</span>':'') +
-          (_isWatching?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">[w obs.]</span>':'')+
-          (p._hot?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">[HOT]</span>':'')+
+          (_isObs?'<span style="font-size:var(--fs-dense);color:var(--gb)">✔ obserwowany</span>':'') +
+          (_isWatching?'<span style="font-size:var(--fs-dense);color:var(--am)">[w obs.]</span>':'')+
+          (p._hot?'<span style="font-size:var(--fs-dense);color:var(--gb)">[HOT]</span>':'')+
         '</div>'+
         '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • <span style="color:'+col+'">'+_ovrLabel+'</span> • Pot: '+(_isObs?p.potential:(_showPot!=null?'~'+_showPot:'???'))+'</div>'+
         '<div style="display:flex;gap:8px;margin-top:2px">'+lastSeasonHtml(p)+'&nbsp;'+transferReasonHtml(p)+'</div>'+
@@ -459,21 +459,21 @@ function renderBuyTab(){
         '<div>'+getDemandPreview(p)+'</div>'+
       '</div>'+
       '<div style="text-align:right;margin-left:8px">'+
-        (isRum?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">wkrotce</div>':
+        (isRum?'<div style="font-size:var(--fs-dense);color:var(--am)">wkrotce</div>':
           '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">'+
             '<button class="btn-buy" onclick="buyTransfer('+p.id+')" '+(_windowClosed||bought>=3?'disabled style="opacity:0.4"':'')+'>'+(_windowClosed?t('tr_window_closed_short'):t('tr_btn_buy_short'))+'</button>'+
-            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">OBSERWUJ</button>':'')+
+            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">OBSERWUJ</button>':'')+
           '</div>')+
       '</div></div>';
   }
-  const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
+  const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
     '🔒 Okno zamknięte — <span style="color:var(--wh)">'+tw.next+'</span>'+(tw.eta?' za <span style="color:var(--am)">'+tw.eta+' kol.</span>':'')+
     ' | Możesz obserwować zawodników skautem</div>':'';
-  el.innerHTML=_closedBanner+_filterBar+'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?'Kupiono: <span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'/3</span> w tym oknie':'Przeglądasz rynek — kupno zablokowane')+'</div>'+
+  el.innerHTML=_closedBanner+_filterBar+'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?'Kupiono: <span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'/3</span> w tym oknie':'Przeglądasz rynek — kupno zablokowane')+'</div>'+
     _sh('NA SPRZEDAZ',_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
     _sh('PLOTKI',_rum.length,'var(--am)')+_rum.map(p=>_tcard(p,bought)).join('')+
     (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:var(--fs-dense)">Brak zawodnikow</div>':'')+
-    '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+    '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-size:var(--fs-dense);color:var(--gr)">'+
       '<div style="color:var(--am);margin-bottom:5px">LEGENDA</div>'+
       '<div style="display:flex;flex-direction:column;gap:3px">'+
         '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--rd);flex-shrink:0"></span>NA SPRZEDAZ — wystawiony przez klub AI</div>'+
@@ -493,10 +493,10 @@ function renderSellTab(){
   // Oferty AI za wystawionych zawodników
   let offerHtml='';
   if(G.pendingOffers&&G.pendingOffers.length){
-    offerHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">📨 OFERTY AI</div>'+
+    offerHtml='<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">📨 OFERTY AI</div>'+
     G.pendingOffers.map(o=>{
       const p=G.players.find(x=>x.id===o.pid);if(!p)return'';
-      return '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px 10px;margin-bottom:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      return '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px 10px;margin-bottom:6px;font-size:var(--fs-dense)">'+
         '<div style="color:var(--wh)">'+o.clubName+' oferuje <b style="color:var(--am)">'+fmtVal(o.price)+'</b> za '+p.name+'</div>'+
         '<div style="color:var(--gr);margin-top:2px">Wartość: '+fmtVal(p.value)+' • Oferta: '+(Math.round(o.price/p.value*100))+'%</div>'+
         '<div style="display:flex;gap:6px;margin-top:6px">'+
@@ -506,15 +506,15 @@ function renderSellTab(){
     }).join('')+'<hr style="border-color:var(--gl);margin:8px 0">';
   }
   if(!tw.open){
-    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Wystawianie na sprzedaż dostępne w oknie transferowym</div>'+
-      '<div style="margin-top:12px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">MÓJ SKŁAD</div>'+
+    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-size:var(--fs-dense);color:var(--gr)">🔒 Wystawianie na sprzedaż dostępne w oknie transferowym</div>'+
+      '<div style="margin-top:12px;font-size:var(--fs-dense);color:var(--gb)">MÓJ SKŁAD</div>'+
       myPl().map(p=>'<div class="tcard" style="margin-top:4px"><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+' • '+fmtVal(p.value)+'</div></div>').join('');
     return;
   }
   const tw2=isTransferWindow();
   const sold2=G.trSoldThisWindow||0;
   el.innerHTML=offerHtml+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+
       (tw2.open?'🟢 Okno '+tw2.type+' • cena 70–100% wartości':'🔴 Okno zamknięte • cena 50–75% wartości')+
       (tw2.open?' • Sprzedano: <span style="color:'+(sold2>=3?'var(--rd)':'var(--am)')+'">'+sold2+'/3</span>':'')+
     '</div>'+
@@ -532,11 +532,11 @@ function renderHistoriaTab(){
   const wydano=hist.filter(t=>t.type==='buy').reduce((s,t)=>s+t.val,0);
   const zarobiono=hist.filter(t=>t.type==='sell').reduce((s,t)=>s+t.val,0);
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:var(--fs-dense)"><div style="color:var(--gr)">WYDANO</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-family:VT323,monospace;font-size:var(--fs-dense)"><div style="color:var(--gr)">ZAROBIONO</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">WYDANO</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">ZAROBIONO</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
   '</div>'+
   (hist.length?hist.slice().reverse().map(tr=>
-    '<div style="border-bottom:1px solid var(--gm);padding:6px 0;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+    '<div style="border-bottom:1px solid var(--gm);padding:6px 0;font-size:var(--fs-dense)">'+
       '<span style="color:'+(tr.type==='buy'?'var(--rd)':'var(--gb)')+'">'+( tr.type==='buy'?t('tr_log_buy'):t('tr_log_sell'))+'</span> '+
       '<span style="color:var(--wh)">'+tr.name+'</span> '+
       '<span style="color:var(--am)">'+fmtVal(tr.val)+'</span>'+
@@ -594,40 +594,40 @@ function renderAnalitykaContent(){
   function fv(v){if(!v&&v!==0)return'—';if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return Math.round(v/1000)+'K';return v+'';}
 
   if(_analSubTab==='rankingi'){
-    if(!paired.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">Brak zakończonych transferów do analizy.</div>';return;}
+    if(!paired.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">Brak zakończonych transferów do analizy.</div>';return;}
     const best=byRoi.slice(0,3);
     const worst=[...byRoi].reverse().slice(0,Math.min(2,byRoi.length));
     const medals=['🥇','🥈','🥉'];
-    let h='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">🏆 NAJLEPSZE TRANSFERY</div>';
+    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">🏆 NAJLEPSZE TRANSFERY</div>';
     h+=best.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
       return '<div style="background:var(--tb);border:2px solid var(--gb);border-left:4px solid var(--gb);padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--wh)">'+medals[i]+' '+t.name+'</span>'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+
+          '<span style="font-weight:700;font-size:var(--fs-micro);color:var(--wh)">'+medals[i]+' '+t.name+'</span>'+
+          '<span style="font-weight:700;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+
             (r===999?'∞':(r>0?'+':'')+r+'%')+
           '</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+(t.isAcad?' 🌱':'')+'</span>'+
           '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+' zł</span>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+
           (t.buyPrice===0?'gratis':fv(t.buyPrice))+' → '+fv(t.sellPrice)+
         '</div>'+
       '</div>';
     }).join('');
-    h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--rd);margin:12px 0 8px;letter-spacing:1px">💀 NAJGORSZE TRANSFERY</div>';
+    h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--rd);margin:12px 0 8px;letter-spacing:1px">💀 NAJGORSZE TRANSFERY</div>';
     h+=worst.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
       return '<div style="background:var(--tb);border:2px solid var(--rd);border-left:4px solid var(--rd);padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--wh)">#'+(i+1)+' '+t.name+'</span>'+
-          '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:var(--rd)">'+r+'%</span>'+
+          '<span style="font-weight:700;font-size:var(--fs-micro);color:var(--wh)">#'+(i+1)+' '+t.name+'</span>'+
+          '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--rd)">'+r+'%</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+'</span>'+
           '<span style="color:var(--rd)">'+fv(profit)+' zł</span>'+
         '</div>'+
@@ -635,7 +635,7 @@ function renderAnalitykaContent(){
     }).join('');
     // Bar chart bilans per sezon
     if(seasons.length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:12px 0 8px;letter-spacing:1px">📈 BILANS NETTO PER SEZON</div>';
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:12px 0 8px;letter-spacing:1px">📈 BILANS NETTO PER SEZON</div>';
       const seasonNets=seasons.map(s=>{
         const nb=buys.filter(b=>b.season===s).reduce((x,b)=>x+b.val,0);
         const ns=sells.filter(sl=>sl.season===s).reduce((x,sl)=>x+sl.val,0);
@@ -646,9 +646,9 @@ function renderAnalitykaContent(){
         const w=Math.round(Math.abs(x.net)/maxAbs*100);
         const col=x.net>=0?'var(--gb)':'var(--rd)';
         return '<div style="margin-bottom:9px">'+
-          '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">'+
+          '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:3px">'+
             '<span style="color:var(--gr)">SEZON '+x.s+'</span>'+
-            '<span style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+col+'">'+(x.net>=0?'+':'')+fv(x.net)+'</span>'+
+            '<span style="font-weight:700;font-size:var(--fs-h3);color:'+col+'">'+(x.net>=0?'+':'')+fv(x.net)+'</span>'+
           '</div>'+
           '<div style="height:10px;background:#000;border:1px solid var(--gl)">'+
             '<div style="height:100%;width:'+w+'%;background:'+col+'"></div>'+
@@ -660,7 +660,7 @@ function renderAnalitykaContent(){
 
   } else {
     // ── STATYSTYKI ──
-    let h='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">KLUCZOWE WSKAŹNIKI</div>';
+    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">KLUCZOWE WSKAŹNIKI</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
       [
         {icon:'💰',lbl:'Bilans netto',val:(totalNet>=0?'+':'')+fv(totalNet)+' zł',col:totalNet>=0?'var(--gb)':'var(--rd)'},
@@ -670,20 +670,20 @@ function renderAnalitykaContent(){
       ].map(b=>
         '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px;text-align:center">'+
           '<div style="font-size:var(--fs-display);margin-bottom:4px">'+b.icon+'</div>'+
-          '<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+b.col+'">'+b.val+'</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+b.lbl+'</div>'+
+          '<div style="font-weight:700;font-size:var(--fs-h3);color:'+b.col+'">'+b.val+'</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+b.lbl+'</div>'+
         '</div>'
       ).join('')+
     '</div>';
     // ROI per zawodnik
     if(byRoi.length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">ROI% PER ZAWODNIK</div>';
-      h+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:12px">'+
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">ROI% PER ZAWODNIK</div>';
+      h+='<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense);margin-bottom:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--gl)">'+
-          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">ZAWODNIK</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">KUPNO</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">SPRZED.</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-family:Press Start 2P,monospace;font-size:var(--fs-h3)">ROI</th>'+
+          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">ZAWODNIK</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">KUPNO</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">SPRZED.</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">ROI</th>'+
         '</tr></thead><tbody>'+
         byRoi.map(t=>{
           const r=roiCalc(t.buyPrice,t.sellPrice);
@@ -691,7 +691,7 @@ function renderAnalitykaContent(){
             '<td style="padding:6px 4px;color:'+(t.isAcad?'var(--gb)':'var(--wh)')+'">'+t.name+(t.isAcad?' 🌱':'')+'</td>'+
             '<td style="text-align:right;padding:6px 4px;color:var(--gr)">'+(t.buyPrice===0?'—':fv(t.buyPrice))+'</td>'+
             '<td style="text-align:right;padding:6px 4px;color:var(--gb)">'+fv(t.sellPrice)+'</td>'+
-            '<td style="text-align:right;padding:6px 4px;font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+(r===999?'∞':(r>0?'+':'')+r+'%')+'</td>'+
+            '<td style="text-align:right;padding:6px 4px;font-weight:700;font-size:var(--fs-h3);color:'+roiCol(r)+'">'+(r===999?'∞':(r>0?'+':'')+r+'%')+'</td>'+
           '</tr>';
         }).join('')+
         '</tbody></table>';
@@ -704,11 +704,11 @@ function renderAnalitykaContent(){
       posG[t.pos].count++;posG[t.pos].net+=t.sellPrice-t.buyPrice;
     });
     if(Object.keys(posG).length){
-      h+='<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">BILANS WG POZYCJI</div>';
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">BILANS WG POZYCJI</div>';
       h+=Object.entries(posG).map(([pos,d])=>{
         const avg=Math.round(d.net/d.count);
         const posColors={NAP:'var(--rd)',POL:'var(--am)',OBR:'var(--gb)',GK:'#64b5f6'};
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 6px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 6px;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)">'+
           '<span><span style="background:'+(posColors[pos]||'var(--gr)')+';color:#000;padding:1px 5px;margin-right:6px">'+pos+'</span>'+
           '<span style="color:var(--gr)">×'+d.count+'</span></span>'+
           '<span style="color:'+(avg>=0?'var(--gb)':'var(--rd)')+'">śr. '+(avg>=0?'+':'')+fv(avg)+' / tr.</span>'+
@@ -717,8 +717,8 @@ function renderAnalitykaContent(){
     }
     // Ocena dyrektora
     h+='<div style="margin-top:14px;background:#0d1f0d;border:1px solid var(--am);padding:10px 12px">'+
-      '<div style="font-family:Press Start 2P,monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">🏅 OCENA DYREKTORA SPORTOWEGO</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);line-height:1.6">'+
+      '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">🏅 OCENA DYREKTORA SPORTOWEGO</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.6">'+
         (paired.length===0?'Brak zakończonych transferów.':
           totalNet>0?'Bilans na plusie (+'+fv(totalNet)+' zł). Niezłe oko do talentów!':
           'Bilans na minusie. Czas na lepsze zakupy.')+
@@ -756,7 +756,7 @@ function renderBuyModal(p){
   const _showOvr=_isObs?_rawOvr:Math.round(_rawOvr+(Math.random()<0.5?1:-1)*_ovrErr);
   const _ovrLabel=_isObs?('OVR '+_rawOvr):('OVR ~'+_showOvr+' ±'+_err.max);
   mt.innerHTML=
-    '<div style="font-family:VT323,monospace">'+
+    '<div style="">'+
     '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:4px">'+p.name+' ('+POS_SHORT[p.pos]+', '+p.age+'l, '+_ovrLabel+')</div>'+
     (function(){
       const _bon=o.signing&&p.demands&&p.demands.includes('signing')?Math.round(Math.max(p.salary,o.salary||p.salary)*2/500)*500:0;
@@ -774,16 +774,16 @@ function renderBuyModal(p){
       '<div style="border:1px solid var(--gl);padding:6px">'+
         '<div style="color:var(--gr);margin-bottom:3px">Pensja /mc</div>'+
         '<div style="display:flex;gap:3px">'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="-500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="-500" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-sal" style="color:var(--am);flex:1;text-align:center">'+fmt(o.salary)+'</span>'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="500" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="500" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
         '</div></div>'+
       '<div style="border:1px solid var(--gl);padding:6px">'+
         '<div style="color:var(--gr);margin-bottom:3px">Kontrakt (sez.)</div>'+
         '<div style="display:flex;gap:3px">'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="-1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="-1" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-con" style="color:var(--am);flex:1;text-align:center">'+o.contract+'</span>'+
-          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="1" style="background:var(--gm);border:none;color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
+          '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="1" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
         '</div></div>'+
     '</div>'+
 
@@ -1007,7 +1007,7 @@ function getDemandPreview(p){
   if(!p.demands||!G)return'';
   const met=demandsMetCount(p,Math.round(p.salary*1.15/50)*50,2,false);
   const col=met>=3?'var(--gb)':met>=2?'var(--am)':'var(--rd)';
-  return '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+col+'">Oczekiwania: '+met+'/3 spełnionych</span>';
+  return '<span style="font-size:var(--fs-dense);color:'+col+'">Oczekiwania: '+met+'/3 spełnionych</span>';
 }
 function setTrFilter(key,val){
   if(!G)return;
@@ -1110,7 +1110,7 @@ function renderScoutsTab(){
   if(!G.scout)G.scout={level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]};
   const sc=G.scout;const sd=scoutDef();const acadLvl=getAcadLvl();
   const canB=canScoutModeB();
-  let html='<div style="font-family:VT323,monospace;font-size:var(--fs-dense)">';
+  let html='<div style="font-size:var(--fs-dense)">';
   // ── POZIOM SKAUTA ───────────────────────────────────────────────────
   html+='<div style="border:1px solid var(--am);padding:8px;margin-bottom:8px">'+
     '<div style="color:var(--am);margin-bottom:4px">SKAUT: '+(sd.label||sd.name||'').toUpperCase()+'</div>'+
@@ -1128,7 +1128,7 @@ function renderScoutsTab(){
       const budgetOk=G.budget>=opt.cost;
       if(leagueOk){
         if(budgetOk){
-          html+='<button data-sid="'+opt.id+'" onclick="upgradeScout(this.dataset.sid)" style="width:100%;margin-top:4px;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-dense);padding:6px;cursor:pointer;text-align:left">'+
+          html+='<button data-sid="'+opt.id+'" onclick="upgradeScout(this.dataset.sid)" style="width:100%;margin-top:4px;background:var(--am);color:#000;border:none;font-size:var(--fs-dense);padding:6px;cursor:pointer;text-align:left">'+
             '▶ '+(opt.label||opt.name)+' — '+fmt(opt.cost)+' zł</button>';
         } else {
           html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:var(--fs-dense);color:var(--rd)">'+
@@ -1158,26 +1158,26 @@ function renderScoutsTab(){
   if(actA.length<sd.modeA_slots){
     const slotsLeft=sd.modeA_slots-actA.length;
     html+='<div style="margin-bottom:8px">'
-      +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:6px">WYŚLIJ NA OBSERWACJĘ ('+slotsLeft+' slot'+(slotsLeft>1?'ów':'')+' wolny'+(slotsLeft>1?'ch':'')+')</div>'
+      +'<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:6px">WYŚLIJ NA OBSERWACJĘ ('+slotsLeft+' slot'+(slotsLeft>1?'ów':'')+' wolny'+(slotsLeft>1?'ch':'')+')</div>'
       // Karta: Z plotki
       +'<div onclick="sendScoutModeA(\'rumour\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--am);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
         +'<span style="font-size:var(--fs-display);flex-shrink:0">💬</span>'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">Z PLOTKI</div>'
-          +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Obserwuj zawodnika z aktualnych plotek transferowych</div>'
+          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">Z PLOTKI</div>'
+          +'<div style="font-size:var(--fs-dense);color:var(--gr)">Obserwuj zawodnika z aktualnych plotek transferowych</div>'
         +'</div>'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">▶</span>'
+        +'<span style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">▶</span>'
       +'</div>'
       // Karta: Konkretny klub
       +'<div onclick="sendScoutModeA(\'club\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--gb);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
         +'<span style="font-size:var(--fs-display);flex-shrink:0">🔍</span>'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb);margin-bottom:3px">KONKRETNY KLUB</div>'
-          +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Sprawdź skład wybranego rywala i znajdź kandydatów</div>'
+          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);margin-bottom:3px">KONKRETNY KLUB</div>'
+          +'<div style="font-size:var(--fs-dense);color:var(--gr)">Sprawdź skład wybranego rywala i znajdź kandydatów</div>'
         +'</div>'
-        +'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb)">▶</span>'
+        +'<span style="font-weight:700;font-size:var(--fs-h3);color:var(--gb)">▶</span>'
       +'</div>'
-      +'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:0 2px">💡 Możesz też kliknąć OBSERWUJ na karcie zawodnika w zakładce KUP</div>'
+      +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:0 2px">💡 Możesz też kliknąć OBSERWUJ na karcie zawodnika w zakładce KUP</div>'
     +'</div>';
   } else {
     html+='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">Wszystkie sloty zajęte ('+actA.length+'/'+sd.modeA_slots+')</div>';
@@ -1216,7 +1216,7 @@ function renderScoutsTab(){
     } else if(curT<maxT){
       html+='<div style="color:var(--gr);margin-bottom:4px">Wyślij skauta:</div>'+
         '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">'+
-        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos||'Dowolna')+'</button>').join('')+
+        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-size:var(--fs-dense);padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos||'Dowolna')+'</button>').join('')+
         '</div>';
     } else {
       html+='<div style="color:var(--rd)">Osiągnięto limit talentów na ten sezon</div>';
@@ -1236,8 +1236,8 @@ function renderScoutsTab(){
           '<div style="color:var(--gr)">'+p.prevClub+'</div>'+
           '<div style="color:var(--am)">Koszt podpisania: '+(cost>0?fmt(cost):'GRATIS (amator)')+'</div>'+
           '<div style="display:flex;gap:4px;margin-top:6px">'+
-            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODPISZ</button>'+
-            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">ODRZUĆ</button>'+
+            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODPISZ</button>'+
+            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-size:var(--fs-meta);padding:6px;cursor:pointer">ODRZUĆ</button>'+
           '</div></div>';
       });
     }
@@ -1282,9 +1282,9 @@ function showClubPicker(){
   const myLvl=G.myLeague||8;
   const clubs=(G.leagues||[]).filter(l=>Math.abs(l.level-myLvl)<=1).flatMap(l=>l.clubs||[]).filter(c=>c.id!==G.myClubId);
   const el=document.getElementById('tr-skauci');if(!el)return;
-  const picker='<div style="border:1px solid var(--am);padding:8px;margin-top:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+  const picker='<div style="border:1px solid var(--am);padding:8px;margin-top:6px;font-size:var(--fs-dense)">'+
     '<div style="color:var(--am);margin-bottom:4px">WYBIERZ KLUB DO OBSERWACJI</div>'+
-    clubs.slice(0,12).map(c=>'<button onclick="scoutObserveClub('+c.id+')" style="display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--gl);background:transparent;color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0;cursor:pointer">'+c.n+'</button>').join('')+
+    clubs.slice(0,12).map(c=>'<button onclick="scoutObserveClub('+c.id+')" style="display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--gl);background:transparent;color:var(--gr);font-size:var(--fs-dense);padding:4px 0;cursor:pointer">'+c.n+'</button>').join('')+
   '</div>';
   el.insertAdjacentHTML('beforeend',picker);
 }

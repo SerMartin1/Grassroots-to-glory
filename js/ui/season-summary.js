@@ -599,7 +599,7 @@ function startNewSeason(){
 }
 function fillLeaguesOverview(){
   const el=document.getElementById('tbl-ligi');if(!el)return;
-  if(!G||!G.leagues){el.innerHTML='<div style="color:var(--gr);padding:12px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+t('tbl_no_data')+'</div>';return;}
+  if(!G||!G.leagues){el.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-dense)">'+t('tbl_no_data')+'</div>';return;}
   if(G.allStandings&&G.myLeague)G.allStandings[G.myLeague]=[...G.standing];
   el.innerHTML='';
 
@@ -616,11 +616,11 @@ function fillLeaguesOverview(){
     hdr.id='lghdr'+lvl;
     hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--gl);'+(isMyLg?'background:#1a2a00;border-left:4px solid var(--am);box-shadow:inset 0 0 20px rgba(255,193,7,0.05);':'background:var(--tb);border-left:3px solid var(--gl);');
     hdr.innerHTML=
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gb)')+'">'+
+      '<div style="font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gb)')+'">'+
         (isMyLg?'★ ':'')+lg.name+
-        (isMyLg&&myPos?'<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr);margin-left:8px">'+t('tbl_pos_label').replace('{n}',myPos).replace('{total}',n)+'</span>':'')+
+        (isMyLg&&myPos?'<span style="font-size:var(--fs-meta);color:var(--gr);margin-left:8px">'+t('tbl_pos_label').replace('{n}',myPos).replace('{total}',n)+'</span>':'')+
       '</div>'+
-      '<span id="arr'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gr)')+'">▼</span>';
+      '<span id="arr'+lvl+'" style="font-size:var(--fs-body);color:'+(isMyLg?'var(--am)':'var(--gr)')+'">▼</span>';
 
     // --- DRAWER ---
     const drawer=document.createElement('div');
@@ -634,7 +634,7 @@ function fillLeaguesOverview(){
     tabsBar.style.cssText='display:flex;overflow-x:auto;background:#0a1a0a;border-bottom:1px solid var(--gl);';
     tabIds.forEach((t,i)=>{
       const btn=document.createElement('button');
-      btn.style.cssText='flex-shrink:0;background:transparent;border:none;border-right:1px solid var(--gl);color:'+(t==='tabela'?(isMyLg?'var(--am)':'var(--gb)'):'var(--gr)')+';font-family:"Press Start 2P",monospace;font-size:var(--fs-h3);padding:9px 8px;cursor:pointer;'+(t==='tabela'?'border-bottom:2px solid '+(isMyLg?'var(--am)':'var(--gb)')+';':'');
+      btn.style.cssText='flex-shrink:0;background:transparent;border:none;border-right:1px solid var(--gl);color:'+(t==='tabela'?(isMyLg?'var(--am)':'var(--gb)'):'var(--gr)')+';font-weight:700;font-size:var(--fs-h3);padding:9px 8px;cursor:pointer;'+(t==='tabela'?'border-bottom:2px solid '+(isMyLg?'var(--am)':'var(--gb)')+';':'');
       btn.textContent=tabLabels[i];
       btn.id='lgtab'+lvl+'_'+t;
       btn.onclick=()=>lgSwitchTab(lvl,t);
@@ -659,7 +659,7 @@ function fillLeaguesOverview(){
       '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
       '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
     '</tr>';};
-    let tblHtml='<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-family:VT323,monospace;font-size:var(--fs-dense);border-collapse:collapse">'+
+    let tblHtml='<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-size:var(--fs-dense);border-collapse:collapse">'+
       '<thead><tr>'+
         '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_num')+'</th>'+
         '<th style="color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_club')+'</th>'+
@@ -676,7 +676,7 @@ function fillLeaguesOverview(){
       (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:var(--fs-dense);text-align:center">···</td></tr>'+rowHtmlLg(showMy,myPos-1,true):'')+
       '</tbody></table></div>'+
       '<div style="text-align:center;padding:4px">'+
-        '<button onclick="toggleFullTable('+lvl+')" id="btnfull'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-dense);background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:3px 12px;cursor:pointer">'+t('tbl_full_table')+'</button>'+
+        '<button onclick="toggleFullTable('+lvl+')" id="btnfull'+lvl+'" style="font-size:var(--fs-dense);background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:3px 12px;cursor:pointer">'+t('tbl_full_table')+'</button>'+
       '</div>';
     paneTabela.innerHTML=tblHtml;
     if(typeof pxCrest==='function'){paneTabela.querySelectorAll('.lg-crest-slot').forEach(function(sl){var cid=parseInt(sl.dataset.cid)||0;sl.appendChild(pxCrest(cid,1));});}
@@ -696,13 +696,13 @@ function fillLeaguesOverview(){
     const lgPl=G.players.filter(p=>p.clubId>0&&lgClubs.has(p.clubId));
     const topG=lgPl.filter(p=>p.st&&p.st.g>0).sort((a,b)=>b.st.g-a.st.g).slice(0,10);
     if(!topG.length){
-      paneStrzelcy.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
+      paneStrzelcy.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
     } else {
-      paneStrzelcy.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_scorers')+'</div>'+
+      paneStrzelcy.innerHTML='<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_scorers')+'</div>'+
         topG.map((p,i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
             '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
             '<span style="font-size:var(--fs-body);color:var(--am);font-weight:bold">'+p.st.g+'⚽</span>'+
@@ -717,13 +717,13 @@ function fillLeaguesOverview(){
     paneAsysty.style.display='none';
     const topA=lgPl.filter(p=>p.st&&p.st.a>0).sort((a,b)=>b.st.a-a.st.a).slice(0,10);
     if(!topA.length){
-      paneAsysty.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
+      paneAsysty.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
     } else {
-      paneAsysty.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_assists')+'</div>'+
+      paneAsysty.innerHTML='<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_assists')+'</div>'+
         topA.map((p,i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
             '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
             '<span style="font-size:var(--fs-body);color:var(--gb);font-weight:bold">'+p.st.a+'🎯</span>'+
@@ -738,14 +738,14 @@ function fillLeaguesOverview(){
     paneOceny.style.display='none';
     const withAvg=lgPl.filter(p=>p.seasonRatings&&p.seasonRatings.length>0).map(p=>({p,avg:Math.round(p.seasonRatings.reduce((s,r)=>s+r,0)/p.seasonRatings.length*10)/10,m:p.seasonRatings.length})).sort((a,b)=>b.avg-a.avg).slice(0,10);
     if(!withAvg.length){
-      paneOceny.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_ratings')+'</div>';
+      paneOceny.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_ratings')+'</div>';
     } else {
-      paneOceny.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_ratings')+'</div>'+
+      paneOceny.innerHTML='<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('tbl_top_ratings')+'</div>'+
         withAvg.map(({p,avg,m},i)=>{
           const club=ALL_CLUBS.find(c=>c.id===p.clubId);
           const isMy=p.clubId===G.myClubId;
           const col=avg>=8?'var(--am)':avg>=7?'var(--gb)':'var(--wh)';
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
             '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+' • '+m+'M</div></div>'+
             '<span style="font-size:var(--fs-body);color:'+col+';font-weight:bold">'+avg.toFixed(1)+'⭐</span>'+
@@ -786,7 +786,7 @@ function renderHistoria(lvl,sub){
   const pane=document.getElementById('lgpane'+lvl+'_historia');
   if(!pane)return;
   const lgHistData=(G.lgHist&&G.lgHist[lvl])||[];
-  const noBrak='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-meta);padding:16px 12px;text-align:center;line-height:1.6">Brak historii.<br>Dane zapisują się automatycznie<br>po zakończeniu każdego sezonu.</div>';
+  const noBrak='<div style="color:var(--gr);font-size:var(--fs-meta);padding:16px 12px;text-align:center;line-height:1.6">Brak historii.<br>Dane zapisują się automatycznie<br>po zakończeniu każdego sezonu.</div>';
 
   // sub-tabs bar
   const activeSub=sub||'mistrzowie';
@@ -794,7 +794,7 @@ function renderHistoria(lvl,sub){
     ['mistrzowie','miejsca','legenda'].map(s=>{
       const lbl=s==='mistrzowie'?'👑 MISTRZOWIE':s==='miejsca'?'📊 HISTORIA MIEJSC':'🌍 LEGENDA';
       const isOn=s===activeSub;
-      return '<button onclick="renderHistoria('+lvl+',\''+s+'\')" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gl);border-bottom:'+(isOn?'2px solid var(--am)':'none')+';color:'+(isOn?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:9px 2px;cursor:pointer">'+lbl+'</button>';
+      return '<button onclick="renderHistoria('+lvl+',\''+s+'\')" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gl);border-bottom:'+(isOn?'2px solid var(--am)':'none')+';color:'+(isOn?'var(--am)':'var(--gr)')+';font-weight:700;font-size:var(--fs-micro);padding:9px 2px;cursor:pointer">'+lbl+'</button>';
     }).join('')+
   '</div>';
 
@@ -809,7 +809,7 @@ function renderHistoria(lvl,sub){
     const rows=lgHistData.slice().reverse().map(h=>{
       const isMy=h.champion&&h.champion.cid===G.myClubId;
       const cid=h.champion?h.champion.cid:null;
-      return '<div onclick="'+(cid?'openClubModal('+cid+')':'')+'" style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;'+(isMy?'background:#1a2a00;':'')+'cursor:'+(cid?'pointer':'default')+'">'+
+      return '<div onclick="'+(cid?'openClubModal('+cid+')':'')+'" style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:'+(cid?'pointer':'default')+'">'+
         '<span style="font-size:var(--fs-meta);color:var(--gr);width:28px">S'+h.season+'</span>'+
         '<span style="font-size:15px">👑</span>'+
         '<span style="flex:1;font-size:var(--fs-body);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+( h.champion?h.champion.n:'—')+'</span>'+
@@ -841,14 +841,14 @@ function renderHistoria(lvl,sub){
         return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);font-weight:bold;border:1px solid #0a0a0a;'+style+'">'+label+'</td>';
       }).join('');
       return '<tr onclick="openClubModal('+cid+')" style="cursor:pointer;'+(isMy?'outline:1px solid var(--am);':'')+'">'+
-        '<td style="padding:2px 8px;font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
+        '<td style="padding:2px 8px;font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
         cells+
       '</tr>';
     }).join('');
-    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="Otwórz tabelę sezonu '+s+'" style="width:26px;font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
+    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="Otwórz tabelę sezonu '+s+'" style="width:26px;font-weight:700;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
     const legend=
       '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--gl)">'+
-        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Legenda:</span>'+
+        '<span style="font-size:var(--fs-dense);color:var(--gr)">Legenda:</span>'+
         '<span style="background:#7a5c00;color:#ffd54f;font-size:var(--fs-dense);padding:1px 5px">👑 Mistrz</span>'+
         '<span style="background:#3a3a3a;color:#ccc;font-size:var(--fs-dense);padding:1px 5px">2 msc</span>'+
         '<span style="background:#5c3a1a;color:#d4a574;font-size:var(--fs-dense);padding:1px 5px">3 msc</span>'+
@@ -856,10 +856,10 @@ function renderHistoria(lvl,sub){
         '<span style="background:#2b0d0d;color:var(--rd);font-size:var(--fs-dense);padding:1px 5px">↓ Spadek</span>'+
       '</div>';
     pane.innerHTML=subBar+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">▲ kliknij S# aby otworzyć tabelę sezonu</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">▲ kliknij S# aby otworzyć tabelę sezonu</div>'+
       '<div style="overflow-x:auto;padding:4px 8px">'+
-        '<table style="border-collapse:collapse;font-family:VT323,monospace">'+
-          '<thead><tr><th style="text-align:left;padding:2px 8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">Drużyna</th>'+seasonHdrs+'</tr></thead>'+
+        '<table style="border-collapse:collapse">'+
+          '<thead><tr><th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">Drużyna</th>'+seasonHdrs+'</tr></thead>'+
           '<tbody>'+teamRows+'</tbody>'+
         '</table>'+
       '</div>'+legend;
@@ -876,15 +876,15 @@ function showLgSeasonTable(lvl,season){
     const isMy=parseInt(r.cid)===parseInt(myId);
     const posCol=r.pos===1?'var(--am)':r.pos<=3?'var(--gb)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;'+(isMy?'background:#0d2b0d;outline:1px solid var(--am)':'')+'" onclick="var m=document.getElementById(\'modal-lg-season-table\');if(m)m.remove();openClubModal('+r.cid+')" style="cursor:pointer">'+
-      '<td style="padding:4px 3px;color:'+posCol+';font-family:VT323,monospace;font-size:var(--fs-meta);text-align:center">'+r.pos+'</td>'+
-      '<td style="padding:4px 3px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:var(--fs-meta);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.n+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">'+(r.p||((r.w||0)+(r.d||0)+(r.l||0)))+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(r.w||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+(r.d||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(r.l||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(r.gf||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(r.ga||0)+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);font-weight:bold">'+(r.pts||0)+'</td>'+
+      '<td style="padding:4px 3px;color:'+posCol+';font-size:var(--fs-meta);text-align:center">'+r.pos+'</td>'+
+      '<td style="padding:4px 3px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-size:var(--fs-meta);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.n+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--wh)">'+(r.p||((r.w||0)+(r.d||0)+(r.l||0)))+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--gb)">'+(r.w||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--gr)">'+(r.d||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--rd)">'+(r.l||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--gb)">'+(r.gf||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--rd)">'+(r.ga||0)+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--am);font-weight:bold">'+(r.pts||0)+'</td>'+
     '</tr>';
   }).join('');
   let modal=document.getElementById('modal-lg-season-table');
@@ -898,24 +898,24 @@ function showLgSeasonTable(lvl,season){
   modal.innerHTML=
     '<div style="background:var(--gd);border:2px solid var(--gl);padding:14px;max-width:95vw;width:400px;max-height:85vh;overflow-y:auto;position:relative">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">'+lgName+'</span>'+
-        '<span onclick="document.getElementById(\'modal-lg-season-table\').remove()" style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr);cursor:pointer;padding:2px 6px;border:1px solid var(--gl)">✕</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-micro);color:var(--am)">'+lgName+'</span>'+
+        '<span onclick="document.getElementById(\'modal-lg-season-table\').remove()" style="font-size:var(--fs-body);color:var(--gr);cursor:pointer;padding:2px 6px;border:1px solid var(--gl)">✕</span>'+
       '</div>'+
       '<table style="width:100%;border-collapse:collapse">'+
         '<thead><tr style="border-bottom:1px solid var(--gl);color:var(--gr)">'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">#</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:left">KLUB</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">M</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--gb)">W</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">R</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--rd)">P</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GF</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GA</th>'+
-          '<th style="font-family:VT323,monospace;font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--am)">PKT</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">#</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:left">KLUB</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">M</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--gb)">W</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">R</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--rd)">P</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GF</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GA</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--am)">PKT</th>'+
         '</tr></thead>'+
         '<tbody>'+rows+'</tbody>'+
       '</table>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);text-align:center;margin-top:8px;border-top:1px solid var(--gl);padding-top:6px">'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;margin-top:8px;border-top:1px solid var(--gl);padding-top:6px">'+
         'dotknij tło lub ✕ aby zamknąć'+
       '</div>'+
     '</div>';
@@ -938,29 +938,29 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     const pos=i+1;
     const posCol=pos===1?'var(--am)':pos<=3?'var(--gb)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer;'+(isMy?'background:#0d2b0d;outline:1px solid var(--am);':'')+'" onclick="openClubModal('+c.cid+')">'+
-      '<td style="padding:4px 2px;color:'+posCol+';font-family:VT323,monospace;font-size:var(--fs-meta)">'+pos+'</td>'+
-      '<td style="padding:4px 2px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-family:VT323,monospace;font-size:var(--fs-meta);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.n+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);font-weight:bold">'+c.pkt+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta)">'+c.gf+'</td>'+
-      '<td style="padding:4px;text-align:center;color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta)">'+c.ga+'</td>'+
-      '<td style="padding:4px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am)">'+( c.titles?c.titles:'—')+'</td>'+
+      '<td style="padding:4px 2px;color:'+posCol+';font-size:var(--fs-meta)">'+pos+'</td>'+
+      '<td style="padding:4px 2px;color:'+(isMy?'var(--am)':'var(--wh)')+';font-size:var(--fs-meta);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.n+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--am);font-size:var(--fs-meta);font-weight:bold">'+c.pkt+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--gb);font-size:var(--fs-meta)">'+c.gf+'</td>'+
+      '<td style="padding:4px;text-align:center;color:var(--rd);font-size:var(--fs-meta)">'+c.ga+'</td>'+
+      '<td style="padding:4px;text-align:center;font-size:var(--fs-meta);color:var(--am)">'+( c.titles?c.titles:'—')+'</td>'+
     '</tr>';
   }).join('');
   const secLiga=
     '<div style="padding:10px 12px 4px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🏆</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am)">LIGA — TABELA WSZECH CZASÓW</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">LIGA — TABELA WSZECH CZASÓW</span>'+
       '</div>'+
       '<div style="overflow-x:auto">'+
         '<table style="width:100%;border-collapse:collapse">'+
           '<thead><tr style="border-bottom:1px solid var(--gl)">'+
-            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">#</th>'+
-            '<th style="text-align:left;padding:3px 2px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">KLUB</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);font-weight:normal">PKT</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);font-weight:normal">GF</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);font-weight:normal">GA</th>'+
-            '<th style="padding:3px 4px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">🏆</th>'+
+            '<th style="text-align:left;padding:3px 2px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">#</th>'+
+            '<th style="text-align:left;padding:3px 2px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">KLUB</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--am);font-weight:normal">PKT</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--gb);font-weight:normal">GF</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--rd);font-weight:normal">GA</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">🏆</th>'+
           '</tr></thead>'+
           '<tbody>'+ligaRows+'</tbody>'+
         '</table>'+
@@ -987,15 +987,15 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="background:var(--tb);height:8px;border-radius:2px;overflow:hidden;margin:6px 0 2px">'+
       '<div style="width:'+barPct+'%;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:2px"></div>'+
     '</div>'+
-    '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+    '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr)">'+
       '<span>'+prestige+' PKT PRESTIŻU</span><span>MAX '+maxPrestige+'</span>'+
     '</div>';
   const klubMiniRows=klubRanking.slice(0,5).map((c,i)=>{
     const isMy=c.cid===myClubId;
     const barW=Math.round((c.p/(klubRanking[0].p||1))*100);
     return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:6px;cursor:pointer">'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:2px">'+
-        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
+      '<div style="display:flex;justify-content:space-between;font-size:var(--fs-meta);margin-bottom:2px">'+
+        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-weight:700;font-size:var(--fs-h3);margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
         '<span style="color:#a78bfa">'+c.p+' pkt</span>'+
       '</div>'+
       '<div style="background:var(--tb);height:4px;border-radius:2px;overflow:hidden">'+
@@ -1007,23 +1007,23 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="padding:10px 12px 4px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:var(--fs-body)">⭐</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:#a78bfa">KLUB — RANKING PRESTIŻU</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:#a78bfa">KLUB — RANKING PRESTIŻU</span>'+
       '</div>'+
       '<div style="background:#0d2b0d;border:1px solid var(--gb);border-left:4px solid #a78bfa;padding:10px 12px;margin-bottom:10px">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:8px">'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:var(--fs-meta);margin-bottom:8px">'+
           '<div><div style="color:var(--gr)">🏆 TROFEA</div><div style="color:#a78bfa">'+leagueTitles+'</div></div>'+
           '<div><div style="color:var(--gr)">⬆ AWANSE</div><div style="color:#a78bfa">'+promotions+'</div></div>'+
           '<div><div style="color:var(--gr)">🎖 OSIĄG.</div><div style="color:#a78bfa">'+specialTrophies+'</div></div>'+
           '<div><div style="color:var(--gr)">🏟 STADION</div><div style="color:#a78bfa">'+stadiumCap.toLocaleString()+'</div></div>'+
           '<div><div style="color:var(--gr)">⭐ PRESTIŻ</div><div style="color:#a78bfa">'+prestige+' pkt</div></div>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px;line-height:1.4">'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px;line-height:1.4">'+
           'Prestiż = trofea ×100 + awanse ×30 + osiągnięcia ×20 + pojemność stadionu ÷100'+
         '</div>'+
         myPrestigeBar+
       '</div>'+
-      '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">TOP 5 — PRESTIŻ W LIDZE</div>'+
+      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">TOP 5 — PRESTIŻ W LIDZE</div>'+
       klubMiniRows+
     '</div>';
 
@@ -1053,21 +1053,21 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     const score=c.titles*100+c.pkt;
     const barW=Math.round((score/topW)*100);
     return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:8px;cursor:pointer;'+(isMy?'background:#0d2b0d;padding:4px 6px;border-left:3px solid var(--gb);':'')+'">'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-meta);margin-bottom:2px">'+
-        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+(i===0?'var(--am)':'var(--gr)')+';margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
+      '<div style="display:flex;justify-content:space-between;font-size:var(--fs-meta);margin-bottom:2px">'+
+        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="font-weight:700;font-size:var(--fs-h3);color:'+(i===0?'var(--am)':'var(--gr)')+';margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
         '<span style="color:var(--gb)">🏆 '+c.titles+'</span>'+
       '</div>'+
       '<div style="background:var(--tb);height:5px;border-radius:2px;overflow:hidden;margin-bottom:2px">'+
         '<div style="width:'+barW+'%;height:100%;background:'+(i===0?'linear-gradient(90deg,#b45309,var(--am))':isMy?'linear-gradient(90deg,#2d6b2d,var(--gb))':'var(--gl)')+';border-radius:2px"></div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+c.liga+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+c.liga+'</div>'+
     '</div>';
   }).join('');
   const secSwiat=
     '<div style="padding:10px 12px 12px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🌍</span>'+
-        '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--gb)">ŚWIAT — RANKING HISTORYCZNY</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--gb)">ŚWIAT — RANKING HISTORYCZNY</span>'+
       '</div>'+
       worldRows+
     '</div>';
@@ -1083,7 +1083,7 @@ function lgRefreshWyniki(lvl){
   if(!pane||!G)return;
   const sched=(G.allSchedules&&G.allSchedules[lvl])||[];
   if(!sched.length){
-    pane.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:10px 12px">Brak danych</div>';
+    pane.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">Brak danych</div>';
     return;
   }
   const isMyLg=lvl===G.myLeague;
@@ -1092,7 +1092,7 @@ function lgRefreshWyniki(lvl){
   const allRnds=Object.keys(byRnd).map(Number).sort((a,b)=>a-b);
   const curRnd=isMyLg?G.round:(Math.max(0,...sched.filter(m=>m.done).map(m=>m.rnd))+1);
 
-  let html='<div id="lgwrap'+lvl+'" style="font-family:VT323,monospace;font-size:var(--fs-dense);">';
+  let html='<div id="lgwrap'+lvl+'" style="font-size:var(--fs-dense);">';
 
   allRnds.forEach(rnd=>{
     const matches=byRnd[rnd];

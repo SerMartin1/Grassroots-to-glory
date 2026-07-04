@@ -345,9 +345,9 @@ function renderCupDrzewko(){
 
   // ── NAWIGATOR SEZONÓW ───────────────────────────────────────────
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--gm);border-bottom:1px solid var(--gl)">';
-  html+='<button onclick="cupDrzewkoNav(-1)" style="background:none;border:1px solid var(--gl);color:'+(idx<seasons.length-1?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx<seasons.length-1?'pointer':'default')+'">◀</button>';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">'+t('cup_season_label').replace('{n}',cur.season)+(cur.src==='live'?t('cup_season_live'):'')+'</div>';
-  html+='<button onclick="cupDrzewkoNav(1)" style="background:none;border:1px solid var(--gl);color:'+(idx>0?'var(--gb)':'#333')+';font-family:VT323,monospace;font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx>0?'pointer':'default')+'">▶</button>';
+  html+='<button onclick="cupDrzewkoNav(-1)" style="background:none;border:1px solid var(--gl);color:'+(idx<seasons.length-1?'var(--gb)':'#333')+';font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx<seasons.length-1?'pointer':'default')+'">◀</button>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am)">'+t('cup_season_label').replace('{n}',cur.season)+(cur.src==='live'?t('cup_season_live'):'')+'</div>';
+  html+='<button onclick="cupDrzewkoNav(1)" style="background:none;border:1px solid var(--gl);color:'+(idx>0?'var(--gb)':'#333')+';font-size:var(--fs-body);padding:2px 10px;cursor:'+(idx>0?'pointer':'default')+'">▶</button>';
   html+='</div>';
 
   // Pobierz rundy
@@ -358,10 +358,10 @@ function renderCupDrzewko(){
   if(winner){
     const isMyWin=winner.cid===myId;
     html+='<div style="background:'+(isMyWin?'#1a2a00':'var(--tb)')+';border:2px solid '+(isMyWin?'var(--am)':'#8B6914')+';padding:10px 14px;margin:10px 14px;text-align:center">';
-    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:4px">'+t('cup_winner_title')+'</div>';
-    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+(isMyWin?'var(--am)':'var(--wh)')+'">'+(isMyWin?'★ ':'')+
+    html+='<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:4px">'+t('cup_winner_title')+'</div>';
+    html+='<div style="font-size:var(--fs-body);color:'+(isMyWin?'var(--am)':'var(--wh)')+'">'+(isMyWin?'★ ':'')+
       '<span onclick="openClubModal('+winner.cid+')" style="cursor:pointer;text-decoration:underline;color:inherit">'+winner.name+'</span></div>';
-    if(cur.data.finalHg!=null)html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+t('cup_final_score').replace('{hg}',cur.data.finalHg).replace('{ag}',cur.data.finalAg).replace('{opp}',(cur.data.runnerUp?cur.data.runnerUp.name:'?'))+'</div>';
+    if(cur.data.finalHg!=null)html+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+t('cup_final_score').replace('{hg}',cur.data.finalHg).replace('{ag}',cur.data.finalAg).replace('{opp}',(cur.data.runnerUp?cur.data.runnerUp.name:'?'))+'</div>';
     html+='</div>';
   }
 
@@ -381,8 +381,8 @@ function renderCupDrzewko(){
     html+='<div style="margin:0 0 2px">';
     // Nagłówek rundy — klikalny
     html+='<div onclick="cupToggleRound('+ri+','+cur.season+')" style="display:flex;justify-content:space-between;align-items:center;padding:6px 14px;background:#0d1f0d;cursor:pointer;border-left:3px solid '+(myMatchInRound?'var(--am)':'var(--gl)')+'">';
-    html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+(myMatchInRound?'var(--am)':'var(--gr)')+'">'+label+'</div>';
-    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_round_match').replace('{n}',rmatches.length).replace('{suffix}',rmatches.length===1?'':'y')+' '+(collapsed?'▶':'▼')+'</div>';
+    html+='<div style="font-weight:700;font-size:var(--fs-h3);color:'+(myMatchInRound?'var(--am)':'var(--gr)')+'">'+label+'</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_round_match').replace('{n}',rmatches.length).replace('{suffix}',rmatches.length===1?'':'y')+' '+(collapsed?'▶':'▼')+'</div>';
     html+='</div>';
 
     if(!collapsed){
@@ -394,15 +394,15 @@ function renderCupDrzewko(){
         const aWin=m.done&&m.winnerId===m.a.cid;
         let bdr=isMyMatch?(myWon?'var(--gb)':myLost?'var(--rd)':'var(--am)'):'var(--gl)';
         html+='<div style="background:var(--tb);border-left:3px solid '+bdr+';padding:6px 14px 6px 16px;border-bottom:1px solid #0d1f0d">';
-        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(hWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
+        html+='<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:'+(hWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
         html+='<span>'+(m.h.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.h.name+'</span>';
-        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(hWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.hg:'—')+'</span>';
+        html+='<span style="font-weight:700;font-size:var(--fs-micro);color:'+(hWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.hg:'—')+'</span>';
         html+='</div>';
-        html+='<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px;color:'+(aWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
+        html+='<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-top:2px;color:'+(aWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
         html+='<span>'+(m.a.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.a.name+'</span>';
-        html+='<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(aWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.ag:'—')+'</span>';
+        html+='<span style="font-weight:700;font-size:var(--fs-micro);color:'+(aWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.ag:'—')+'</span>';
         html+='</div>';
-        if(!m.done&&isMyMatch)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-top:3px">'+t('cup_your_match')+'</div>';
+        if(!m.done&&isMyMatch)html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-top:3px">'+t('cup_your_match')+'</div>';
         html+='</div>';
       });
     }
@@ -438,20 +438,20 @@ function renderCupZwyciezcy(){
 
   // ── NAGRODY ─────────────────────────────────────────────────────
   html+='<div style="padding:8px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_rewards_title')+'</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_rewards_title')+'</div>';
   const allRewards=[...CUP_REWARDS,{label:t('cup_reward_win'),cash:CUP_REWARD_WIN.cash,rep:CUP_REWARD_WIN.rep}];
   allRewards.forEach((rw,i)=>{
     const isWin=i===6;
     const isLast=i===allRewards.length-1;
     html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid '+(isLast?'var(--am)':'#0d1f0d')+';'+(isLast?'margin-top:2px':'')+'">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isLast?'var(--am)':'var(--wh)')+'">'+rw.label+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:'+(isLast?'var(--am)':'var(--wh)')+'">'+rw.label+'</div>'+
       '<div style="display:flex;gap:10px;align-items:center">'+
-        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">+'+fmt(rw.cash)+' zł</span>'+
-        '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">+'+rw.rep+' rep</span>'+
+        '<span style="font-size:var(--fs-dense);color:var(--gb)">+'+fmt(rw.cash)+' zł</span>'+
+        '<span style="font-size:var(--fs-dense);color:var(--am)">+'+rw.rep+' rep</span>'+
       '</div>'+
     '</div>';
   });
-  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:5px">'+
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:5px">'+
     t('cup_total_title').replace('{cash}','<span style="color:var(--gb)">'+fmt(CUP_REWARDS.reduce((s,r)=>s+r.cash,0)+CUP_REWARD_WIN.cash)+' zł</span>').replace('{rep}','<span style="color:var(--am)">+'+(CUP_REWARDS.reduce((s,r)=>s+r.rep,0)+CUP_REWARD_WIN.rep)+' rep</span>')+
   '</div>';
   html+='</div>';
@@ -471,26 +471,26 @@ function renderCupZwyciezcy(){
   }
 
   html+='<div style="padding:12px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_your_record')+'</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_your_record')+'</div>';
   html+='<div style="display:flex;gap:6px;margin-bottom:8px">';
   // Ikonki trofeów
-  myWins.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px">🥇</div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am)">S'+h.season+'</div></div>';});
-  myFinals.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px;filter:grayscale(0.3)">🥈</div><div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">S'+h.season+'</div></div>';});
-  if(!myWins.length&&!myFinals.length)html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_no_trophies')+'</div>';
+  myWins.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px">🥇</div><div style="font-weight:700;font-size:var(--fs-micro);color:var(--am)">S'+h.season+'</div></div>';});
+  myFinals.forEach(h=>{html+='<div style="text-align:center"><div style="font-size:26px;filter:grayscale(0.3)">🥈</div><div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">S'+h.season+'</div></div>';});
+  if(!myWins.length&&!myFinals.length)html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_no_trophies')+'</div>';
   html+='</div>';
   // Statystyki tekstowe
   html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">';
-  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_part')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">'+hist.length+'</div></div>';
-  html+='<div style="background:var(--tb);border:1px solid '+(myWins.length?'#FFD700':'var(--gl)')+';padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_titles')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(myWins.length?'var(--am)':'var(--wh)')+'">'+myWins.length+'</div></div>';
-  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_furthest')+'</div><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+furthestLabel+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_part')+'</div><div style="font-size:var(--fs-meta);color:var(--wh)">'+hist.length+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid '+(myWins.length?'#FFD700':'var(--gl)')+';padding:6px;text-align:center"><div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_titles')+'</div><div style="font-size:var(--fs-meta);color:'+(myWins.length?'var(--am)':'var(--wh)')+'">'+myWins.length+'</div></div>';
+  html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px;text-align:center"><div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_stat_furthest')+'</div><div style="font-size:var(--fs-dense);color:var(--wh)">'+furthestLabel+'</div></div>';
   html+='</div>';
   html+='</div>';
 
   // ── HALL OF FAME ─────────────────────────────────────────────────
   html+='<div style="padding:12px 14px;border-bottom:1px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:10px">'+t('cup_hof_title')+'</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:10px">'+t('cup_hof_title')+'</div>';
   if(!hist.length){
-    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_hof_empty')+'</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_hof_empty')+'</div>';
   } else {
     const wins={};
     hist.forEach(h=>{
@@ -505,17 +505,17 @@ function renderCupZwyciezcy(){
       const isMy=entry.isMy;
       const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
       html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
-      html+='<div style="font-size:var(--fs-body);min-width:18px">'+(medal||('<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(i+1)+'.</span>'))+'</div>';
+      html+='<div style="font-size:var(--fs-body);min-width:18px">'+(medal||('<span style="font-size:var(--fs-dense);color:var(--gr)">'+(i+1)+'.</span>'))+'</div>';
       html+='<div style="flex:1">';
-      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isMy?'var(--am)':'var(--wh)')+';">'+(isMy?'★ ':'')+
+      html+='<div style="font-size:var(--fs-dense);color:'+(isMy?'var(--am)':'var(--wh)')+';">'+(isMy?'★ ':'')+
         '<span onclick="openClubModal('+entry.cid+')" style="cursor:pointer;text-decoration:underline;color:inherit">'+entry.name+'</span>'+
       '</div>';
       html+='<div style="height:4px;background:var(--gm);margin-top:3px;border-radius:2px">';
       html+='<div style="height:100%;width:'+barW+'%;background:'+(isMy?'var(--am)':i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--gb)')+'"></div>';
       html+='</div>';
-      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">S'+entry.seasons.join(' S')+'</div>';
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">S'+entry.seasons.join(' S')+'</div>';
       html+='</div>';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(isMy?'var(--am)':i===0?'#FFD700':'var(--wh)')+'">'+entry.count+'x</div>';
+      html+='<div style="font-weight:700;font-size:var(--fs-micro);color:'+(isMy?'var(--am)':i===0?'#FFD700':'var(--wh)')+'">'+entry.count+'x</div>';
       html+='</div>';
     });
   }
@@ -523,17 +523,17 @@ function renderCupZwyciezcy(){
 
   // ── HISTORIA FINAŁÓW ─────────────────────────────────────────────
   html+='<div style="padding:12px 14px">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_finals_history')+'</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+t('cup_finals_history')+'</div>';
   if(!hist.length){
-    html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+t('cup_finals_empty')+'</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cup_finals_empty')+'</div>';
   } else {
     [...hist].reverse().forEach(h=>{
       const myW=h.winner.cid===myId;
       const myL=h.runnerUp&&h.runnerUp.cid===myId;
       html+='<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #0d1f0d">';
       html+='<div style="font-size:var(--fs-body)">'+(myW?'🥇':myL?'🥈':'🏆')+'</div>';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);min-width:20px">S'+h.season+'</div>';
-      html+='<div style="flex:1;font-family:VT323,monospace;font-size:var(--fs-dense)">';
+      html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);min-width:20px">S'+h.season+'</div>';
+      html+='<div style="flex:1;font-size:var(--fs-dense)">';
       html+='<span onclick="openClubModal('+h.winner.cid+')" style="cursor:pointer;text-decoration:underline;color:'+(myW?'var(--am)':'var(--wh)')+'">'+h.winner.name+'</span>';
       html+=' <span style="color:var(--gr)">'+h.finalHg+':'+h.finalAg+'</span> ';
       html+='<span onclick="openClubModal('+(h.runnerUp?h.runnerUp.cid:0)+')" style="cursor:pointer;text-decoration:underline;color:'+(myL?'var(--am)':'var(--gr)')+'">'+(h.runnerUp?h.runnerUp.name:'?')+'</span>';

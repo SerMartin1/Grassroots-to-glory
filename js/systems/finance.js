@@ -18,7 +18,7 @@ function renderFinZarzad(){
   const b=G.board;
   // --- sub-tabs wewnątrz zarząd ---
   const activeInner=el.dataset.inner||'cele';
-  const mkTab=(id,label)=>`<button onclick="finZarzadInner('${id}',this)" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid ${activeInner===id?'var(--am)':'transparent'};font-family:\x27Press Start 2P\x27,monospace;font-size:var(--fs-micro);color:${activeInner===id?'var(--am)':'var(--gr)'};cursor:pointer">${label}</button>`;
+  const mkTab=(id,label)=>`<button onclick="finZarzadInner('${id}',this)" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid ${activeInner===id?'var(--am)':'transparent'};font-weight:700;font-size:var(--fs-micro);color:${activeInner===id?'var(--am)':'var(--gr)'};cursor:pointer">${label}</button>`;
   el.innerHTML=`<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">${mkTab('cele','CELE')}${mkTab('historia','HISTORIA')}</div><div id="fin-zarzad-inner" style="padding:0 2px"></div>`;
   renderFinZarzadInner(activeInner);
 }
@@ -35,12 +35,12 @@ function renderFinZarzadInner(tab){
   if(tab==='cele'){
     // Użyj board-cele jako bufor, potem przepisz
     const buf=document.getElementById('board-cele');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:var(--fs-body)">Błąd: brak bufora zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">Błąd: brak bufora zarządu.</div>';return;}
     renderBoardCele();
     inner.innerHTML=buf.innerHTML;
   } else {
     const buf=document.getElementById('board-historia');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;padding:12px;font-size:var(--fs-body)">Błąd: brak bufora historii zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">Błąd: brak bufora historii zarządu.</div>';return;}
     renderBoardHistoria();
     inner.innerHTML=buf.innerHTML;
   }
@@ -169,7 +169,7 @@ function renderFinPrzeglad(){
   html+='<div class="fc-legend">';
   html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">Przychód</span><span class="fc-leg-val pos">+${fmt(curData.totalInc)}</span></div>`;
   html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">Koszty</span><span class="fc-leg-val neg">-${fmt(curData.totalCost)}</span></div>`;
-  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">Stan: <span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
+  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">Stan: <span style="font-weight:700;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
   html+='</div></div>';
 
   // Lista miesięcy
@@ -274,7 +274,7 @@ function renderFinSezony(){
     const fd=seasonFinData(s);
     seasons.push({s,ch,fd,isCur:s===G.season&&!G.seasonEnded});
   }
-  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px">Brak danych sezonowych.</div>';return;}
+  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">Brak danych sezonowych.</div>';return;}
 
   const totInc=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.inc||0),0);
   const totCost=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.cost||0),0);
@@ -306,11 +306,11 @@ function renderFinSezony(){
     html+=`<div style="border-bottom:1px solid var(--gl);padding:8px 12px;background:${bgCol};border-left:3px solid ${borderCol}">`;
     // Nagłówek karty
     html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">`;
-    html+=`<span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' \u25c4':''}</span>`;
-    html+=`<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">${leagueShort} \u2022 ${posStr}</span>`;
+    html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' \u25c4':''}</span>`;
+    html+=`<span style="font-size:var(--fs-dense);color:var(--gr)">${leagueShort} \u2022 ${posStr}</span>`;
     html+='</div>';
     // Przychody / Koszty
-    html+=`<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">`;
+    html+=`<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:3px">`;
     html+=`<span>\u25b2 Przychody: ${salStr}</span>`;
     html+=`<span>\u25bc Koszty: ${costStr}</span>`;
     html+='</div>';
@@ -324,19 +324,19 @@ function renderFinSezony(){
       html+='<div style="height:7px;background:#0a150a;margin-bottom:4px"></div>';
     }
     // Saldo
-    html+=`<div style="text-align:right;font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${netCol}">SALDO: ${netStr}</div>`;
+    html+=`<div style="text-align:right;font-weight:700;font-size:var(--fs-h2);color:${netCol}">SALDO: ${netStr}</div>`;
     html+='</div>';
   });
 
   // ŁĄCZNIE
   const totNet2=totNet;
   html+=`<div style="background:var(--tb);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--gb)">`;
-  html+=`<span style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:var(--wh)">\u0141\u0104CZNIE</span>`;
-  html+=`<div style="text-align:right;font-family:VT323,monospace;font-size:var(--fs-dense)">`;
+  html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:var(--wh)">\u0141\u0104CZNIE</span>`;
+  html+=`<div style="text-align:right;font-size:var(--fs-dense)">`;
   html+=`<div><span style="color:var(--gb)">+${fmt(totInc)}</span> / <span style="color:var(--rd)">-${fmt(totCost)}</span></div>`;
-  html+=`<div style="font-family:'Press Start 2P',monospace;font-size:var(--fs-h2);color:${totNet2>=0?'var(--gb)':'var(--rd)'}">${totNet2>=0?'+':''}${fmt(totNet2)}</div>`;
+  html+=`<div style="font-weight:700;font-size:var(--fs-h2);color:${totNet2>=0?'var(--gb)':'var(--rd)'}">${totNet2>=0?'+':''}${fmt(totNet2)}</div>`;
   html+='</div></div>';
-  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:5px 12px 8px">\u2605 Przychody = regularne + premia + sprzeda\u017ce. Koszty = sta\u0142e + zakupy.</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:5px 12px 8px">\u2605 Przychody = regularne + premia + sprzeda\u017ce. Koszty = sta\u0142e + zakupy.</div>';
 
   el.innerHTML=html;
 }
@@ -390,39 +390,39 @@ function renderFinKontrakty(){
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
         '<span style="font-size:var(--fs-display)">'+icon+'</span>'+
         '<div style="flex:1">'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+label+'</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--wh)">'+label+'</div>'+
           (hasActive?(function(){
             const _repMC=Math.max(0.8,Math.min(1.8,0.8+(G.reputation||30)/1000*1.0));
             const _actual=Math.round(G.contracts[slot].weekly*_repMC);
             const _base=G.contracts[slot].weekly;
-            return '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">'+fmt(_base)+'/tyg • '+seasonsLeft+' sez.</div>'+
-              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">Faktycznie: <span style="color:var(--gb)">'+fmt(_actual)+'/tyg</span> (Rep ×'+_repMC.toFixed(2)+')</div>';
+            return '<div style="font-size:var(--fs-dense);color:var(--gb)">'+fmt(_base)+'/tyg • '+seasonsLeft+' sez.</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--am)">Faktycznie: <span style="color:var(--gb)">'+fmt(_actual)+'/tyg</span> (Rep ×'+_repMC.toFixed(2)+')</div>';
           })():
-           '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Brak kontraktu</div>')+
+           '<div style="font-size:var(--fs-dense);color:var(--gr)">Brak kontraktu</div>')+
         '</div>'+
       '</div>'+
       (!hasActive?
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:3px">'+
+        '<div style="font-size:var(--fs-dense);margin-bottom:3px">'+
           'Sponsor: <span style="color:'+curTier.color+'">'+curTier.name+'</span>'+
           ' <span style="color:var(--gr)">(Rep. '+curTier.minRep+'–'+curTier.maxRep+')</span>'+
         '</div>'+
         (nextTier?
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">'+
             'Następny: <span style="color:'+nextTier.color+'">'+nextTier.name+'</span>'+
             ' przy Rep. <span style="color:var(--am)">'+nextTier.minRep+'</span>'+
             ' <span style="color:var(--gr)">(brakuje '+(nextTier.minRep-curRep)+')</span>'+
           '</div>'
-        :'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ffd700;margin-bottom:5px">Maksymalny poziom!</div>')
+        :'<div style="font-size:var(--fs-dense);color:#ffd700;margin-bottom:5px">Maksymalny poziom!</div>')
       :'')+
       (hasActive?
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">Aktywny kontrakt</div>'
+        '<div style="font-size:var(--fs-dense);color:var(--gb)">Aktywny kontrakt</div>'
       :!req?
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+reqMsg+'</div>'
+        '<div style="font-size:var(--fs-dense);color:var(--rd)">'+reqMsg+'</div>'
       :weekly===0?
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Brak ofert (za niska reputacja)</div>'
+        '<div style="font-size:var(--fs-dense);color:var(--gr)">Brak ofert (za niska reputacja)</div>'
       :
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">Oferta: <span style="color:var(--am)">+'+fmt(weekly)+'/tyg</span> • 1 sezon</div>'+
-        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">PODPISZ</button>'
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">Oferta: <span style="color:var(--am)">+'+fmt(weekly)+'/tyg</span> • 1 sezon</div>'+
+        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">PODPISZ</button>'
       )+
     '</div>';
   }
@@ -472,15 +472,15 @@ function renderFinHistoria(){
     else allEvents[w].push({lbl:'\u2794 KUP: '+t.name,inc:0,cost:t.val||t.fee||0});
   });
 
-  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px">Brak historii \u2014 zacznij sezon aby zobaczy\u0107 dane finansowe.</div>';return;}
+  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">Brak historii \u2014 zacznij sezon aby zobaczy\u0107 dane finansowe.</div>';return;}
 
-  let html='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">SEZON '+G.season+' — '+weekly.length+' TYGODNI</div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">';
+  let html='<div style="font-weight:700;font-size:var(--fs-h2);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">SEZON '+G.season+' — '+weekly.length+' TYGODNI</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">';
   html+='<thead><tr>';
-  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gr)">TYG</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--gb)">PRZYCH.</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--rd)">KOSZTY</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);color:var(--am)">STAN</th>';
+  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gr)">TYG</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gb)">PRZYCH.</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--rd)">KOSZTY</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--am)">STAN</th>';
   html+='</tr></thead><tbody>';
 
   // Tygodnie z wpisami tygodniowymi + tygodnie ze zdarzeniami bez wpisu (np. transfer w T1 bez meczu)
@@ -514,7 +514,7 @@ function renderFinHistoria(){
   });
 
   html+='</tbody></table>';
-  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px;font-family:VT323,monospace">\u2605 = tydzie\u0144 wyp\u0142aty pensji (co 4 tyg.).</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">\u2605 = tydzie\u0144 wyp\u0142aty pensji (co 4 tyg.).</div>';
   el.innerHTML=html;
 }
 

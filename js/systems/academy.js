@@ -68,24 +68,24 @@ function renderAcadPrzeglad(){
   const prospects=(G.academy.prospects||[]).filter(p=>p.status==='pending');
   el.innerHTML=
     '<div style="background:var(--tb);border:1px solid '+(lvl>0?'var(--gb)':'var(--gl)')+';padding:12px;margin-bottom:10px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+
+      '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+
         (lvl===0?'Brak Akademii':'Akademia '+acad.name+' (L'+lvl+')')+
       '</div>'+
       (lvl>0?
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense)">'+
           '<div><span style="color:var(--gr)">Juniorzy/sez: </span><span style="color:var(--gb)">'+acad.perSeason+'</span></div>'+
           '<div><span style="color:var(--gr)">Max pot: </span><span style="color:var(--am)">'+acad.maxPot+'</span></div>'+
           '<div><span style="color:var(--gr)">Utrzym/tyg: </span><span style="color:var(--rd)">-'+fmt(acadUpkeep(lvl-1))+'</span></div>'+
         '</div>'+
         (lvl<ACADEMY.levels.length?
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:6px">Nast. poziom: <span style="color:var(--am)">'+ACADEMY.levels[lvl].name+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+' zł</span>'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:6px">Nast. poziom: <span style="color:var(--am)">'+ACADEMY.levels[lvl].name+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+' zł</span>'+
           (ACADEMY.levels[lvl].req>0?' (Rep: '+ACADEMY.levels[lvl].req+')':'')+
           '</div>'
         :'')
-      :'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Zbuduj akademię aby co sezon pojawiał się utalentowany junior.</div>')+
+      :'<div style="font-size:var(--fs-dense);color:var(--gr)">Zbuduj akademię aby co sezon pojawiał się utalentowany junior.</div>')+
     '</div>'+
     (prospects.length?
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">NOWI JUNIORZY</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">NOWI JUNIORZY</div>'+
       prospects.map(function(pr){
         var trLabel=pr.trainRate>=1.5?'🌟 Talent':pr.trainRate>=1.1?'⚡ Szybki':'📊 Normalny';
         var trCol=pr.trainRate>=1.5?'#00e676':pr.trainRate>=1.1?'var(--am)':'var(--wh)';
@@ -99,40 +99,40 @@ function renderAcadPrzeglad(){
           var isHigh5=archM5>1;
           var barCol5=isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gl)';
           return '<div style="flex:1;text-align:center">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">'+ATTR_LBL5[a]+'</div>'+
+            '<div style="font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">'+ATTR_LBL5[a]+'</div>'+
             '<div style="height:18px;background:#0a0f0a;margin:2px 0;position:relative">'+
               '<div style="position:absolute;bottom:0;left:0;right:0;height:'+pct5+'%;background:'+barCol5+';opacity:0.85"></div>'+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">×'+total5.toFixed(1)+'</div>'+
+            '<div style="font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">×'+total5.toFixed(1)+'</div>'+
           '</div>';
         }).join('');
         return '<div style="background:#0d2b0d;border:1px solid var(--gb);padding:10px 12px;margin-bottom:6px">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh)">🎓 '+pr.name+'</div>'+
-            (arch5?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch5.color+';border:1px solid '+arch5.color+';padding:1px 5px">'+arch5.icon+' '+arch5.name+'</span>':'')+
+            '<div style="font-size:var(--fs-meta);color:var(--wh)">🎓 '+pr.name+'</div>'+
+            (arch5?'<span style="font-size:var(--fs-dense);color:'+arch5.color+';border:1px solid '+arch5.color+';padding:1px 5px">'+arch5.icon+' '+arch5.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
             (POS_SHORT[pr.pos]||pr.pos)+' • '+pr.age+'l • OVR '+pr.ovr+' • Pot: <span style="color:var(--am)">'+pr.potential+'</span>'+
           '</div>'+
           '<div style="background:#0a0f0a;border:1px solid var(--gl);padding:5px 8px;margin-bottom:6px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
-              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense)"><span style="color:var(--gr)">Talent: </span><span style="color:'+trCol+'">'+trLabel+'</span></div>'+
-              '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">×'+pr.trainRate.toFixed(2)+' ogólny</div>'+
+              '<div style="font-size:var(--fs-dense)"><span style="color:var(--gr)">Talent: </span><span style="color:'+trCol+'">'+trLabel+'</span></div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">×'+pr.trainRate.toFixed(2)+' ogólny</div>'+
             '</div>'+
-            (arch5?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);font-style:italic">"'+arch5.desc+'"</div>':'')+
+            (arch5?'<div style="font-size:var(--fs-dense);color:var(--gr);font-style:italic">"'+arch5.desc+'"</div>':'')+
             '<div style="display:flex;gap:3px;margin-top:5px;padding-top:4px;border-top:1px solid var(--gl)">'+barHtml5+'</div>'+
           '</div>'+
           '<div style="display:flex;gap:6px">'+
-            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">✓ PRZYJMIJ</button>'+
-            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:#3d0000;border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">✗ ZWOLNIJ</button>'+
+            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">✓ PRZYJMIJ</button>'+
+            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:#3d0000;border:1px solid var(--rd);color:var(--rd);font-size:var(--fs-meta);padding:8px;cursor:pointer">✗ ZWOLNIJ</button>'+
           '</div>'+
         '</div>';
       }).join('')
     :lvl>0?
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Juniorzy pojawią się na początku nowego sezonu.</div>'
+      '<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Juniorzy pojawią się na początku nowego sezonu.</div>'
     :
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">Koszt budowy: <span style="color:var(--am)">'+fmt(acadCost(0))+'</span> zł</div>'+
-      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-body);padding:12px;cursor:pointer">ZBUDUJ AKADEMIĘ</button>'
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">Koszt budowy: <span style="color:var(--am)">'+fmt(acadCost(0))+'</span> zł</div>'+
+      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">ZBUDUJ AKADEMIĘ</button>'
     );
   // Sekcja rozbudowy
   _renderAcadRozbudowaInPrzeglad();
@@ -150,10 +150,10 @@ function _renderAcadRozbudowaInPrzeglad(){
       const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
       return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
         '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-          (isOwned?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
+          '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+          (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
           '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
           '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
           '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
@@ -163,9 +163,9 @@ function _renderAcadRozbudowaInPrzeglad(){
           (a.req>0?'<div><span style="color:var(--gr)">Wymaga rep: </span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'">'+a.req+(reqOk?' OK':' brakuje '+(a.req-rep))+'</span></div>':'')+
         '</div>'+
         (!isOwned&&isNext?
-          (!reqOk?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-           !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
+          (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
+           !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
+           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
         :'')+
       '</div>';
     }).join('');
@@ -182,7 +182,7 @@ function renderAcadWychowankowie(){
   var odpuszczeni=hist.filter(function(h){return h.isRejected;});
 
   function mkSubTab(id,label,active){
-    return '<button onclick="window._acadWychTab=\''+id+'\';renderAcadWychowankowie()" style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 8px;background:'+(active?'var(--gb)':'var(--tb)')+';color:'+(active?'#000':'var(--gr)')+';border:1px solid '+(active?'var(--gb)':'var(--gl)')+';cursor:pointer;text-transform:uppercase">'+label+'</button>';
+    return '<button onclick="window._acadWychTab=\''+id+'\';renderAcadWychowankowie()" style="font-size:var(--fs-dense);padding:5px 8px;background:'+(active?'var(--gb)':'var(--tb)')+';color:'+(active?'#000':'var(--gr)')+';border:1px solid '+(active?'var(--gb)':'var(--gl)')+';cursor:pointer;text-transform:uppercase">'+label+'</button>';
   }
 
   var html='<div style="display:flex;gap:4px;margin-bottom:10px">'+
@@ -201,13 +201,13 @@ function renderAcadWychowankowie(){
         var talCol9=p.trainRate>=1.5?'var(--gb)':p.trainRate>=1.1?'var(--am)':'var(--wh)';
         return '<div style="background:var(--tb);border:1px solid var(--gb);padding:8px 12px;margin-bottom:4px;cursor:pointer" onclick="showById('+p.id+')">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">🎓 '+p.name+'</div>'+
-            (arch9?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9.color+'">'+arch9.icon+' '+arch9.name+'</span>':'')+
+            '<div style="font-size:var(--fs-dense);color:var(--wh)">🎓 '+p.name+'</div>'+
+            (arch9?'<span style="font-size:var(--fs-dense);color:'+arch9.color+'">'+arch9.icon+' '+arch9.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
             (POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR <span style="color:var(--wh)">'+ovr(p)+'</span> • Pot: <span style="color:var(--am)">'+p.potential+'</span>'+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px">'+
+          '<div style="font-size:var(--fs-dense);margin-top:2px">'+
             '<span style="color:var(--gr)">Talent: </span><span style="color:'+talCol9+'">'+tal9+'</span>'+
             (debH9&&growth9>0?' <span style="color:var(--gr)"> • Wzrost: </span><span style="color:var(--gb)">+'+growth9+' OVR</span>':'')+ 
             (debH9?' <span style="color:var(--gr)"> od S'+debH9.season+'</span>':'')+
@@ -215,7 +215,7 @@ function renderAcadWychowankowie(){
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Brak wychowanków w składzie</div>';
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Brak wychowanków w składzie</div>';
     }
   } else if(tab==='absolwenci'){
     if(absolwenci.length){
@@ -223,19 +223,19 @@ function renderAcadWychowankowie(){
         var arch9b=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
         return '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:4px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🎓 '+h.name+' <span style="font-size:var(--fs-dense);color:#555">(odszedł)</span></div>'+
-            (arch9b?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9b.color+'">'+arch9b.icon+' '+arch9b.name+'</span>':'')+
+            '<div style="font-size:var(--fs-dense);color:var(--gr)">🎓 '+h.name+' <span style="font-size:var(--fs-dense);color:#555">(odszedł)</span></div>'+
+            (arch9b?'<span style="font-size:var(--fs-dense);color:'+arch9b.color+'">'+arch9b.icon+' '+arch9b.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
             h.pos+
             (h.joinedSeason?' • dołączył S'+h.joinedSeason:'')+
             (h.peakOvr?' • Szczyt OVR: <span style="color:var(--am)">'+h.peakOvr+'</span>':'')+
           '</div>'+
-          (h.soldTo?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:2px"><span style="color:var(--gr)">Sprzedany do: </span><span style="color:var(--wh)">'+h.soldTo+'</span>'+(h.fee?' <span style="color:var(--gb)">za '+fmtVal(h.fee)+'</span>':'')+'</div>':'')+
+          (h.soldTo?'<div style="font-size:var(--fs-dense);margin-top:2px"><span style="color:var(--gr)">Sprzedany do: </span><span style="color:var(--wh)">'+h.soldTo+'</span>'+(h.fee?' <span style="color:var(--gb)">za '+fmtVal(h.fee)+'</span>':'')+'</div>':'')+
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden wychowanek jeszcze nie odszedł.</div>';
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden wychowanek jeszcze nie odszedł.</div>';
     }
   } else if(tab==='odpuszczeni'){
     if(odpuszczeni.length){
@@ -243,19 +243,19 @@ function renderAcadWychowankowie(){
         var arch9c=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
         return '<div style="background:var(--tb);border:1px solid #3d0000;padding:8px 12px;margin-bottom:4px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#888">🎓 '+h.name+' <span style="color:var(--rd);font-size:9px">✗ zwolniony</span></div>'+
-            (arch9c?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch9c.color+'">'+arch9c.icon+' '+arch9c.name+'</span>':'')+
+            '<div style="font-size:var(--fs-dense);color:#888">🎓 '+h.name+' <span style="color:var(--rd);font-size:9px">✗ zwolniony</span></div>'+
+            (arch9c?'<span style="font-size:var(--fs-dense);color:'+arch9c.color+'">'+arch9c.icon+' '+arch9c.name+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
             h.pos+' • S'+h.season+
             (h.releaseOvr?' • OVR przy zwolnieniu: <span style="color:#888">'+h.releaseOvr+'</span>':'')+
             (h.pot?' • Pot było: <span style="color:var(--am)">'+h.pot+'</span>':'')+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#555;margin-top:3px;font-style:italic">Czy to była dobra decyzja?</div>'+
+          '<div style="font-size:var(--fs-dense);color:#555;margin-top:3px;font-style:italic">Czy to była dobra decyzja?</div>'+
         '</div>';
       }).join('');
     } else {
-      html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden junior nie został odpuszczony.</div>';
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden junior nie został odpuszczony.</div>';
     }
   }
 
@@ -283,39 +283,39 @@ function renderAcadHistoryTab(p){
   var html='';
   // Nagłówek wychowanka
   html+='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:10px 12px;margin-bottom:10px">'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#ce93d8;margin-bottom:4px">🎓 WYCHOWANEK AKADEMII</div>'+
+    '<div style="font-size:var(--fs-dense);color:#ce93d8;margin-bottom:4px">🎓 WYCHOWANEK AKADEMII</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-      (arch?'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
-      '<span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 5px">W Akademii od S'+debSzn+'</span>'+
+      (arch?'<span style="font-size:var(--fs-dense);color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
+      '<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 5px">W Akademii od S'+debSzn+'</span>'+
     '</div>'+
   '</div>';
 
   // Statystyki kluczowe
   html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px">'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:'+(growth>0?'16px':'12px')+';color:'+(growth>0?'var(--gb)':'var(--gr)')+'">+'+(growth>0?growth:0)+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">wzrost OVR</div>'+
+      '<div style="font-size:'+(growth>0?'16px':'12px')+';color:'+(growth>0?'var(--gb)':'var(--gr)')+'">+'+(growth>0?growth:0)+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">wzrost OVR</div>'+
     '</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am)">'+seasonsInClub+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">sez. u nas</div>'+
+      '<div style="font-size:var(--fs-body);color:var(--am)">'+seasonsInClub+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">sez. u nas</div>'+
     '</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--wh)">'+totalM+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">mecze</div>'+
+      '<div style="font-size:var(--fs-body);color:var(--wh)">'+totalM+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">mecze</div>'+
     '</div>'+
   '</div>';
 
   // Porównanie
   if(myPls.length>1){
-    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-size:var(--fs-dense)">'+
       '<span style="color:var(--gr)">Na debiucie był gorszy od </span><span style="color:var(--rd)">'+pctWeak+'% składu</span>'+
       (rankNow>0?'<span style="color:var(--gr)">. Dziś jest </span><span style="color:var(--gb)">'+(rankNow===1?'najlepszym':''+rankNow+'.')+'</span><span style="color:var(--gr)"> zawodnikiem drużyny</span>':'')+'.'+
     '</div>';
   }
 
   // Oś czasu sezonów
-  html+='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">OŚ CZASU</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">OŚ CZASU</div>';
   var allHist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
   allHist.forEach(function(h,i){
     var isFirst=i===0;
@@ -331,14 +331,14 @@ function renderAcadHistoryTab(p){
     else if(ovrGrowth>=10)noteIcon='📈 Przełomowy sezon (+'+ovrGrowth+' OVR)';
     html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
-        (ovrGrowth>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
+        '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
+        (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
         (h.m||0)+' meczów'+(h.g?(' • '+(h.g||0)+' goli'):'')+((h.a||0)>0?(' • '+(h.a||0)+' asyst'):'')+
         (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
       '</div>'+
-      (noteIcon?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
+      (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
     '</div>';
   });
 
@@ -355,10 +355,10 @@ function renderAcadRozbudowa(){
     const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
     return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-        (isOwned?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
+        '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+        (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
         '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
         '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
         '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
@@ -369,9 +369,9 @@ function renderAcadRozbudowa(){
         (a.ekstraOnly?'<div><span style="color:var(--gr)">Liga: </span><span style="color:var(--am)">Tylko Premier Division</span></div>':a.req>=500?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">I Ligi (rep 500+)</span></div>':a.req>=250?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">III Ligi (rep 250+)</span></div>':a.req>=100?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">V Ligi (rep 100+)</span></div>':'')+
       '</div>'+
       (!isOwned&&isNext?
-        (!reqOk?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-         !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
+        (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
+         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
+         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
       :'')+
     '</div>';
   }).join('');

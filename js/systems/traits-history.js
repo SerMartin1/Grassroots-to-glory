@@ -87,7 +87,7 @@ function fillFinance(){if(!G)return;
     (inc.tv>0?'<div class="frow"><span class="flbl">Telewizja</span><span class="fpos">+'+fmt(inc.tv)+'</span></div>':'')+
     (inc.vip>0?'<div class="frow"><span class="flbl">Loże VIP</span><span class="fpos">+'+fmt(inc.vip)+'</span></div>':'')+
     '<div class="frow" style="border-top:1px solid var(--gb);margin-top:2px"><span class="flbl" style="color:var(--gb)">RAZEM/TYG</span><span class="fpos" style="color:var(--gb)">+'+fmt(inc.total)+'</span></div>'+
-    '<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0">⭐ Rep: '+(G.reputation||10)+' • Mn: ×'+(Math.round((G.reputation||10)/50*100)/100).toFixed(2)+' • Frekw: '+(G.frequency||40)+'% • Stadion: '+((G.stadium&&G.stadium.capacity)||200)+' m.</div>';
+    '<div style="color:var(--gr);font-size:var(--fs-dense);padding:4px 0">⭐ Rep: '+(G.reputation||10)+' • Mn: ×'+(Math.round((G.reputation||10)/50*100)/100).toFixed(2)+' • Frekw: '+(G.frequency||40)+'% • Stadion: '+((G.stadium&&G.stadium.capacity)||200)+' m.</div>';
   const fc=document.getElementById('fin-cost');
   if(fc)fc.innerHTML=
     '<div class="fsec">KOSZTY</div>'+
@@ -110,7 +110,7 @@ function fillFinance(){if(!G)return;
     const rows=G.fin.hist.slice(-8).reverse();
     fh.innerHTML='<div class="fsec">HISTORIA</div>'+
       (rows.length?
-        '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
         '<thead><tr>'+
           '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">TYG</th>'+
           '<th style="text-align:right;padding:4px 6px;color:var(--gb);border-bottom:1px solid var(--gl)">PRZYCHÓD</th>'+
@@ -181,7 +181,7 @@ function histTab(tab,btn){
 }
 function renderHistSezony(){
   const el=document.getElementById('hist-sezony');if(!el||!G)return;
-  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia pojawi sie po zakonczeniu pierwszego sezonu.</div>';return;}
+  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia pojawi sie po zakonczeniu pierwszego sezonu.</div>';return;}
   el.innerHTML=G.cHist.slice().reverse().map((h,ri)=>{
     const myName=G.myClub.n;
     const oi=G.cHist.indexOf(h);
@@ -194,11 +194,11 @@ function renderHistSezony(){
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
         '<div class="hentry-s">SEZON '+(h.season||'?')+(h.reconstructed?' *':'')+'</div>'+
         '<div style="display:flex;gap:6px;align-items:center">'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+(h.league||'?')+'</div>'+
-          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">TABELA</div>':'')+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+(h.league||'?')+'</div>'+
+          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-size:var(--fs-dense);color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">TABELA</div>':'')+
         '</div>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:var(--fs-dense)">'+
         '<div><div style="color:var(--gr)">Miejsce</div><div style="color:'+pc+'">'+(h.pos||'?')+(isP?' ⬆':isR?' ⬇':'')+'</div></div>'+
         '<div><div style="color:var(--gr)">Punkty</div><div style="color:var(--wh)">'+(h.pts||0)+'</div></div>'+
         '<div><div style="color:var(--gr)">Bramki</div><div style="color:var(--wh)">'+(h.gf||0)+':'+(h.ga||0)+'</div></div>'+
@@ -210,9 +210,9 @@ function renderHistSezony(){
         '<div><div style="color:var(--gr)">Reputacja</div><div style="color:var(--wh)">'+(h.reputation||'?')+'</div></div>'+
         (h.bonus>0?'<div><div style="color:var(--gr)">Premia</div><div style="color:var(--gb)">+'+fmt(h.bonus)+'</div></div>':'<div></div>')+
       '</div>'+
-      (isP?'<div style="color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:4px">⬆ AWANS</div>':isR?'<div style="color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-dense);margin-top:4px">⬇ SPADEK</div>':'')+
+      (isP?'<div style="color:var(--gb);font-size:var(--fs-dense);margin-top:4px">⬆ AWANS</div>':isR?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:4px">⬇ SPADEK</div>':'')+
     '</div>';
-  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:6px">* dane zrekonstruowane</div>':'');
+  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-size:var(--fs-dense);color:var(--gr);padding:6px">* dane zrekonstruowane</div>':'');
 }
 
 function showMatchDetail(mHistIdx){
@@ -309,8 +309,8 @@ function showSeasonTable(histIdx){
   const h=G.cHist&&G.cHist[histIdx];
   if(!h||!h.table||!h.table.length)return;
   const myId=G.myClubId;
-  let html='<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">TABELA — SEZON '+h.season+' — '+h.league+'</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+  let html='<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">TABELA — SEZON '+h.season+' — '+h.league+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
     '<thead><tr style="color:var(--gr);border-bottom:1px solid var(--gl)">'+
       '<th style="text-align:left;padding:3px 2px">#</th><th style="text-align:left;padding:3px 2px">KLUB</th>'+
       '<th style="padding:3px 4px">M</th><th style="padding:3px 4px;color:var(--gb)">W</th><th style="padding:3px 4px">R</th><th style="padding:3px 4px;color:var(--rd)">P</th>'+
@@ -340,7 +340,7 @@ function showSeasonTable(histIdx){
     document.body.appendChild(modal);
   }
   modal.innerHTML='<div style="background:var(--bg);border:2px solid var(--gl);padding:16px;max-width:95vw;width:380px;max-height:85vh;overflow-y:auto;position:relative">'+
-    '<div onclick="document.getElementById(\'modal-season-table\').remove()" style="position:absolute;top:8px;right:12px;cursor:pointer;font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr)">✕</div>'+
+    '<div onclick="document.getElementById(\'modal-season-table\').remove()" style="position:absolute;top:8px;right:12px;cursor:pointer;font-size:var(--fs-body);color:var(--gr)">✕</div>'+
     html+'</div>';
   modal.style.display='flex';
 }
@@ -380,9 +380,9 @@ function renderHistRekordy(){
   const totCupM=cupW+cupD+cupL;
   const totCupWins=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===1).length;
   const totCupFinals=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===2).length;
-  function row(lbl,val,col){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)"><span style="color:var(--gr)">'+lbl+'</span><span style="color:'+(col||'var(--wh)')+'">'+val+'</span></div>';}
+  function row(lbl,val,col){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)"><span style="color:var(--gr)">'+lbl+'</span><span style="color:'+(col||'var(--wh)')+'">'+val+'</span></div>';}
   el.innerHTML=
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">REKORDY DRUZYNY</div>'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">REKORDY DRUZYNY</div>'+
     row('Najlepsza liga',tl?tl.league:'?','var(--gb)')+
     row('Najlepsze miejsce',bp?bp.pos+'. (S'+bp.season+')':'?','var(--am)')+
     row('Awanse',prom,'var(--gb)')+
@@ -392,17 +392,17 @@ function renderHistRekordy(){
     row('Max reputacja',mr,'var(--am)')+
     row('Puchar Mistrzowski',totCupWins?totCupWins+'x 🥇':'—','var(--am)')+
     row('Finalista Pucharu',totCupFinals?totCupFinals+'x 🥈':'—','var(--gr)')+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">BILANS MECZOWY</div>'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">BILANS MECZOWY</div>'+
     row('Razem meczów',totM+totCupM+(totCupM?' (liga: '+totM+' | puchar: '+totCupM+')':''))+
     row('Wygrane',totW+cupW+(totCupM?' ('+totW+'+'+cupW+')':''),'var(--gb)')+
     row('Remisy',totD+cupD+(totCupM?' ('+totD+'+'+cupD+')':''),'var(--gr)')+
     row('Porażki',totL+cupL+(totCupM?' ('+totL+'+'+cupL+')':''),'var(--rd)')+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY MECZOWE</div>'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY MECZOWE</div>'+
     row('Seria wygranych',(rec.maxWinStreak||0),'var(--gb)')+
     row('Seria bez porazki',(rec.maxUnbeatenStreak||0),'var(--gb)')+
     row('Seria porazek',(rec.maxLoseStreak||0),'var(--rd)')+
     row('Najwyzsza wygrana',rec.bestWin?rec.bestWin.myG+':'+rec.bestWin.oppG+' vs '+rec.bestWin.opp:'?','var(--gb)')+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY BRAMKOWE</div>'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY BRAMKOWE</div>'+
     (()=>{
       // Oblicz z cHist jako fallback jeśli records nie ma danych
       const ch=G.cHist||[];
@@ -455,17 +455,17 @@ function renderHistZawodnicy(){
   }
   function top5(key,icon){
     const s=players.filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
-    if(!s.length)return '<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">Brak danych</div>';
-    return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense)"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
+    if(!s.length)return '<div style="color:var(--gr);font-size:var(--fs-dense)">Brak danych</div>';
+    return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
   }
   const at=G.allTimeStats||{};
   el.innerHTML=
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">KRÓL STRZELCÓW</div>'+top5('goals','goli')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">KRÓL ASYSTENTÓW</div>'+top5('assists','asyst')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">NAJWIĘCEJ MECZÓW</div>'+top5('matches','mecz.')+
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">REKORDY TRANSFEROWE</div>'+
-    (at.bestSeller?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">Sprzedany: </span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense)">Brak danych</div>')+
-    (at.bestBuyer?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">Kupiony: </span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">KRÓL STRZELCÓW</div>'+top5('goals','goli')+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">KRÓL ASYSTENTÓW</div>'+top5('assists','asyst')+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">NAJWIĘCEJ MECZÓW</div>'+top5('matches','mecz.')+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">REKORDY TRANSFEROWE</div>'+
+    (at.bestSeller?'<div style="font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">Sprzedany: </span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-size:var(--fs-dense)">Brak danych</div>')+
+    (at.bestBuyer?'<div style="font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">Kupiony: </span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
 }
 function renderHistDynastia(){
   const el=document.getElementById('hist-dynastia');if(!el||!G)return;
@@ -489,7 +489,7 @@ function renderHistDynastia(){
   html+='</div>';
   const hasAnyTrophy=lt.length>0||ctWon.length>0||ctFin.length>0;
   html+='<div style="border-bottom:2px solid var(--gl)">';
-  html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">GABLOTA TROFE\u00d3W</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">GABLOTA TROFE\u00d3W</div>';
   if(!hasAnyTrophy){
     html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px 12px">Brak trofe\u00f3w \u2014 buduj dynasti\u0119!</div>';
   } else {
@@ -503,10 +503,10 @@ function renderHistDynastia(){
         won.forEach(function(){html+='<span style="font-size:22px;display:inline-block;filter:'+cup.filter+'">&#127942;</span>';});
         html+='</div>';
         html+='<div style="flex:1">';
-        html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:'+cup.color+';margin-bottom:3px">'+cup.label.toUpperCase()+'</div>';
+        html+='<div style="font-weight:700;font-size:var(--fs-h3);color:'+cup.color+';margin-bottom:3px">'+cup.label.toUpperCase()+'</div>';
         html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+won.map(function(t){return 'S'+t.season;}).join(' \u2022 ')+'</div>';
         html+='</div>';
-        if(won.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h1);color:'+cup.color+'">\u00d7'+won.length+'</div>';
+        if(won.length>1)html+='<div style="font-weight:700;font-size:var(--fs-h1);color:'+cup.color+'">\u00d7'+won.length+'</div>';
         html+='</div>';
       });
     }
@@ -517,12 +517,12 @@ function renderHistDynastia(){
       ctFin.forEach(function(){html+='<span style="font-size:22px;filter:grayscale(0.5) brightness(1.3)">&#129352;</span>';});
       html+='</div>';
       html+='<div style="flex:1">';
-      html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">PUCHAR MISTRZOWSKI</div>';
+      html+='<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">PUCHAR MISTRZOWSKI</div>';
       html+='<div style="font-size:var(--fs-dense);color:var(--gr)">';
       if(ctWon.length>0)html+='Wygrany: '+ctWon.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
       if(ctFin.length>0)html+=(ctWon.length?' \u2022 ':'')+' Fina\u0142y: '+ctFin.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
       html+='</div></div>';
-      if(ctWon.length>1)html+='<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h1);color:var(--am)">\u00d7'+ctWon.length+'</div>';
+      if(ctWon.length>1)html+='<div style="font-weight:700;font-size:var(--fs-h1);color:var(--am)">\u00d7'+ctWon.length+'</div>';
       html+='</div>';
     }
   }
@@ -590,7 +590,7 @@ function renderHistDynastia(){
         html+='<div class="dyn-milestones" style="margin-top:5px">';
         _tlSeason.forEach(function(tl){
           var _clickable=tl.pid!=null;
-          var _style='font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(_clickable?'var(--am)':'var(--gr)')+';padding:2px 0;display:flex;gap:5px'+(_clickable?';cursor:pointer':'');
+          var _style='font-size:var(--fs-dense);color:'+(_clickable?'var(--am)':'var(--gr)')+';padding:2px 0;display:flex;gap:5px'+(_clickable?';cursor:pointer':'');
           var _click=_clickable?' onclick="showById('+tl.pid+')"':'';
           html+='<div style="'+_style+'"'+_click+'><span>'+tl.icon+'</span><span>'+tl.label+(_clickable?' ↗':'')+'</span></div>';
         });

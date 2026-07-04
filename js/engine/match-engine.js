@@ -912,7 +912,7 @@ const ev=allEvts[idx2++];
             assistStr=assP?' <span style="color:var(--gr)">(as. <span style="cursor:pointer;text-decoration:underline;color:var(--wh)" onclick="event.stopPropagation();showById('+assP.id+')">'+ev.assister+'</span>)</span>':' <span style="color:var(--gr)">(as. '+ev.assister+')</span>';
           }
           const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">[róż.]</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">[rz.w.]</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">[kar.]</span>':'';
-          txt='<b>GOL! '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">Wychowanek od S'+_acadDebH3.season+' • OVR '+_acadDebH3.ovr+'→'+ovr(scorerP)+'</div>':'');
+          txt='<b>GOL! '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">Wychowanek od S'+_acadDebH3.season+' • OVR '+_acadDebH3.ovr+'→'+ovr(scorerP)+'</div>':'');
         } else if(ev.type==='shot'){
           cls+=isMy?'shot-my':'shot-opp'; icon=isMy?'→':'←';
         } else if(ev.type==='narration'){
@@ -929,13 +929,13 @@ const ev=allEvts[idx2++];
           cls+='narr-my'; icon='⚙️';
           const _tBtns=[{key:'attack',label:'⚔️ Atak totale',desc:'+20% strzałów -15% save',shotMod:1.20,saveMod:0.85},{key:'counter',label:'🏃 Kontratak',desc:'+25% strzałów mniej akcji',shotMod:1.25,saveMod:1.05},{key:'defend',label:'🛡️ Graj na czas',desc:'-20% akcji +12% save',shotMod:0.85,saveMod:1.12},{key:'press',label:'💪 Pressing',desc:'+15% akcji -8% strzałów',shotMod:0.92,saveMod:1.00}];
           const _tacId='tac-countdown-'+Date.now();
-          txt='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro)">⚙ PRZERWA — WYBIERZ TAKTYKĘ NA 2. POŁOWĘ</span><br><span style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Wybór możliwy tylko teraz</span>'
+          txt='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">⚙ PRZERWA — WYBIERZ TAKTYKĘ NA 2. POŁOWĘ</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">Wybór możliwy tylko teraz</span>'
             +'<div style="display:flex;align-items:center;gap:8px;margin:5px 0">'
             +'<div style="flex:1;height:4px;background:#1a1a1a;border:1px solid var(--gl)"><div id="'+_tacId+'-bar" style="height:100%;background:var(--am);width:100%;transition:width 1s linear"></div></div>'
-            +'<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);min-width:28px;text-align:right"><b id="'+_tacId+'-sec">10</b>s</span>'
+            +'<span style="font-size:var(--fs-body);color:var(--am);min-width:28px;text-align:right"><b id="'+_tacId+'-sec">10</b>s</span>'
             +'</div>'
             +'<div style="display:flex;flex-wrap:wrap;gap:4px">'+ 
-            _tBtns.map(b=>'<button id="tbtn-'+b.key+'" onclick="_applyTactic(\''+b.key+'\','+b.shotMod+','+b.saveMod+')" style="padding:6px 10px;font-family:VT323,monospace;font-size:var(--fs-meta);background:#0d1f0d;color:var(--am);border:1px solid var(--gl);border-radius:2px;cursor:pointer;text-align:left;min-width:140px">'+b.label+'<br><span style=\"color:#8ab88a;font-size:var(--fs-dense)\">'+b.desc+'</span></button>').join('')
+            _tBtns.map(b=>'<button id="tbtn-'+b.key+'" onclick="_applyTactic(\''+b.key+'\','+b.shotMod+','+b.saveMod+')" style="padding:6px 10px;font-size:var(--fs-meta);background:#0d1f0d;color:var(--am);border:1px solid var(--gl);border-radius:2px;cursor:pointer;text-align:left;min-width:140px">'+b.label+'<br><span style=\"color:#8ab88a;font-size:var(--fs-dense)\">'+b.desc+'</span></button>').join('')
             +'</div>';
           // Uruchom odliczanie po wyrenderowaniu
           window._tacTimerId=setTimeout(function _startTacTimer(){
@@ -957,7 +957,7 @@ const ev=allEvts[idx2++];
                 if(!window._tacticalShift.used){
                   window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
                   const mlog2=document.getElementById('mlog');
-                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent='⏱️ Przerwa skończona — brak zmiany taktyki.';mlog2.appendChild(_d2);}
+                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent='⏱️ Przerwa skończona — brak zmiany taktyki.';mlog2.appendChild(_d2);}
                 }
                 window._tacResumeNext&&window._tacResumeNext();
               }

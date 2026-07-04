@@ -8,8 +8,8 @@ function kronShowModal(ev, resolvedBody){
   chEl.innerHTML='';
   ev.choices.forEach(function(ch,idx){
     const btn=document.createElement('button');
-    btn.style.cssText='width:100%;background:'+(idx===0?'var(--gm)':idx===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-family:VT323,monospace;font-size:var(--fs-dense);padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
-    btn.innerHTML='<span style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
+    btn.style.cssText='width:100%;background:'+(idx===0?'var(--gm)':idx===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
+    btn.innerHTML='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
     btn.onclick=function(){
       modal.style.display='none';
       try{ch.effect();}catch(e){console.warn('Kronika effect error:',e);}

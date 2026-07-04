@@ -53,7 +53,7 @@ const T = {
     setup_budget_label:'Budżet:',
     setup_league_label:'Liga:',
     setup_league_val:  'VII Liga',
-    setup_reroll:      '🎲 PRZE-LOSUJ KLUB ({n} pozostały)',
+    setup_reroll:      '🎲 PRZE-LOSUJ KLUB ({n})',
     setup_reroll_hint: 'Możesz prze-losować max 3 razy',
     setup_start:       '▶ PRZYJMIJ I ROZPOCZNIJ',
     setup_no_club_err: 'Wybierz klub!',
@@ -700,7 +700,7 @@ const T = {
     setup_budget_label:'Budget:',
     setup_league_label:'League:',
     setup_league_val:  'League 7',
-    setup_reroll:      '🎲 REROLL CLUB ({n} left)',
+    setup_reroll:      '🎲 REROLL CLUB ({n})',
     setup_reroll_hint: 'You can reroll up to 3 times',
     setup_start:       '▶ ACCEPT & START',
     setup_no_club_err: 'Pick a club!',
@@ -1417,13 +1417,13 @@ function showLangPicker(onDone) {
   overlay.id = 'lang-picker-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;';
   overlay.innerHTML =
-    '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-hero);color:var(--am);text-shadow:3px 3px 0 #7a5c00;text-align:center;line-height:1.8">GRASSROOTS<br>TO GLORY</div>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-display);color:var(--gr);letter-spacing:2px;text-align:center">SELECT LANGUAGE / WYBIERZ JĘZYK</div>'+
+    '<div style="font-weight:700;font-size:var(--fs-hero);color:var(--am);text-shadow:3px 3px 0 #7a5c00;text-align:center;line-height:1.8">GRASSROOTS<br>TO GLORY</div>'+
+    '<div style="font-size:var(--fs-display);color:var(--gr);letter-spacing:2px;text-align:center">SELECT LANGUAGE / WYBIERZ JĘZYK</div>'+
     '<div style="display:flex;gap:16px">'+
-      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
-      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
+      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
+      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
     '</div>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:#1a3d1a;letter-spacing:1px">v1.0</div>';
+    '<div style="font-size:var(--fs-body);color:#1a3d1a;letter-spacing:1px">v1.0</div>';
   document.body.appendChild(overlay);
   window._langPickerCallback = onDone || null;
 }

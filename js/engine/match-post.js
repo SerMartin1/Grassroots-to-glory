@@ -8,7 +8,7 @@ function openSubs(){
   // nagłówek kolumn będzie w innerHTML poniżej
   const st=myPl().filter(p=>p.starter&&!p.injured);
   const ol=document.getElementById('m-sub-out-list');
-  if(ol)ol.innerHTML=st.map(p=>{var _phyCol=(p.phy||50)<35?'var(--rd)':(p.phy||50)<50?'var(--am)':'var(--gr)';var _fmCol=p.form<50?'var(--rd)':p.form<75?'var(--am)':'var(--wh)';return '<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="selectSubOut('+p.id+')">'+'<span style="color:'+_fmCol+'">'+( POS_SHORT[p.pos]||p.pos)+' '+p.name+'</span>'+'<span style="font-family:VT323,monospace;font-size:var(--fs-dense);display:flex;gap:6px">'+'<span style="color:'+_fmCol+'">fm:'+p.form+'%</span>'+'<span style="color:'+_phyCol+'">phy:'+(p.phy||50)+'</span>'+'</span>'+'</div>';}).join('');
+  if(ol)ol.innerHTML=st.map(p=>{var _phyCol=(p.phy||50)<35?'var(--rd)':(p.phy||50)<50?'var(--am)':'var(--gr)';var _fmCol=p.form<50?'var(--rd)':p.form<75?'var(--am)':'var(--wh)';return '<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="selectSubOut('+p.id+')">'+'<span style="color:'+_fmCol+'">'+( POS_SHORT[p.pos]||p.pos)+' '+p.name+'</span>'+'<span style="font-size:var(--fs-dense);display:flex;gap:6px">'+'<span style="color:'+_fmCol+'">fm:'+p.form+'%</span>'+'<span style="color:'+_phyCol+'">phy:'+(p.phy||50)+'</span>'+'</span>'+'</div>';}).join('');
   document.getElementById('m-sub-in-section').style.display='none';
   panel.style.display='flex';_subOutId=null;
 }
@@ -31,7 +31,7 @@ function confirmSub(outId,inId){
   window._matchSubsOut.push(pOut.id);// v199: zapamiętaj kto zszedł
   closeSubs();
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='ZMIANA: '+pOut.name+' -> '+pIn.name+' ('+_subsLeft+'/3)';mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='ZMIANA: '+pOut.name+' -> '+pIn.name+' ('+_subsLeft+'/3)';mlog.appendChild(d);}
   notif('Zmiana: '+pOut.name+' → '+pIn.name,'ok');
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
   if(_subsLeft<=0){const b=document.getElementById('btn-sub');if(b)b.style.opacity='0.3';}
@@ -51,7 +51,7 @@ function _addEventChip(isH,icon,min){
   else if(icon==='🔄') col='var(--gb)';
   else col='#00bcd4';
   ch.style.cssText='background:#050f05;border:1px solid '+col+';color:'+col
-    +';font-family:VT323,monospace;font-size:var(--fs-dense);padding:1px 4px;white-space:nowrap';
+    +';font-size:var(--fs-dense);padding:1px 4px;white-space:nowrap';
   ch.textContent=icon+' '+min+String.fromCharCode(39);
   ec.appendChild(ch);
 }
@@ -64,7 +64,7 @@ function _applyTactic(key,shotMod,saveMod){
   const labels={attack:'Atak totale',counter:'Kontratak',defend:'Graj na czas',press:'Pressing'};
   notif('⚙️ Taktyka: '+(labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:'⚔️ Atak totale',counter:'🏃 Kontratak',defend:'🛡️ Graj na czas',press:'💪 Pressing'};const _tacBonus={attack:'+20% strz. / −15% GK',counter:'+25% strz. / mniej akcji',defend:'−20% akcji / +12% GK',press:'+15% akcji / −8% strz.'};if(_tn)_tn.innerHTML='<span style="font-size:var(--fs-dense);color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='⚙️ TAKTYKA: '+(labels[key]||key)+' (od 46\')';mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='⚙️ TAKTYKA: '+(labels[key]||key)+' (od 46\')';mlog.appendChild(d);}
   // Wznów mecz natychmiast po wyborze
   if(window._tacResumeNext){window._tacResumeNext();}
 }
@@ -101,7 +101,7 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
 
   function pitchRow(pls, label){
     if(!pls.length)return '';
-    return '<div style="text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px">'+label+'</div>'+
+    return '<div style="text-align:center;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px">'+label+'</div>'+
       '<div class="pitch-row">'+pls.map(p=>{
         const r=ratings[p.id];
         const rat=r?r.rating:null;
@@ -288,7 +288,7 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   if(_globalMom&&_globalMom.fromAcademy&&_globalMom.clubId===G.myClubId){
     var _bD2=_globalMom.history?_globalMom.history.find(function(h){return h.fromAcademy;}):null;
     var _archBH=_globalMom.archetype&&ARCHETYPE_META[_globalMom.archetype]?ARCHETYPE_META[_globalMom.archetype]:null;
-    var _bohatHtml='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:8px 14px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+    var _bohatHtml='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:8px 14px;font-size:var(--fs-dense)">'+
       '<div style="color:#ce93d8;margin-bottom:2px">🌟 BOHATER MECZU — WYCHOWANEK AKADEMII</div>'+
       '<div style="color:var(--gb);font-size:11px">🎓 '+_globalMom.name+'</div>'+
       (_bD2?'<div style="color:var(--gr);margin-top:2px">W Akademii od S'+_bD2.season+' • OVR '+_bD2.ovr+'→'+ovr(_globalMom)+'</div>':'')+

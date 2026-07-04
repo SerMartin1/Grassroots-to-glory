@@ -146,11 +146,11 @@ function fillMatch(){
   if(!_fixBaner){_fixBaner=document.createElement('div');_fixBaner.id='m-fix-squad-baner';const _mp=document.getElementById('m-prematch');if(_mp)_mp.parentNode.insertBefore(_fixBaner,_mp);}
   if(!_canPlay){
     _fixBaner.style.display='block';
-    _fixBaner.innerHTML='<div style="background:#3d0000;border:1px solid var(--rd);padding:10px 14px;margin:0 0 6px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+
+    _fixBaner.innerHTML='<div style="background:#3d0000;border:1px solid var(--rd);padding:10px 14px;margin:0 0 6px;font-size:var(--fs-dense);color:var(--rd)">'+
       t('match_fix_squad_warn').replace('{a}',_validSt.length).replace('{b}',_req3)+'<br>'+
       '<div style="display:flex;gap:6px;margin-top:6px">'+
-        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
-        '<button onclick="openFACrisis(checkSquadCrisis())" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
+        '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
+        '<button onclick="openFACrisis(checkSquadCrisis())" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
       '</div>'+
     '</div>';
   } else {
@@ -253,13 +253,13 @@ function fillMatch(){
       const mw=Math.round(myVal/BMAX*100);
       return(
         '<div style="margin-bottom:6px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
           '<div style="display:flex;justify-content:space-between;align-items:center">'+
             '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-right:6px">'+
               '<div style="height:100%;width:'+mw+'%;background:'+myC+';border-radius:1px"></div>'+
             '</div>'+
-            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+myC+'">'+myVal+'</span>'+
-            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+triC+';margin-left:2px">'+triCh+'</span>'+
+            '<span style="font-size:var(--fs-body);color:'+myC+'">'+myVal+'</span>'+
+            '<span style="font-size:var(--fs-body);color:'+triC+';margin-left:2px">'+triCh+'</span>'+
           '</div>'+
         '</div>'
       );
@@ -272,10 +272,10 @@ function fillMatch(){
       const barC=stronger?'var(--rd)':equal?'var(--gl)':'var(--gm)';
       return(
         '<div style="margin-bottom:6px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
           '<div style="display:flex;justify-content:space-between;align-items:center">'+
-            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+opC+';margin-right:2px">'+triCh2+'</span>'+
-            '<span style="font-family:VT323,monospace;font-size:var(--fs-body);color:'+opC+'">'+oppVal+'</span>'+
+            '<span style="font-size:var(--fs-body);color:'+opC+';margin-right:2px">'+triCh2+'</span>'+
+            '<span style="font-size:var(--fs-body);color:'+opC+'">'+oppVal+'</span>'+
             '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-left:6px;display:flex;justify-content:flex-end">'+
               '<div style="height:100%;width:'+ow+'%;background:'+barC+';border-radius:1px"></div>'+
             '</div>'+
@@ -290,27 +290,27 @@ function fillMatch(){
         '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">'+
           // LEWA = gospodarz
           '<div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
+            '<div style="font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
               (isHome?'⭐ ':'')+homeClub.n+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
+            '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
               'OVR '+homeS.total+' • Forma '+Math.round(homeS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;margin-top:4px">'+formDots(homeId)+'</div>'+
           '</div>'+
           // Środek VS
           '<div style="text-align:center">'+
-            '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr)">'+t('match_vs')+'</div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(isHome?'var(--gb)':'var(--gr)')+'">'+
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">'+t('match_vs')+'</div>'+
+            '<div style="font-size:var(--fs-meta);color:'+(isHome?'var(--gb)':'var(--gr)')+'">'+
               (isHome?t('match_home_tag'):t('match_away_tag'))+
             '</div>'+
           '</div>'+
           // PRAWA = gość
           '<div style="text-align:right">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}')+'">'+
+            '<div style="font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}')+'">'+
               awayClub.n+(isHome?'':' ⭐')+
             '</div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
+            '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
               'OVR '+awayS.total+' • Forma '+Math.round(awayS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;justify-content:flex-end;margin-top:4px">'+formDots(awayId)+'</div>'+
@@ -320,61 +320,61 @@ function fillMatch(){
 
       // ── POPRAWKA 3: Badge strip — miejsce + bonus dom ───────────
       '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:5px 12px;border-bottom:1px solid var(--gl);background:#080f08">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_you_pos').replace('{pos}',_myPos)+
         '</div>'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_rival_pos').replace('{pos}',_oppPos)+
         '</div>'+
-        (isHome?'<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
+        (isHome?'<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
       '</div>'+
 
       // ── POPRAWKA 4: Dwie oddzielne karty TY | RYWAL ─────────────
       '<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--gl)">'+
         // Karta LEWA — GOSPODARZ
         '<div style="padding:8px 10px;border-right:1px solid var(--gl)">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gb);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px">'+(isHome?t('match_you_label'):t('match_host_label'))+' 🏠</div>'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px">'+(isHome?t('match_you_label'):t('match_host_label'))+' 🏠</div>'+
           cardStatRow('ATK',homeS.atk,awayS.atk)+
           cardStatRow('MID',homeS.mid,awayS.mid)+
           cardStatRow('DEF',homeS.def,awayS.def)+
           '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?G.formation:oppForm)+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
+              '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?G.formation:oppForm)+'</span>'+
             '</div>'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gb)">'+(isHome?_styleLabel(G.style||'Zrównoważony'):_styleLabel(oppStyle))+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gb)">'+(isHome?_styleLabel(G.style||'Zrównoważony'):_styleLabel(oppStyle))+'</span>'+
             '</div>'+
             (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
                 (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+
               '</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(homeS.atk<=homeS.def?'⚠ ATK':'⚠ DEF')+'</span></div>')+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--rd)">'+(homeS.atk<=homeS.def?'⚠ ATK':'⚠ DEF')+'</span></div>')+
           '</div>'+
         '</div>'+
         // Karta PRAWA — GOŚĆ
         '<div style="padding:8px 10px">'+
-          '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--am);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px;text-align:right">'+(isHome?t('match_rival_label'):t('match_you_label_r'))+' ✈</div>'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px;text-align:right">'+(isHome?t('match_rival_label'):t('match_you_label_r'))+' ✈</div>'+
           cardStatRowOpp('ATK',awayS.atk,homeS.atk)+
           cardStatRowOpp('MID',awayS.mid,homeS.mid)+
           cardStatRowOpp('DEF',awayS.def,homeS.def)+
           '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?oppForm:G.formation)+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
+              '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?oppForm:G.formation)+'</span>'+
             '</div>'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+(isHome?styleIcon+' '+_styleLabel(oppStyle):_styleLabel(G.style||'Zrównoważony'))+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+(isHome?styleIcon+' '+_styleLabel(oppStyle):_styleLabel(G.style||'Zrównoważony'))+'</span>'+
             '</div>'+
             (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--rd)">'+(awayS.atk<=awayS.def?'⚠ ATK':'⚠ DEF')+'</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-family:VT323,monospace;font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:var(--rd)">'+(awayS.atk<=awayS.def?'⚠ ATK':'⚠ DEF')+'</span></div>':'<div style="display:flex;justify-content:space-between">'+
+              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
+              '<span style="font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
                 (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+'</span></div>')+
           '</div>'+
         '</div>'+
@@ -382,13 +382,13 @@ function fillMatch(){
 
       // ── POPRAWKA 5: Szanse — pasek aktualizuje się z mood ───────
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
         '<div style="display:flex;height:8px;border-radius:1px;overflow:hidden;margin-bottom:4px">'+
           '<div style="flex:'+myWin+';background:var(--gb)"></div>'+
           '<div style="flex:'+draw+';background:var(--gl)"></div>'+
           '<div style="flex:'+oppWin+';background:var(--rd)"></div>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+        '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gb)">'+t('match_chance_win').replace('{n}',myWin)+'</span>'+
           '<span style="color:var(--gr)">'+t('match_chance_draw').replace('{n}',draw)+'</span>'+
           '<span style="color:var(--rd)">'+t('match_chance_loss').replace('{n}',oppWin)+'</span>'+
@@ -397,7 +397,7 @@ function fillMatch(){
 
       // ── NASTAWIENIE ──────────────────────────────────────────────
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gr);margin-bottom:5px;letter-spacing:.3px">'+t('match_mood_title')+'</div>'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:5px;letter-spacing:.3px">'+t('match_mood_title')+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">'+
         moods.map(md=>{
           const sel=G._matchMood===md.k;
@@ -407,8 +407,8 @@ function fillMatch(){
             'background:'+(sel?'#1a2a00':'var(--tb)')+';'+
             'border:2px solid '+(sel?'var(--am)':'var(--gm)')+'">'+
             '<div style="font-size:var(--fs-body);line-height:1">'+md.lbl.split(' ')[0]+'</div>'+
-            '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+(sel?'var(--am)':'var(--gr)')+';margin-top:3px">'+md.lbl.split(' ')[1]+'</div>'+
-            lines.map(l=>'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(sel?'var(--gb)':'#444')+';margin-top:1px;line-height:1.1">'+l+'</div>').join('')+
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:'+(sel?'var(--am)':'var(--gr)')+';margin-top:3px">'+md.lbl.split(' ')[1]+'</div>'+
+            lines.map(l=>'<div style="font-size:var(--fs-dense);color:'+(sel?'var(--gb)':'#444')+';margin-top:1px;line-height:1.1">'+l+'</div>').join('')+
           '</div>';
         }).join('')+
         '</div>'+
@@ -417,9 +417,9 @@ function fillMatch(){
       // ── PRZYCISKI TAKTYKA + SKŁAD ────────────────────────────────
       '<div style="display:flex;gap:6px;padding:7px 12px 8px">'+
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" '+
-          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
+          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
         '<button onclick="fillPanel(\'p-squad\');openPanel(\'p-squad\');" '+
-          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
+          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
       '</div>';
   }
 }

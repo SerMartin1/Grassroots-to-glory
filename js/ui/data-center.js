@@ -89,7 +89,7 @@ function dcRenderWzrost(){
   const el=document.getElementById('dc-wzrost');if(!el||!G)return;
   const h=G.cHist||[];
   if(!h.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-body);color:var(--gr);padding:20px 10px;text-align:center;line-height:1.6;">Wykresy wzrostu pojawią się<br>po zakończeniu pierwszego sezonu.</div>';
+    el.innerHTML='<div style="font-size:var(--fs-body);color:var(--gr);padding:20px 10px;text-align:center;line-height:1.6;">Wykresy wzrostu pojawią się<br>po zakończeniu pierwszego sezonu.</div>';
     return;
   }
   el.innerHTML='';
@@ -390,7 +390,7 @@ function dcRenderKadra(){
     tr.onclick=()=>showById(p.id);
     tr.innerHTML='<td style="color:var(--am);text-decoration:underline">'+(p.name||'?')+(p.fromAcademy?' <span style="font-size:var(--fs-meta);color:#9c27b0">🎓</span>':'')+'</td>'+
       '<td style="color:var(--gr)">'+(p.pos||'?')+'</td>'+
-      '<td style="color:var(--am);font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3)">'+o+'</td>'+
+      '<td style="color:var(--am);font-weight:700;font-size:var(--fs-h3)">'+o+'</td>'+
       '<td style="color:#00bcd4">'+pot+'</td>'+
       '<td style="color:'+deltaColor+'">'+(delta>0?'+':'')+delta+'</td>'+
       '<td style="color:var(--wh)">'+fmtVal(p.value||0)+'</td>';
@@ -408,7 +408,7 @@ function dcRenderKadra(){
       card.style.cssText='background:var(--tb);border-left:3px solid #9c27b0;padding:7px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;';
       card.innerHTML='<div><div style="font-size:var(--fs-body);color:var(--wh)">'+p.name+' <span style="color:#9c27b0;font-size:12px">🎓</span></div>'+
         '<div style="font-size:var(--fs-meta);color:var(--gr)">OVR '+ovr(p)+' → POT '+(p.potential||ovr(p))+' · '+(p.pos||'?')+'</div></div>'+
-        '<div style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:var(--gb)">'+fmtVal(p.value||0)+'</div>';
+        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb)">'+fmtVal(p.value||0)+'</div>';
       el.appendChild(card);
     });
   }
@@ -479,9 +479,9 @@ function dcRenderKlub(){
     const hdr=document.createElement('div');
     hdr.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:5px;'+(di>0?'margin-top:14px;':'');
     hdr.innerHTML=
-      '<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-h3);color:var(--cy)">S'+d.season+'</span>'+
+      '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--cy)">S'+d.season+'</span>'+
       '<span style="font-size:var(--fs-body);color:var(--gr)">'+(d.league||'?')+'</span>'+
-      (pos?'<span style="font-family:\'Press Start 2P\',monospace;font-size:var(--fs-micro);color:'+posColor+'">'+pos+'. msc</span>':
+      (pos?'<span style="font-weight:700;font-size:var(--fs-micro);color:'+posColor+'">'+pos+'. msc</span>':
            '<span style="font-size:var(--fs-body);color:var(--gr)">w trakcie</span>')+
       (d.pts?'<span style="font-size:var(--fs-body);color:var(--gr)">'+d.pts+' pkt</span>':'')+
       (isChamp?'<span style="font-size:14px">🏆</span>':'')+

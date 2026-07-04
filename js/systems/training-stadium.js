@@ -49,12 +49,12 @@ function fillTraining(){
       '<div style="display:flex;gap:6px;margin-bottom:10px">'+
         INTENSITY_OPTS.map(o=>{
           const isSel=G.trainIntensity===o.k;
-          return '<button onclick="setIntensity(\'' + o.k + '\')" style="flex:1;font-family:VT323,monospace;font-size:var(--fs-meta);padding:7px 4px;cursor:pointer;border:1px solid '+(isSel?'var(--am)':'var(--gl)')+';background:'+(isSel?'var(--gm)':'var(--tb)')+';color:'+(isSel?'var(--am)':'var(--gr)')+'">'+(isSel?'\u2714 ':'')+o.l+'</button>';
+          return '<button onclick="setIntensity(\'' + o.k + '\')" style="flex:1;font-size:var(--fs-meta);padding:7px 4px;cursor:pointer;border:1px solid '+(isSel?'var(--am)':'var(--gl)')+';background:'+(isSel?'var(--gm)':'var(--tb)')+';color:'+(isSel?'var(--am)':'var(--gr)')+'">'+(isSel?'\u2714 ':'')+o.l+'</button>';
             (isSel?'✔ ':'')+o.l+
           '</button>';
         }).join('')+
       '</div>'+
-      '<div style="border:1px solid var(--gl);padding:10px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      '<div style="border:1px solid var(--gl);padding:10px;font-size:var(--fs-dense)">'+
         '<div style="color:var(--am);font-size:var(--fs-meta);margin-bottom:6px">'+cur.l+(G.trainIntensity===cur.k?t('train_cur_choice'):'')+'</div>'+
         '<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;color:var(--gr)">'+
           '<span>'+t('train_gain_label')+'</span><span style="color:var(--wh)">'+t('train_gain_val').replace('{a}',cur.gain[0]).replace('{b}',cur.gain[1])+'</span>'+
@@ -77,7 +77,7 @@ function renderTCPanel(){
   const tc=G.trainingCenter||{};
   // W budowie
   if(tc.building){
-    return '<div style="border:1px solid var(--am);padding:10px;margin-top:10px;font-family:VT323,monospace">'+
+    return '<div style="border:1px solid var(--am);padding:10px;margin-top:10px">'+
       '<div style="color:var(--am);font-size:var(--fs-dense);margin-bottom:4px">'+t('train_tc_building')+'</div>'+
       '<div style="color:var(--gr);font-size:var(--fs-dense)">'+tc.building.name+' — '+t('train_tc_done_in').replace('{n}',tc.building.weeksLeft)+'</div>'+
       '<div style="background:#000;height:6px;margin-top:6px"><div style="height:100%;background:var(--am);width:'+Math.round((1-(tc.building.weeksLeft/tc.building.totalWeeks))*100)+'%"></div></div>'+
@@ -87,11 +87,11 @@ function renderTCPanel(){
   if(lvl===0){
     const cost0=tcCost(0);const upk0=tcUpkeep(0);
     const canBuild=G.budget>=cost0;
-    return '<div style="border:1px solid var(--gl);padding:10px;margin-top:10px;font-family:VT323,monospace">'+
+    return '<div style="border:1px solid var(--gl);padding:10px;margin-top:10px">'+
       '<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:6px">'+t('train_tc_none_title')+'</div>'+
       '<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">'+t('train_tc_none_desc')+'</div>'+
       '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_cost_line').replace('{cost}',fmt(cost0)).replace('{upk}',fmt(upk0))+'</div>'+
-      (canBuild?'<button onclick="buildTC(0)" style="width:100%;margin-top:8px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('train_tc_build_btn').replace('{n}',fmt(cost0))+'</button>':
+      (canBuild?'<button onclick="buildTC(0)" style="width:100%;margin-top:8px;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('train_tc_build_btn').replace('{n}',fmt(cost0))+'</button>':
         '<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:6px">'+t('train_tc_no_funds').replace('{n}',fmt(cost0-G.budget))+'</div>')+
     '</div>';
   }
@@ -102,7 +102,7 @@ function renderTCPanel(){
   const locked=tc.profilesLocked;
   const inFocusWindow=(G.trainFocusLock||0)>=7;
   const changeCost=TRAINING_CENTER.changeCost[lvl-1]||5000;
-  let html='<div style="border:1px solid var(--gb);padding:10px;margin-top:10px;font-family:VT323,monospace">';
+  let html='<div style="border:1px solid var(--gb);padding:10px;margin-top:10px">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
   html+='<div style="color:var(--gb);font-size:var(--fs-dense)">CENTRUM SZKOLENIOWE — '+((tcDef&&tcDef.name)||'').toUpperCase()+'</div>';
   html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_slots').replace('{a}',activeP.length).replace('{m}',maxP)+'</div>';
@@ -119,13 +119,13 @@ function renderTCPanel(){
   });
   html+='</div>';
   if(locked&&!inFocusWindow)html+='<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('train_tc_change_hint').replace('{n}',fmt(changeCost))+'</div>';
-  if(locked&&!inFocusWindow)html+='<button onclick="unlockTCProfiles()" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-dense);padding:6px;cursor:pointer">'+t('train_tc_change_btn').replace('{n}',fmt(changeCost))+'</button>';
+  if(locked&&!inFocusWindow)html+='<button onclick="unlockTCProfiles()" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-dense);padding:6px;cursor:pointer">'+t('train_tc_change_btn').replace('{n}',fmt(changeCost))+'</button>';
   // Ulepszenie
   if(lvl<3){
     const nc=tcCost(lvl);const nu=tcUpkeep(lvl);const nd=TRAINING_CENTER.levels[lvl];
     const canUp=G.budget>=nc&&(G.reputation||0)>=(nd.req.rep||0)&&((G.stadium&&G.stadium.capacity)||0)>=(nd.req.stad||0);
     html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px;font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_upgrade_line').replace('{name}',nd.name).replace('{cost}',fmt(nc)).replace('{upk}',fmt(nu)).replace('{rep}',nd.req.rep).replace('{stad}',nd.req.stad)+'</div>';
-    if(canUp)html+='<button onclick="buildTC('+lvl+')" style="width:100%;margin-top:6px;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('train_tc_upgrade_btn').replace('{n}',fmt(nc))+'</button>';
+    if(canUp)html+='<button onclick="buildTC('+lvl+')" style="width:100%;margin-top:6px;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('train_tc_upgrade_btn').replace('{n}',fmt(nc))+'</button>';
   }
   html+='</div>';
   return html;
@@ -215,7 +215,7 @@ function fillCampPanel(){
   if(il)il.innerHTML=myPl().map(p=>{
     const sel=G.indCampSelected.includes(p.id);
     const disabled=!sel&&G.indCampSelected.length>=4;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0d1f0d;font-family:VT323,monospace;font-size:var(--fs-dense);cursor:pointer;opacity:'+(disabled?'0.4':'1')+'" onclick="toggleIndCamp('+p.id+')">'+
+    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense);cursor:pointer;opacity:'+(disabled?'0.4':'1')+'" onclick="toggleIndCamp('+p.id+')">'+
       '<span style="color:'+(sel?'var(--am)':'var(--gr)')+'">['+(sel?'✔':' ')+']</span>'+
       '<span style="color:var(--wh)">'+p.name+'</span>'+
       '<span style="color:var(--gr);margin-left:auto">OVR '+ovr(p)+'</span>'+
@@ -323,12 +323,12 @@ function fillProgressPanel(){
     '</tr>';
   }).join('');
   el.innerHTML=
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">'+statusMsg+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">'+statusMsg+'</div>'+
     '<table class="rtbl"><thead><tr>'+
       '<th>ZAWODNIK</th>'+thAttrs+
       '<th style="color:var(--gb)">OVR</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
       '<b style="color:var(--am)">Legenda OVR:</b> OVR = ważona średnia atrybutów zależna od pozycji.<br>'+
       'NAP: SHT×35% + TEC×35% + PHY×10% + MEN×10% + PAS×5% + OBR×5%<br>'+
       'POL: PAS×35% + TEC×35% + MEN×10% + PHY×10% + SHT×5% + OBR×5%<br>'+
@@ -507,7 +507,7 @@ function drawStadiumTopDown(cap,freq,modules){
   if(hasBoard){
     // Tablica wynikowa nad boiskiem
     s+=`<rect x="115" y="34" width="50" height="13" fill="#000" stroke="#ffc107" stroke-width=".8" rx="1"/>`;
-    s+=`<text x="140" y="44" font-family="VT323,monospace" font-size="9" fill="#ffc107" text-anchor="middle" letter-spacing="1">📺 TABLICA</text>`;
+    s+=`<text x="140" y="44" font-size="9" fill="#ffc107" text-anchor="middle" letter-spacing="1">📺 TABLICA</text>`;
   }
 
   // Słupy oświetlenia (cztery narożniki) gdy moduł light
@@ -519,7 +519,7 @@ function drawStadiumTopDown(cap,freq,modules){
 
   // Frekwencja label
   const viewers=Math.round(cap*freq);
-  s+=`<text x="${W/2}" y="${H-2}" font-family="VT323,monospace" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString('pl-PL')} widzów</text>`;
+  s+=`<text x="${W/2}" y="${H-2}" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString('pl-PL')} widzów</text>`;
 
   s+=`</svg>`;
   return s;
@@ -550,8 +550,8 @@ function renderStadPrzeglad(){
   el.innerHTML=
     drawStadiumTopDown(cap,freq,s.modules||{})+
     '<div style="background:var(--tb);border:1px solid var(--gl);border-top:none;padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||'Stadion')+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||'Stadion')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense)">'+
         '<div><div style="color:var(--gr)">Pojemność</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString('pl-PL')+' miejsc</div></div>'+
         '<div><div style="color:var(--gr)">Max ('+LEAGUE_NAMES[lvl]+')</div><div style="color:var(--gr)">'+maxCap.toLocaleString('pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">Frekwencja</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
@@ -562,14 +562,14 @@ function renderStadPrzeglad(){
     '</div>'+
     '<div style="background:#000;border:1px solid var(--gl);height:10px;margin-bottom:10px;position:relative">'+
       '<div style="height:100%;background:var(--gb);width:'+Math.min(100,Math.round(cap/maxCap*100))+'%"></div>'+
-      '<div style="position:absolute;right:4px;top:0;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+Math.min(100,Math.round(cap/maxCap*100))+'%</div>'+
+      '<div style="position:absolute;right:4px;top:0;font-size:var(--fs-dense);color:var(--wh)">'+Math.min(100,Math.round(cap/maxCap*100))+'%</div>'+
     '</div>'+
  
     (activeMods.length?
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">AKTYWNE MODUŁY</div>'+
-      activeMods.map(([k,m])=>'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
+      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">AKTYWNE MODUŁY</div>'+
+      activeMods.map(([k,m])=>'<div style="font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
       '<div style="margin-bottom:8px"></div>':'')+
-    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-body);padding:12px;cursor:pointer">ROZBUDUJ STADION</button>':'');
+    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">ROZBUDUJ STADION</button>':'');
 }
 function renderStadRozbudowa(){
   const el=document.getElementById('stad-rozbudowa');if(!el||!G)return;
@@ -581,18 +581,18 @@ function renderStadRozbudowa(){
     const pct=Math.min(100,Math.round((1-(s.building.weeksLeft/_tw))*100));
     const done=_tw-s.building.weeksLeft;
     return '<div class="stad-build-bar" style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:12px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">🔨 W BUDOWIE: +'+s.building.seats.toLocaleString('pl-PL')+' miejsc</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">🔨 W BUDOWIE: +'+s.building.seats.toLocaleString('pl-PL')+' miejsc</div>'+
       '<div style="background:#000;height:10px;border:1px solid var(--gl);margin-bottom:5px;position:relative">'+
         '<div class="stad-bar-fill" style="height:100%;background:var(--am);width:'+pct+'%;transition:width 0.3s"></div>'+
       '</div>'+
-      '<div style="display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
         '<span class="stad-bar-left" style="color:var(--gr)">Tydzień '+done+' / '+_tw+'</span>'+
         '<span class="stad-bar-right" style="color:var(--am)">'+pct+'% — zostało '+s.building.weeksLeft+' tyg.</span>'+
       '</div>'+
     '</div>';
   })():'';
   if(cap>=maxCap){
-    el.innerHTML='<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:16px;text-align:center">Osiągnięto limit dla '+LEAGUE_NAMES[lvl]+'. Awansuj wyżej.</div>'+
+    el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px;text-align:center">Osiągnięto limit dla '+LEAGUE_NAMES[lvl]+'. Awansuj wyżej.</div>'+
       '<div class="fsec" style="margin:12px 0 8px">MODUŁY</div><div id="stad-rozb-moduly"></div>';
     _renderStadModulyInRozb();return;
   }
@@ -608,27 +608,27 @@ function renderStadRozbudowa(){
   const canAfford=G.budget>=cost;
   el.innerHTML=
     buildBar+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">Pojemność: <span style="color:var(--wh)">'+cap.toLocaleString('pl-PL')+'</span> / Max: '+maxCap.toLocaleString('pl-PL')+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">Pojemność: <span style="color:var(--wh)">'+cap.toLocaleString('pl-PL')+'</span> / Max: '+maxCap.toLocaleString('pl-PL')+'</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">ILE MIEJSC DODAĆ?</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">ILE MIEJSC DODAĆ?</div>'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
         '<button onclick="changeStadAdd(-100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">-</button>'+
-        '<div style="flex:1;text-align:center;font-family:VT323,monospace;font-size:var(--fs-display);color:var(--am)">'+n.toLocaleString('pl-PL')+' miejsc</div>'+
+        '<div style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">'+n.toLocaleString('pl-PL')+' miejsc</div>'+
         '<button onclick="changeStadAdd(100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">+</button>'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:10px">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">'+
         '<div><div style="color:var(--gr)">Nowa pojemność</div><div style="color:var(--wh)">'+newCap.toLocaleString('pl-PL')+' miejsc</div></div>'+
         '<div><div style="color:var(--gr)">Koszt</div><div style="color:'+(canAfford?'var(--am)':'var(--rd)')+'">'+fmt(cost)+'</div></div>'+
         '<div><div style="color:var(--gr)">Czas budowy</div><div style="color:var(--wh)">'+weeks+' tyg.</div></div>'+
         '<div><div style="color:var(--gr)">Bilety/tyg po</div><div style="color:var(--gb)">+'+fmt(newBil)+' (+'+fmt(newBil-curBil)+')</div></div>'+
       '</div>'+
       (s.building?
-        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:12px;cursor:not-allowed;opacity:0.5">BUDOWA W TOKU...</button>'
+        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:not-allowed;opacity:0.5">BUDOWA W TOKU...</button>'
       :canAfford?
-        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:12px;cursor:pointer">ROZPOCZNIJ BUDOWĘ — '+fmt(cost)+'</button>'
-      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>')+
+        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:pointer">ROZPOCZNIJ BUDOWĘ — '+fmt(cost)+'</button>'
+      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>')+
     '</div>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Koszt/miejsce: '+(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900')+' zł</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr)">Koszt/miejsce: '+(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900')+' zł</div>'+
     '<div class="fsec" style="margin:14px 0 8px">MODUŁY</div>'+
     '<div id="stad-rozb-moduly"></div>';
   _renderStadModulyInRozb();
@@ -643,11 +643,11 @@ function renderStadModuly(){
     const mod=STAD_MODULES[mb.key];
     const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
     buildingHtml='<div style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:10px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 W BUDOWIE: '+(mod?mod.icon+' '+mod.name:'?')+' L'+(mb.lvl+1)+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 W BUDOWIE: '+(mod?mod.icon+' '+mod.name:'?')+' L'+(mb.lvl+1)+'</div>'+
       '<div style="background:#000;height:8px;border:1px solid var(--gl);margin-bottom:4px">'+
         '<div style="height:100%;background:var(--am);width:'+pct+'%"></div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Pozostało: '+mb.weeksLeft+' tyg. z '+mb.totalWeeks+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">Pozostało: '+mb.weeksLeft+' tyg. z '+mb.totalWeeks+'</div>'+
     '</div>';
   }
   el.innerHTML=buildingHtml+Object.entries(STAD_MODULES).map(([key,mod])=>{
@@ -661,20 +661,20 @@ function renderStadModuly(){
     return '<div style="background:var(--tb);border:1px solid '+(isBuilding?'var(--am)':lvl>0?'var(--gb)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
         '<span style="font-size:var(--fs-display)">'+mod.icon+'</span>'+
-        '<div style="flex:1"><div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+mod.name+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
-        (isBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' tyg.</div>':
-         lvl>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">L'+lvl+'</div>':'')+
+        '<div style="flex:1"><div style="font-size:var(--fs-dense);color:var(--wh)">'+mod.name+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
+        (isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' tyg.</div>':
+         lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">L'+lvl+'</div>':'')+
       '</div>'+
       '<div style="display:flex;margin-bottom:6px">'+prog+'</div>'+
-      (lvl>0?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
-      (isMax?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);text-align:center">MAX</div>':
-       isBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">W budowie: L'+(lvl+1)+' — '+next.effect+'</div>':
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">L'+(lvl+1)+': '+next.effect+' • '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</div>'+
-        (otherBuilding?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>':
-         !req.ok?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+req.msg+'</div>':
-         !canAfford?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>':
-         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">BUDUJ — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>')
+      (lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
+      (isMax?'<div style="font-size:var(--fs-dense);color:var(--am);text-align:center">MAX</div>':
+       isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">W budowie: L'+(lvl+1)+' — '+next.effect+'</div>':
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">L'+(lvl+1)+': '+next.effect+' • '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</div>'+
+        (otherBuilding?'<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>':
+         !req.ok?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+req.msg+'</div>':
+         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>':
+         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">BUDUJ — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>')
       )+
     '</div>';
   }).join('');
@@ -683,7 +683,7 @@ function renderStadHistoria(){
   const el=document.getElementById('stad-historia');if(!el||!G)return;
   const hist=(G.stadium&&G.stadium.hist)||[];
   el.innerHTML=hist.length?
-    '<table style="width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
     '<thead><tr>'+
       '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">S/T</th>'+
       '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">INWESTYCJA</th>'+
@@ -696,7 +696,7 @@ function renderStadHistoria(){
         '<td style="text-align:right;padding:4px 6px;color:var(--rd)">-'+fmt(h.cost)+'</td>'+
       '</tr>'
     ).join('')+'</tbody></table>'
-  :'<div style="color:var(--gr);font-family:VT323,monospace;font-size:var(--fs-dense);padding:12px">Brak historii inwestycji</div>';
+  :'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px">Brak historii inwestycji</div>';
 }
 function changeStadAdd(delta){
   const s=G.stadium||{};const cap=s.capacity||200;
@@ -735,20 +735,20 @@ function _renderStadModulyInRozb(){
     // Blok statusu / akcji
     let actionHtml='';
     if(isMax){
-      actionHtml='<div style="text-align:center;color:var(--am);font-family:VT323,monospace;font-size:var(--fs-dense);padding:4px 0">✓ MAX</div>';
+      actionHtml='<div style="text-align:center;color:var(--am);font-size:var(--fs-dense);padding:4px 0">✓ MAX</div>';
     } else if(isBuilding){
       const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
       actionHtml=
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 Buduje się L'+(lvl+1)+' — pozostało '+mb.weeksLeft+' tyg.</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 Buduje się L'+(lvl+1)+' — pozostało '+mb.weeksLeft+' tyg.</div>'+
         '<div style="background:#000;height:5px;border:1px solid var(--gl)"><div style="height:100%;background:var(--am);width:'+pct+'%"></div></div>';
     } else if(otherBuilding){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>';
+      actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>';
     } else if(!req.ok){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">🔒 '+req.msg+'</div>';
+      actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 '+req.msg+'</div>';
     } else if(!canAfford){
-      actionHtml='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>';
+      actionHtml='<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>';
     } else {
-      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:7px;cursor:pointer;letter-spacing:1px">BUDUJ L'+(lvl+1)+' — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>';
+      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:7px;cursor:pointer;letter-spacing:1px">BUDUJ L'+(lvl+1)+' — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>';
     }
 
     html+=
@@ -757,12 +757,12 @@ function _renderStadModulyInRozb(){
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
           '<span style="font-size:var(--fs-display);line-height:1">'+mod.icon+'</span>'+
           '<div style="flex:1">'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
-            '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+            '<div style="font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
+            '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
               (isMax?'MAX':'L'+lvl+'/'+maxLvl+(next?' • następny: '+next.effect:''))+
             '</div>'+
           '</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
+          '<div style="font-size:var(--fs-dense);text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
             (lvl>0?'<div style="color:var(--gb)">'+curEffect+'</div>':'')+
           '</div>'+
         '</div>'+

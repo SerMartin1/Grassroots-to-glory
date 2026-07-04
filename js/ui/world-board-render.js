@@ -76,8 +76,8 @@ function buildWorldTransferLog(){
 
 function renderWorldTransfers(){
   const el=document.getElementById('world-transfers');if(!el||!G)return;
-  const F='font-family:VT323,monospace;font-size:var(--fs-dense);';
-  const Fs='font-family:VT323,monospace;font-size:var(--fs-dense);';
+  const F='font-size:var(--fs-dense);';
+  const Fs='font-size:var(--fs-dense);';
   const list=buildWorldTransferLog();
   if(!list.length){
     el.innerHTML=`<div style="${F}color:var(--gr);text-align:center;padding:30px">Brak danych transferowych.<br>Zagraj kilka sezonów!</div>`;
@@ -147,7 +147,7 @@ function renderWorldClubs(sortBy){
   const el=document.getElementById('world-clubs');if(!el||!G)return;
   const sort=sortBy||el.dataset.sort||'spent';
   el.dataset.sort=sort;
-  const F='font-family:VT323,monospace;font-size:var(--fs-dense);';
+  const F='font-size:var(--fs-dense);';
   const leagues=G.leagues||[];
 
   // Zbierz statsy per klub
@@ -263,7 +263,7 @@ function renderBoardCele(){
   const el=document.getElementById('board-cele');if(!el||!G)return;
   const b=G.board;
   if(!b||!b.mainOptions){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Cele zostaną przydzielone na początku nowego sezonu.</div>';
+    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Cele zostaną przydzielone na początku nowego sezonu.</div>';
     return;
   }
   const streak=b.streakFailed||0;
@@ -272,7 +272,7 @@ function renderBoardCele(){
 
   // Baner PRESJI
   const pressBanner=streak>=2?
-    '<div style="background:#2e0000;border:2px solid var(--rd);padding:8px 12px;margin-bottom:10px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">'+
+    '<div style="background:#2e0000;border:2px solid var(--rd);padding:8px 12px;margin-bottom:10px;font-size:var(--fs-dense);color:var(--rd)">'+
     '⚠️ PRESJA ZARZĄDU — '+streak+'. sezon bez wykonania celu!'+
     (streak>=3?' Cel narzucony przez zarząd.':' Kary zwiększone ×'+(streak>=3?'1.6':'1.3')+'.')+
     '</div>':'';
@@ -282,7 +282,7 @@ function renderBoardCele(){
   let contextBanner='';
   if(lastHist){
     const ctx=b.mainOptions[0]&&b.mainOptions[0].context;
-    if(ctx)contextBanner='<div style="background:#0d2200;border-left:3px solid var(--gb);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">'+
+    if(ctx)contextBanner='<div style="background:#0d2200;border-left:3px solid var(--gb);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);color:var(--gr)">'+
       '📋 '+ctx+' (Poprzedni sezon: '+lastHist.pos+'. miejsce, '+lastHist.gf+':'+lastHist.ga+')</div>';
   }
 
@@ -290,11 +290,11 @@ function renderBoardCele(){
   const mainHtml=b.mainGoal?
     '<div style="background:var(--tb);border:2px solid var(--gb);padding:10px 12px;margin-bottom:12px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+b.mainGoal.label+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--am)">'+starsHtml(b.mainGoal.stars||3)+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--wh)">'+b.mainGoal.label+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--am)">'+starsHtml(b.mainGoal.stars||3)+'</div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+b.mainGoal.desc+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense)">'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+b.mainGoal.desc+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:var(--fs-dense)">'+
         '<div><div style="color:var(--gr)">Nagroda</div><div style="color:var(--gb)">'+
           (b.mainGoal.reward.budget?'+'+fmt(b.mainGoal.reward.budget):'')+(b.mainGoal.reward.rep?' +Rep '+b.mainGoal.reward.rep:'')+'</div></div>'+
         '<div><div style="color:var(--gr)">Kara</div><div style="color:var(--rd)">'+
@@ -307,17 +307,17 @@ function renderBoardCele(){
       const forced=b.pressureForced;
       return '<div style="background:var(--tb);border:1px solid '+(forced?'var(--rd)':'var(--gl)')+';padding:10px 12px;margin-bottom:6px">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">'+g.label+'</div>'+
-          '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(g.difficulty==='hard'?'var(--rd)':g.difficulty==='medium'?'var(--am)':'var(--gb)')+'">'+starsHtml(g.stars||3)+'</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--wh)">'+g.label+'</div>'+
+          '<div style="font-size:var(--fs-dense);color:'+(g.difficulty==='hard'?'var(--rd)':g.difficulty==='medium'?'var(--am)':'var(--gb)')+'">'+starsHtml(g.stars||3)+'</div>'+
         '</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+g.desc+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:VT323,monospace;font-size:var(--fs-dense);margin-bottom:6px">'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+g.desc+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
           '<div><div style="color:var(--gr)">Nagroda</div><div style="color:var(--gb)">'+
             (g.reward.budget?'+'+fmt(g.reward.budget):'')+(g.reward.rep?' +Rep '+g.reward.rep:'')+(g.reward.transferBudget?' +Tr.'+fmt(g.reward.transferBudget):'')+'</div></div>'+
           '<div><div style="color:var(--gr)">Kara</div><div style="color:var(--rd)">'+
             (g.penalty.budget&&g.penalty.budget<0?fmt(g.penalty.budget):'')+(g.penalty.rep?' Rep '+g.penalty.rep:'')+(g.penalty.transferLock?' ⛔blokada':'')+'</div></div>'+
         '</div>'+
-        '<button onclick="selectMainGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:'+(forced?'var(--rd)':'var(--gb)')+';color:#000;border:none;font-family:VT323,monospace;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+
+        '<button onclick="selectMainGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:'+(forced?'var(--rd)':'var(--gb)')+';color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+
           (forced?'NARZUCONY PRZEZ ZARZĄD':'WYBIERZ')+
         '</button>'+
       '</div>';
@@ -326,50 +326,50 @@ function renderBoardCele(){
   // Cel opcjonalny
   const optHtml=b.optGoal?
     '<div style="background:var(--tb);border:1px solid var(--gb);padding:8px 12px">'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+b.optGoal.label+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+b.optGoal.desc+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb)">Bonus: '+
+      '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+b.optGoal.label+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+b.optGoal.desc+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gb)">Bonus: '+
         (b.optGoal.reward.budget?'+'+fmt(b.optGoal.reward.budget):'')+(b.optGoal.reward.rep?' +Rep '+b.optGoal.reward.rep:'')+(b.optGoal.reward.sponsorBonus?' Sponsorzy +'+Math.round(b.optGoal.reward.sponsorBonus*100)+'%':'')+'</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">Kara za niewykonanie: Rep '+(b.optGoal.penalty&&b.optGoal.penalty.rep?b.optGoal.penalty.rep:'-8')+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--rd)">Kara za niewykonanie: Rep '+(b.optGoal.penalty&&b.optGoal.penalty.rep?b.optGoal.penalty.rep:'-8')+'</div>'+
     '</div>'
   :
     (b.optOptions||[]).map(g=>
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+g.label+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+g.desc+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gb);margin-bottom:2px">Bonus: '+
+        '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+g.label+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+g.desc+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:2px">Bonus: '+
           (g.reward.budget?'+'+fmt(g.reward.budget):'')+(g.reward.rep?' +Rep '+g.reward.rep:'')+(g.reward.sponsorBonus?' Sponsorzy +'+Math.round(g.reward.sponsorBonus*100)+'%':'')+(g.reward.formBonus?' Forma +'+g.reward.formBonus:'')+'</div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-bottom:6px">Kara za niewykonanie: Rep '+(g.penalty&&g.penalty.rep?g.penalty.rep:'-8')+'</div>'+
-        '<button onclick="selectOptGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:var(--gm);border:1px solid var(--am);color:var(--am);font-family:VT323,monospace;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODEJMIJ WYZWANIE</button>'+
+        '<div style="font-size:var(--fs-dense);color:var(--rd);margin-bottom:6px">Kara za niewykonanie: Rep '+(g.penalty&&g.penalty.rep?g.penalty.rep:'-8')+'</div>'+
+        '<button onclick="selectOptGoal(this.dataset.id)" data-id="'+g.id+'" style="width:100%;background:var(--gm);border:1px solid var(--am);color:var(--am);font-size:var(--fs-meta);padding:6px;cursor:pointer">PODEJMIJ WYZWANIE</button>'+
       '</div>'
     ).join('');
 
   el.innerHTML=
     pressBanner+contextBanner+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">CEL GŁÓWNY — Sezon '+G.season+'</div>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">CEL GŁÓWNY — Sezon '+G.season+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
       (b.mainGoal?'Wybrany: <span style="color:var(--gb)">'+b.mainGoal.label+'</span>':
        b.pressureForced?'<span style="color:var(--rd)">Zarząd narzucił cel — brak wyboru.</span>':'Wybierz jeden z celów:')+
     '</div>'+mainHtml+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-meta);color:var(--am);margin:10px 0 8px">CEL OPCJONALNY</div>'+
-    '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 8px">CEL OPCJONALNY</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
       (b.optGoal?'Wybrany: <span style="color:var(--gb)">'+b.optGoal.label+'</span>':
       'Podejmij dodatkowe wyzwanie (kara Rep -8 za niewykonanie):')+
     '</div>'+optHtml+
-    (streak>=1?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-top:8px;padding:6px;border-top:1px solid #3d0000">Seria niewykonanych celów: '+streak+(streak>=2?' — kary ×'+(streak>=3?'1.6':'1.3'):'')+'</div>':'');
+    (streak>=1?'<div style="font-size:var(--fs-dense);color:var(--rd);margin-top:8px;padding:6px;border-top:1px solid #3d0000">Seria niewykonanych celów: '+streak+(streak>=2?' — kary ×'+(streak>=3?'1.6':'1.3'):'')+'</div>':'');
 }
 
 function renderBoardHistoria(){
   const el=document.getElementById('board-historia');if(!el||!G)return;
   const hist=(G.board&&G.board.goalsHistory)||[];
   if(!hist.length){
-    el.innerHTML='<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia celów pojawi się po zakończeniu pierwszego sezonu z wybranym celem.</div>';
+    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia celów pojawi się po zakończeniu pierwszego sezonu z wybranym celem.</div>';
     return;
   }
   // Streak info na górze
   const streak=G.board&&G.board.streakFailed||0;
   const streakBanner=streak>=2?
-    '<div style="background:#2e0000;border:1px solid var(--rd);padding:6px 10px;margin-bottom:8px;font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd)">⚠️ Seria nieudanych sezonów: '+streak+'</div>':'';
+    '<div style="background:#2e0000;border:1px solid var(--rd);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);color:var(--rd)">⚠️ Seria nieudanych sezonów: '+streak+'</div>':'';
 
   el.innerHTML=streakBanner+hist.slice().reverse().map((h,i)=>{
     const prev=hist.slice().reverse()[i+1];
@@ -377,16 +377,16 @@ function renderBoardHistoria(){
     const trendCol=trend.includes('↑')?'var(--gb)':trend.includes('↓')?'var(--rd)':'var(--gr)';
     return '<div style="background:var(--tb);border:1px solid '+(h.mainDone?'var(--gb)':'var(--rd)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--wh)">Sezon '+h.season+
+        '<div style="font-size:var(--fs-dense);color:var(--wh)">Sezon '+h.season+
           ' <span style="color:'+trendCol+'">'+trend+'</span></div>'+
-        '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:'+(h.mainDone?'var(--gb)':'var(--rd)')+'">'+
+        '<div style="font-size:var(--fs-dense);color:'+(h.mainDone?'var(--gb)':'var(--rd)')+'">'+
           (h.mainDone?'✓ WYKONANY':'✗ NIEWYKONANY')+
         '</div>'+
       '</div>'+
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Cel: <span style="color:var(--wh)">'+h.mainGoal+'</span></div>'+
-      (h.optGoal?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:'+(h.optDone?'var(--gb)':'var(--rd)')+'">'+h.optGoal+(h.optDone?' ✓':' ✗')+'</span></div>':
-      '<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:var(--gr)">nie wybrano</span></div>')+
-      (h.streakAfter&&h.streakAfter>=2?'<div style="font-family:VT323,monospace;font-size:var(--fs-dense);color:var(--rd);margin-top:4px">Presja: '+h.streakAfter+' sezony z rzędu</div>':'')+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">Cel: <span style="color:var(--wh)">'+h.mainGoal+'</span></div>'+
+      (h.optGoal?'<div style="font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:'+(h.optDone?'var(--gb)':'var(--rd)')+'">'+h.optGoal+(h.optDone?' ✓':' ✗')+'</span></div>':
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">Bonus: <span style="color:var(--gr)">nie wybrano</span></div>')+
+      (h.streakAfter&&h.streakAfter>=2?'<div style="font-size:var(--fs-dense);color:var(--rd);margin-top:4px">Presja: '+h.streakAfter+' sezony z rzędu</div>':'')+
     '</div>';
   }).join('');
 }
