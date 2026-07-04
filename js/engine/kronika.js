@@ -266,76 +266,77 @@ function kronTrigger(){
     // T-01: Oferta z wyższej ligi
     {id:'t01_big_offer', category:'💰 TRANSFERY',
      weight:function(){return (bestP&&ovr(bestP)>=60&&(G.myLeague||8)>=3)?30:0;},
-     title:'Oferta z wyższej ligi',
+     title:t('kron_t01_title'),
      body:function(){
        const val=bestP?Math.round((bestP.value||50000)*1.30/1000)*1000:0;
        kron.flags._t01pid=bestP?bestP.id:-1;
        kron.flags._t01val=val;
-       return 'Klub z wyższej ligi składa oficjalną ofertę za '+(bestP?bestP.name:'Twojego najlepszego zawodnika')+'. Proponowana kwota: '+fmtVal(val)+'. Zarząd czeka na decyzję.';
+       return t('kron_t01_body').replace('{name}',bestP?bestP.name:t('kron_fallback_best_player')).replace('{val}',fmtVal(val));
      },
      choices:[
-       {label:'Sprzedajesz — bierzesz kasę',
+       {label:t('kron_t01_c1_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._t01pid;});
-          if(t){
+          const tr=G.players.find(function(p){return p.id===kron.flags._t01pid;});
+          if(tr){
             const val=kron.flags._t01val||0;
             G.budget+=val;
             if(!G.fin.transfers)G.fin.transfers=[];
-            G.fin.transfers.push({type:'sell',name:t.name,val:val,week:G.week,season:G.season});
-            addNews('[Transfer] '+t.name+' sprzedany za '+fmtVal(val)+'.','budget');
-            t.clubId=0;t.starter=false;t.status='freeAgent';t.isFreeAgent=true;
-            G.players=G.players.filter(function(p){return p.id!==t.id;});
-            if(!G.fa)G.fa=[];G.fa.push(t);
+            G.fin.transfers.push({type:'sell',name:tr.name,val:val,week:G.week,season:G.season});
+            addNews(t('news_tr_sold').replace('{name}',tr.name).replace('{val}',fmtVal(val)),'budget');
+            tr.clubId=0;tr.starter=false;tr.status='freeAgent';tr.isFreeAgent=true;
+            G.players=G.players.filter(function(p){return p.id!==tr.id;});
+            if(!G.fa)G.fa=[];G.fa.push(tr);
           }
         },
-        outcome:function(){return 'Sprzedany za '+fmtVal(kron.flags._t01val||0)+'.';}},
-       {label:'Odrzucasz ofertę — zostaje z wami',
+        outcome:function(){return t('kron_t01_c1_outcome').replace('{val}',fmtVal(kron.flags._t01val||0));}},
+       {label:t('kron_t01_c2_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._t01pid;});
-          if(t)t.form=Math.max(40,(t.form||80)-8); // niezadowolony
+          const tr=G.players.find(function(p){return p.id===kron.flags._t01pid;});
+          if(tr)tr.form=Math.max(40,(tr.form||80)-8); // niezadowolony
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._t01pid;});
-          return (t?t.name:' Zawodnik')+' zostaje. Forma: '+(t?t.form:'?')+'% — jest niezadowolony.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._t01pid;});
+          return t('kron_t01_c2_outcome').replace('{name}',tr?tr.name:t('kron_fallback_player')).replace('{form}',tr?tr.form:'?');
         }},
-       {label:'Negocjujesz — próbujesz wyciągnąć 150%',
+       {label:t('kron_t01_c3_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._t01pid;});
+          const tr=G.players.find(function(p){return p.id===kron.flags._t01pid;});
           if(Math.random()<0.70){
             const val2=Math.round((kron.flags._t01val||0)*1.15/1000)*1000;
-            if(t){
+            if(tr){
               G.budget+=val2;
-              addNews('[Transfer] Negocjacje udane! '+t.name+' sprzedany za '+fmtVal(val2)+'.','budget');
-              t.clubId=0;t.starter=false;t.status='freeAgent';t.isFreeAgent=true;
-              G.players=G.players.filter(function(p){return p.id!==t.id;});
-              if(!G.fa)G.fa=[];G.fa.push(t);
+              addNews(t('news_tr_nego_success').replace('{name}',tr.name).replace('{val}',fmtVal(val2)),'budget');
+              tr.clubId=0;tr.starter=false;tr.status='freeAgent';tr.isFreeAgent=true;
+              G.players=G.players.filter(function(p){return p.id!==tr.id;});
+              if(!G.fa)G.fa=[];G.fa.push(tr);
               kron.flags._t01val=val2;
             }
           } else {
-            addNews('[Transfer] Klub wycofał ofertę po negocjacjach.','budget');
-            if(t)t.form=Math.max(35,(t.form||80)-5);
+            addNews(t('news_tr_offer_withdrawn'),'budget');
+            if(tr)tr.form=Math.max(35,(tr.form||80)-5);
           }
         },
         outcome:function(){
           const stillHere=G.players.find(function(p){return p.id===kron.flags._t01pid;});
-          if(!stillHere)return 'Negocjacje udane! Sprzedany za '+fmtVal(kron.flags._t01val||0)+'.';
-          return 'Klub wycofał ofertę. Zawodnik zostaje, ale jest niezadowolony.';
+          if(!stillHere)return t('kron_t01_c3_outcome_win').replace('{val}',fmtVal(kron.flags._t01val||0));
+          return t('kron_t01_c3_outcome_lose');
         }},
      ]},
 
     // T-04: Lokalny talent puka do drzwi
     {id:'t04_local_talent', category:'💰 TRANSFERY',
      weight:function(){return (my.length<24&&G.round>2)?20:0;},
-     title:'Lokalny talent',
+     title:t('kron_t04_title'),
      body:function(){
        const pos=pick(['NAP','POL','OBR']);
        const ageT=17+Math.floor(Math.random()*3);
        const ovrT=38+Math.floor(Math.random()*8);
        kron.flags._t04pos=pos;kron.flags._t04age=ageT;kron.flags._t04ovr=ovrT;
-       return ageT+'-letni '+(pos==='NAP'?'napastnik':pos==='POL'?'pomocnik':'obrońca')+' z lokalnej drużyny sam zgłosił się na trening. OVR ~'+ovrT+', potencjał nieznany. Chce spróbować.';
+       const posLabel=pos==='NAP'?t('kron_pos_nap'):pos==='POL'?t('kron_pos_pol'):t('kron_pos_obr');
+       return t('kron_t04_body').replace('{age}',ageT).replace('{pos}',posLabel).replace('{ovr}',ovrT);
      },
      choices:[
-       {label:'Dajesz mu szansę — darmowy transfer',
+       {label:t('kron_t04_c1_label'),
         effect:function(){
           const pos2=kron.flags._t04pos||'POL';
           const ageT2=kron.flags._t04age||18;
@@ -349,15 +350,15 @@ function kronTrigger(){
           np.status='active';np.isFreeAgent=false;
           np.history=[{season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(np),avgRat:null,_current:true}];
           G.players.push(np);
-          addNews('[Transfer] '+np.name+' ('+pos2+', '+ageT2+'l) dołączył do klubu za darmo!','budget');
+          addNews(t('news_tr_joined_free').replace('{name}',np.name).replace('{pos}',pos2).replace('{age}',ageT2),'budget');
         },
         outcome:function(){
           const np=myPl().filter(function(p){return p.contract===1&&!p.fromAcademy;}).sort(function(a,b){return b.id-a.id;})[0];
-          return np?np.name+' ('+np.pos+', '+np.age+'l, OVR '+ovr(np)+') dołączył za darmo. Kontrakt: 1 sezon.':'Nowy zawodnik w składzie.';
+          return np?t('kron_t04_c1_outcome').replace('{name}',np.name).replace('{pos}',np.pos).replace('{age}',np.age).replace('{ovr}',ovr(np)):t('kron_t04_c1_outcome_fallback');
         }},
-       {label:'Odsyłasz do akademii (+5 OVR start)',
+       {label:t('kron_t04_c2_label'),
         effect:function(){
-          if(!G.academy||G.academy.level<1){notif('Brak akademii — nie można odesłać!','err');return;}
+          if(!G.academy||G.academy.level<1){notif(t('kron_t04_c2_notif_noacademy'),'err');return;}
           const pos2=kron.flags._t04pos||'POL';
           const ageT2=kron.flags._t04age||18;
           const ovrT2=(kron.flags._t04ovr||42)+5;
@@ -370,19 +371,19 @@ function kronTrigger(){
           np.fromAcademy=true;np.clubId=G.myClubId;
           if(!G.academy.prospects)G.academy.prospects=[];
           G.academy.prospects.push(np);
-          addNews('[Akademia] '+np.name+' trafił do akademii z bonusem +5 OVR!','academy');
+          addNews(t('kron_t04_c2_news').replace('{name}',np.name),'academy');
         },
         outcome:function(){
           const np=(G.academy&&G.academy.prospects||[]).slice(-1)[0];
-          return np?np.name+' ('+np.pos+', Pot:'+np.potential+') w akademii z bonusem +5 potencjału.':'Talent trafił do akademii.';
+          return np?t('kron_t04_c2_outcome').replace('{name}',np.name).replace('{pos}',np.pos).replace('{pot}',np.potential):t('kron_t04_c2_outcome_fallback');
         }},
-       {label:'Ignorujesz — nie ma miejsca',
+       {label:t('kron_t04_c3_label'),
         effect:function(){
           const pos2=kron.flags._t04pos||'POL';
           const np=mkPlayer(0);np.pos=pos2;
           if(!G.fa)G.fa=[];G.fa.push(np);
         },
-        outcome:function(){return 'Zawodnik odszedł. Może trafić do rywala.';}},
+        outcome:function(){return t('kron_t04_c3_outcome');}},
      ]},
 
     // M-01: Sponsor chce nazwy na stadionie
@@ -720,58 +721,58 @@ function kronTrigger(){
        const star=starters.find(function(p){return ovr(p)>=62;});
        return star?28:0;
      },
-     title:'Agent żąda podwyżki',
+     title:t('kron_t02_title'),
      body:function(){
        const star=starters.filter(function(p){return ovr(p)>=62;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._t02starId=star?star.id:-1;
        const ask=star?Math.round((star.value||50000)*0.25/1000)*1000:15000;
        kron.flags._t02ask=ask;
-       return 'Agent '+(star?star.name:'Twojego najlepszego zawodnika')+' (OVR '+(star?ovr(star):'?')+') zadzwonił: jego klient chce podwyżki o '+fmtVal(ask)+'. "Albo teraz, albo szukamy innych opcji" — powiedział dosłownie.';
+       return t('kron_t02_body').replace('{name}',star?star.name:t('kron_fallback_best_player')).replace('{ovr}',star?ovr(star):'?').replace('{ask}',fmtVal(ask));
      },
      choices:[
-       {label:'Dajesz podwyżkę (forma +5, kontrakt przedłużony)',
+       {label:t('kron_t02_c1_label'),
         effect:function(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
           const ask=kron.flags._t02ask||15000;
-          if(G.budget<ask){notif('Brak budżetu na podwyżkę!','err');kron.flags._t02result='noBudget';return;}
+          if(G.budget<ask){notif(t('kron_t02_notif_no_budget_raise'),'err');kron.flags._t02result='noBudget';return;}
           G.budget-=ask;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:ask,bal:G.budget,season:G.season,note:'Kronika: negocjacje sponsorskie'});
           if(star){star.form=Math.min(100,(star.form||80)+5);star._loyaltyBonus=true;star.contract=Math.max(star.contract||1,3);}
-          addNews('[Transfer] '+(star?star.name:'Zawodnik')+' podpisał nowy kontrakt. Budżet: -'+fmtVal(ask)+'.','budget');
+          addNews(t('news_tr_signed_raise').replace('{name}',star?star.name:t('kron_fallback_player')).replace('{val}',fmtVal(ask)),'budget');
           kron.flags._t02result='paid';
         },
         outcome:function(){
-          if(kron.flags._t02result==='noBudget')return 'Brak budżetu — podwyżka niemożliwa. Agent wychodzi zdenerwowany.';
+          if(kron.flags._t02result==='noBudget')return t('kron_t02_c1_outcome_nobudget');
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
-          return 'Podwyżka wypłacona. Budżet -'+fmtVal(kron.flags._t02ask||0)+'. '+(star?star.name+' forma +5, kontrakt przedłużony.':'');
+          return t('kron_t02_c1_outcome_paid').replace('{val}',fmtVal(kron.flags._t02ask||0))+' '+(star?t('kron_t02_c1_outcome_paid_suffix').replace('{name}',star.name):'');
         }},
-       {label:'Odmawiasz — za dużo żąda (gracz forma -10, ryzyko odejścia)',
+       {label:t('kron_t02_c2_label'),
         effect:function(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
           if(star){star.form=Math.max(20,(star.form||80)-10);star._wantsOut=true;}
-          addNews('[Transfer] '+(star?star.name:'Zawodnik')+' niezadowolony po odmowie podwyżki.','err');
+          addNews(t('kron_t02_c2_news').replace('{name}',star?star.name:t('kron_fallback_player')),'err');
           kron.flags._t02result='refused';
         },
         outcome:function(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
-          return (star?star.name:'Zawodnik')+' forma: '+(star?star.form:'?')+'% (-10). Jeśli wpłynie oferta transferowa, trudniej go zatrzymać.';
+          return t('kron_t02_c2_outcome').replace('{name}',star?star.name:t('kron_fallback_player')).replace('{form}',star?star.form:'?');
         }},
-       {label:'Blefujesz — "inny klub już pyta o ciebie" (50/50)',
+       {label:t('kron_t02_c3_label'),
         effect:function(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
           if(Math.random()<0.50){
             if(star)star.form=Math.min(100,(star.form||80)+2);
-            addNews('[Transfer] Blef zadziałał — '+(star?star.name:'zawodnik')+' odpuścił temat podwyżki.','ok');
+            addNews(t('news_tr_bluff_works').replace('{name}',star?star.name:t('kron_fallback_player')),'ok');
             kron.flags._t02result='bluffWin';
           } else {
             if(star){star.form=Math.max(15,(star.form||80)-12);star._wantsOut=true;}
-            addNews('[Transfer] '+(star?star.name:'Zawodnik')+' przejrzał blef i jest wściekły. Forma -12.','err');
+            addNews(t('news_tr_bluff_fails').replace('{name}',star?star.name:t('kron_fallback_player')),'err');
             kron.flags._t02result='bluffLose';
           }
         },
         outcome:function(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
-          if(kron.flags._t02result==='bluffWin')return 'Blef zadziałał! '+(star?star.name:'Zawodnik')+' odpuścił. Forma +2.';
-          return 'Blef spalony. '+(star?star.name:'Zawodnik')+' forma: '+(star?star.form:'?')+'% (-12). Ryzyko odejścia wzrosło.';
+          if(kron.flags._t02result==='bluffWin')return t('kron_t02_c3_outcome_win').replace('{name}',star?star.name:t('kron_fallback_player'));
+          return t('kron_t02_c3_outcome_lose').replace('{name}',star?star.name:t('kron_fallback_player')).replace('{form}',star?star.form:'?');
         }},
      ]},
 
@@ -782,22 +783,22 @@ function kronTrigger(){
        const gem=G.fa.find(function(p){return ovr(p)>=60&&(p.age||25)<=30;});
        return (gem&&G.budget>=15000)?22:0;
      },
-     title:'Okazja — wolny agent z klasą',
+     title:t('kron_t05_title'),
      body:function(){
        const gem=G.fa.filter(function(p){return ovr(p)>=60&&(p.age||25)<=30;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._t05gemId=gem?gem.id:-1;
        const cost=gem?Math.round((gem.value||40000)*0.50/1000)*1000:20000;
        kron.flags._t05cost=cost;
        kron.flags._t05cheapCost=Math.round(cost*0.60/1000)*1000;
-       return (gem?gem.name:'Doświadczony zawodnik')+' ('+(gem?gem.pos:'?')+', OVR '+(gem?ovr(gem):'?')+', '+(gem?gem.age:'?')+' lat) jest bez klubu po wygaśnięciu kontraktu. Agent sygnalizuje zainteresowanie — cena niższa niż rynkowa: '+fmtVal(cost)+'.';
+       return t('kron_t05_body').replace('{name}',gem?gem.name:t('kron_t05_fallback_name')).replace('{pos}',gem?gem.pos:'?').replace('{ovr}',gem?ovr(gem):'?').replace('{age}',gem?gem.age:'?').replace('{cost}',fmtVal(cost));
      },
      choices:[
-       {label:'Podpisujesz natychmiast',
+       {label:t('kron_t05_c1_label'),
         effect:function(){
           const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
           const cost=kron.flags._t05cost||20000;
           if(!gem){kron.flags._t05result='gone';return;}
-          if(G.budget<cost){notif('Brak budżetu!','err');kron.flags._t05result='noBudget';return;}
+          if(G.budget<cost){notif(t('kron_notif_no_budget'),'err');kron.flags._t05result='noBudget';return;}
           G.budget-=cost;
           fillHistoryGaps(gem);
           gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
@@ -806,21 +807,21 @@ function kronTrigger(){
           G.players.push(gem);
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'buy',name:gem.name,val:cost,fee:cost,week:G.week,season:G.season});
-          addNews('[Transfer] '+gem.name+' (OVR '+ovr(gem)+') podpisał kontrakt! Budżet: -'+fmtVal(cost)+'.','budget');
+          addNews(t('news_tr_gem_signed').replace('{name}',gem.name).replace('{ovr}',ovr(gem)).replace('{val}',fmtVal(cost)),'budget');
           kron.flags._t05result='signed';kron.flags._t05name=gem.name;kron.flags._t05ovr=ovr(gem);
         },
         outcome:function(){
-          if(kron.flags._t05result==='gone')return 'Zawodnik odszedł do innego klubu zanim zdążyłeś zareagować.';
-          if(kron.flags._t05result==='noBudget')return 'Brak budżetu — transfer niemożliwy.';
-          return (kron.flags._t05name||'Zawodnik')+' (OVR '+(kron.flags._t05ovr||'?')+') w drużynie! Budżet -'+fmtVal(kron.flags._t05cost||0)+'.';
+          if(kron.flags._t05result==='gone')return t('kron_t05_c1_outcome_gone');
+          if(kron.flags._t05result==='noBudget')return t('kron_t05_c1_outcome_nobudget');
+          return t('kron_t05_c1_outcome').replace('{name}',kron.flags._t05name||t('kron_fallback_player')).replace('{ovr}',kron.flags._t05ovr||'?').replace('{val}',fmtVal(kron.flags._t05cost||0));
         }},
-       {label:'Negocjujesz cenę — próbujesz zejść do 60% (70% szans)',
+       {label:t('kron_t05_c2_label'),
         effect:function(){
           const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
           const cheapCost=kron.flags._t05cheapCost||12000;
           if(!gem){kron.flags._t05result='gone';return;}
           if(Math.random()<0.70){
-            if(G.budget<cheapCost){notif('Brak budżetu nawet po negocjacjach!','err');kron.flags._t05result='noBudget';return;}
+            if(G.budget<cheapCost){notif(t('kron_t05_c2_notif_nobudget'),'err');kron.flags._t05result='noBudget';return;}
             G.budget-=cheapCost;
             fillHistoryGaps(gem);
             gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
@@ -829,21 +830,21 @@ function kronTrigger(){
             G.players.push(gem);
             if(!G.fin.transfers)G.fin.transfers=[];
             G.fin.transfers.push({type:'buy',name:gem.name,val:cheapCost,fee:cheapCost,week:G.week,season:G.season});
-            addNews('[Transfer] Negocjacje udane! '+gem.name+' za '+fmtVal(cheapCost)+'.','budget');
+            addNews(t('news_tr_gem_nego').replace('{name}',gem.name).replace('{val}',fmtVal(cheapCost)),'budget');
             kron.flags._t05result='negotiated';kron.flags._t05name=gem.name;kron.flags._t05ovr=ovr(gem);
           } else {
             G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
-            addNews('[Transfer] '+gem.name+' odrzucił kontrpropozycję i wybrał inny klub.','err');
+            addNews(t('news_tr_gem_rejected').replace('{name}',gem.name),'err');
             kron.flags._t05result='walkaway';kron.flags._t05name=gem.name;
           }
         },
         outcome:function(){
-          if(kron.flags._t05result==='gone')return 'Zawodnik odszedł zanim zdążyłeś zareagować.';
-          if(kron.flags._t05result==='noBudget')return 'Negocjacje udane, ale brakuje budżetu.';
-          if(kron.flags._t05result==='negotiated')return (kron.flags._t05name||'Zawodnik')+' za '+fmtVal(kron.flags._t05cheapCost||0)+'! Zaoszczędziłeś na negocjacjach.';
-          return (kron.flags._t05name||'Zawodnik')+' odszedł po nieudanych negocjacjach.';
+          if(kron.flags._t05result==='gone')return t('kron_t05_c23_outcome_gone');
+          if(kron.flags._t05result==='noBudget')return t('kron_t05_c2_outcome_nobudget');
+          if(kron.flags._t05result==='negotiated')return t('kron_t05_c2_outcome_win').replace('{name}',kron.flags._t05name||t('kron_fallback_player')).replace('{val}',fmtVal(kron.flags._t05cheapCost||0));
+          return t('kron_t05_c2_outcome_lose').replace('{name}',kron.flags._t05name||t('kron_fallback_player'));
         }},
-       {label:'Zapraszasz na próbny trening — za darmo (40% szans)',
+       {label:t('kron_t05_c3_label'),
         effect:function(){
           const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
           if(!gem){kron.flags._t05result='gone';return;}
@@ -854,17 +855,17 @@ function kronTrigger(){
             gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
             G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
             G.players.push(gem);
-            addNews('[Transfer] '+gem.name+' zaimponowany próbnym treningiem! Podpisuje za darmo.','ok');
+            addNews(t('news_tr_gem_trial_ok').replace('{name}',gem.name),'ok');
             kron.flags._t05result='trial';kron.flags._t05name=gem.name;
           } else {
-            addNews('[Transfer] '+gem.name+' nie był przekonany — odszedł.','err');
+            addNews(t('news_tr_gem_trial_no').replace('{name}',gem.name),'err');
             kron.flags._t05result='trialFail';kron.flags._t05name=gem.name;
           }
         },
         outcome:function(){
-          if(kron.flags._t05result==='gone')return 'Zawodnik odszedł zanim zdążyłeś zareagować.';
-          if(kron.flags._t05result==='trial')return (kron.flags._t05name||'Zawodnik')+' podpisał za darmo po próbnym treningu! Forma -5.';
-          return (kron.flags._t05name||'Zawodnik')+' odrzucił ofertę po treningu.';
+          if(kron.flags._t05result==='gone')return t('kron_t05_c23_outcome_gone');
+          if(kron.flags._t05result==='trial')return t('kron_t05_c3_outcome_win').replace('{name}',kron.flags._t05name||t('kron_fallback_player'));
+          return t('kron_t05_c3_outcome_lose').replace('{name}',kron.flags._t05name||t('kron_fallback_player'));
         }},
      ]},
 
@@ -876,7 +877,7 @@ function kronTrigger(){
        const target=G.fa.find(function(p){return ovr(p)>=55&&(p.age||25)<=28;});
        return (target&&G.budget>=20000)?25:0;
      },
-     title:'Licytacja z rywalem',
+     title:t('kron_t06_title'),
      body:function(){
        const target=G.fa.filter(function(p){return ovr(p)>=55&&(p.age||25)<=28;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._t06targetId=target?target.id:-1;
@@ -884,16 +885,16 @@ function kronTrigger(){
        kron.flags._t06base=base;
        kron.flags._t06high=Math.round(base*1.20/1000)*1000;
        kron.flags._t06cheap=Math.round(base*0.55/1000)*1000;
-       const rivalName=(G.rival&&G.rival.n)||'Rywal';
-       return 'Agent '+(target?target.name:'wolnego agenta')+' (OVR '+(target?ovr(target):'?')+') poinformował, że '+rivalName+' złożył ofertę. Macie 24h na decyzję. Cena bazowa: '+fmtVal(base)+'.';
+       const rivalName=(G.rival&&G.rival.n)||t('kron_fallback_rival');
+       return t('kron_t06_body').replace('{name}',target?target.name:t('kron_t06_fallback_name')).replace('{ovr}',target?ovr(target):'?').replace('{rival}',rivalName).replace('{base}',fmtVal(base));
      },
      choices:[
-       {label:'Podbijasz cenę — wygrywasz licytację (cena +20%)',
+       {label:t('kron_t06_c1_label'),
         effect:function(){
           const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
           const high=kron.flags._t06high||30000;
           if(!target){kron.flags._t06result='gone';return;}
-          if(G.budget<high){notif('Brak budżetu na licytację!','err');kron.flags._t06result='noBudget';return;}
+          if(G.budget<high){notif(t('kron_t06_c1_notif_nobudget'),'err');kron.flags._t06result='noBudget';return;}
           G.budget-=high;
           fillHistoryGaps(target);
           target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
@@ -902,36 +903,36 @@ function kronTrigger(){
           G.players.push(target);
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'buy',name:target.name,val:high,fee:high,week:G.week,season:G.season});
-          addNews('[Transfer] Licytacja wygrana! '+target.name+' za '+fmtVal(high)+'. Rywal bez wzmocnienia.','budget');
+          addNews(t('news_tr_auction_win').replace('{name}',target.name).replace('{val}',fmtVal(high)),'budget');
           kron.flags._t06result='won';kron.flags._t06name=target.name;kron.flags._t06ovr=ovr(target);
         },
         outcome:function(){
-          if(kron.flags._t06result==='gone')return 'Zawodnik zniknął z rynku przed finalizacją.';
-          if(kron.flags._t06result==='noBudget')return 'Brak budżetu — przegrałeś licytację z rywalem.';
-          return 'Licytacja wygrana! '+(kron.flags._t06name||'Zawodnik')+' (OVR '+(kron.flags._t06ovr||'?')+') Twój za '+fmtVal(kron.flags._t06high||0)+'.';
+          if(kron.flags._t06result==='gone')return t('kron_t06_c1_outcome_gone');
+          if(kron.flags._t06result==='noBudget')return t('kron_t06_c1_outcome_nobudget');
+          return t('kron_t06_c1_outcome_win').replace('{name}',kron.flags._t06name||t('kron_fallback_player')).replace('{ovr}',kron.flags._t06ovr||'?').replace('{val}',fmtVal(kron.flags._t06high||0));
         }},
-       {label:'Odpuszczasz — rywal go bierze (rival.strength +3)',
+       {label:t('kron_t06_c2_label'),
         effect:function(){
           const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
           if(target&&G.rival){
             target.isFreeAgent=false;target.status='active';
             G.fa=G.fa.filter(function(p){return p.id!==target.id;});
             if(G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+3;
-            addNews('[Transfer] '+(target.name||'Wolny agent')+' trafił do '+(G.rival.n||'Rywala')+'. Rival wzmocniony.','err');
+            addNews(t('news_tr_to_rival').replace('{name}',target.name||t('kron_t06_fallback_freeagent')).replace('{rival}',G.rival.n||t('kron_t06_fallback_rival_gen')),'err');
           }
-          kron.flags._t06result='lost';kron.flags._t06name=target?target.name:'Zawodnik';
+          kron.flags._t06result='lost';kron.flags._t06name=target?target.name:t('kron_fallback_player');
         },
         outcome:function(){
-          const rivalName=(G.rival&&G.rival.n)||'Rywal';
-          return (kron.flags._t06name||'Zawodnik')+' w drużynie '+rivalName+'. Ich siła +3.';
+          const rivalName=(G.rival&&G.rival.n)||t('kron_fallback_rival');
+          return t('kron_t06_c2_outcome').replace('{name}',kron.flags._t06name||t('kron_fallback_player')).replace('{rival}',rivalName);
         }},
-       {label:'Podkopujesz agenta rywala — ryzykowna gra (30% szans, tańszy transfer)',
+       {label:t('kron_t06_c3_label'),
         effect:function(){
           const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
           const cheap=kron.flags._t06cheap||18000;
           if(!target){kron.flags._t06result='gone';return;}
           if(Math.random()<0.30){
-            if(G.budget<cheap){notif('Brak budżetu!','err');kron.flags._t06result='noBudget';return;}
+            if(G.budget<cheap){notif(t('kron_notif_no_budget'),'err');kron.flags._t06result='noBudget';return;}
             G.budget-=cheap;
             fillHistoryGaps(target);
             target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
@@ -940,21 +941,21 @@ function kronTrigger(){
             G.players.push(target);
             if(!G.fin.transfers)G.fin.transfers=[];
             G.fin.transfers.push({type:'buy',name:target.name,val:cheap,fee:cheap,week:G.week,season:G.season});
-            addNews('[Transfer] Zakulisowe manewry zadziałały! '+target.name+' za '+fmtVal(cheap)+'.','ok');
+            addNews(t('news_tr_backstage_win').replace('{name}',target.name).replace('{val}',fmtVal(cheap)),'ok');
             kron.flags._t06result='sneaky';kron.flags._t06name=target.name;
           } else {
             G.fa=G.fa.filter(function(p){return p.id!==target.id;});
             if(G.rival&&G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+2;
             G.reputation=Math.max(0,(G.reputation||30)-5);
-            addNews('[Transfer] Zakulisowe próby spalone. '+(target.name||'Zawodnik')+' trafił do rywala. Reputacja -5.','err');
-            kron.flags._t06result='sneakyFail';kron.flags._t06name=target?target.name:'Zawodnik';
+            addNews(t('news_tr_backstage_lose').replace('{name}',target.name||t('kron_fallback_player')),'err');
+            kron.flags._t06result='sneakyFail';kron.flags._t06name=target?target.name:t('kron_fallback_player');
           }
         },
         outcome:function(){
-          if(kron.flags._t06result==='gone')return 'Zawodnik zniknął z rynku.';
-          if(kron.flags._t06result==='noBudget')return 'Zakulisowa akcja udana, ale brak budżetu.';
-          if(kron.flags._t06result==='sneaky')return 'Udało się! '+(kron.flags._t06name||'Zawodnik')+' za '+fmtVal(kron.flags._t06cheap||0)+'. Rywal nic nie wie.';
-          return 'Plany wyszły na jaw. Rywal zabrał '+(kron.flags._t06name||'Zawodnika')+'. Reputacja: '+(G.reputation||0)+' (-5).';
+          if(kron.flags._t06result==='gone')return t('kron_t06_c3_outcome_gone');
+          if(kron.flags._t06result==='noBudget')return t('kron_t06_c3_outcome_nobudget');
+          if(kron.flags._t06result==='sneaky')return t('kron_t06_c3_outcome_win').replace('{name}',kron.flags._t06name||t('kron_fallback_player')).replace('{val}',fmtVal(kron.flags._t06cheap||0));
+          return t('kron_t06_c3_outcome_lose').replace('{name}',kron.flags._t06name||t('kron_fallback_player_acc')).replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1109,7 +1110,7 @@ function kronTrigger(){
        });
        return loyal?25:0;
      },
-     title:'Lojalny zawodnik — niezwykła propozycja',
+     title:t('kron_t07_title'),
      body:function(){
        const loyal=myPl().filter(function(p){
          return p._loyaltyBonus&&(p._seasonsAtClub||0)>=3&&!p._wantsOut;
@@ -1117,10 +1118,10 @@ function kronTrigger(){
        kron.flags._t07loyalId=loyal?loyal.id:-1;
        const saving=loyal?Math.round((loyal.value||30000)*0.15/1000)*1000:10000;
        kron.flags._t07saving=saving;
-       return (loyal?loyal.name:'Twój lojalny zawodnik')+' ('+(loyal?loyal._seasonsAtClub||3:3)+' sezony w klubie) sam przyszedł z propozycją: obniży sobie pensję o '+fmtVal(saving)+' na sezon, żebyś mógł kupić wzmocnienie. "Ten klub to mój dom" — powiedział.';
+       return t('kron_t07_body').replace('{name}',loyal?loyal.name:t('kron_t07_fallback_name')).replace('{seasons}',loyal?loyal._seasonsAtClub||3:3).replace('{saving}',fmtVal(saving));
      },
      choices:[
-       {label:'Przyjmujesz — oszczędzasz budżet (+saving zł, jego forma +5)',
+       {label:t('kron_t07_c1_label'),
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           const saving=kron.flags._t07saving||10000;
@@ -1133,24 +1134,24 @@ function kronTrigger(){
               p.form=Math.min(100,(p.form||80)+3);
             });
           }
-          addNews('[Szatnia] '+(loyal?loyal.name:'Zawodnik')+' obniżył pensję dla dobra klubu. Morale szatni +3.','ok');
-          kron.flags._t07result='accepted';kron.flags._t07name=loyal?loyal.name:'Zawodnik';
+          addNews(t('kron_t07_c1_news').replace('{name}',loyal?loyal.name:t('kron_fallback_player')),'ok');
+          kron.flags._t07result='accepted';kron.flags._t07name=loyal?loyal.name:t('kron_fallback_player');
         },
         outcome:function(){
-          return 'Gest przyjęty. Budżet +'+fmtVal(kron.flags._t07saving||0)+'. '+(kron.flags._t07name||'Zawodnik')+' forma +5. Cały skład morale +3.';
+          return t('kron_t07_c1_outcome').replace('{val}',fmtVal(kron.flags._t07saving||0)).replace('{name}',kron.flags._t07name||t('kron_fallback_player'));
         }},
-       {label:'Odrzucasz — nie chcesz go obciążać (rep +5, nic finansowo)',
+       {label:t('kron_t07_c2_label'),
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           G.reputation=Math.min(1000,(G.reputation||30)+5);
           if(loyal)loyal.form=Math.min(100,(loyal.form||80)+8);// docenia że nie wykorzystałeś
-          addNews('[Szatnia] Trener odrzucił propozycję — nie chciał wykorzystywać lojalności. Reputacja +5.','ok');
-          kron.flags._t07result='refused';kron.flags._t07name=loyal?loyal.name:'Zawodnik';
+          addNews(t('kron_t07_c2_news'),'ok');
+          kron.flags._t07result='refused';kron.flags._t07name=loyal?loyal.name:t('kron_fallback_player');
         },
         outcome:function(){
-          return 'Odmówiłeś obniżki. Reputacja: '+(G.reputation||0)+' (+5). '+(kron.flags._t07name||'Zawodnik')+' forma +8 — szanuje Twoją decyzję.';
+          return t('kron_t07_c2_outcome').replace('{rep}',G.reputation||0).replace('{name}',kron.flags._t07name||t('kron_fallback_player'));
         }},
-       {label:'Przyjmujesz i publicznie go chwalisz (+saving zł, rep +8, forma +8)',
+       {label:t('kron_t07_c3_label'),
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           const saving=kron.flags._t07saving||10000;
@@ -1163,11 +1164,11 @@ function kronTrigger(){
           myPl().filter(function(p){return p.id!==kron.flags._t07loyalId;}).forEach(function(p){
             p.form=Math.min(100,(p.form||80)+4);
           });
-          addNews('[Szatnia] '+(loyal?loyal.name:'Zawodnik')+' bohaterem szatni po publicznej pochwale trenera. Reputacja +8.','ok');
-          kron.flags._t07result='praised';kron.flags._t07name=loyal?loyal.name:'Zawodnik';
+          addNews(t('kron_t07_c3_news').replace('{name}',loyal?loyal.name:t('kron_fallback_player')),'ok');
+          kron.flags._t07result='praised';kron.flags._t07name=loyal?loyal.name:t('kron_fallback_player');
         },
         outcome:function(){
-          return 'Publiczna pochwała! Budżet +'+fmtVal(kron.flags._t07saving||0)+'. '+(kron.flags._t07name||'Zawodnik')+' forma +8. Cały skład +4. Reputacja: '+(G.reputation||0)+' (+8).';
+          return t('kron_t07_c3_outcome').replace('{val}',fmtVal(kron.flags._t07saving||0)).replace('{name}',kron.flags._t07name||t('kron_fallback_player')).replace('{rep}',G.reputation||0);
         }},
      ]},
 

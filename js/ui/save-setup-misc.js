@@ -4,9 +4,9 @@ function openSaveModal(){
   if(!el)return;
   el.innerHTML=[1,2,3].map(s=>{
     const i=saveInfo(s);
-    const info=i?'<div style="font-size:var(--fs-dense);color:var(--gr)">'+i.club+' • Sezon '+i.season+' • Kolejka '+i.round+'</div>':'<div style="font-size:var(--fs-dense);color:var(--gr)">Pusty slot</div>';
+    const info=i?'<div style="font-size:var(--fs-dense);color:var(--gr)">'+i.club+' • '+t('saves_season')+' '+i.season+' • '+t('saves_round')+' '+i.round+'</div>':'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('saves_empty')+'</div>';
     return '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;margin-bottom:8px;cursor:pointer" onclick="doSaveSlot('+s+')">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">SLOT '+s+(i?' ✔':'')+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">'+t('saves_slot')+' '+s+(i?' ✔':'')+'</div>'+
       info+'</div>';
   }).join('');
   openModal('m-save');
@@ -131,18 +131,18 @@ function saveClubName(){
 function selClub(id,el){document.querySelectorAll('.club-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');selClubId=id;}
 
 function startGame(){const name=(document.getElementById('mgr-name')||{value:t('setup_mgr_default')}).value.trim()||t('setup_mgr_default');if(!selClubId){notif(t('setup_no_club_err'),'err');return;}const startLg=parseInt(document.getElementById('start-league-sel')?.value||'8');initGame(name,selClubId,startLg,window._setupLeagues);if(window._customClubName&&G&&G.myClub){G.myClub.n=window._customClubName;const mc=G.leagues&&G.leagues.flatMap(l=>l.clubs).find(c=>c.id===G.myClubId);if(mc)mc.n=window._customClubName;const sc=G.standing&&G.standing.find(s=>parseInt(s.cid)===G.myClubId);if(sc)sc.n=window._customClubName;window._customClubName=null;}go('v-game');updateHdr();notif(t('setup_welcome').replace('{club}',G.myClub.n).replace('{league}',LEAGUE_NAMES[G.myLeague]),'ok');G.news=[
-  {msg:'Wybierz fokus treningowy aby zawodnicy zaczęli się rozwijać!',type:'train',week:G.week,season:G.season,expires:G.week+1,action:'training_plan',actionLabel:'PLAN'},
-  {msg:'🏕 Wyślij zespół na obóz przygotowawczy przed sezonem!',type:'train',week:G.week,season:G.season,expires:3,action:'camp',actionLabel:'OBÓZ'},
-  {msg:'💰 Podpisz kontrakty sponsorskie na nowy sezon!',type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:'KONTRAKTY'},
-  {msg:'🔓 Letnie okno transferowe OTWARTE — masz 2 tygodnie na transfery!',type:'budget',week:G.week,season:G.season,expires:3,action:'transfers',actionLabel:'TRANSFERY'}
-];genTransferMarket();genBoardGoals();if(G.news)G.news.unshift({msg:'📋 Wybierz cele zarządu na sezon '+G.season+'!',type:'club',week:G.week||1,season:G.season,action:'board',actionLabel:'ZARZĄD'});renderNews();G.tutorialOff=false;showBriefingModal();}
+  {msg:t('startnews_training_focus'),type:'train',week:G.week,season:G.season,expires:G.week+1,action:'training_plan',actionLabel:t('startnews_action_plan')},
+  {msg:t('startnews_camp'),type:'train',week:G.week,season:G.season,expires:3,action:'camp',actionLabel:t('startnews_action_camp')},
+  {msg:t('startnews_sponsor'),type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:t('fin_tab_contracts')},
+  {msg:t('startnews_summer_window'),type:'budget',week:G.week,season:G.season,expires:3,action:'transfers',actionLabel:t('news_tr_action_label')}
+];genTransferMarket();genBoardGoals();if(G.news)G.news.unshift({msg:t('startnews_board_goals').replace('{season}',G.season),type:'club',week:G.week||1,season:G.season,action:'board',actionLabel:t('fin_tab_board')});renderNews();G.tutorialOff=false;showBriefingModal();}
 
 
 function showBriefingModal(){
   if(!G)return;
   const existing=document.getElementById('modal-briefing');
   if(existing)existing.remove();
-  const club=G.myClub?G.myClub.n:'Klub';
+  const club=G.myClub?G.myClub.n:t('briefing_club_fallback');
   const liga=LEAGUE_NAMES[G.myLeague||8]||t('league_fallback');
   const bud=G.budget?G.budget.toLocaleString('pl-PL')+' zł':'—';
 
@@ -184,21 +184,21 @@ function showBriefingModal(){
   }
 
   var bodyHtml=''
-    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:8px 0 10px;">&#9679; TYG. 1-2 &#8212; PRZYGOTOWANIA</div>'
-    +_row(_doneBoard,'📋','Wybierz cel sezonu.','Cel główny = premia na koniec. Cel bonusowy = punkty rep.','ZARZĄD','p-finance','board')
-    +_row(_doneContracts,'💰','Podpisz kontrakty sponsorskie.','Bez nich tracisz główny dochód.','FINANSE','p-finance','finance_contracts')
-    +_row(_doneFocus,'🎯','Ustaw fokus treningowy.','Zawodnicy bez fokusa nie rosną.','TRENING','p-training','training_plan')
-    +_row(_doneScout,'🔍','Wyślij obserwację skauta.','','TRANSFERY / SKAUCI','p-transfers','skauci')
-    +_infoRow('🏕','Obóz — opcjonalny, tylko T1-2.','Forma → 100%, OVR +1 na 4 kolejki.','TRENING / OBÓZ','p-training','camp')
-    +_infoRow('🔓','Transfery — okno letnie T1-2.','Max 3 zakupy. Kolejne okno: T16.','TRANSFERY','p-transfers','transfers')
-    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ TYG. 3-15 — SEZON REGULARNY</div>'
-    +_infoRow('⚽','Jeden mecz na tydzień.','Przed meczem ustaw taktykę.','TAKTYKA','p-tactics','tactics')
-    +_infoRow('👥','Pilnuj składu.','Kontuzje i zawieszenia zmieniają jedenastkę.','SKŁAD','p-squad','squad')
-    +_infoRow('📊','TOP 2 to awans, ostatnie 2 to spadek.','','TABELA','p-table','table')
-    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ TYG. 16-17 — ZIMOWE OKNO</div>'
-    +_infoRow('🔓','Transfery znów otwarte, 2 tyg.','','TRANSFERY','p-transfers','transfers')
-    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">○ NOWY SEZON — AKADEMIA</div>'
-    +_infoRow('🎓','Jeśli masz Akademię, na starcie każdego sezonu możesz dobrać juniora.','','AKADEMIA','p-academy','academy');
+    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:8px 0 10px;">'+t('briefing_phase_prep')+'</div>'
+    +_row(_doneBoard,'📋',t('briefing_board_title'),t('briefing_board_desc'),t('fin_tab_board'),'p-finance','board')
+    +_row(_doneContracts,'💰',t('briefing_contracts_title'),t('briefing_contracts_desc'),t('fin_tab_contracts'),'p-finance','finance_contracts')
+    +_row(_doneFocus,'🎯',t('briefing_focus_title'),t('briefing_focus_desc'),t('tile_training'),'p-training','training_plan')
+    +_row(_doneScout,'🔍',t('briefing_scout_title'),'',t('briefing_btn_scouts'),'p-transfers','skauci')
+    +_infoRow('🏕',t('briefing_camp_title'),t('briefing_camp_desc'),t('briefing_btn_camp'),'p-training','camp')
+    +_infoRow('🔓',t('briefing_transfers_title'),t('briefing_transfers_desc'),t('tile_transfers'),'p-transfers','transfers')
+    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">'+t('briefing_phase_season')+'</div>'
+    +_infoRow('⚽',t('briefing_tactics_title'),t('briefing_tactics_desc'),t('tile_tactics'),'p-tactics','tactics')
+    +_infoRow('👥',t('briefing_squad_title'),t('briefing_squad_desc'),t('tile_squad'),'p-squad','squad')
+    +_infoRow('📊',t('briefing_table_title'),'',t('tile_table'),'p-table','table')
+    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">'+t('briefing_phase_winter')+'</div>'
+    +_infoRow('🔓',t('briefing_winter_transfers_title'),'',t('tile_transfers'),'p-transfers','transfers')
+    +'<div style="color:var(--am);font-size:var(--fs-dense);letter-spacing:1px;margin:12px 0 10px;">'+t('briefing_phase_academy')+'</div>'
+    +_infoRow('🎓',t('briefing_academy_title'),'',t('tile_academy'),'p-academy','academy');
 
   const m=document.createElement('div');
   m.id='modal-briefing';
@@ -206,19 +206,19 @@ function showBriefingModal(){
   m.innerHTML=
     '<div style="color:var(--wh);width:100%;max-width:420px;padding:16px 12px 24px;">'
     +'<div style="border:1px solid var(--gb);background:#030f03;padding:10px 12px;margin-bottom:10px;font-size:var(--fs-dense);color:var(--gr);line-height:1.8;">'
-    +'<span style="color:var(--gb)">&gt; INICJALIZACJA NOWEJ KARIERY... <span style="color:var(--gb)">OK</span></span><br>'
-    +'<span style="color:var(--gb)">&gt; KLUB: <span style="color:var(--wh)">'+club+'</span></span><br>'
-    +'<span style="color:var(--gb)">&gt; LIGA: <span style="color:var(--wh)">'+liga+'</span></span><br>'
-    +'<span style="color:var(--gb)">&gt; BUDŻET: <span style="color:var(--am)">'+bud+'</span></span>'
+    +'<span style="color:var(--gb)">&gt; '+t('briefing_init_line')+' <span style="color:var(--gb)">'+t('briefing_ok')+'</span></span><br>'
+    +'<span style="color:var(--gb)">&gt; '+t('briefing_club_label')+' <span style="color:var(--wh)">'+club+'</span></span><br>'
+    +'<span style="color:var(--gb)">&gt; '+t('briefing_league_label')+' <span style="color:var(--wh)">'+liga+'</span></span><br>'
+    +'<span style="color:var(--gb)">&gt; '+t('briefing_budget_label')+' <span style="color:var(--am)">'+bud+'</span></span>'
     +'</div>'
     +'<div style="border:2px solid var(--gb);background:#050f05;">'
     +'<div style="background:var(--gb);padding:6px 12px;">'
-    +'<span style="font-weight:700;font-size:var(--fs-h3);color:#000;letter-spacing:1px;">TUTORIAL — SEZON 1</span>'
+    +'<span style="font-weight:700;font-size:var(--fs-h3);color:#000;letter-spacing:1px;">'+t('briefing_title')+'</span>'
     +'</div>'
     +'<div style="padding:10px 12px;">'+bodyHtml+'</div>'
-    +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 12px;border-top:1px solid var(--gl);text-align:center;line-height:1.8;">'+'Po zamknięciu możesz wrócić do tutorialu z Głównego Menu.<br>'+'<span onclick="showGuideModal()" style="color:var(--am);text-decoration:none;cursor:pointer;">&#9654; PRZEWODNIK GRACZA</span>'+'</div>'+'<div style="display:flex;gap:8px;padding:10px 12px;">'
-    +'<button onclick="tutorialDisable()" style="flex:1;font-weight:700;font-size:var(--fs-micro);background:#0a0a0a;border:1px solid var(--gr);color:var(--gr);padding:8px 4px;cursor:pointer;">✕ WYŁĄCZ TUTORIAL</button>'
-    +'<button onclick="tutorialClose()" style="flex:1;font-weight:700;font-size:var(--fs-micro);background:#0a1f0a;border:2px solid var(--gb);color:var(--gb);padding:8px 4px;cursor:pointer;">✓ ZACZYNAMY</button>'
+    +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 12px;border-top:1px solid var(--gl);text-align:center;line-height:1.8;">'+t('briefing_footer_note')+'<br>'+'<span onclick="showGuideModal()" style="color:var(--am);text-decoration:none;cursor:pointer;">'+t('briefing_guide_link')+'</span>'+'</div>'+'<div style="display:flex;gap:8px;padding:10px 12px;">'
+    +'<button onclick="tutorialDisable()" style="flex:1;font-weight:700;font-size:var(--fs-micro);background:#0a0a0a;border:1px solid var(--gr);color:var(--gr);padding:8px 4px;cursor:pointer;">'+t('briefing_btn_disable')+'</button>'
+    +'<button onclick="tutorialClose()" style="flex:1;font-weight:700;font-size:var(--fs-micro);background:#0a1f0a;border:2px solid var(--gb);color:var(--gb);padding:8px 4px;cursor:pointer;">'+t('briefing_btn_start')+'</button>'
     +'</div>'
     +'</div>'
     +'</div>';
@@ -231,7 +231,7 @@ function tutorialClose(){
   if(m)m.remove();
   G._tutorialBack=false;
   G.tutorialOff=true;
-  notif('Tutorial dostępny w Głównym Menu.','info');
+  notif(t('tutorial_available_menu'),'info');
 }
 
 function tutorialDisable(){
@@ -239,7 +239,7 @@ function tutorialDisable(){
   const m=document.getElementById('modal-briefing');
   if(m)m.remove();
   G._tutorialBack=false;
-  notif('Tutorial wyłączony. Włącz ponownie w Głównym Menu.','info');
+  notif(t('tutorial_disabled_menu'),'info');
 }
 
 function tutorialOpenPanel(panelId, action){
@@ -262,7 +262,7 @@ function toggleTutorial(){
   const btnTut=document.getElementById('btn-tutorial-toggle');
   if(btnTut){
     const off=G.tutorialOff;
-    btnTut.textContent='📡 TUTORIAL: '+(off?'WYŁ':'WŁ');
+    btnTut.textContent='📡 TUTORIAL: '+(off?t('tutorial_state_off'):t('tutorial_state_on'));
     btnTut.style.color=off?'var(--gr)':'var(--am)';
     btnTut.style.borderColor=off?'var(--gr)':'var(--am)';
   }
@@ -271,7 +271,7 @@ function toggleTutorial(){
     resumeGame();
     setTimeout(()=>showBriefingModal(),100);
   } else {
-    notif('Tutorial wyłączony.','info');
+    notif(t('tutorial_disabled_short'),'info');
   }
 }
 
