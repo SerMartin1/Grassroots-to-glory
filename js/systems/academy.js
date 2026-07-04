@@ -137,52 +137,155 @@ function renderAcadPrzeglad(){
         '</div>';
       }).join('')
     :'<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 0">'+t('acad_no_prospects')+'</div>');
+  if(lvl===0&&!G.academy.building){
+    const buildDiv=document.createElement('div');
+    buildDiv.innerHTML=
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+t('acad_expand_cost')+' <span style="color:var(--am)">'+fmt(acadCost(0))+'</span></div>'+
+      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">'+t('acad_expand_build_btn').replace('{cost}',fmt(acadCost(0)))+'</button>';
+    el.appendChild(buildDiv);
+  }
+  _renderAcadRozbudowaInPrzeglad();
 }
-function renderAcadWychowankowie(){
+function _renderAcadRozbudowaInPrzeglad(){
+  const el=document.getElementById('acad-przeglad');if(!el||!G)return;
+  const lvl=getAcadLvl();if(lvl===0)return;
+  const rep=G.reputation||30;const lg=G.myLeague||8;
+  const sec=document.createElement('div');
+  sec.innerHTML=
+    '<div class="fsec" style="margin:14px 0 8px">'+t('acad_expand_section')+'</div>'+
+    ACADEMY.levels.map((a,i)=>{
+      if(a.ekstraOnly&&lg!==1)return'';
+      const isOwned=i<lvl;const isNext=i===lvl;
+      const cost=acadCost(i);const upk=acadUpkeep(i);
+      const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
+      const availLine=a.ekstraOnly?t('acad_expand_premier'):a.req>=500?t('acad_expand_l1'):a.req>=250?t('acad_expand_l3'):a.req>=100?t('acad_expand_l5'):'';
+      return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
+          '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+_acadName(a)+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+          (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">'+t('acad_expand_active')+'</div>':'')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_juniors')+'</span><span style="color:var(--wh)"> '+a.perSeason+t('acad_expand_per_season')+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_max_pot')+'</span><span style="color:var(--am)"> '+a.maxPot+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_ovr_start')+'</span><span style="color:var(--wh)"> '+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_cost')+'</span><span style="color:var(--wh)"> '+fmt(cost)+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_upkeep')+'</span><span style="color:var(--rd)"> -'+fmt(upk)+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_expand_build_time')+'</span><span style="color:var(--am)"> '+a.buildWeeks+' '+t('stad_weeks').replace('{n}','').trim()+'</span></div>'+
+          (a.req>0?'<div><span style="color:var(--gr)">'+t('acad_expand_req_rep')+'</span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'"> '+(reqOk?t('acad_expand_rep_ok').replace('{n}',a.req):t('acad_expand_rep_missing').replace('{n}',a.req).replace('{diff}',a.req-rep))+'</span></div>':'')+
+          (availLine?'<div><span style="color:var(--gr)">'+t('acad_expand_avail')+'</span><span style="color:var(--wh)"> '+availLine+'</span></div>':'')+
+        '</div>'+
+        (!isOwned&&isNext?
+          (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_locked').replace('{req}',a.req).replace('{rep}',rep)+'</div>':
+           !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_no_funds').replace('{n}',fmt(cost-G.budget))+'</div>':
+           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('acad_expand_upgrade_btn').replace('{cost}',fmt(cost))+'</button>')
+        :'')+
+      '</div>';
+    }).join('');
+  el.appendChild(sec);
+}
+function renderAcadWychowankowie(sub){
   const el=document.getElementById('acad-wychowankowie');if(!el||!G||!G.academy)return;
-  const hist=(G.academy.hist||[]).filter(h=>!h.isRejected);
-  if(!hist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_grad_none')+'</div>';return;}
-  const byPlayer={};
-  hist.forEach(h=>{if(!h.pid)return;if(!byPlayer[h.pid])byPlayer[h.pid]={name:h.name,pos:h.pos,seasons:[],startOvr:h.startOvr,pot:h.pot,archetype:h.archetype};byPlayer[h.pid].seasons.push(h);});
-  let html='';
-  Object.values(byPlayer).forEach(pl=>{
-    const cur=G.players.find(p=>p.fromAcademy&&p.name===pl.name);
-    const curOvr=cur?ovr(cur):null;
-    html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-        '<div>'+
-          '<div style="font-size:var(--fs-meta);color:var(--wh);cursor:pointer" '+(cur?'onclick="showPlayer('+JSON.stringify(cur)+')"':'')+'>🎓 '+pl.name+'</div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+pl.pos+(pl.pot?' • Pot: '+pl.pot:'')+'</div>'+
-        '</div>'+
-        (curOvr?'<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+curOvr+'</div>':'')+
-      '</div>';
-    pl.seasons.forEach((h,idx)=>{
-      const prevH=pl.seasons[idx-1];
-      const ovrGrowth=prevH&&h.ovr&&prevH.ovr?h.ovr-prevH.ovr:0;
-      const isFirst=idx===0;
-      const isHighlight=ovrGrowth>=5||h.g>=5;
-      const borderCol=isHighlight?'var(--gb)':'var(--gl)';
-      let noteIcon='';
-      if(isFirst&&h.fromAcademy)noteIcon=t('acad_grad_joined');
-      else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon=t('acad_grad_debut');
-      else if(h.g>=5)noteIcon=t('acad_grad_goals');
-      else if(ovrGrowth>=10)noteIcon=t('acad_grad_growth').replace('{n}',ovrGrowth);
-      html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
-        '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-          '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
-          (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
-        '</div>'+
-        '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-          t('acad_grad_matches').replace('{n}',h.m||0)+
-          (h.g?t('acad_grad_goals_n').replace('{n}',h.g||0):'')+
-          ((h.a||0)>0?t('acad_grad_assists').replace('{n}',h.a||0):'')+
-          (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
-        '</div>'+
-        (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
-      '</div>';
-    });
-    html+='</div>';
-  });
+  const activeSub=sub||el.dataset.sub||'current';
+  el.dataset.sub=activeSub;
+
+  // Podzakładki
+  const mkSub=(id,lbl)=>'<button onclick="renderAcadWychowankowie(\''+id+'\')" style="flex:1;padding:7px 4px;background:none;border:none;border-bottom:2px solid '+(activeSub===id?'var(--gb)':'transparent')+';font-size:var(--fs-micro);color:'+(activeSub===id?'var(--gb)':'var(--gr)')+';cursor:pointer">'+lbl+'</button>';
+  let html='<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">'+
+    mkSub('current',t('acad_sub_current'))+
+    mkSub('history',t('acad_sub_history'))+
+    mkSub('rejected',t('acad_sub_rejected'))+
+  '</div>';
+
+  if(activeSub==='current'){
+    // Wychowankowie aktualnie w składzie
+    const graduates=myPl().filter(p=>p.fromAcademy);
+    if(!graduates.length){
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_no_current')+'</div>';
+    } else {
+      graduates.sort((a,b)=>ovr(b)-ovr(a)).forEach(p=>{
+        const arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
+        html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px;cursor:pointer" onclick="showPlayer('+JSON.stringify(p).replace(/'/g,'\\\'')+')" >'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
+            '<div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--wh)">🎓 '+p.name+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+(p.potential?' • Pot: '+p.potential:'')+'</div>'+
+            '</div>'+
+            '<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+ovr(p)+'</div>'+
+          '</div>'+
+          (arch?'<div style="font-size:var(--fs-dense);color:'+arch.color+'">'+arch.icon+' '+arch.name+'</div>':'')+
+        '</div>';
+      });
+    }
+
+  } else if(activeSub==='history'){
+    // Wszyscy wychowankowie przez historię
+    const hist=(G.academy.hist||[]).filter(h=>!h.isRejected);
+    if(!hist.length){
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_grad_none')+'</div>';
+    } else {
+      const byPlayer={};
+      hist.forEach(h=>{if(!h.pid)return;if(!byPlayer[h.pid])byPlayer[h.pid]={name:h.name,pos:h.pos,seasons:[],startOvr:h.startOvr,pot:h.pot,archetype:h.archetype};byPlayer[h.pid].seasons.push(h);});
+      Object.values(byPlayer).forEach(pl=>{
+        const cur=G.players.find(p=>p.fromAcademy&&p.name===pl.name);
+        const curOvr=cur?ovr(cur):null;
+        html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
+          '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
+            '<div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--wh)'+(cur?';cursor:pointer" onclick="showPlayer('+JSON.stringify(cur).replace(/'/g,'\\\'')+')':'"')+'>🎓 '+pl.name+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+pl.pos+(pl.pot?' • Pot: '+pl.pot:'')+'</div>'+
+            '</div>'+
+            (curOvr?'<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+curOvr+'</div>':'')+
+          '</div>';
+        pl.seasons.forEach((h,idx)=>{
+          const prevH=pl.seasons[idx-1];
+          const ovrGrowth=prevH&&h.ovr&&prevH.ovr?h.ovr-prevH.ovr:0;
+          const isFirst=idx===0;
+          const isHighlight=ovrGrowth>=5||h.g>=5;
+          const borderCol=isHighlight?'var(--gb)':'var(--gl)';
+          let noteIcon='';
+          if(isFirst&&h.fromAcademy)noteIcon=t('acad_grad_joined');
+          else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon=t('acad_grad_debut');
+          else if(h.g>=5)noteIcon=t('acad_grad_goals');
+          else if(ovrGrowth>=10)noteIcon=t('acad_grad_growth').replace('{n}',ovrGrowth);
+          html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
+            '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
+              '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
+              (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
+            '</div>'+
+            '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
+              t('acad_grad_matches').replace('{n}',h.m||0)+
+              (h.g?t('acad_grad_goals_n').replace('{n}',h.g||0):'')+
+              ((h.a||0)>0?t('acad_grad_assists').replace('{n}',h.a||0):'')+
+              (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
+            '</div>'+
+            (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
+          '</div>';
+        });
+        html+='</div>';
+      });
+    }
+
+  } else if(activeSub==='rejected'){
+    // Odrzuceni juniorzy
+    const rejected=(G.academy.hist||[]).filter(h=>h.isRejected);
+    if(!rejected.length){
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_no_rejected')+'</div>';
+    } else {
+      rejected.slice().reverse().forEach(h=>{
+        html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;margin-bottom:6px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">'+
+            '<div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--gr)">'+h.name+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+h.pos+' • S'+h.season+'</div>'+
+            '</div>'+
+            '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_rejected_ovr').replace('{n}',h.releaseOvr||'?').replace('{pot}',h.pot||'?')+'</div>'+
+          '</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_rejected_badge')+'</div>'+
+        '</div>';
+      });
+    }
+  }
+
   el.innerHTML=html;
 }
 function renderAcadRozbudowa(){
@@ -277,4 +380,80 @@ function generateProspects(){
   if(!G.news)G.news=[];
   G.news.unshift({msg:t('acad_news_prospects').replace('{n}',acad.perSeason),type:'ok',week:G.week,season:G.season,action:'academy',actionLabel:t('acad_news_action')});
   renderNews();
+}
+function renderAcadHistoryTab(p){
+  var el=document.getElementById('plr-acad-content');if(!el)return;
+  var arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
+  var hist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
+  var acadDebH=hist.find(function(h){return h.fromAcademy;})||hist[0];
+  var curOvr=ovr(p);
+  var debOvr=acadDebH?acadDebH.ovr:curOvr;
+  var debSzn=acadDebH?acadDebH.season:G.season;
+  var seasonsInClub=hist.filter(function(h){return h.clubId===G.myClubId;}).length;
+  var totalM=hist.reduce(function(s,h){return s+(h.m||0);},0);
+  var growth=curOvr-debOvr;
+  var myPls=myPl();
+  var betterThanOnDebut=myPls.filter(function(x){return ovr(x)>debOvr;}).length;
+  var pctWeak=myPls.length>0?Math.round((betterThanOnDebut/myPls.length)*100):0;
+  var rankNow=[...myPls].sort(function(a,b){return ovr(b)-ovr(a);}).findIndex(function(x){return x.id===p.id;})+1;
+
+  var html='';
+  html+='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:10px 12px;margin-bottom:10px">'+
+    '<div style="font-size:var(--fs-dense);color:#ce93d8;margin-bottom:4px">'+t('acad_hist_graduate_badge')+'</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      (arch?'<span style="font-size:var(--fs-dense);color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
+      '<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 5px">'+t('acad_hist_since').replace('{n}',debSzn)+'</span>'+
+    '</div>'+
+  '</div>';
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px">'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
+      '<div style="font-size:'+(growth>0?'var(--fs-body)':'var(--fs-meta)')+';color:'+(growth>0?'var(--gb)':'var(--gr)')+'">+'+(growth>0?growth:0)+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_hist_ovr_growth')+'</div>'+
+    '</div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
+      '<div style="font-size:var(--fs-body);color:var(--am)">'+seasonsInClub+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_hist_seasons_here')+'</div>'+
+    '</div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
+      '<div style="font-size:var(--fs-body);color:var(--wh)">'+totalM+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_hist_matches')+'</div>'+
+    '</div>'+
+  '</div>';
+
+  if(myPls.length>1){
+    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-size:var(--fs-dense)">'+
+      '<span style="color:var(--gr)">'+t('acad_hist_worse_on_debut')+'</span><span style="color:var(--rd)">'+t('acad_hist_pct_squad').replace('{n}',pctWeak)+'</span>'+
+      (rankNow>0?'<span style="color:var(--gr)">'+t('acad_hist_rank_now')+'</span><span style="color:var(--gb)">'+(rankNow===1?t('acad_hist_rank_best'):t('acad_hist_rank_nth').replace('{n}',rankNow))+'</span><span style="color:var(--gr)">'+t('acad_hist_rank_suffix')+'</span>':'')+'.'+
+    '</div>';
+  }
+
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">'+t('acad_hist_timeline')+'</div>';
+  var allHist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
+  allHist.forEach(function(h,i){
+    var isFirst=i===0;
+    var prevH=i>0?allHist[i-1]:null;
+    var ovrGrowth=prevH&&h.ovr&&prevH.ovr?(h.ovr-prevH.ovr):0;
+    var isHighlight=isFirst||(ovrGrowth>=8)||(h.g>=5)||(h.fromAcademy&&isFirst);
+    var borderCol=isHighlight?'var(--gb)':'var(--gl)';
+    var noteIcon='';
+    if(isFirst&&h.fromAcademy)noteIcon=t('acad_grad_joined');
+    else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon=t('acad_grad_debut');
+    else if(h.g>=5)noteIcon=t('acad_grad_goals');
+    else if(ovrGrowth>=10)noteIcon=t('acad_grad_growth').replace('{n}',ovrGrowth);
+    html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
+        '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
+        (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
+      '</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
+        t('acad_hist_matches_n').replace('{n}',h.m||0)+
+        (h.g?t('acad_hist_goals_n').replace('{n}',h.g||0):'')+
+        ((h.a||0)>0?t('acad_hist_assists_n').replace('{n}',h.a||0):'')+
+        (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
+      '</div>'+
+      (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
+    '</div>';
+  });
+  el.innerHTML=html;
 }

@@ -569,7 +569,7 @@
 
 <!-- TABLE PANEL -->
 <div id="p-table" class="panel">
-  <div class="ph"><div class="ph-title">🏆 TABELA</div><button class="btn-back" onclick="closePanel('p-table')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_table">🏆 TABELA</div><button class="btn-back" onclick="closePanel('p-table')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <!-- Jeden widok wszystkich lig — Wariant C -->
     <div id="tbl-ligi"></div>
@@ -578,7 +578,7 @@
 
 <!-- TRANSFERS PANEL -->
 <div id="p-transfers" class="panel">
-  <div class="ph"><div class="ph-title">🔄 TRANSFERY</div><button class="btn-back" onclick="closePanel('p-transfers')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_transfers">🔄 TRANSFERY</div><button class="btn-back" onclick="closePanel('p-transfers')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="money-bar" id="tr-budget" style="margin:0;border-radius:0">BUDŻET: —</div>
     <div id="tr-window-bar" style="background:#0d1f0d;border-bottom:1px solid var(--gl);padding:6px 12px;font-size:var(--fs-dense);color:var(--gr)"></div>
@@ -599,7 +599,7 @@
 
 <!-- TRAINING PANEL -->
 <div id="p-training" class="panel">
-  <div class="ph"><div class="ph-title">🏃 TRENING</div><button class="btn-back" onclick="closePanel('p-training')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_training">🏃 TRENING</div><button class="btn-back" onclick="closePanel('p-training')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="sq-tabs2">
       <button class="sq-tab2-btn on" onclick="trainTab('plan',this)">PLAN</button>
@@ -659,7 +659,7 @@
 <!-- FINANCE PANEL -->
 <!-- STADIUM PANEL -->
 <div id="p-stadium" class="panel">
-  <div class="ph"><div class="ph-title">🏟️ STADION</div><button class="btn-back" onclick="closePanel('p-stadium')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="stad_title">🏟️ STADION</div><button class="btn-back" onclick="closePanel('p-stadium')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
       <button class="tab-btn active" onclick="stadTab('przeglad',this)">PRZEGLĄD</button>
@@ -674,11 +674,11 @@
 
 <!-- ACADEMY PANEL -->
 <div id="p-academy" class="panel">
-  <div class="ph"><div class="ph-title">🎓 AKADEMIA</div><button class="btn-back" onclick="closePanel('p-academy')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="acad_title">🎓 AKADEMIA</div><button class="btn-back" onclick="closePanel('p-academy')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
-      <button class="tab-btn active" onclick="acadTab('przeglad',this)">PRZEGLĄD</button>
-      <button class="tab-btn" onclick="acadTab('wychowankowie',this)">WYCHOWANKOWIE</button>
+      <button class="tab-btn active" onclick="acadTab('przeglad',this)" data-i18n="acad_tab_overview">PRZEGLĄD</button>
+      <button class="tab-btn" onclick="acadTab('wychowankowie',this)" data-i18n="acad_tab_graduates">WYCHOWANKOWIE</button>
     </div>
     <div id="acad-przeglad" class="tab-pane on" style="padding:10px"></div>
     <div id="acad-wychowankowie" class="tab-pane" style="padding:10px"></div>
@@ -687,7 +687,7 @@
 
 <!-- BOARD PANEL -->
 <div id="p-board" class="panel">
-  <div class="ph"><div class="ph-title">📋 ZARZĄD</div><button class="btn-back" onclick="closePanel('p-board')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="fin_tab_board">📋 ZARZĄD</div><button class="btn-back" onclick="closePanel('p-board')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
       <button class="tab-btn active" onclick="boardTab('cele',this)">CELE</button>
@@ -699,7 +699,7 @@
 </div>
 
 <div id="p-finance" class="panel">
-  <div class="ph"><div class="ph-title">💰 FINANSE</div><button class="btn-back" onclick="closePanel('p-finance')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_finance">💰 FINANSE</div><button class="btn-back" onclick="closePanel('p-finance')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="money-bar" id="fin-bal" style="margin:0;border-radius:0">STAN KONTA: —</div>
     <div class="tabs">
@@ -724,7 +724,7 @@
 
 <!-- WORLD PANEL -->
 <div id="p-world" class="panel">
-  <div class="ph"><div class="ph-title">🌍 RYNEK ŚWIATA</div><button class="btn-back" onclick="closePanel('p-world')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_world">🌍 RYNEK ŚWIATA</div><button class="btn-back" onclick="closePanel('p-world')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
       <button class="tab-btn active" id="world-tab-transfers" onclick="worldTab('transfers',this)">💸 REKORDOWE TRANSFERY</button>
@@ -737,7 +737,7 @@
 
 <!-- HISTORY PANEL -->
 <div id="p-history" class="panel">
-  <div class="ph"><div class="ph-title">📜 HISTORIA</div><button class="btn-back" onclick="closePanel('p-history')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="tile_history">📜 HISTORIA</div><button class="btn-back" onclick="closePanel('p-history')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="info-bar" id="hist-club" style="margin:0;border-radius:0;border-bottom:1px solid var(--gl)">—</div>
     <div class="tabs">
