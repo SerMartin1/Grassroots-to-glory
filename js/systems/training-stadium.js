@@ -1,12 +1,12 @@
 const TRAIN_OPTS=[
-  {k:'ATK', l:'ATAK',   i:'⚽', attrs:{sht:2,tec:1}, d:'Strzał + Technika'},
-  {k:'POL', l:'POMOC',  i:'🎯', attrs:{pas:2,men:1}, d:'Podania + Mentalność'},
-  {k:'OBR', l:'OBRONA', i:'🛡️', attrs:{def:2,phy:1}, d:'Odbiór + Fizyczność'},
+  {k:'ATK', get l(){return t('train_opt_atk_l');}, i:'⚽', attrs:{sht:2,tec:1}, get d(){return t('train_opt_atk_d');}},
+  {k:'POL', get l(){return t('train_opt_pol_l');}, i:'🎯', attrs:{pas:2,men:1}, get d(){return t('train_opt_pol_d');}},
+  {k:'OBR', get l(){return t('train_opt_obr_l');}, i:'🛡️', attrs:{def:2,phy:1}, get d(){return t('train_opt_obr_d');}},
 ];
 const INTENSITY_OPTS=[
-  {k:'LOW',  l:'NISKA',    gain:[0,0], injRisk:0,    d1:'Wzrost atrybutów: brak. Forma: +2. Zmęczenie: –15/tydzień.', d2:'Zero ryzyka kontuzji. Czysta regeneracja — po serii meczów.'},
-  {k:'NOR',  l:'NORMALNA', gain:[1,2], injRisk:0.003, d1:'Wzrost atrybutów: +1–2 (zależnie od wieku i centrum). Zmęczenie: –3/tydzień.', d2:'Ryzyko kontuzji niskie. Dobry balans rozwoju i regeneracji.'},
-  {k:'HIGH', l:'WYSOKA',   gain:[2,3], injRisk:0.012, d1:'Wzrost atrybutów: +2–3 (zależnie od wieku i centrum). Zmęczenie: +8/tydzień.', d2:'Ryzyko kontuzji rośnie ze zmęczeniem! Monitoruj zakładkę Zdrowie.'},
+  {k:'LOW',  get l(){return t('int_low_l');},  gain:[0,0], injRisk:0,    d1:'',get d2(){return t('int_low_d2');}},
+  {k:'NOR',  get l(){return t('int_nor_l');},  gain:[1,2], injRisk:0.003,d1:'',get d2(){return t('int_nor_d2');}},
+  {k:'HIGH', get l(){return t('int_high_l');}, gain:[2,3], injRisk:0.012,d1:'',get d2(){return t('int_high_d2');}},
 ];
 function trainTab(tab,btn){
   if(tab==='postep'){G.trainFocusJustEnded=false;fillProgressPanel();}
@@ -104,7 +104,7 @@ function renderTCPanel(){
   const changeCost=TRAINING_CENTER.changeCost[lvl-1]||5000;
   let html='<div style="border:1px solid var(--gb);padding:10px;margin-top:10px">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-  html+='<div style="color:var(--gb);font-size:var(--fs-dense)">CENTRUM SZKOLENIOWE — '+((tcDef&&tcDef.name)||'').toUpperCase()+'</div>';
+  html+='<div style="color:var(--gb);font-size:var(--fs-dense)">'+t('train_tc_name_hdr').replace('{name}',((tcDef&&tcDef.name)||'').toUpperCase())+'</div>';
   html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_slots').replace('{a}',activeP.length).replace('{m}',maxP)+'</div>';
   html+='</div>';
   // Profil sloty
@@ -135,39 +135,39 @@ function buildTC(lvlIdx){
   if(!G.trainingCenter)G.trainingCenter={level:0,building:null,profiles:[],profilesLocked:false};
   const def=TRAINING_CENTER.levels[lvlIdx];if(!def)return;
   const cost=tcCost(lvlIdx);
-  if(G.budget<cost){notif('Za mało środków!','err');return;}
-  if((G.reputation||0)<(def.req.rep||0)){notif('Wymaga reputacji '+def.req.rep+'!','err');return;}
-  if(((G.stadium&&G.stadium.capacity)||0)<(def.req.stad||0)){notif('Wymaga stadionu '+def.req.stad+' miejsc!','err');return;}
+  if(G.budget<cost){notif(t('train_no_funds'),'err');return;}
+  if((G.reputation||0)<(def.req.rep||0)){notif(t('train_req_rep').replace('{n}',def.req.rep),'err');return;}
+  if(((G.stadium&&G.stadium.capacity)||0)<(def.req.stad||0)){notif(t('train_req_stad').replace('{n}',def.req.stad),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
   G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Centrum Szkoleniowe: '+def.name});
   G.trainingCenter.building={levelIdx:lvlIdx+1,name:def.name,weeksLeft:def.buildWeeks,totalWeeks:def.buildWeeks};
   addNews(t('news_tc_build_started').replace('{name}',def.name).replace('{n}',def.buildWeeks),'club');
-  notif('Centrum: '+def.name+' — budowa +'+def.buildWeeks+' tyg.','ok');
+  notif(t('train_tc_notif').replace('{name}',def.name).replace('{n}',def.buildWeeks),'ok');
   fillTraining();
 }
 function toggleTCProfile(id){
   if(!G||!G.trainingCenter)return;
   const tc=G.trainingCenter;
   if(tc.profilesLocked){
-    notif('Profile zablokowane. Zmień fokus lub zapłać '+fmt(TRAINING_CENTER.changeCost[tcLevel()-1]||5000)+' zł','err');
+    notif(t('train_profiles_locked').replace('{n}',fmt(TRAINING_CENTER.changeCost[tcLevel()-1]||5000)),'err');
     return;
   }
   const idx=tc.profiles.indexOf(id);
   if(idx>=0){tc.profiles.splice(idx,1);}
   else if(tc.profiles.length<tcMaxProfiles()){tc.profiles.push(id);tc.profilesLocked=true;}
-  else{notif('Maksymalnie '+tcMaxProfiles()+' profile(i) aktywne!','err');return;}
+  else{notif(t('train_profiles_max').replace('{n}',tcMaxProfiles()),'err');return;}
   fillTraining();
 }
 function unlockTCProfiles(){
   if(!G||!G.trainingCenter)return;
   const cost=TRAINING_CENTER.changeCost[tcLevel()-1]||5000;
-  if(G.budget<cost){notif('Brakuje '+fmt(cost-G.budget)+' zł','err');return;}
+  if(G.budget<cost){notif(t('train_no_funds'),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
   G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Odblokowanie profili TC'});
   G.trainingCenter.profilesLocked=false;
-  notif('Profile odblokowane!','ok');
+  notif(t('train_profiles_unlocked'),'ok');
   fillTraining();
 }
 function setTrain(k){
@@ -181,17 +181,17 @@ function setTrain(k){
   myPl().forEach(p=>{G.trainSnapshot[p.id]={ovr:ovr(p),tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};});
   G.trainFocusStart=G.week;
   fillTraining();
-  notif('Fokus: '+k+' — zablokowany na 8 tygodni','ok');
+  notif(t('train_focus_notif').replace('{k}',k),'ok');
   // News o wybranym fokusie
-  const _fNames={ATK:'Atak',DEF:'Obrona',MID:'Pomoc',PHY:'Kondycja',TEC:'Technika',MEN:'Mentalność'};
+  const _fNames={ATK:t('train_opt_atk_l'),POL:t('train_opt_pol_l'),OBR:t('train_opt_obr_l')};
   const _fLabel=_fNames[k]||k;
   if(!G.news)G.news=[];
-  G.news.unshift({msg:'[FOKUS] Wybrany fokus treningowy: '+_fLabel+'. Zawodnicy będą się rozwijac przez 8 tygodni.',type:'train',week:G.week,season:G.season});
+  G.news.unshift({msg:t('train_focus_news').replace('{name}',_fLabel),type:'train',week:G.week,season:G.season});
   renderNews();
 }
 function setIntensity(k){if(!G)return;G.trainIntensity=k;fillTraining();
   const o=INTENSITY_OPTS.find(x=>x.k===k);
-  notif('Intensywność: '+(o?o.l:k));
+  notif(t('train_intensity_notif').replace('{l}',o?o.l:k));
 }
 function fillCampPanel(){
   if(!G)return;
@@ -202,13 +202,13 @@ function fillCampPanel(){
     if(G.week>2&&!G.campActive){cs.innerHTML='';}
     else if(G.campActive&&G.campWeeks>0){cs.innerHTML='';}
     else if(G.campActive&&G.campWeeks===0){G.campActive=false;cs.innerHTML='';}
-    else if(G.week<=2){cs.innerHTML='<span style="color:var(--gb)">✓ Możesz wysłać drużynę na obóz!</span>';}
+    else if(G.week<=2){cs.innerHTML='<span style="color:var(--gb)">'+t('stad_camp_available')+'</span>';}
     else cs.textContent='';
   }
   // Show ind camp usage
   if(!G.indCampUsed)G.indCampUsed=0;
   const icu=document.getElementById('ind-camp-used');
-  if(icu)icu.textContent='Wykorzystano: '+G.indCampUsed+'/4 miejsc w sezonie';
+  if(icu)icu.textContent=t('train_ind_used').replace('{a}',G.indCampUsed).replace('{m}',4);
   // Individual camp - show player list with checkboxes
   if(!G.indCampSelected)G.indCampSelected=[];
   const il=document.getElementById('ind-camp-list');
@@ -231,13 +231,13 @@ function toggleIndCamp(id){
 }
 function startTeamCamp(type){
   if(!G)return;
-  if(G.week>2){notif('Obóz tylko w tygodniu 1–2 sezonu!','err');return;}
-  if(G.campActive){notif('Obóz już trwa!','err');return;}
+  if(G.week>2){notif(t('train_camp_only_week'),'err');return;}
+  if(G.campActive){notif(t('train_camp_active'),'err');return;}
   const campTypes={NOR:{cost:2000,rounds:4},PRO:{cost:3000,rounds:7},ELITE:{cost:4500,rounds:10}};
   const ct=campTypes[type]||campTypes.NOR;
   const players=myPl();
   const total=ct.cost*players.length;
-  if(G.budget<total){notif('Za mało środków! Potrzeba '+fmt(total)+' zł','err');return;}
+  if(G.budget<total){notif(t('train_camp_no_funds').replace('{n}',fmt(total)),'err');return;}
   G.budget-=total;
   if(!G.fin.transfers)G.fin.transfers=[];
   if(!G.fin.hist)G.fin.hist=[];
@@ -246,19 +246,18 @@ function startTeamCamp(type){
   G.campWeeks=2;
   G.campType=type;
   G.campRoundsBonus=ct.rounds;
-  G.campOvrBonus=0; // will be set when camp ends
-  // Mark all players as on camp (unavailable)
+  G.campOvrBonus=0;
   players.forEach(p=>{p.onCamp=true;p.starter=false;});
-  notif('Drużyna wyruszyła na obóz '+type+'! ('+fmt(total)+' zł)','ok');
+  notif(t('train_camp_notif').replace('{type}',type).replace('{n}',fmt(total)),'ok');
   addNews(t('news_camp_started').replace('{type}',type).replace('{val}',fmt(total)),'info');
   fillCampPanel();
 }
 function sendIndCamp(){
-  if(!G||!G.indCampSelected||!G.indCampSelected.length){notif('Wybierz zawodników!','err');return;}
+  if(!G||!G.indCampSelected||!G.indCampSelected.length){notif(t('train_ind_select'),'err');return;}
   if(!G.indCampUsed)G.indCampUsed=0;
-  if(G.indCampUsed+G.indCampSelected.length>4){notif('Max 4 zawodników na sezon! Zostało: '+(4-G.indCampUsed),'err');return;}
+  if(G.indCampUsed+G.indCampSelected.length>4){notif(t('train_ind_max').replace('{n}',4-G.indCampUsed),'err');return;}
   const cost=G.indCampSelected.length*2000;
-  if(G.budget<cost){notif('Za mało środków! ('+fmt(cost)+' zł)','err');return;}
+  if(G.budget<cost){notif(t('train_ind_no_funds').replace('{n}',fmt(cost)),'err');return;}
   G.budget-=cost;
   if(!G.fin.transfers)G.fin.transfers=[];
   if(!G.fin.hist)G.fin.hist=[];
@@ -288,11 +287,11 @@ function sendIndCamp(){
     // Zapisz snapshot atrybutów PRZED obozem do wykrywania postępu w panelu gracza
     // (aktualizujemy seasonStartAttrs żeby nie liczyć ponownie wzrostu przy następnym obozie)
     p.onIndCamp=true;p.indCampWeeks=1;p.starter=false;
-    const gainsStr=gains.length?gains.join(', '):'brak wzrostu (potencjał osiągnięty)';
+    const gainsStr=gains.length?gains.join(', '):t('train_ind_no_gain');
     addNews(t('news_camp_player_result').replace('{name}',p.name).replace('{focus}',chosenFocus).replace('{gains}',gainsStr),'ok');
   });
   G.indCampSelected=[];
-  notif('Zawodnicy wyjechali na obóz! ('+fmt(cost)+' zł)','ok');
+  notif(t('train_ind_notif').replace('{n}',fmt(cost)),'ok');
   fillCampPanel();
 }
 function fillProgressPanel(){
@@ -303,8 +302,7 @@ function fillProgressPanel(){
   const attrLabel={tec:'TEC',pas:'PAS',sht:'SHT',def:'OBR',phy:'FIZ',men:'MEN'};
   // Header
   const ended=G.trainFocusLock===0&&G.trainFocusJustEnded!==false;
-  const statusMsg='Sezon '+G.season+' • Fokus: <b>'+tOpt.l+'</b>'+(G.trainFocusLock>0?' • Pozostało '+G.trainFocusLock+' tyg.':' • Zakończony');
-  // Table
+  const statusMsg=t('train_prog_season').replace('{n}',G.season)+' <b>'+tOpt.l+'</b>'+(G.trainFocusLock>0?t('train_prog_left').replace('{n}',G.trainFocusLock):t('train_prog_done'));
   const thAttrs=focusAttrs.map(a=>'<th style="color:var(--am)">'+attrLabel[a]+'</th>').join('');
   const rows=myPl().map(p=>{
     const s=p.seasonStartAttrs||{};
@@ -325,16 +323,16 @@ function fillProgressPanel(){
   el.innerHTML=
     '<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">'+statusMsg+'</div>'+
     '<table class="rtbl"><thead><tr>'+
-      '<th>ZAWODNIK</th>'+thAttrs+
+      '<th>'+t('train_prog_player')+'</th>'+thAttrs+
       '<th style="color:var(--gb)">OVR</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
     '<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
-      '<b style="color:var(--am)">Legenda OVR:</b> OVR = ważona średnia atrybutów zależna od pozycji.<br>'+
+      '<b style="color:var(--am)">'+t('train_prog_ovr_legend')+'</b> '+t('train_prog_ovr_desc')+'<br>'+
       'NAP: SHT×35% + TEC×35% + PHY×10% + MEN×10% + PAS×5% + OBR×5%<br>'+
       'POL: PAS×35% + TEC×35% + MEN×10% + PHY×10% + SHT×5% + OBR×5%<br>'+
       'OBR: OBR×35% + PHY×35% + MEN×10% + PAS×10% + TEC×5% + SHT×5%<br>'+
       'GK:  OBR×35% + MEN×35% + PHY×10% + PAS×10% + TEC×5% + SHT×5%<br>'+
-      '<span style="color:var(--wh)">Wzrost atrybutu niezwiązanego z pozycją ma mały wpływ na OVR.</span>'+
+      '<span style="color:var(--wh)">'+t('train_prog_ovr_note')+'</span>'+
     '</div>';
 }
 
@@ -390,9 +388,9 @@ function checkModuleReq(req){
   if(!req)return{ok:true};
   const cap=(G.stadium&&G.stadium.capacity)||200;
   const rep=(G.reputation)||0;
-  if(req.capacity&&cap<req.capacity)return{ok:false,msg:'Wymaga '+req.capacity.toLocaleString('pl-PL')+' miejsc'};
-  if(req.rep&&rep<req.rep)return{ok:false,msg:'Wymaga reputacji '+req.rep};
-  if(req.light&&getModuleLvl('light')<req.light)return{ok:false,msg:'Wymaga Oświetlenia L'+req.light};
+  if(req.capacity&&cap<req.capacity)return{ok:false,msg:t('stad_req_capacity').replace('{n}',req.capacity.toLocaleString('pl-PL'))};
+  if(req.rep&&rep<req.rep)return{ok:false,msg:t('stad_req_rep').replace('{n}',req.rep)};
+  if(req.light&&getModuleLvl('light')<req.light)return{ok:false,msg:t('stad_req_light').replace('{n}',req.light)};
   return{ok:true};
 }
 // Auto-refresh paska budowy gdy tab rozbudowa jest aktywny
@@ -406,7 +404,7 @@ setInterval(function(){
   const pct=Math.min(100,Math.round((1-(G.stadium.building.weeksLeft/tw))*100));
   const done=tw-G.stadium.building.weeksLeft;
   bar.querySelector('.stad-bar-fill').style.width=pct+'%';
-  bar.querySelector('.stad-bar-left').textContent='Tydzień '+done+' / '+tw;
+  bar.querySelector('.stad-bar-left').textContent=t('stad_auto_refresh').replace('{done}',done).replace('{total}',tw);
   bar.querySelector('.stad-bar-right').textContent=pct+'% — zostało '+G.stadium.building.weeksLeft+' tyg.';
 },500);
 
@@ -519,7 +517,7 @@ function drawStadiumTopDown(cap,freq,modules){
 
   // Frekwencja label
   const viewers=Math.round(cap*freq);
-  s+=`<text x="${W/2}" y="${H-2}" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString('pl-PL')} widzów</text>`;
+  s+=`<text x="${W/2}" y="${H-2}" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString('pl-PL')} ${t('stad_viewers').replace('{n}','').trim()}</text>`;
 
   s+=`</svg>`;
   return s;
@@ -550,26 +548,25 @@ function renderStadPrzeglad(){
   el.innerHTML=
     drawStadiumTopDown(cap,freq,s.modules||{})+
     '<div style="background:var(--tb);border:1px solid var(--gl);border-top:none;padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||'Stadion')+'</div>'+
+      '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||t('stad_title'))+'</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense)">'+
-        '<div><div style="color:var(--gr)">Pojemność</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString('pl-PL')+' miejsc</div></div>'+
-        '<div><div style="color:var(--gr)">Max ('+LEAGUE_NAMES[lvl]+')</div><div style="color:var(--gr)">'+maxCap.toLocaleString('pl-PL')+'</div></div>'+
-        '<div><div style="color:var(--gr)">Frekwencja</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
-        '<div><div style="color:var(--gr)">Widzów/mecz</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString('pl-PL')+'</div></div>'+
-        '<div><div style="color:var(--gr)">Cena biletu</div><div style="color:var(--am)">'+tp+' zł</div></div>'+
-        '<div><div style="color:var(--gr)">Bilety/tyg</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:var(--fs-dense)">'+fmt(perMatch)+' zł/mecz</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_capacity')+'</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_max').replace('{league}',LEAGUE_NAMES[lvl])+'</div><div style="color:var(--gr)">'+maxCap.toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_attendance')+'</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_fans_match')+'</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_ticket_price')+'</div><div style="color:var(--am)">'+tp+' zł</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_tickets_week')+'</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:var(--fs-dense)">'+t('stad_tickets_match').replace('{n}',fmt(perMatch))+'</div></div>'+
       '</div>'+
     '</div>'+
     '<div style="background:#000;border:1px solid var(--gl);height:10px;margin-bottom:10px;position:relative">'+
       '<div style="height:100%;background:var(--gb);width:'+Math.min(100,Math.round(cap/maxCap*100))+'%"></div>'+
       '<div style="position:absolute;right:4px;top:0;font-size:var(--fs-dense);color:var(--wh)">'+Math.min(100,Math.round(cap/maxCap*100))+'%</div>'+
     '</div>'+
- 
     (activeMods.length?
-      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">AKTYWNE MODUŁY</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+t('stad_active_modules')+'</div>'+
       activeMods.map(([k,m])=>'<div style="font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
       '<div style="margin-bottom:8px"></div>':'')+
-    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">ROZBUDUJ STADION</button>':'');
+    (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">'+t('stad_expand_btn')+'</button>':'');
 }
 function renderStadRozbudowa(){
   const el=document.getElementById('stad-rozbudowa');if(!el||!G)return;
@@ -581,19 +578,19 @@ function renderStadRozbudowa(){
     const pct=Math.min(100,Math.round((1-(s.building.weeksLeft/_tw))*100));
     const done=_tw-s.building.weeksLeft;
     return '<div class="stad-build-bar" style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:12px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">🔨 W BUDOWIE: +'+s.building.seats.toLocaleString('pl-PL')+' miejsc</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('stad_build_progress').replace('{n}',s.building.seats.toLocaleString('pl-PL'))+'</div>'+
       '<div style="background:#000;height:10px;border:1px solid var(--gl);margin-bottom:5px;position:relative">'+
         '<div class="stad-bar-fill" style="height:100%;background:var(--am);width:'+pct+'%;transition:width 0.3s"></div>'+
       '</div>'+
       '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
-        '<span class="stad-bar-left" style="color:var(--gr)">Tydzień '+done+' / '+_tw+'</span>'+
-        '<span class="stad-bar-right" style="color:var(--am)">'+pct+'% — zostało '+s.building.weeksLeft+' tyg.</span>'+
+        '<span class="stad-bar-left" style="color:var(--gr)">'+t('stad_week_progress').replace('{done}',done).replace('{total}',_tw)+'</span>'+
+        '<span class="stad-bar-right" style="color:var(--am)">'+t('stad_pct_left').replace('{pct}',pct).replace('{n}',s.building.weeksLeft)+'</span>'+
       '</div>'+
     '</div>';
   })():'';
   if(cap>=maxCap){
-    el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px;text-align:center">Osiągnięto limit dla '+LEAGUE_NAMES[lvl]+'. Awansuj wyżej.</div>'+
-      '<div class="fsec" style="margin:12px 0 8px">MODUŁY</div><div id="stad-rozb-moduly"></div>';
+    el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px;text-align:center">'+t('stad_limit_reached').replace('{league}',LEAGUE_NAMES[lvl])+'</div>'+
+      '<div class="fsec" style="margin:12px 0 8px">'+t('stad_modules_title')+'</div><div id="stad-rozb-moduly"></div>';
     _renderStadModulyInRozb();return;
   }
   const maxAdd=Math.min(2000,maxCap-cap);
@@ -608,28 +605,28 @@ function renderStadRozbudowa(){
   const canAfford=G.budget>=cost;
   el.innerHTML=
     buildBar+
-    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">Pojemność: <span style="color:var(--wh)">'+cap.toLocaleString('pl-PL')+'</span> / Max: '+maxCap.toLocaleString('pl-PL')+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+t('stad_capacity_lbl').replace('{n}',cap.toLocaleString('pl-PL')).replace('{max}',maxCap.toLocaleString('pl-PL'))+'</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">ILE MIEJSC DODAĆ?</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">'+t('stad_how_many')+'</div>'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
         '<button onclick="changeStadAdd(-100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">-</button>'+
-        '<div style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">'+n.toLocaleString('pl-PL')+' miejsc</div>'+
+        '<div style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">'+t('stad_places').replace('{n}',n.toLocaleString('pl-PL'))+'</div>'+
         '<button onclick="changeStadAdd(100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">+</button>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">'+
-        '<div><div style="color:var(--gr)">Nowa pojemność</div><div style="color:var(--wh)">'+newCap.toLocaleString('pl-PL')+' miejsc</div></div>'+
-        '<div><div style="color:var(--gr)">Koszt</div><div style="color:'+(canAfford?'var(--am)':'var(--rd)')+'">'+fmt(cost)+'</div></div>'+
-        '<div><div style="color:var(--gr)">Czas budowy</div><div style="color:var(--wh)">'+weeks+' tyg.</div></div>'+
-        '<div><div style="color:var(--gr)">Bilety/tyg po</div><div style="color:var(--gb)">+'+fmt(newBil)+' (+'+fmt(newBil-curBil)+')</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_new_capacity')+'</div><div style="color:var(--wh)">'+newCap.toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_cost')+'</div><div style="color:'+(canAfford?'var(--am)':'var(--rd)')+'">'+fmt(cost)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_build_time')+'</div><div style="color:var(--wh)">'+t('stad_weeks').replace('{n}',weeks)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_tickets_after')+'</div><div style="color:var(--gb)">+'+fmt(newBil)+' (+'+fmt(newBil-curBil)+')</div></div>'+
       '</div>'+
       (s.building?
-        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:not-allowed;opacity:0.5">BUDOWA W TOKU...</button>'
+        '<button disabled style="width:100%;background:var(--gr);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:not-allowed;opacity:0.5">'+t('stad_building')+'</button>'
       :canAfford?
-        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:pointer">ROZPOCZNIJ BUDOWĘ — '+fmt(cost)+'</button>'
-      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>')+
+        '<button onclick="startBuild()" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:12px;cursor:pointer">'+t('stad_start_build_btn').replace('{n}',fmt(cost))+'</button>'
+      :'<div style="background:#3d0000;border:1px solid var(--rd);padding:8px;text-align:center;font-size:var(--fs-dense);color:var(--rd)">'+t('stad_no_funds').replace('{n}',fmt(cost-G.budget))+'</div>')+
     '</div>'+
-    '<div style="font-size:var(--fs-dense);color:var(--gr)">Koszt/miejsce: '+(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900')+' zł</div>'+
-    '<div class="fsec" style="margin:14px 0 8px">MODUŁY</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_cost_per_seat').replace('{n}',(cap<500?'80':cap<2000?'150':cap<5000?'280':cap<15000?'500':'900'))+'</div>'+
+    '<div class="fsec" style="margin:14px 0 8px">'+t('stad_modules_title')+'</div>'+
     '<div id="stad-rozb-moduly"></div>';
   _renderStadModulyInRozb();
 }
@@ -643,11 +640,11 @@ function renderStadModuly(){
     const mod=STAD_MODULES[mb.key];
     const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
     buildingHtml='<div style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:10px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 W BUDOWIE: '+(mod?mod.icon+' '+mod.name:'?')+' L'+(mb.lvl+1)+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">'+t('stad_module_building').replace('{icon}',mod?mod.icon:'').replace('{name}',mod?mod.name:'?').replace('{lvl}',mb.lvl+1)+'</div>'+
       '<div style="background:#000;height:8px;border:1px solid var(--gl);margin-bottom:4px">'+
         '<div style="height:100%;background:var(--am);width:'+pct+'%"></div>'+
       '</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">Pozostało: '+mb.weeksLeft+' tyg. z '+mb.totalWeeks+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_module_weeks_left').replace('{n}',mb.weeksLeft).replace('{total}',mb.totalWeeks)+'</div>'+
     '</div>';
   }
   el.innerHTML=buildingHtml+Object.entries(STAD_MODULES).map(([key,mod])=>{
@@ -663,18 +660,18 @@ function renderStadModuly(){
         '<span style="font-size:var(--fs-display)">'+mod.icon+'</span>'+
         '<div style="flex:1"><div style="font-size:var(--fs-dense);color:var(--wh)">'+mod.name+'</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
-        (isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' tyg.</div>':
+        (isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' '+t('stad_weeks').replace('{n}','').trim()+'</div>':
          lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">L'+lvl+'</div>':'')+
       '</div>'+
       '<div style="display:flex;margin-bottom:6px">'+prog+'</div>'+
       (lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
-      (isMax?'<div style="font-size:var(--fs-dense);color:var(--am);text-align:center">MAX</div>':
-       isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">W budowie: L'+(lvl+1)+' — '+next.effect+'</div>':
-        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">L'+(lvl+1)+': '+next.effect+' • '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</div>'+
-        (otherBuilding?'<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>':
+      (isMax?'<div style="font-size:var(--fs-dense);color:var(--am);text-align:center">'+t('stad_module_max')+'</div>':
+       isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">'+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',next.effect)+'</div>':
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+t('stad_module_next').replace('{lvl}',lvl+1).replace('{effect}',next.effect).replace('{cost}',fmt(next.cost)).replace('{weeks}',next.buildWeeks||1)+'</div>'+
+        (otherBuilding?'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_module_other_build')+'</div>':
          !req.ok?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+req.msg+'</div>':
-         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>':
-         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">BUDUJ — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>')
+         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('stad_no_funds').replace('{n}',fmt(next.cost-G.budget))+'</div>':
+         '<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('stad_module_build_btn').replace('{cost}',fmt(next.cost)).replace('{weeks}',next.buildWeeks||1)+'</button>')
       )+
     '</div>';
   }).join('');
@@ -685,18 +682,18 @@ function renderStadHistoria(){
   el.innerHTML=hist.length?
     '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
     '<thead><tr>'+
-      '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">S/T</th>'+
-      '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">INWESTYCJA</th>'+
-      '<th style="text-align:right;padding:4px 6px;color:var(--rd);border-bottom:1px solid var(--gl)">KOSZT</th>'+
+      '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">'+t('stad_hist_col_st')+'</th>'+
+      '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">'+t('stad_hist_col_invest')+'</th>'+
+      '<th style="text-align:right;padding:4px 6px;color:var(--rd);border-bottom:1px solid var(--gl)">'+t('stad_hist_col_cost')+'</th>'+
     '</tr></thead><tbody>'+
     hist.slice().reverse().map(h=>
       '<tr style="border-bottom:1px solid #0d1f0d">'+
         '<td style="padding:4px 6px;color:var(--gr)">S'+h.season+' T'+h.week+'</td>'+
-        '<td style="padding:4px 6px;color:var(--wh)">'+(h.seats?'+'+h.seats.toLocaleString('pl-PL')+' miejsc':h.module||'?')+'</td>'+
+        '<td style="padding:4px 6px;color:var(--wh)">'+(h.seats?t('stad_hist_seats').replace('{n}',h.seats.toLocaleString('pl-PL')):h.module||'?')+'</td>'+
         '<td style="text-align:right;padding:4px 6px;color:var(--rd)">-'+fmt(h.cost)+'</td>'+
       '</tr>'
     ).join('')+'</tbody></table>'
-  :'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px">Brak historii inwestycji</div>';
+  :'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px">'+t('stad_hist_empty')+'</div>';
 }
 function changeStadAdd(delta){
   const s=G.stadium||{};const cap=s.capacity||200;
@@ -735,20 +732,20 @@ function _renderStadModulyInRozb(){
     // Blok statusu / akcji
     let actionHtml='';
     if(isMax){
-      actionHtml='<div style="text-align:center;color:var(--am);font-size:var(--fs-dense);padding:4px 0">✓ MAX</div>';
+      actionHtml='<div style="text-align:center;color:var(--am);font-size:var(--fs-dense);padding:4px 0">✓ '+t('stad_module_max')+'</div>';
     } else if(isBuilding){
       const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
       actionHtml=
-        '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 Buduje się L'+(lvl+1)+' — pozostało '+mb.weeksLeft+' tyg.</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 '+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',next.effect)+' — '+t('stad_module_weeks_left').replace('{n}',mb.weeksLeft).replace('{total}',mb.totalWeeks)+'</div>'+
         '<div style="background:#000;height:5px;border:1px solid var(--gl)"><div style="height:100%;background:var(--am);width:'+pct+'%"></div></div>';
     } else if(otherBuilding){
-      actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 Inny moduł w budowie</div>';
+      actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_module_other_build')+'</div>';
     } else if(!req.ok){
       actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">🔒 '+req.msg+'</div>';
     } else if(!canAfford){
-      actionHtml='<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(next.cost-G.budget)+'</div>';
+      actionHtml='<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('stad_no_funds').replace('{n}',fmt(next.cost-G.budget))+'</div>';
     } else {
-      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:7px;cursor:pointer;letter-spacing:1px">BUDUJ L'+(lvl+1)+' — '+fmt(next.cost)+' • '+(next.buildWeeks||1)+' tyg.</button>';
+      actionHtml='<button onclick="buyModule(\''+key+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:7px;cursor:pointer;letter-spacing:1px">'+t('stad_module_build_btn').replace('{cost}',fmt(next.cost)).replace('{weeks}',next.buildWeeks||1)+'</button>';
     }
 
     html+=
@@ -759,7 +756,7 @@ function _renderStadModulyInRozb(){
           '<div style="flex:1">'+
             '<div style="font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
             '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-              (isMax?'MAX':'L'+lvl+'/'+maxLvl+(next?' • następny: '+next.effect:''))+
+              (isMax?t('stad_module_max'):'L'+lvl+'/'+maxLvl+(next?t('stad_next_suffix').replace('{effect}',next.effect):''))+
             '</div>'+
           '</div>'+
           '<div style="font-size:var(--fs-dense);text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
@@ -778,17 +775,17 @@ function renderStadModuly(){_renderStadModulyInRozb();}
 function startBuild(){
   if(!G||!G.stadium)return;
   const s=G.stadium;const cap=s.capacity||200;
-  if(s.building){notif('Budowa już trwa! Poczekaj na zakończenie.','err');return;}
+  if(s.building){notif(t('stad_pct_notif'),'err');return;}
   const lvl=G.myLeague||8;const maxAdd=Math.min(1000,STAD.maxCap[lvl]-cap);
   const n=Math.max(100,Math.min(maxAdd,window._stadAdd||100));
   const cost=STAD.calcCost(cap,n);const weeks=STAD.buildTime(n);
-  if(G.budget<cost){notif('Za mało środków!','err');return;}
+  if(G.budget<cost){notif(t('train_no_funds'),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
   G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Rozbudowa stadionu: +'+n.toLocaleString('pl-PL')+' miejsc'});
   s.building={seats:n,weeksLeft:weeks,totalWeeks:weeks,cost};
   addNews(t('news_stad_build_started').replace('{n}',n.toLocaleString('pl-PL')).replace('{cost}',fmt(cost)).replace('{weeks}',weeks),'club');
-  notif('Budowa rozpoczęta! Gotowe za '+weeks+' tygodni.','ok');
+  notif(t('stad_build_notif').replace('{n}',weeks),'ok');
   window._stadAdd=100;fillStadium();
 }
 function buyModule(key){
@@ -796,19 +793,19 @@ function buyModule(key){
   if(!G.stadium.modules)G.stadium.modules={};
   const mod=STAD_MODULES[key];if(!mod)return;
   const lvl=getModuleLvl(key);
-  if(lvl>=mod.levels.length){notif('Maksymalny poziom!','err');return;}
+  if(lvl>=mod.levels.length){notif(t('stad_mod_max'),'err');return;}
   const next=mod.levels[lvl];
   const req=checkModuleReq(next.req);
   if(!req.ok){notif(req.msg,'err');return;}
-  if(G.budget<next.cost){notif('Za mało środków!','err');return;}
-  if(G.stadium.modulBuilding){notif('Inny moduł jest w budowie!','err');return;}
+  if(G.budget<next.cost){notif(t('stad_mod_no_funds'),'err');return;}
+  if(G.stadium.modulBuilding){notif(t('stad_mod_other'),'err');return;}
   G.budget-=next.cost;
   if(!G.fin.hist)G.fin.hist=[];
   G.fin.hist.push({w:G.week,inc:0,cost:next.cost,bal:G.budget,season:G.season,note:mod.icon+' Moduł: '+mod.name+' L'+(lvl+1)});
   const weeks=next.buildWeeks||1;
   G.stadium.modulBuilding={key,lvl,next,cost:next.cost,weeksLeft:weeks,totalWeeks:weeks};
   addNews(t('news_stad_module_started').replace('{icon}',mod.icon).replace('{name}',mod.name).replace('{lvl}',lvl+1).replace('{weeks}',weeks).replace('{cost}',fmt(next.cost)),'club');
-  notif(mod.name+' L'+(lvl+1)+' — budowa '+weeks+' tyg.','ok');
+  notif(t('stad_mod_notif').replace('{name}',mod.name).replace('{lvl}',lvl+1).replace('{n}',weeks),'ok');
   renderStadModuly();
 }
 

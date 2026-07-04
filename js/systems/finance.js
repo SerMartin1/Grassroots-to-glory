@@ -1,8 +1,8 @@
 function finTab(tab,btn){
   document.querySelectorAll('#p-finance .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['przeglad','kontrakty','historia','sezony','zarzad'].forEach(t=>{
-    const el=document.getElementById('fin-'+t);if(el)el.classList.remove('on');
+  ['przeglad','kontrakty','historia','sezony','zarzad'].forEach(tr=>{
+    const el=document.getElementById('fin-'+tr);if(el)el.classList.remove('on');
   });
   const el=document.getElementById('fin-'+tab);if(el)el.classList.add('on');
   if(tab==='przeglad')renderFinPrzeglad();
@@ -19,7 +19,7 @@ function renderFinZarzad(){
   // --- sub-tabs wewnątrz zarząd ---
   const activeInner=el.dataset.inner||'cele';
   const mkTab=(id,label)=>`<button onclick="finZarzadInner('${id}',this)" style="flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid ${activeInner===id?'var(--am)':'transparent'};font-weight:700;font-size:var(--fs-micro);color:${activeInner===id?'var(--am)':'var(--gr)'};cursor:pointer">${label}</button>`;
-  el.innerHTML=`<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">${mkTab('cele','CELE')}${mkTab('historia','HISTORIA')}</div><div id="fin-zarzad-inner" style="padding:0 2px"></div>`;
+  el.innerHTML=`<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">${mkTab('cele',t('fin_board_goals'))}${mkTab('historia',t('fin_tab_history'))}</div><div id="fin-zarzad-inner" style="padding:0 2px"></div>`;
   renderFinZarzadInner(activeInner);
 }
 function finZarzadInner(tab,btn){
@@ -164,16 +164,16 @@ function renderFinPrzeglad(){
   if(donutCost>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#f44336" stroke-width="12" stroke-dasharray="${costArc} ${CIRC-costArc}" stroke-dashoffset="0" transform="rotate(-90 45 45)" opacity="0.85"/>`;
   if(donutInc>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#4caf50" stroke-width="12" stroke-dasharray="${incArc} ${CIRC-incArc}" stroke-dashoffset="${-costArc}" transform="rotate(-90 45 45)" opacity="0.85"/>`;
   html+='</svg>';
-  html+=`<div class="fc-donut-center"><div class="fc-donut-amt ${netSign?'pos':'neg'}">${netSign?'+':''}${fmt(curData.net)}</div><div class="fc-donut-lbl">MIE ${curMonth}<br>BILANS</div></div>`;
+  html+=`<div class="fc-donut-center"><div class="fc-donut-amt ${netSign?'pos':'neg'}">${netSign?'+':''}${fmt(curData.net)}</div><div class="fc-donut-lbl">${t('fin_month_balance').replace('{n}',curMonth)}</div></div>`;
   html+='</div>';
   html+='<div class="fc-legend">';
-  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">Przychód</span><span class="fc-leg-val pos">+${fmt(curData.totalInc)}</span></div>`;
-  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">Koszty</span><span class="fc-leg-val neg">-${fmt(curData.totalCost)}</span></div>`;
-  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">Stan: <span style="font-weight:700;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
+  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">${t('fin_income')}</span><span class="fc-leg-val pos">+${fmt(curData.totalInc)}</span></div>`;
+  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">${t('fin_costs')}</span><span class="fc-leg-val neg">-${fmt(curData.totalCost)}</span></div>`;
+  html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">${t('fin_balance_state')} <span style="font-weight:700;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
   html+='</div></div>';
 
   // Lista miesięcy
-  html+='<div class="fsec" style="margin:0">MIESIĘCZNE — sezon '+G.season+'</div>';
+  html+='<div class="fsec" style="margin:0">'+t('fin_monthly_label').replace('{n}',G.season)+'</div>';
 
   monthNums.forEach(function(m){
     const _mw0=(m-1)*4+1; const _mw1=m*4;
@@ -184,7 +184,7 @@ function renderFinPrzeglad(){
     const isCur=m===curMonth;
     html+=`<div class="fc-month">`;
     html+=`<div class="fc-month-hdr">`;
-    html+=`<span class="fc-month-name">${isCur?'\u25b6 ':'\u25c6 '}MIE ${m} (T${d.w0}\u2013T${d.w1})${isCur?' BIER\u0104CY':''}${d.estimated?' \u2248':''}</span>`;
+    html+=`<span class="fc-month-name">${isCur?'\u25b6 ':'\u25c6 '}${t('fin_month_label').replace('{m}',m).replace('{w0}',d.w0).replace('{w1}',d.w1)}${isCur?t('fin_current_month'):''}${d.estimated?' \u2248':''}</span>`;
     
     html+='</div>';
     // Rozbicie przychodów regularnych z calcWeeklyIncome (bieżące stawki)
@@ -221,29 +221,29 @@ function renderFinPrzeglad(){
       _ticketsEst=G.fin.tickets||0;
     }
     html+=`<div class="fc-month-body">`;
-    html+=`<div class="fc-mrow" style="border-bottom:1px solid #0a1f0a;margin-bottom:2px"><span class="fc-mrow-lbl" style="color:var(--wh)">Przychody regularne</span><span class="fc-mrow-val pos">+${fmt(d.regInc)}</span></div>`;
-    if(_estSpon>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">Sponsorzy</span><span class="fc-mrow-val pos">+${fmt(_estSpon)}</span></div>`;
-    if(_estContr>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">Kontrakty</span><span class="fc-mrow-val pos">+${fmt(_estContr)}</span></div>`;
-    if(_estAds>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">Reklamy</span><span class="fc-mrow-val pos">+${fmt(_estAds)}</span></div>`;
-    if(_estTV>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">TV</span><span class="fc-mrow-val pos">+${fmt(_estTV)}</span></div>`;
-    if(_ticketsEst>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">Bilety (mecze dom.)</span><span class="fc-mrow-val pos">+${fmt(_ticketsEst)}</span></div>`;
-    if(_estGad>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">Gadżety</span><span class="fc-mrow-val pos">+${fmt(_estGad)}</span></div>`;
-    if(_estVip>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">VIP</span><span class="fc-mrow-val pos">+${fmt(_estVip)}</span></div>`;
-    if(d.salPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">Pensje (wyp\u0142ata)</span><span class="fc-mrow-val neg">-${fmt(d.salPaid)}</span></div>`;
-    if(d.maintPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">Stadion+Centrum+Akad.</span><span class="fc-mrow-val neg">-${fmt(d.maintPaid)}</span></div>`;
+    html+=`<div class="fc-mrow" style="border-bottom:1px solid #0a1f0a;margin-bottom:2px"><span class="fc-mrow-lbl" style="color:var(--wh)">${t('fin_reg_income')}</span><span class="fc-mrow-val pos">+${fmt(d.regInc)}</span></div>`;
+    if(_estSpon>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_sponsors')}</span><span class="fc-mrow-val pos">+${fmt(_estSpon)}</span></div>`;
+    if(_estContr>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_contracts_inc')}</span><span class="fc-mrow-val pos">+${fmt(_estContr)}</span></div>`;
+    if(_estAds>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_ads')}</span><span class="fc-mrow-val pos">+${fmt(_estAds)}</span></div>`;
+    if(_estTV>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_tv')}</span><span class="fc-mrow-val pos">+${fmt(_estTV)}</span></div>`;
+    if(_ticketsEst>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_tickets')}</span><span class="fc-mrow-val pos">+${fmt(_ticketsEst)}</span></div>`;
+    if(_estGad>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_gadgets')}</span><span class="fc-mrow-val pos">+${fmt(_estGad)}</span></div>`;
+    if(_estVip>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_vip')}</span><span class="fc-mrow-val pos">+${fmt(_estVip)}</span></div>`;
+    if(d.salPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">${t('fin_salaries')}</span><span class="fc-mrow-val neg">-${fmt(d.salPaid)}</span></div>`;
+    if(d.maintPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">${t('fin_maintenance')}</span><span class="fc-mrow-val neg">-${fmt(d.maintPaid)}</span></div>`;
     d.events.forEach(function(ev){
       html+=`<div class="fc-mrow event"><span class="fc-mrow-lbl event">${ev.lbl}</span><span class="fc-mrow-val ${ev.inc>0?'pos':'neg'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</span></div>`;
     });
-    html+=`<div class="fc-mrow total"><span class="fc-mrow-lbl">BILANS</span><span class="fc-mrow-val ${d.net>=0?'pos':'neg'}">${d.net>=0?'+':''}${fmt(d.net)}</span></div>`;
+    html+=`<div class="fc-mrow total"><span class="fc-mrow-lbl">${t('fin_balance_row')}</span><span class="fc-mrow-val ${d.net>=0?'pos':'neg'}">${d.net>=0?'+':''}${fmt(d.net)}</span></div>`;
     html+='</div></div>';
   });
 
   // Pasek sezonu
   const seasonNet=seasonInc-seasonCost;
   html+='<div class="fc-season-bar">';
-  html+=`<div><div class="fc-season-lbl">PRZYCHODY S${G.season}</div><div class="fc-season-val pos">+${fmt(seasonInc)}</div></div>`;
-  html+=`<div style="text-align:center"><div class="fc-season-lbl">KOSZTY S${G.season}</div><div class="fc-season-val neg">-${fmt(seasonCost)}</div></div>`;
-  html+=`<div style="text-align:right"><div class="fc-season-lbl">BILANS S${G.season}</div><div class="fc-season-val ${seasonNet>=0?'pos':'neg'}">${seasonNet>=0?'+':''}${fmt(seasonNet)}</div></div>`;
+  html+=`<div><div class="fc-season-lbl">${t('fin_season_income').replace('{n}',G.season)}</div><div class="fc-season-val pos">+${fmt(seasonInc)}</div></div>`;
+  html+=`<div style="text-align:center"><div class="fc-season-lbl">${t('fin_season_costs').replace('{n}',G.season)}</div><div class="fc-season-val neg">-${fmt(seasonCost)}</div></div>`;
+  html+=`<div style="text-align:right"><div class="fc-season-lbl">${t('fin_season_balance').replace('{n}',G.season)}</div><div class="fc-season-val ${seasonNet>=0?'pos':'neg'}">${seasonNet>=0?'+':''}${fmt(seasonNet)}</div></div>`;
   html+='</div>';
 
   el.innerHTML=html;
@@ -274,7 +274,7 @@ function renderFinSezony(){
     const fd=seasonFinData(s);
     seasons.push({s,ch,fd,isCur:s===G.season&&!G.seasonEnded});
   }
-  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">Brak danych sezonowych.</div>';return;}
+  if(!seasons.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">'+t('fin_no_data')+'</div>';return;}
 
   const totInc=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.inc||0),0);
   const totCost=seasons.filter(r=>r.fd).reduce((a,r)=>a+(r.fd.cost||0),0);
@@ -311,8 +311,8 @@ function renderFinSezony(){
     html+='</div>';
     // Przychody / Koszty
     html+=`<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:3px">`;
-    html+=`<span>\u25b2 Przychody: ${salStr}</span>`;
-    html+=`<span>\u25bc Koszty: ${costStr}</span>`;
+    html+=`<span>\u25b2 ${t('fin_income')}: ${salStr}</span>`;
+    html+=`<span>\u25bc ${t('fin_costs')}: ${costStr}</span>`;
     html+='</div>';
     // Pasek
     if(fd){
@@ -324,19 +324,19 @@ function renderFinSezony(){
       html+='<div style="height:7px;background:#0a150a;margin-bottom:4px"></div>';
     }
     // Saldo
-    html+=`<div style="text-align:right;font-weight:700;font-size:var(--fs-h2);color:${netCol}">SALDO: ${netStr}</div>`;
+    html+=`<div style="text-align:right;font-weight:700;font-size:var(--fs-h2);color:${netCol}">${t('fin_saldo')} ${netStr}</div>`;
     html+='</div>';
   });
 
   // ŁĄCZNIE
   const totNet2=totNet;
   html+=`<div style="background:var(--tb);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--gb)">`;
-  html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:var(--wh)">\u0141\u0104CZNIE</span>`;
+  html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:var(--wh)">${t('fin_total')}</span>`;
   html+=`<div style="text-align:right;font-size:var(--fs-dense)">`;
   html+=`<div><span style="color:var(--gb)">+${fmt(totInc)}</span> / <span style="color:var(--rd)">-${fmt(totCost)}</span></div>`;
   html+=`<div style="font-weight:700;font-size:var(--fs-h2);color:${totNet2>=0?'var(--gb)':'var(--rd)'}">${totNet2>=0?'+':''}${fmt(totNet2)}</div>`;
   html+='</div></div>';
-  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:5px 12px 8px">\u2605 Przychody = regularne + premia + sprzeda\u017ce. Koszty = sta\u0142e + zakupy.</div>';
+  html+=`<div style="font-size:var(--fs-dense);color:var(--gr);padding:5px 12px 8px">${t('fin_season_note')}</div>`;
 
   el.innerHTML=html;
 }
@@ -372,12 +372,12 @@ function renderFinKontrakty(){
   const reqTV=lvl<=3&&rep>=150;
 
   const sponsorTiers=[
-    {minRep:0,  maxRep:49,  name:'Lokalny sklep',   color:'var(--gr)'},
-    {minRep:50, maxRep:99,  name:'Regionalna firma', color:'var(--wh)'},
-    {minRep:100,maxRep:199, name:'Krajowa marka',    color:'var(--am)'},
-    {minRep:200,maxRep:399, name:'Duza korporacja',  color:'#4fc3f7'},
-    {minRep:400,maxRep:699, name:'Sponsor premium',  color:'var(--gb)'},
-    {minRep:700,maxRep:1000,name:'Globalny gigant',  color:'#ffd700'},
+    {minRep:0,  maxRep:49,  name:t('fin_sponsor_tier_1'), color:'var(--gr)'},
+    {minRep:50, maxRep:99,  name:t('fin_sponsor_tier_2'), color:'var(--wh)'},
+    {minRep:100,maxRep:199, name:t('fin_sponsor_tier_3'), color:'var(--am)'},
+    {minRep:200,maxRep:399, name:t('fin_sponsor_tier_4'), color:'#4fc3f7'},
+    {minRep:400,maxRep:699, name:t('fin_sponsor_tier_5'), color:'var(--gb)'},
+    {minRep:700,maxRep:1000,name:t('fin_sponsor_tier_6'), color:'#ffd700'},
   ];
   const curRep=G.reputation||30;
   const curTier=sponsorTiers.find(t=>curRep>=t.minRep&&curRep<=t.maxRep)||sponsorTiers[0];
@@ -395,44 +395,44 @@ function renderFinKontrakty(){
             const _repMC=Math.max(0.8,Math.min(1.8,0.8+(G.reputation||30)/1000*1.0));
             const _actual=Math.round(G.contracts[slot].weekly*_repMC);
             const _base=G.contracts[slot].weekly;
-            return '<div style="font-size:var(--fs-dense);color:var(--gb)">'+fmt(_base)+'/tyg • '+seasonsLeft+' sez.</div>'+
-              '<div style="font-size:var(--fs-dense);color:var(--am)">Faktycznie: <span style="color:var(--gb)">'+fmt(_actual)+'/tyg</span> (Rep ×'+_repMC.toFixed(2)+')</div>';
+            return '<div style="font-size:var(--fs-dense);color:var(--gb)">'+t('fin_contract_line').replace('{n}',fmt(_base)).replace('{seas}',seasonsLeft)+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--am)">'+t('fin_actual_weekly').replace('{n}',fmt(_actual)).replace('{mult}',_repMC.toFixed(2))+'</div>';
           })():
-           '<div style="font-size:var(--fs-dense);color:var(--gr)">Brak kontraktu</div>')+
+           '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('fin_no_contract')+'</div>')+
         '</div>'+
       '</div>'+
       (!hasActive?
         '<div style="font-size:var(--fs-dense);margin-bottom:3px">'+
-          'Sponsor: <span style="color:'+curTier.color+'">'+curTier.name+'</span>'+
+          t('fin_sponsor_current')+' <span style="color:'+curTier.color+'">'+curTier.name+'</span>'+
           ' <span style="color:var(--gr)">(Rep. '+curTier.minRep+'–'+curTier.maxRep+')</span>'+
         '</div>'+
         (nextTier?
           '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">'+
-            'Następny: <span style="color:'+nextTier.color+'">'+nextTier.name+'</span>'+
-            ' przy Rep. <span style="color:var(--am)">'+nextTier.minRep+'</span>'+
-            ' <span style="color:var(--gr)">(brakuje '+(nextTier.minRep-curRep)+')</span>'+
+            t('fin_sponsor_next')+' <span style="color:'+nextTier.color+'">'+nextTier.name+'</span>'+
+            t('fin_sponsor_at_rep')+' <span style="color:var(--am)">'+nextTier.minRep+'</span>'+
+            ' <span style="color:var(--gr)">'+t('fin_sponsor_missing').replace('{n}',nextTier.minRep-curRep)+'</span>'+
           '</div>'
-        :'<div style="font-size:var(--fs-dense);color:#ffd700;margin-bottom:5px">Maksymalny poziom!</div>')
+        :'<div style="font-size:var(--fs-dense);color:#ffd700;margin-bottom:5px">'+t('fin_sponsor_max')+'</div>')
       :'')+
       (hasActive?
-        '<div style="font-size:var(--fs-dense);color:var(--gb)">Aktywny kontrakt</div>'
+        '<div style="font-size:var(--fs-dense);color:var(--gb)">'+t('fin_active_contract')+'</div>'
       :!req?
         '<div style="font-size:var(--fs-dense);color:var(--rd)">'+reqMsg+'</div>'
       :weekly===0?
-        '<div style="font-size:var(--fs-dense);color:var(--gr)">Brak ofert (za niska reputacja)</div>'
+        '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('fin_no_offers')+'</div>'
       :
-        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">Oferta: <span style="color:var(--am)">+'+fmt(weekly)+'/tyg</span> • 1 sezon</div>'+
-        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">PODPISZ</button>'
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:5px">'+t('fin_offer_line').replace('{n}',fmt(weekly))+'</div>'+
+        '<button onclick="signContract(\''+slot+'\')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('fin_sign_btn')+'</button>'
       )+
     '</div>';
   }
   el.innerHTML=
-    '<div class="fsec">SPONSORZY</div>'+
-    contractBox('shirt','Sponsor koszulki','👕',true,'',sponsorOffer('shirt'),G.contracts.shirt)+
-    contractBox('stadium','Sponsor stadionu','🏟️',reqStadium,'Wymaga stadionu 1000+ miejsc',sponsorOffer('stadium'),G.contracts.stadium)+
-    contractBox('naming','Naming rights','💎',reqNaming,'Wymaga 5000+ miejsc i Rep. 300+',sponsorOffer('naming'),G.contracts.naming)+
-    '<div class="fsec" style="margin-top:10px">PRAWA TELEWIZYJNE</div>'+
-    contractBox('tv','Kontrakt TV','📺',reqTV,lvl>3?'Dostępne od III Ligi':'Wymaga Rep. 150+',tvOffer(),G.contracts.tv);
+    '<div class="fsec">'+t('fin_sponsors_title')+'</div>'+
+    contractBox('shirt',t('fin_shirt_label'),'👕',true,'',sponsorOffer('shirt'),G.contracts.shirt)+
+    contractBox('stadium',t('fin_stadium_label'),'🏟️',reqStadium,t('fin_req_stadium'),sponsorOffer('stadium'),G.contracts.stadium)+
+    contractBox('naming',t('fin_naming_label'),'💎',reqNaming,t('fin_req_naming'),sponsorOffer('naming'),G.contracts.naming)+
+    '<div class="fsec" style="margin-top:10px">'+t('fin_tv_title')+'</div>'+
+    contractBox('tv',t('fin_tv_label'),'📺',reqTV,lvl>3?t('fin_req_tv'):t('fin_req_tv_rep'),tvOffer(),G.contracts.tv);
 }
 
 function signContract(slot){
@@ -450,10 +450,10 @@ function signContract(slot){
     return raw2<500?Math.round(raw2/50)*50:Math.round(raw2/500)*500;
   }
   const weekly=getWeekly(slot);
-  if(weekly<=0){notif('Brak ofert!','err');return;}
+  if(weekly<=0){notif(t('fin_no_offers'),'err');return;}
   G.contracts[slot]={weekly,seasonsLeft:1,slot};
   addNews(t('news_sponsor_signed').replace('{slot}',({shirt:t('sponsor_slot_shirt'),stadium:t('sponsor_slot_stadium'),naming:t('sponsor_slot_naming'),tv:t('sponsor_slot_tv')}[slot]||slot)).replace('{val}',fmt(weekly)),'club');
-  notif('Kontrakt podpisany: +'+fmt(weekly)+'/tyg!','ok');
+  notif(t('fin_sign_btn')+': +'+fmt(weekly)+'/wk!','ok');
   renderFinKontrakty();
 }
 
@@ -472,15 +472,15 @@ function renderFinHistoria(){
     else allEvents[w].push({lbl:'\u2794 KUP: '+t.name,inc:0,cost:t.val||t.fee||0});
   });
 
-  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">Brak historii \u2014 zacznij sezon aby zobaczy\u0107 dane finansowe.</div>';return;}
+  if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">'+t('fin_hist_empty')+'</div>';return;}
 
-  let html='<div style="font-weight:700;font-size:var(--fs-h2);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">SEZON '+G.season+' — '+weekly.length+' TYGODNI</div>';
+  let html='<div style="font-weight:700;font-size:var(--fs-h2);color:var(--gr);padding:6px 0 8px;letter-spacing:1px">'+t('fin_hist_weeks').replace('{n}',G.season).replace('{m}',weekly.length)+'</div>';
   html+='<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">';
   html+='<thead><tr>';
-  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gr)">TYG</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gb)">PRZYCH.</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--rd)">KOSZTY</th>';
-  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--am)">STAN</th>';
+  html+='<th style="text-align:left;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gr)">'+t('fin_hist_col_week')+'</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--gb)">'+t('fin_hist_col_income')+'</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--rd)">'+t('fin_hist_col_costs')+'</th>';
+  html+='<th style="text-align:right;padding:4px 5px;border-bottom:2px solid var(--gl);font-weight:700;font-size:var(--fs-h2);color:var(--am)">'+t('fin_hist_col_balance')+'</th>';
   html+='</tr></thead><tbody>';
 
   // Tygodnie z wpisami tygodniowymi + tygodnie ze zdarzeniami bez wpisu (np. transfer w T1 bez meczu)
