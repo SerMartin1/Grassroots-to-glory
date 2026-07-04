@@ -467,24 +467,24 @@ function getBoardPos(){
 
 function selectMainGoal(id){
   if(!G||!G.board)return;
-  if(G.board.mainGoal){notif('Cel główny już wybrany!','err');return;}
+  if(G.board.mainGoal){notif(t('board_notif_main_already'),'err');return;}
   const _id=typeof id==='string'?id:(id&&id.dataset?id.dataset.id:id);
   const g=G.board.mainOptions.find(x=>x.id===_id);
   if(!g)return;
   G.board.mainGoal=g;
   addNews(t('news_board_goal').replace('{label}',g.label).replace('{desc}',g.desc),'club');
-  notif('Cel wybrany: '+g.label,'ok');
+  notif(t('board_notif_main_set').replace('{label}',g.label),'ok');
   fillBoard();
 }
 
 function selectOptGoal(id){
   if(!G||!G.board)return;
-  if(G.board.optGoal){notif('Cel opcjonalny już wybrany!','err');return;}
+  if(G.board.optGoal){notif(t('board_notif_opt_already'),'err');return;}
   const _id=typeof id==='string'?id:(id&&id.dataset?id.dataset.id:id);
   const g=G.board.optOptions.find(x=>x.id===_id);
   if(!g)return;
   G.board.optGoal=g;
-  notif('Cel opcjonalny: '+g.label,'ok');
+  notif(t('board_notif_opt_set').replace('{label}',g.label),'ok');
   fillBoard();
 }
 
@@ -503,28 +503,23 @@ function checkBoardGoals(){
     let msg='';
     if(rw.budget){G.budget+=rw.budget;msg+=' +'+fmt(rw.budget);}
     if(rw.rep){G.reputation=Math.min(1000,(G.reputation||30)+rw.rep);msg+=' +Rep '+rw.rep;}
-    if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;msg+=' Sponsorzy +'+Math.round(rw.sponsorBonus*100)+'%';}
-    if(rw.transferBudget){if(!b.transferBudget)b.transferBudget=0;b.transferBudget+=rw.transferBudget;msg+=' Pula transferowa +'+fmt(rw.transferBudget);}
-    // Premia za streak odblokowania (po presji)
-    if(streak>=2){G.reputation=Math.min(1000,(G.reputation||30)+10);msg+=' +10 Rep (ulga po presji)';}
+    if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;msg+=t('board_msg_sponsors').replace('{n}','+'+Math.round(rw.sponsorBonus*100));}
+    if(rw.transferBudget){if(!b.transferBudget)b.transferBudget=0;b.transferBudget+=rw.transferBudget;msg+=t('board_msg_transfer_pool').replace('{val}',fmt(rw.transferBudget));}
+    if(streak>=2){G.reputation=Math.min(1000,(G.reputation||30)+10);msg+=t('board_msg_rep_relief');}
     addNews(t('news_board_goal_done').replace('{label}',b.mainGoal.label).replace('{msg}',msg),'club');
-    notif('Cel zarządu wykonany!','ok');
+    notif(t('board_notif_done'),'ok');
   } else {
     b.streakFailed=(b.streakFailed||0)+1;
     const pn=b.mainGoal.penalty;
     let msg='';
-    // Kara budżetowa (oparta na rewardScale, nie na G.budget)
     if(pn.budget&&pn.budget<0){G.budget=Math.max(0,G.budget+pn.budget);msg+=' '+fmt(pn.budget);}
     if(pn.rep){G.reputation=Math.max(0,(G.reputation||30)+pn.rep);msg+=' Rep '+pn.rep;}
-    // Kara specjalna: blokada transferowa
-    if(pn.transferLock){b.transferLockSeasons=(b.transferLockSeasons||0)+pn.transferLock;msg+=' ⛔ Blokada transferów ('+pn.transferLock+' okno)';}
-    // Kara za sponsorów przy Mistrzostwie
-    if(pn.sponsorPenalty){if(!b.sponsorPenalty)b.sponsorPenalty=0;b.sponsorPenalty+=pn.sponsorPenalty;msg+=' Sponsorzy '+Math.round(pn.sponsorPenalty*100)+'%';}
-    // Info o rosnącej presji
+    if(pn.transferLock){b.transferLockSeasons=(b.transferLockSeasons||0)+pn.transferLock;msg+=t('board_msg_transfer_lock').replace('{n}',pn.transferLock);}
+    if(pn.sponsorPenalty){if(!b.sponsorPenalty)b.sponsorPenalty=0;b.sponsorPenalty+=pn.sponsorPenalty;msg+=t('board_msg_sponsors').replace('{n}','-'+Math.round(pn.sponsorPenalty*100));}
     const newStreak=b.streakFailed;
-    if(newStreak>=2)msg+=' ⚠️ PRESJA x'+newStreak;
+    if(newStreak>=2)msg+=t('board_msg_pressure').replace('{n}',newStreak);
     addNews(t('news_board_goal_failed').replace('{label}',b.mainGoal.label).replace('{msg}',msg),'club');
-    notif('Cel zarządu nie wykonany.','err');
+    notif(t('board_notif_failed'),'err');
   }
 
   // ── CEL OPCJONALNY ────────────────────────────────────────
@@ -534,11 +529,11 @@ function checkBoardGoals(){
       let omsg='';
       if(rw.budget){G.budget+=rw.budget;omsg+=' +'+fmt(rw.budget);}
       if(rw.rep){G.reputation=Math.min(1000,(G.reputation||30)+rw.rep);omsg+=' +Rep '+rw.rep;}
-      if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;omsg+=' Sponsorzy +'+Math.round(rw.sponsorBonus*100)+'%';}
-      if(rw.ticketBonus){if(!b.ticketBonus)b.ticketBonus=0;b.ticketBonus+=0.1;omsg+=' Bilety +10%';}
-      if(rw.formBonus){myPl().forEach(p=>{p.form=Math.min(100,(p.form||70)+rw.formBonus);});omsg+=' Forma +'+rw.formBonus+' dla całego składu';}
-      if(rw.academyBoost){if(G.academy)G.academy.boostSeasons=(G.academy.boostSeasons||0)+1;omsg+=' Akademia przyspieszona';}
-      if(rw.topScorerBonus){const best=myPl().sort((a,b2)=>(b2.st.g||0)-(a.st.g||0))[0];if(best){best.value=Math.round(best.value*1.2/500)*500;omsg+=' '+best.name.split(' ')[0]+' wycena +20%';}}
+      if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;omsg+=t('board_msg_sponsors').replace('{n}','+'+Math.round(rw.sponsorBonus*100));}
+      if(rw.ticketBonus){if(!b.ticketBonus)b.ticketBonus=0;b.ticketBonus+=0.1;omsg+=t('board_msg_tickets');}
+      if(rw.formBonus){myPl().forEach(p=>{p.form=Math.min(100,(p.form||70)+rw.formBonus);});omsg+=t('board_msg_form').replace('{n}',rw.formBonus);}
+      if(rw.academyBoost){if(G.academy)G.academy.boostSeasons=(G.academy.boostSeasons||0)+1;omsg+=t('board_msg_academy');}
+      if(rw.topScorerBonus){const best=myPl().sort((a,b2)=>(b2.st.g||0)-(a.st.g||0))[0];if(best){best.value=Math.round(best.value*1.2/500)*500;omsg+=t('board_msg_valuation').replace('{name}',best.name.split(' ')[0]);}}
       if(rw.transferBudget){if(!b.transferBudget)b.transferBudget=0;b.transferBudget+=rw.transferBudget;}
       addNews(t('news_board_bonus_done').replace('{label}',b.optGoal.label).replace('{msg}',omsg),'club');
     } else {
@@ -570,7 +565,7 @@ function checkBoardGoals(){
 function boardTab(tab,btn){
   document.querySelectorAll('#p-board .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['cele','historia'].forEach(t=>{const e=document.getElementById('board-'+t);if(e)e.classList.remove('on');});
+  ['cele','historia'].forEach(tr=>{const e=document.getElementById('board-'+tr);if(e)e.classList.remove('on');});
   const e=document.getElementById('board-'+tab);if(e)e.classList.add('on');
   if(tab==='cele')renderBoardCele();
   else renderBoardHistoria();

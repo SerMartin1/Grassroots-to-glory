@@ -4,13 +4,35 @@ const ACADEMY={
   costMult: {1:5.0,2:3.0,3:1.8,4:1.2,5:0.8,6:0.5,7:0.35,8:0.25},
   upkMult:  {1:6.0,2:3.5,3:4.0,4:3.6,5:2.1,6:1.2,7:0.75,8:0.45},
   levels:[
-    {cost:150000, upkeep:150,  perSeason:1, maxPot:60, ovrMin:18, buildWeeks:8,  name:'Podstawowa',   req:0},
-    {cost:450000, upkeep:800,  perSeason:2, maxPot:72, ovrMin:22, buildWeeks:12, name:'Rozwinęta',   req:100},
-    {cost:1200000,upkeep:2500, perSeason:3, maxPot:82, ovrMin:27, buildWeeks:20, name:'Zaawansowana', req:250},
-    {cost:3600000,upkeep:8000, perSeason:5, maxPot:92, ovrMin:32, buildWeeks:32, name:'Elitarna',     req:500},
-    {cost:12000000,upkeep:25000,perSeason:2,maxPot:99, ovrMin:38, buildWeeks:52, name:'Mistrzów',     req:800, ekstraOnly:true},
+    {cost:150000,  upkeep:150,   perSeason:1, maxPot:60, ovrMin:18, buildWeeks:8,  key:'basic',   req:0},
+    {cost:450000,  upkeep:800,   perSeason:2, maxPot:72, ovrMin:22, buildWeeks:12, key:'advanced',req:100},
+    {cost:1200000, upkeep:2500,  perSeason:3, maxPot:82, ovrMin:27, buildWeeks:20, key:'pro',     req:250},
+    {cost:3600000, upkeep:8000,  perSeason:5, maxPot:92, ovrMin:32, buildWeeks:32, key:'elite',   req:500},
+    {cost:12000000,upkeep:25000, perSeason:2, maxPot:99, ovrMin:38, buildWeeks:52, key:'masters', req:800, ekstraOnly:true},
   ]
 };
+function _acadName(a){return t('acad_lvl_'+(a.key||'basic'));}
+const TRAINING_CENTER={
+  costBase:[80000,350000,1200000],
+  upkBase: [300,1200,4000],
+  costMult:{1:5.0,2:3.0,3:1.8,4:1.2,5:0.8,6:0.5,7:0.35,8:0.25},
+  upkMult: {1:6.0,2:3.5,3:4.0,4:3.6,5:2.1,6:1.2,7:0.75,8:0.45},
+  changeCost:{0:5000,1:15000,2:40000},
+  levels:[
+    {key:'basic',    profiles:1, buildWeeks:4,  req:{rep:0,  stad:0}},
+    {key:'advanced', profiles:2, buildWeeks:8,  req:{rep:150,stad:1000}},
+    {key:'elite',    profiles:3, buildWeeks:14, req:{rep:400,stad:5000}},
+  ]
+};
+function _tcLvlName(lvl){return t('tc_lvl_'+(lvl.key||'basic'));}
+const TC_PROFILES=[
+  {id:'kondycja',   icon:'[Kond]', get name(){return t('tc_profile_kondycja');},   attrBonus:{phy:1.5}, fatBonus:true, posFilter:null,         get effect(){return t('tc_eff_kondycja');}},
+  {id:'technika',   icon:'[Tech]', get name(){return t('tc_profile_technika');},   attrBonus:{tec:1.4,pas:1.4},       posFilter:null,         get effect(){return t('tc_eff_technika');}},
+  {id:'atak',       icon:'[Atk]',  get name(){return t('tc_profile_atak');},       attrBonus:{sht:1.5,tec:1.5},       posFilter:['NAP'],      get effect(){return t('tc_eff_atak');}},
+  {id:'obrona',     icon:'[Obr]',  get name(){return t('tc_profile_obrona');},     attrBonus:{def:1.5,men:1.5},       posFilter:['OBR','GK'], get effect(){return t('tc_eff_obrona');}},
+  {id:'mentalnosc', icon:'[Men]',  get name(){return t('tc_profile_mentalnosc');}, attrBonus:{men:1.6}, formBonus:3,  posFilter:null,         get effect(){return t('tc_eff_mentalnosc');}},
+  {id:'regeneracja',icon:'[Reg]',  get name(){return t('tc_profile_regeneracja');},injBonus:0.85,healBonus:0.75,      posFilter:null,         get effect(){return t('tc_eff_regeneracja');}},
+];
 function acadCost(lvlIdx){
   const lg=G?G.myLeague||8:8;
   const m=ACADEMY.costMult[lg]||1;
@@ -21,26 +43,6 @@ function acadUpkeep(lvlIdx){
   const m=ACADEMY.upkMult[lg]||1;
   return Math.round((ACADEMY.upkBase[lvlIdx]||ACADEMY.levels[lvlIdx].upkeep)*m/50)*50;
 }
-const TRAINING_CENTER={
-  costBase:[80000,350000,1200000],
-  upkBase: [300,1200,4000],
-  costMult:{1:5.0,2:3.0,3:1.8,4:1.2,5:0.8,6:0.5,7:0.35,8:0.25},
-  upkMult: {1:6.0,2:3.5,3:4.0,4:3.6,5:2.1,6:1.2,7:0.75,8:0.45},
-  changeCost:{0:5000,1:15000,2:40000},
-  levels:[
-    {name:'Podstawowe',  profiles:1,buildWeeks:4, req:{rep:0,  stad:0}},
-    {name:'Zaawansowane',profiles:2,buildWeeks:8, req:{rep:150,stad:1000}},
-    {name:'Elitarne',    profiles:3,buildWeeks:14,req:{rep:400,stad:5000}},
-  ]
-};
-const TC_PROFILES=[
-  {id:'kondycja',   icon:'[Kond]', name:'Kondycja',    attrBonus:{phy:1.5}, fatBonus:true,  posFilter:null,    effect:'Zmęczenie -2x szybciej, PHY +50%'},
-  {id:'technika',   icon:'[Tech]', name:'Technika',    attrBonus:{tec:1.4,pas:1.4},         posFilter:null,    effect:'TEC i PAS +40% szybciej'},
-  {id:'atak',       icon:'[Atk]',  name:'Atak',        attrBonus:{sht:1.5,tec:1.5},         posFilter:['NAP'], effect:'SHT i TEC +50% (NAP)'},
-  {id:'obrona',     icon:'[Obr]',  name:'Obrona',      attrBonus:{def:1.5,men:1.5},         posFilter:['OBR','GK'], effect:'OBR i MEN +50% (OBR/GK)'},
-  {id:'mentalnosc', icon:'[Men]',  name:'Mentalność',attrBonus:{men:1.6}, formBonus:3, posFilter:null,effect:'MEN +60%, Forma +3/tyg'},
-  {id:'regeneracja',icon:'[Reg]',  name:'Regeneracja', injBonus:0.85, healBonus:0.75,       posFilter:null,    effect:'Kontuzje -15%, leczenie -25%'},
-];
 function tcCost(i){const lg=G?G.myLeague||8:8;return Math.round((TRAINING_CENTER.costBase[i]||80000)*(TRAINING_CENTER.costMult[lg]||1)/500)*500;}
 function tcUpkeep(i){const lg=G?G.myLeague||8:8;return Math.round((TRAINING_CENTER.upkBase[i]||300)*(TRAINING_CENTER.upkMult[lg]||1)/50)*50;}
 function tcLevel(){return(G&&G.trainingCenter&&G.trainingCenter.level)||0;}
@@ -50,7 +52,7 @@ function getAcadLvl(){return(G.academy&&G.academy.level)||0;}
 function acadTab(tab,btn){
   document.querySelectorAll('#p-academy .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['przeglad','wychowankowie'].forEach(t=>{const el=document.getElementById('acad-'+t);if(el)el.classList.remove('on');});
+  ['przeglad','wychowankowie'].forEach(tr=>{const el=document.getElementById('acad-'+tr);if(el)el.classList.remove('on');});
   const el=document.getElementById('acad-'+tab);if(el)el.classList.add('on');
   if(tab==='przeglad')renderAcadPrzeglad();
   else if(tab==='wychowankowie')renderAcadWychowankowie();
@@ -69,25 +71,31 @@ function renderAcadPrzeglad(){
   el.innerHTML=
     '<div style="background:var(--tb);border:1px solid '+(lvl>0?'var(--gb)':'var(--gl)')+';padding:12px;margin-bottom:10px">'+
       '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+
-        (lvl===0?'Brak Akademii':'Akademia '+acad.name+' (L'+lvl+')')+
+        (lvl===0?t('acad_none'):t('acad_name_lvl').replace('{name}',_acadName(acad)).replace('{lvl}',lvl))+
       '</div>'+
       (lvl>0?
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense)">'+
-          '<div><span style="color:var(--gr)">Juniorzy/sez: </span><span style="color:var(--gb)">'+acad.perSeason+'</span></div>'+
-          '<div><span style="color:var(--gr)">Max pot: </span><span style="color:var(--am)">'+acad.maxPot+'</span></div>'+
-          '<div><span style="color:var(--gr)">Utrzym/tyg: </span><span style="color:var(--rd)">-'+fmt(acadUpkeep(lvl-1))+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_per_season')+' </span><span style="color:var(--gb)">'+acad.perSeason+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_max_pot')+' </span><span style="color:var(--am)">'+acad.maxPot+'</span></div>'+
+          '<div><span style="color:var(--gr)">'+t('acad_upkeep')+' </span><span style="color:var(--rd)">-'+fmt(acadUpkeep(lvl-1))+'</span></div>'+
         '</div>'+
         (lvl<ACADEMY.levels.length?
-          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:6px">Nast. poziom: <span style="color:var(--am)">'+ACADEMY.levels[lvl].name+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+' zł</span>'+
-          (ACADEMY.levels[lvl].req>0?' (Rep: '+ACADEMY.levels[lvl].req+')':'')+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:6px">'+t('acad_next_level')+' <span style="color:var(--am)">'+_acadName(ACADEMY.levels[lvl])+'</span> — <span style="color:var(--wh)">'+fmt(acadCost(lvl))+'</span>'+
+          (ACADEMY.levels[lvl].req>0?t('acad_next_rep').replace('{n}',ACADEMY.levels[lvl].req):'')+
           '</div>'
         :'')
-      :'<div style="font-size:var(--fs-dense);color:var(--gr)">Zbuduj akademię aby co sezon pojawiał się utalentowany junior.</div>')+
+      :'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_no_acad_desc')+'</div>')+
+      (G.academy.building?
+        '<div style="margin-top:8px;padding:8px;background:#0d1f0d;border:1px solid var(--am);font-size:var(--fs-dense)">'+
+          '<div style="color:var(--am)">'+t('acad_building_now').replace('{name}',G.academy.building.name)+'</div>'+
+          '<div style="color:var(--gr)">'+t('acad_building_weeks').replace('{n}',G.academy.building.weeksLeft)+'</div>'+
+        '</div>'
+      :'')+
     '</div>'+
     (prospects.length?
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">NOWI JUNIORZY</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('acad_new_juniors')+'</div>'+
       prospects.map(function(pr){
-        var trLabel=pr.trainRate>=1.5?'🌟 Talent':pr.trainRate>=1.1?'⚡ Szybki':'📊 Normalny';
+        var trLabel=pr.trainRate>=1.5?t('acad_talent_star'):pr.trainRate>=1.1?t('acad_talent_fast'):t('acad_talent_normal');
         var trCol=pr.trainRate>=1.5?'#00e676':pr.trainRate>=1.1?'var(--am)':'var(--wh)';
         var arch5=pr.archetype&&ARCHETYPE_META[pr.archetype]?ARCHETYPE_META[pr.archetype]:null;
         var ATTRS5=['tec','pas','sht','def','phy','men'];
@@ -103,7 +111,7 @@ function renderAcadPrzeglad(){
             '<div style="height:18px;background:#0a0f0a;margin:2px 0;position:relative">'+
               '<div style="position:absolute;bottom:0;left:0;right:0;height:'+pct5+'%;background:'+barCol5+';opacity:0.85"></div>'+
             '</div>'+
-            '<div style="font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">×'+total5.toFixed(1)+'</div>'+
+            '<div style="font-size:var(--fs-dense);color:'+(isHigh5?(arch5?arch5.color:'var(--am)'):'var(--gr)')+'">x'+total5.toFixed(1)+'</div>'+
           '</div>';
         }).join('');
         return '<div style="background:#0d2b0d;border:1px solid var(--gb);padding:10px 12px;margin-bottom:6px">'+
@@ -116,235 +124,67 @@ function renderAcadPrzeglad(){
           '</div>'+
           '<div style="background:#0a0f0a;border:1px solid var(--gl);padding:5px 8px;margin-bottom:6px">'+
             '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
-              '<div style="font-size:var(--fs-dense)"><span style="color:var(--gr)">Talent: </span><span style="color:'+trCol+'">'+trLabel+'</span></div>'+
-              '<div style="font-size:var(--fs-dense);color:var(--gr)">×'+pr.trainRate.toFixed(2)+' ogólny</div>'+
+              '<span style="font-size:var(--fs-dense);color:var(--gr)">'+t('acad_training_speed')+'</span>'+
+              '<span style="font-size:var(--fs-dense);color:'+trCol+'">'+trLabel+'</span>'+
             '</div>'+
-            (arch5?'<div style="font-size:var(--fs-dense);color:var(--gr);font-style:italic">"'+arch5.desc+'"</div>':'')+
-            '<div style="display:flex;gap:3px;margin-top:5px;padding-top:4px;border-top:1px solid var(--gl)">'+barHtml5+'</div>'+
+            '<div style="display:flex;gap:2px">'+barHtml5+'</div>'+
           '</div>'+
+          (arch5?'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+t('acad_archetype_lbl')+' <span style="color:'+arch5.color+'">'+arch5.icon+' '+arch5.name+'</span></div>':'')+
           '<div style="display:flex;gap:6px">'+
-            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">✓ PRZYJMIJ</button>'+
-            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:#3d0000;border:1px solid var(--rd);color:var(--rd);font-size:var(--fs-meta);padding:8px;cursor:pointer">✗ ZWOLNIJ</button>'+
+            '<button onclick="acceptProspect('+pr.id+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('acad_accept_btn')+'</button>'+
+            '<button onclick="rejectProspect('+pr.id+')" style="flex:1;background:var(--gm);color:var(--rd);border:1px solid var(--rd);font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('acad_reject_btn')+'</button>'+
           '</div>'+
         '</div>';
       }).join('')
-    :lvl>0?
-      '<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Juniorzy pojawią się na początku nowego sezonu.</div>'
-    :
-      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">Koszt budowy: <span style="color:var(--am)">'+fmt(acadCost(0))+'</span> zł</div>'+
-      '<button onclick="buildAcademy(0)" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">ZBUDUJ AKADEMIĘ</button>'
-    );
-  // Sekcja rozbudowy
-  _renderAcadRozbudowaInPrzeglad();
-}
-function _renderAcadRozbudowaInPrzeglad(){
-  const el=document.getElementById('acad-przeglad');if(!el||!G)return;
-  const lvl=getAcadLvl();const rep=G.reputation||30;const lg=G.myLeague||8;
-  const sec=document.createElement('div');
-  sec.innerHTML=
-    '<div class="fsec" style="margin:14px 0 8px">ROZBUDOWA AKADEMII</div>'+
-    ACADEMY.levels.map((a,i)=>{
-      if(a.ekstraOnly&&lg!==1)return'';
-      const isOwned=i<lvl;const isNext=i===lvl;
-      const cost=acadCost(i);const upk=acadUpkeep(i);
-      const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
-      return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
-        '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-          '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-          (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
-          '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
-          '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
-          '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
-          '<div><span style="color:var(--gr)">Koszt: </span><span style="color:var(--wh)">'+fmt(cost)+'</span></div>'+
-          '<div><span style="color:var(--gr)">Utrzym/tyg: </span><span style="color:var(--rd)">-'+fmt(upk)+'</span></div>'+
-          '<div><span style="color:var(--gr)">Czas budowy: </span><span style="color:var(--am)">'+a.buildWeeks+' tyg.</span></div>'+
-          (a.req>0?'<div><span style="color:var(--gr)">Wymaga rep: </span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'">'+a.req+(reqOk?' OK':' brakuje '+(a.req-rep))+'</span></div>':'')+
-        '</div>'+
-        (!isOwned&&isNext?
-          (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-           !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-           '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
-        :'')+
-      '</div>';
-    }).join('');
-  el.appendChild(sec);
+    :'<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 0">'+t('acad_no_prospects')+'</div>');
 }
 function renderAcadWychowankowie(){
-  var el=document.getElementById('acad-wychowankowie');if(!el||!G)return;
-  // Subtabs state
-  if(!window._acadWychTab)window._acadWychTab='sklad';
-  var tab=window._acadWychTab;
-  var grads=myPl().filter(function(p){return p.fromAcademy;});
-  var hist=(G.academy&&G.academy.hist)||[];
-  var absolwenci=hist.filter(function(h){return !h.isRejected&&h.pid&&!myPl().find(function(p){return p.id===h.pid;})&&h.soldTo;});
-  var odpuszczeni=hist.filter(function(h){return h.isRejected;});
-
-  function mkSubTab(id,label,active){
-    return '<button onclick="window._acadWychTab=\''+id+'\';renderAcadWychowankowie()" style="font-size:var(--fs-dense);padding:5px 8px;background:'+(active?'var(--gb)':'var(--tb)')+';color:'+(active?'#000':'var(--gr)')+';border:1px solid '+(active?'var(--gb)':'var(--gl)')+';cursor:pointer;text-transform:uppercase">'+label+'</button>';
-  }
-
-  var html='<div style="display:flex;gap:4px;margin-bottom:10px">'+
-    mkSubTab('sklad','W składzie ('+grads.length+')',tab==='sklad')+
-    mkSubTab('absolwenci','Absolwenci ('+absolwenci.length+')',tab==='absolwenci')+
-    mkSubTab('odpuszczeni','Odpuszczeni ('+odpuszczeni.length+')',tab==='odpuszczeni')+
-  '</div>';
-
-  if(tab==='sklad'){
-    if(grads.length){
-      html+=grads.map(function(p){
-        var arch9=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-        var debH9=p.history?p.history.find(function(h){return h.fromAcademy;}):null;
-        var growth9=debH9?ovr(p)-debH9.ovr:0;
-        var tal9=p.trainRate>=1.5?'🌟 Talent':p.trainRate>=1.1?'⚡ Szybki':'📊 Normalny';
-        var talCol9=p.trainRate>=1.5?'var(--gb)':p.trainRate>=1.1?'var(--am)':'var(--wh)';
-        return '<div style="background:var(--tb);border:1px solid var(--gb);padding:8px 12px;margin-bottom:4px;cursor:pointer" onclick="showById('+p.id+')">'+
-          '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-size:var(--fs-dense);color:var(--wh)">🎓 '+p.name+'</div>'+
-            (arch9?'<span style="font-size:var(--fs-dense);color:'+arch9.color+'">'+arch9.icon+' '+arch9.name+'</span>':'')+
-          '</div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-            (POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR <span style="color:var(--wh)">'+ovr(p)+'</span> • Pot: <span style="color:var(--am)">'+p.potential+'</span>'+
-          '</div>'+
-          '<div style="font-size:var(--fs-dense);margin-top:2px">'+
-            '<span style="color:var(--gr)">Talent: </span><span style="color:'+talCol9+'">'+tal9+'</span>'+
-            (debH9&&growth9>0?' <span style="color:var(--gr)"> • Wzrost: </span><span style="color:var(--gb)">+'+growth9+' OVR</span>':'')+ 
-            (debH9?' <span style="color:var(--gr)"> od S'+debH9.season+'</span>':'')+
-          '</div>'+
-        '</div>';
-      }).join('');
-    } else {
-      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Brak wychowanków w składzie</div>';
-    }
-  } else if(tab==='absolwenci'){
-    if(absolwenci.length){
-      html+=absolwenci.slice().reverse().map(function(h){
-        var arch9b=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
-        return '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:4px">'+
-          '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-size:var(--fs-dense);color:var(--gr)">🎓 '+h.name+' <span style="font-size:var(--fs-dense);color:#555">(odszedł)</span></div>'+
-            (arch9b?'<span style="font-size:var(--fs-dense);color:'+arch9b.color+'">'+arch9b.icon+' '+arch9b.name+'</span>':'')+
-          '</div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-            h.pos+
-            (h.joinedSeason?' • dołączył S'+h.joinedSeason:'')+
-            (h.peakOvr?' • Szczyt OVR: <span style="color:var(--am)">'+h.peakOvr+'</span>':'')+
-          '</div>'+
-          (h.soldTo?'<div style="font-size:var(--fs-dense);margin-top:2px"><span style="color:var(--gr)">Sprzedany do: </span><span style="color:var(--wh)">'+h.soldTo+'</span>'+(h.fee?' <span style="color:var(--gb)">za '+fmtVal(h.fee)+'</span>':'')+'</div>':'')+
-        '</div>';
-      }).join('');
-    } else {
-      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden wychowanek jeszcze nie odszedł.</div>';
-    }
-  } else if(tab==='odpuszczeni'){
-    if(odpuszczeni.length){
-      html+=odpuszczeni.slice().reverse().map(function(h){
-        var arch9c=h.archetype&&ARCHETYPE_META[h.archetype]?ARCHETYPE_META[h.archetype]:null;
-        return '<div style="background:var(--tb);border:1px solid #3d0000;padding:8px 12px;margin-bottom:4px">'+
-          '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-            '<div style="font-size:var(--fs-dense);color:#888">🎓 '+h.name+' <span style="color:var(--rd);font-size:9px">✗ zwolniony</span></div>'+
-            (arch9c?'<span style="font-size:var(--fs-dense);color:'+arch9c.color+'">'+arch9c.icon+' '+arch9c.name+'</span>':'')+
-          '</div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-            h.pos+' • S'+h.season+
-            (h.releaseOvr?' • OVR przy zwolnieniu: <span style="color:#888">'+h.releaseOvr+'</span>':'')+
-            (h.pot?' • Pot było: <span style="color:var(--am)">'+h.pot+'</span>':'')+
-          '</div>'+
-          '<div style="font-size:var(--fs-dense);color:#555;margin-top:3px;font-style:italic">Czy to była dobra decyzja?</div>'+
-        '</div>';
-      }).join('');
-    } else {
-      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px;text-align:center">Żaden junior nie został odpuszczony.</div>';
-    }
-  }
-
-  el.innerHTML=html;
-}
-function renderAcadHistoryTab(p){
-  var el=document.getElementById('plr-acad-content');if(!el)return;
-  var arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-  var hist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
-  var acadDebH=hist.find(function(h){return h.fromAcademy;})||hist[0];
-  var curOvr=ovr(p);
-  var debOvr=acadDebH?acadDebH.ovr:curOvr;
-  var debSzn=acadDebH?acadDebH.season:G.season;
-  var seasonsInClub=hist.filter(function(h){return h.clubId===G.myClubId;}).length;
-  var totalM=hist.reduce(function(s,h){return s+(h.m||0);},0);
-  var totalG=hist.reduce(function(s,h){return s+(h.g||0);},0);
-  var totalA=hist.reduce(function(s,h){return s+(h.a||0);},0);
-  var growth=curOvr-debOvr;
-  // Znajdź % składu słabszych na debiucie
-  var myPls=myPl();
-  var betterThanOnDebut=myPls.filter(function(x){return ovr(x)>debOvr;}).length;
-  var pctWeak=myPls.length>0?Math.round((betterThanOnDebut/myPls.length)*100):0;
-  var rankNow=[...myPls].sort(function(a,b){return ovr(b)-ovr(a);}).findIndex(function(x){return x.id===p.id;})+1;
-
-  var html='';
-  // Nagłówek wychowanka
-  html+='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:10px 12px;margin-bottom:10px">'+
-    '<div style="font-size:var(--fs-dense);color:#ce93d8;margin-bottom:4px">🎓 WYCHOWANEK AKADEMII</div>'+
-    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-      (arch?'<span style="font-size:var(--fs-dense);color:'+arch.color+';border:1px solid '+arch.color+';padding:1px 5px">'+arch.icon+' '+arch.name+'</span>':'')+
-      '<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 5px">W Akademii od S'+debSzn+'</span>'+
-    '</div>'+
-  '</div>';
-
-  // Statystyki kluczowe
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px">'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-size:'+(growth>0?'16px':'12px')+';color:'+(growth>0?'var(--gb)':'var(--gr)')+'">+'+(growth>0?growth:0)+'</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">wzrost OVR</div>'+
-    '</div>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-size:var(--fs-body);color:var(--am)">'+seasonsInClub+'</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">sez. u nas</div>'+
-    '</div>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 4px;text-align:center">'+
-      '<div style="font-size:var(--fs-body);color:var(--wh)">'+totalM+'</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">mecze</div>'+
-    '</div>'+
-  '</div>';
-
-  // Porównanie
-  if(myPls.length>1){
-    html+='<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:10px;font-size:var(--fs-dense)">'+
-      '<span style="color:var(--gr)">Na debiucie był gorszy od </span><span style="color:var(--rd)">'+pctWeak+'% składu</span>'+
-      (rankNow>0?'<span style="color:var(--gr)">. Dziś jest </span><span style="color:var(--gb)">'+(rankNow===1?'najlepszym':''+rankNow+'.')+'</span><span style="color:var(--gr)"> zawodnikiem drużyny</span>':'')+'.'+
-    '</div>';
-  }
-
-  // Oś czasu sezonów
-  html+='<div style="font-size:var(--fs-dense);color:var(--gr);letter-spacing:1px;border-bottom:1px solid var(--gl);padding-bottom:3px;margin-bottom:8px">OŚ CZASU</div>';
-  var allHist=(p.history||[]).filter(function(h){return !h._placeholder;}).sort(function(a,b){return a.season-b.season;});
-  allHist.forEach(function(h,i){
-    var isFirst=i===0;
-    var prevH=i>0?allHist[i-1]:null;
-    var ovrGrowth=prevH&&h.ovr&&prevH.ovr?(h.ovr-prevH.ovr):0;
-    var isHighlight=isFirst||(ovrGrowth>=8)||(h.g>=5)||(h.fromAcademy&&isFirst);
-    var borderCol=isHighlight?'var(--gb)':'var(--gl)';
-    // Autodetekcja eventu
-    var noteIcon='';
-    if(isFirst&&h.fromAcademy)noteIcon='🎓 Przyjęty z Akademii';
-    else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon='⚡ Debiut w składzie';
-    else if(h.g>=5)noteIcon='🔥 Świetny sezon strzelecki';
-    else if(ovrGrowth>=10)noteIcon='📈 Przełomowy sezon (+'+ovrGrowth+' OVR)';
-    html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-        '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
-        (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
-      '</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-        (h.m||0)+' meczów'+(h.g?(' • '+(h.g||0)+' goli'):'')+((h.a||0)>0?(' • '+(h.a||0)+' asyst'):'')+
-        (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
-      '</div>'+
-      (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
-    '</div>';
+  const el=document.getElementById('acad-wychowankowie');if(!el||!G||!G.academy)return;
+  const hist=(G.academy.hist||[]).filter(h=>!h.isRejected);
+  if(!hist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_grad_none')+'</div>';return;}
+  const byPlayer={};
+  hist.forEach(h=>{if(!h.pid)return;if(!byPlayer[h.pid])byPlayer[h.pid]={name:h.name,pos:h.pos,seasons:[],startOvr:h.startOvr,pot:h.pot,archetype:h.archetype};byPlayer[h.pid].seasons.push(h);});
+  let html='';
+  Object.values(byPlayer).forEach(pl=>{
+    const cur=G.players.find(p=>p.fromAcademy&&p.name===pl.name);
+    const curOvr=cur?ovr(cur):null;
+    html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
+        '<div>'+
+          '<div style="font-size:var(--fs-meta);color:var(--wh);cursor:pointer" '+(cur?'onclick="showPlayer('+JSON.stringify(cur)+')"':'')+'>🎓 '+pl.name+'</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+pl.pos+(pl.pot?' • Pot: '+pl.pot:'')+'</div>'+
+        '</div>'+
+        (curOvr?'<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+curOvr+'</div>':'')+
+      '</div>';
+    pl.seasons.forEach((h,idx)=>{
+      const prevH=pl.seasons[idx-1];
+      const ovrGrowth=prevH&&h.ovr&&prevH.ovr?h.ovr-prevH.ovr:0;
+      const isFirst=idx===0;
+      const isHighlight=ovrGrowth>=5||h.g>=5;
+      const borderCol=isHighlight?'var(--gb)':'var(--gl)';
+      let noteIcon='';
+      if(isFirst&&h.fromAcademy)noteIcon=t('acad_grad_joined');
+      else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon=t('acad_grad_debut');
+      else if(h.g>=5)noteIcon=t('acad_grad_goals');
+      else if(ovrGrowth>=10)noteIcon=t('acad_grad_growth').replace('{n}',ovrGrowth);
+      html+='<div style="background:'+(isHighlight?'#0d2b0d':'var(--tb)')+';border:1px solid '+borderCol+';padding:8px 10px;margin-bottom:4px">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
+          '<div style="font-size:var(--fs-dense);color:'+(isHighlight?'var(--gb)':'var(--wh)')+'">S'+h.season+' — OVR '+(h.ovr||'?')+'</div>'+
+          (ovrGrowth>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">+'+ovrGrowth+' OVR</div>':'')+
+        '</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
+          t('acad_grad_matches').replace('{n}',h.m||0)+
+          (h.g?t('acad_grad_goals_n').replace('{n}',h.g||0):'')+
+          ((h.a||0)>0?t('acad_grad_assists').replace('{n}',h.a||0):'')+
+          (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
+        '</div>'+
+        (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
+      '</div>';
+    });
+    html+='</div>';
   });
-
   el.innerHTML=html;
 }
-
 function renderAcadRozbudowa(){
   const el=document.getElementById('acad-rozbudowa');if(!el||!G)return;
   const lvl=getAcadLvl();const rep=G.reputation||30;const lg=G.myLeague||8;
@@ -353,25 +193,26 @@ function renderAcadRozbudowa(){
     const isOwned=i<lvl;const isNext=i===lvl;
     const cost=acadCost(i);const upk=acadUpkeep(i);
     const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
+    const availLine=a.ekstraOnly?t('acad_expand_premier'):a.req>=500?t('acad_expand_l1'):a.req>=250?t('acad_expand_l3'):a.req>=100?t('acad_expand_l5'):'';
     return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
-        '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+a.name+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
-        (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">AKTYWNA</div>':'')+
+        '<div style="font-size:var(--fs-dense);color:'+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gr)')+'">L'+(i+1)+' — '+_acadName(a)+(a.ekstraOnly?' [Ekstra]':'')+'</div>'+
+        (isOwned?'<div style="font-size:var(--fs-dense);color:var(--gb)">'+t('acad_expand_active')+'</div>':'')+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:var(--fs-dense);margin-bottom:6px">'+
-        '<div><span style="color:var(--gr)">Juniorzy: </span><span style="color:var(--wh)">'+a.perSeason+'/sez.</span></div>'+
-        '<div><span style="color:var(--gr)">Max pot.: </span><span style="color:var(--am)">'+a.maxPot+'</span></div>'+
-        '<div><span style="color:var(--gr)">OVR start: </span><span style="color:var(--wh)">'+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
-        '<div><span style="color:var(--gr)">Koszt: </span><span style="color:var(--wh)">'+fmt(cost)+'</span></div>'+
-        '<div><span style="color:var(--gr)">Utrzym/tyg: </span><span style="color:var(--rd)">-'+fmt(upk)+'</span></div>'+
-        '<div><span style="color:var(--gr)">Czas budowy: </span><span style="color:var(--am)">'+a.buildWeeks+' tyg.</span></div>'+
-        (a.req>0?'<div><span style="color:var(--gr)">Wymaga rep: </span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'">'+a.req+(reqOk?' OK':' brakuje '+(a.req-rep))+'</span></div>':'')+
-        (a.ekstraOnly?'<div><span style="color:var(--gr)">Liga: </span><span style="color:var(--am)">Tylko Premier Division</span></div>':a.req>=500?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">I Ligi (rep 500+)</span></div>':a.req>=250?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">III Ligi (rep 250+)</span></div>':a.req>=100?'<div><span style="color:var(--gr)">Dostępna od: </span><span style="color:var(--wh)">V Ligi (rep 100+)</span></div>':'')+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_juniors')+'</span><span style="color:var(--wh)"> '+a.perSeason+t('acad_expand_per_season')+'</span></div>'+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_max_pot')+'</span><span style="color:var(--am)"> '+a.maxPot+'</span></div>'+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_ovr_start')+'</span><span style="color:var(--wh)"> '+(a.ovrMin||18)+'-'+a.maxPot+'</span></div>'+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_cost')+'</span><span style="color:var(--wh)"> '+fmt(cost)+'</span></div>'+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_upkeep')+'</span><span style="color:var(--rd)"> -'+fmt(upk)+'</span></div>'+
+        '<div><span style="color:var(--gr)">'+t('acad_expand_build_time')+'</span><span style="color:var(--am)"> '+a.buildWeeks+' '+t('stad_weeks').replace('{n}','').trim()+'</span></div>'+
+        (a.req>0?'<div><span style="color:var(--gr)">'+t('acad_expand_req_rep')+'</span><span style="color:'+(reqOk?'var(--gb)':'var(--rd)')+'"> '+(reqOk?t('acad_expand_rep_ok').replace('{n}',a.req):t('acad_expand_rep_missing').replace('{n}',a.req).replace('{diff}',a.req-rep))+'</span></div>':'')+
+        (availLine?'<div><span style="color:var(--gr)">'+t('acad_expand_avail')+'</span><span style="color:var(--wh)"> '+availLine+'</span></div>':'')+
       '</div>'+
       (!isOwned&&isNext?
-        (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">[zablok.] Wymaga Rep '+a.req+' (masz '+rep+')</div>':
-         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">Brakuje '+fmt(cost-G.budget)+'</div>':
-         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?'ZBUDUJ':'ULEPSZ')+' — '+fmt(cost)+'</button>')
+        (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_locked').replace('{req}',a.req).replace('{rep}',rep)+'</div>':
+         !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_no_funds').replace('{n}',fmt(cost-G.budget))+'</div>':
+         '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?t('acad_expand_build_btn'):t('acad_expand_upgrade_btn')).replace('{cost}',fmt(cost))+'</button>')
       :'')+
     '</div>';
   }).join('');
@@ -380,17 +221,17 @@ function buildAcademy(levelIdx){
   if(!G)return;
   if(!G.academy)G.academy={level:0,prospects:[],hist:[]};
   const a=ACADEMY.levels[levelIdx];if(!a)return;
-  if(a.ekstraOnly&&(G.myLeague||8)!==1){notif('Akademia Mistrzów tylko dla Ekstraklasy!','err');return;}
+  if(a.ekstraOnly&&(G.myLeague||8)!==1){notif(t('acad_masters_only'),'err');return;}
   const _cst=acadCost(levelIdx);
-  if(G.budget<_cst){notif('Za mało środków!','err');return;}
-  if((G.reputation||30)<(a.req||0)){notif('Wymaga Reputacji '+a.req+'!','err');return;}
+  if(G.budget<_cst){notif(t('acad_no_funds'),'err');return;}
+  if((G.reputation||30)<(a.req||0)){notif(t('acad_req_rep').replace('{n}',a.req),'err');return;}
   G.budget-=_cst;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:_cst,bal:G.budget,season:G.season,note:'Akademia: '+a.name});
+  G.fin.hist.push({w:G.week,inc:0,cost:_cst,bal:G.budget,season:G.season,note:'Akademia: '+_acadName(a)});
   const _bw=a.buildWeeks||4;
-  G.academy.building={levelIdx:levelIdx+1,weeksLeft:_bw,name:a.name};
-  addNews(t('news_academy_build').replace('{name}',a.name).replace('{n}',_bw),'academy');
-  notif('Budowa '+a.name+' (+'+_bw+' tyg)','ok');
+  G.academy.building={levelIdx:levelIdx+1,weeksLeft:_bw,name:_acadName(a)};
+  addNews(t('news_academy_build').replace('{name}',_acadName(a)).replace('{n}',_bw),'academy');
+  notif(t('acad_notif_build').replace('{name}',_acadName(a)).replace('{n}',_bw),'ok');
   renderAcadPrzeglad();
 }
 function acceptProspect(pid){
@@ -406,17 +247,17 @@ function acceptProspect(pid){
   p.contract=3;p.starter=false;
   assignJerseyNum(p);
   G.players.push(p);
-  G.academy.hist.push({pid:p.id,season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Dołączył do składu',joinedSeason:G.season,archetype:pr.archetype||null,startOvr:pr.ovr,pot:pr.potential});
+  G.academy.hist.push({pid:p.id,season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Joined squad',joinedSeason:G.season,archetype:pr.archetype||null,startOvr:pr.ovr,pot:pr.potential});
   addNews(t('news_academy_joined').replace('{name}',pr.name).replace('{pot}',pr.potential),'academy');
-  notif(pr.name+' dołączył!','ok');
+  notif(t('acad_notif_accept').replace('{name}',pr.name),'ok');
   renderAcadPrzeglad();renderAcadWychowankowie();
 }
 function rejectProspect(pid){
   if(!G||!G.academy)return;
   const pr=G.academy.prospects.find(x=>x.id===pid);if(!pr)return;
   pr.status='rejected';
-  G.academy.hist.push({season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Odpuszczony (junior)',releaseOvr:pr.ovr,pot:pr.potential,archetype:pr.archetype||null,isRejected:true});
-  notif(pr.name+' zwolniony','ok');
+  G.academy.hist.push({season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Released (junior)',releaseOvr:pr.ovr,pot:pr.potential,archetype:pr.archetype||null,isRejected:true});
+  notif(t('acad_notif_reject').replace('{name}',pr.name),'ok');
   renderAcadPrzeglad();
 }
 function generateProspects(){
@@ -434,11 +275,6 @@ function generateProspects(){
     G.academy.prospects.push({id:pid++,name:getUniqueName(),pos:pos[Math.floor(Math.random()*pos.length)],age:r(16,17),ovr:baseOvr,potential,trainRate,archetype:_arch4,status:'pending'});
   }
   if(!G.news)G.news=[];
-  G.news.unshift({msg:'🎓 Akademia wykształciła '+acad.perSeason+' nowych juniora! Oceń ich i zdecyduj kogo przyjąć.',type:'ok',week:G.week,season:G.season,action:'academy',actionLabel:'AKADEMIA'});
+  G.news.unshift({msg:t('acad_news_prospects').replace('{n}',acad.perSeason),type:'ok',week:G.week,season:G.season,action:'academy',actionLabel:t('acad_news_action')});
   renderNews();
 }
-
-
-// ══════════════════════════════════════════════════════════
-// TRYB DEWELOPERSKI
-// ══════════════════════════════════════════════════════════
