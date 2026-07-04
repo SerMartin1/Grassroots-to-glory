@@ -1804,7 +1804,12 @@ const FIRST_EN = [
   "Benjamin","Samuel","Matthew","Daniel","Andrew","Christopher","Joshua","Anthony","Kevin","Brian",
   "Adam","Scott","Jason","Aaron","Eric","Justin","Kyle","Sean","Derek","Blake",
   "Cameron","Dominic","Evan","Garrett","Hunter","Ian","Jesse","Keith","Lance","Mark",
-  "Neil","Patrick","Quentin","Reid","Steven","Travis","Victor","Wade","Xander","Zack"
+  "Neil","Patrick","Quentin","Reid","Steven","Travis","Victor","Wade","Xander","George","Henry","Charles","Edward","Harry","Jack","Isaac","Michael","David","Robert",
+  "Peter","Paul","Richard","Lewis","Oscar","Max","Finley","Toby","Callum","Harvey",
+  "Reece","Archie","Leo","Sebastian","Gabriel","Nathaniel","Cole","Dean","Trevor","Martin",
+  "Philip","Adrian","Julian","Robin","Carl","Bruce","Gavin","Wesley","Jeremy","Ross",
+  "Brett","Glenn","Joel","Craig","Wayne","Barry","Nigel","Stuart","Freddie","Shaun",
+  "Darren","Terry","Vincent","Elliot","Simon","Luke","Jacob","Alex","Leon","Bradley","Zack"
 ];
 
 const LAST_EN = [
@@ -1815,7 +1820,14 @@ const LAST_EN = [
   "Collins","Stewart","Sanchez","Morris","Rogers","Reed","Cook","Morgan","Bell","Murphy",
   "Bailey","Rivera","Cooper","Richardson","Cox","Howard","Ward","Peterson","Gray","Ramirez",
   "Watson","Brooks","Kelly","Sanders","Price","Bennett","Wood","Barnes","Ross","Henderson",
-  "Coleman","Jenkins","Perry","Powell","Long","Patterson","Hughes","Flores","Washington","Butler"
+  "Coleman","Jenkins","Perry","Powell","Long","Patterson","Hughes","Flores","Washington","Clarke","Lee","Foster","Marshall","Hunter","Porter","Spencer","Chapman","Webb","Knight",
+  "Armstrong","Holmes","Mills","Palmer","Walsh","Barker","Cross","Dixon","Harper","Simmons",
+  "Grant","Lawson","Matthews","Owen","Gibson","Burke","Holland","Stone","Fox","Wells",
+  "Carr","Mason","Hudson","Ellis","Fisher","Shaw","Dean","Freeman","Lawrence","Black",
+  "Sharp","Bishop","Knightley","Goodwin","Frost","Hayes","Crawford","Walters","Nash","Bates",
+  "Atkins","Hawkins","Fletcher","Hardy","Hale","Sutton","Burns","Owens","Wallace","Nichols",
+  "Pearson","Arnold","May","Franklin","Griffin","Hayward","Pope","Barrett","Little","Horton",
+  "Francis","Rowe","Lloyd","Page","Newton","Mackenzie","Farrell","Barton","West","Drake","Butler"
 ];
 
 // buildNamePool — używa FIRST/LAST lub FIRST_EN/LAST_EN zależnie od LANG
