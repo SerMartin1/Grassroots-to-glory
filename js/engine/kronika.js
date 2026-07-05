@@ -79,10 +79,10 @@ function kronTrigger(){
     // K-01: Gwiazda przed finałem Pucharu
     {id:'k01_star_cup', category:'🏆 PUCHAR',
      weight:function(){return (cupActive&&bestP&&ovr(bestP)>=65)?30:0;},
-     title:'Gwiazda przed wielkim meczem',
-     body:function(){return (bestP?bestP.name:'Twój najlepszy zawodnik')+' skręcił kostkę na treningu tuż przed pucharowym starciem. Lekarz prosi o decyzję.';},
+     title:t('kron_k01_title'),
+     body:function(){return t('kron_k01_body').replace('{name}',bestP?bestP.name:t('kron_fallback_best_player'));},
      choices:[
-       {label:'Ryzykujesz — wchodzi do składu (60% OK, 20% pogłębienie)',
+       {label:t('kron_k01_c1_label'),
         effect:function(){
           if(!bestP)return;
           const r2=Math.random();
@@ -91,51 +91,51 @@ function kronTrigger(){
           else{bestP.form=Math.max(20,(bestP.form||80)-20);}
         },
         outcome:function(){
-          if(!bestP)return 'Ryzyko podjęte.';
-          if(bestP.injured)return bestP.name+' doznał urazu ('+bestP.injuryType+', '+(bestP.injuryWeeks||'?')+' tyg.). Zły zakład.';
-          if((bestP.form||80)<50)return bestP.name+' zagrał z bólem. Forma mocno spadła ('+bestP.form+'%).';
-          return bestP.name+' zagrał z bólem. Forma: '+bestP.form+'%.';
+          if(!bestP)return t('kron_k01_c1_outcome_noplayer');
+          if(bestP.injured)return t('kron_k01_c1_outcome_injured').replace('{name}',bestP.name).replace('{type}',bestP.injuryType).replace('{weeks}',bestP.injuryWeeks||'?');
+          if((bestP.form||80)<50)return t('kron_k01_c1_outcome_lowform').replace('{name}',bestP.name).replace('{form}',bestP.form);
+          return t('kron_k01_c1_outcome_normal').replace('{name}',bestP.name).replace('{form}',bestP.form);
         }},
-       {label:'Oszczędzasz go — siada na ławce',
+       {label:t('kron_k01_c2_label'),
         effect:function(){if(bestP){bestP.starter=false;}},
-        outcome:function(){return (bestP?bestP.name:'Zawodnik')+' zostaje na ławce. Skład wymaga korekty przed meczem.';}},
-       {label:'Iniekcja znieczulająca ($8 000)',
+        outcome:function(){return t('kron_k01_c2_outcome').replace('{name}',bestP?bestP.name:t('kron_fallback_player'));}},
+       {label:t('kron_k01_c3_label'),
         effect:function(){
-          if(G.budget<8000){notif('Brak budżetu na iniekcję!','err');return;}
+          if(G.budget<8000){notif(t('kron_k01_c3_notif_nobudget'),'err');return;}
           G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: iniekcja znieczulająca'});
           if(bestP){bestP._injectPenalty=2;}
         },
         outcome:function(){
-          if(!bestP)return 'Brak zawodnika.';
-          if(!bestP._injectPenalty)return 'Brak budżetu — iniekcja niewykonana!';
-          return bestP.name+' zagra. Koszt: 8 000 zł. Przez 2 kolejki po meczu forma będzie obniżona.';
+          if(!bestP)return t('kron_k01_c3_outcome_noplayer');
+          if(!bestP._injectPenalty)return t('kron_k01_c3_outcome_nobudget');
+          return t('kron_k01_c3_outcome').replace('{name}',bestP.name);
         }}
      ]},
 
     // K-02: Seria kontuzji — klątwa
     {id:'k02_injury_streak', category:'🏥 ZDROWIE',
      weight:function(){return recentInjCount>=3?35:0;},
-     title:'Klątwa kontuzji',
-     body:function(){return 'W ciągu ostatnich kilku tygodni '+recentInjCount+' zawodników wypadło z gry. Szatnia mówi o "klątwie". Sztab medyczny czeka na decyzję.';},
+     title:t('kron_k02_title'),
+     body:function(){return t('kron_k02_body').replace('{n}',recentInjCount);},
      choices:[
-       {label:'Zatrudnij fizjoterapeutę ($15 000)',
+       {label:t('kron_k02_c1_label'),
         effect:function(){
-          if(G.budget<15000){notif('Brak budżetu!','err');return;}
+          if(G.budget<15000){notif(t('kron_notif_no_budget'),'err');return;}
           G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:'Kronika: fizjoterapeuta'});kron.flags._physioHired=true;kron.flags._injCount=0;
         },
         outcome:function(){
-          if(!kron.flags._physioHired)return 'Brak budżetu — fizjoterapeuta niezatrudniony!';
-          return 'Fizjoterapeuta zatrudniony. Budżet: -15 000 zł. Ryzyko kontuzji zredukowane do końca sezonu.';
+          if(!kron.flags._physioHired)return t('kron_k02_c1_outcome_nobudget');
+          return t('kron_k02_c1_outcome');
         }},
-       {label:'Zmień plan treningowy (forma -3 każdy)',
+       {label:t('kron_k02_c2_label'),
         effect:function(){
           my.forEach(function(p){p.form=Math.max(40,(p.form||80)-3);});
           kron.flags._injCount=0;
         },
-        outcome:function(){return 'Plan treningowy złagodzony. '+my.length+' zawodników straciło 3% formy. Ryzyko kontuzji spada.';}},
-       {label:'Ignorujesz — to przypadek',
+        outcome:function(){return t('kron_k02_c2_outcome').replace('{n}',my.length);}},
+       {label:t('kron_k02_c3_label'),
         effect:function(){kron.flags._injPenaltyActive=true;},
-        outcome:function(){return 'Trening bez zmian. Aktywna flaga — kolejna kontuzja potrwa dłużej.';}},
+        outcome:function(){return t('kron_k02_c3_outcome');}},
      ]},
 
     // K-03: Zawodnik ukrywa uraz
@@ -144,56 +144,57 @@ function kronTrigger(){
        const c=starters.filter(function(p){return (p.form||80)<55&&!p.injured;});
        return c.length>=1?25:0;
      },
-     title:'Ukrywany uraz',
+     title:t('kron_k03_title'),
      body:function(){
        const c=starters.filter(function(p){return (p.form||80)<55&&!p.injured;});
-       const t=c[0];
-       kron.flags._k03pid=t?t.id:-1;
-       return (t?t.name:'Zawodnik')+' od kilku tygodni trenuje z widocznym bólem, ale milczy. Scout zgłasza podejrzenia.';
+       const tr=c[0];
+       kron.flags._k03pid=tr?tr.id:-1;
+       return t('kron_k03_body').replace('{name}',tr?tr.name:t('kron_fallback_player'));
      },
      choices:[
-       {label:'Rozmawiasz z nim — szczera rozmowa',
+       {label:t('kron_k03_c1_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          if(t){t.injured=true;t.injuryWeeks=1;t.injuryType='Lekka';t.starter=false;addNews(t.name+' przyznał się do urazu — 1 tydzień przerwy.','inj');}
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          if(tr){tr.injured=true;tr.injuryWeeks=1;tr.injuryType='Lekka';tr.starter=false;addNews(t('kron_k03_c1_news').replace('{name}',tr.name),'inj');}
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          return t?t.name+' przyznał się. 1 tydzień przerwy — forma po powrocie będzie pełna.':'Zawodnik przyznał się do urazu.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          return tr?t('kron_k03_c1_outcome').replace('{name}',tr.name):t('kron_k03_c1_outcome_fallback');
         }},
-       {label:'Wpisujesz na listę chorych bez pytania',
+       {label:t('kron_k03_c2_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          if(t){t.injured=true;t.injuryWeeks=2;t.injuryType='Lekka';t.starter=false;t.form=Math.max(20,(t.form||50)-10);addNews(t.name+' trafił na listę chorych.','inj');}
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          if(tr){tr.injured=true;tr.injuryWeeks=2;tr.injuryType='Lekka';tr.starter=false;tr.form=Math.max(20,(tr.form||50)-10);addNews(t('kron_k03_c2_news').replace('{name}',tr.name),'inj');}
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          return t?t.name+' na liście chorych (2 tyg.). Forma -10, ale urazu się nie pogłębi.':'Zawodnik na liście chorych.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          return tr?t('kron_k03_c2_outcome').replace('{name}',tr.name):t('kron_k03_c2_outcome_fallback');
         }},
-       {label:'Zostawiasz go — sam zdecyduje',
+       {label:t('kron_k03_c3_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          if(t&&Math.random()<0.40){applyInjury(t,false);}
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          if(tr&&Math.random()<0.40){applyInjury(tr,false);}
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._k03pid;});
-          if(!t)return 'Decyzja podjęta.';
-          if(t.injured)return t.name+' doznał kontuzji ('+t.injuryType+', '+t.injuryWeeks+' tyg.). Ryzyko się zmaterializowało.';
-          return t.name+' gra dalej. Tym razem się udało — ale ryzyko wróci.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._k03pid;});
+          if(!tr)return t('kron_k03_c3_outcome_noplayer');
+          if(tr.injured)return t('kron_k03_c3_outcome_injured').replace('{name}',tr.name).replace('{type}',tr.injuryType).replace('{weeks}',tr.injuryWeeks);
+          return t('kron_k03_c3_outcome_ok').replace('{name}',tr.name);
         }},
      ]},
 
     // S-01: Skandal — nocna impreza
     {id:'s01_party_scandal', category:'😤 SZATNIA',
      weight:function(){return (G.round>3&&starters.length>=8)?20:0;},
-     title:'Nocna impreza',
+     title:t('kron_s01_title'),
      body:function(){
        const picks=starters.slice().sort(function(){return Math.random()-0.5;}).slice(0,3);
        kron.flags._s01pids=picks.map(function(p){return p.id;});
-       return 'Tabloid donosi: '+picks.map(function(p){return p.name.split(' ')[1];}).join(', ')+' bawili się do 3 w nocy przed meczem. Kibice żądają reakcji.';
+       const names=picks.map(function(p){return p.name.split(' ')[1];}).join(', ');
+       return t('kron_s01_body').replace('{names}',names);
      },
      choices:[
-       {label:'Karzesz publicznie ($2 000 każdy, forma -8)',
+       {label:t('kron_s01_c1_label'),
         effect:function(){
           (kron.flags._s01pids||[]).forEach(function(id){
             const p=G.players.find(function(x){return x.id===id;});
@@ -204,9 +205,9 @@ function kronTrigger(){
         outcome:function(){
           const names=(kron.flags._s01pids||[]).map(function(id){const p=G.players.find(function(x){return x.id===id;});return p?p.name.split(' ')[1]:'?';}).join(', ');
           const total=(kron.flags._s01pids||[]).length*2000;
-          return names+' ukarani. Budżet: -'+fmtVal(total)+'. Reputacja +5.';
+          return t('kron_s01_c1_outcome').replace('{names}',names).replace('{val}',fmtVal(total));
         }},
-       {label:'Rozmawiasz prywatnie — bez kary publicznej',
+       {label:t('kron_s01_c2_label'),
         effect:function(){
           (kron.flags._s01pids||[]).forEach(function(id){
             const p=G.players.find(function(x){return x.id===id;});
@@ -215,51 +216,51 @@ function kronTrigger(){
         },
         outcome:function(){
           const names=(kron.flags._s01pids||[]).map(function(id){const p=G.players.find(function(x){return x.id===id;});return p?p.name.split(' ')[1]:'?';}).join(', ');
-          return 'Rozmowa z '+names+'. Forma -3, brak kary finansowej.';
+          return t('kron_s01_c2_outcome').replace('{names}',names);
         }},
-       {label:'Ignorujesz — bo co tam',
+       {label:t('kron_s01_c3_label'),
         effect:function(){kron.flags._s01canRepeat=true;},
-        outcome:function(){return 'Brak reakcji. Mogą spróbować znowu...';}},
+        outcome:function(){return t('kron_s01_c3_outcome');}},
      ]},
 
     // S-04: Zawodnik żąda więcej gry
     {id:'s04_bench_protest', category:'😤 SZATNIA',
      weight:function(){return benchNoGame.length>0?25:0;},
-     title:'Protest rezerwowego',
+     title:t('kron_s04_title'),
      body:function(){
-       const t=benchNoGame.sort(function(a,b){return ovr(b)-ovr(a);})[0];
-       kron.flags._s04pid=t?t.id:-1;
-       return (t?t.name:'Zawodnik')+' (OVR '+(t?ovr(t):'?')+') nie gra od ponad miesiąca. Agent zgłosił niezadowolenie i żąda miejsca w składzie.';
+       const tr=benchNoGame.sort(function(a,b){return ovr(b)-ovr(a);})[0];
+       kron.flags._s04pid=tr?tr.id:-1;
+       return t('kron_s04_body').replace('{name}',tr?tr.name:t('kron_fallback_player')).replace('{ovr}',tr?ovr(tr):'?');
      },
      choices:[
-       {label:'Dajesz mu miejsce w składzie',
+       {label:t('kron_s04_c1_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          if(t){t.starter=true;t._benchWeeks=0;notif(t.name+' wraca do składu!','ok');}
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          if(tr){tr.starter=true;tr._benchWeeks=0;notif(t('kron_s04_c1_notif').replace('{name}',tr.name),'ok');}
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          return t?t.name+' wraca do składu. Bench weeks zresetowane.':'Zawodnik wraca do składu.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          return tr?t('kron_s04_c1_outcome').replace('{name}',tr.name):t('kron_s04_c1_outcome_fallback');
         }},
-       {label:'Tłumaczysz sytuację taktyczną',
+       {label:t('kron_s04_c2_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          if(t)t.form=Math.max(30,(t.form||80)-5);
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          if(tr)tr.form=Math.max(30,(tr.form||80)-5);
           // Za 4 tygodnie może wrócić event
           kron.flags._s04repeatWeek=(G.round||1)+4;
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          return t?t.name+' wysłuchał. Forma: '+(t.form||'?')+'%. Event może wrócić za 4 kolejki.':'Tymczasowa cisza.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          return tr?t('kron_s04_c2_outcome').replace('{name}',tr.name).replace('{form}',tr.form||'?'):t('kron_s04_c2_outcome_fallback');
         }},
-       {label:'Wystawiasz go na sprzedaż',
+       {label:t('kron_s04_c3_label'),
         effect:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          if(t)setTimeout(function(){openSellModal(t.id);},400);
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          if(tr)setTimeout(function(){openSellModal(tr.id);},400);
         },
         outcome:function(){
-          const t=G.players.find(function(p){return p.id===kron.flags._s04pid;});
-          return (t?t.name:' Zawodnik')+' wystawiony na sprzedaż. Otwarto panel sprzedaży.';
+          const tr=G.players.find(function(p){return p.id===kron.flags._s04pid;});
+          return t('kron_s04_c3_outcome').replace('{name}',tr?tr.name:t('kron_fallback_player'));
         }},
      ]},
 
@@ -389,29 +390,29 @@ function kronTrigger(){
     // M-01: Sponsor chce nazwy na stadionie
     {id:'m01_stadium_sponsor', category:'🏟️ KLUB',
      weight:function(){return (G.season>=2&&(G.reputation||0)>=80&&!kron.flags._stadSponsorDone)?15:0;},
-     title:'Sponsor nazwy stadionu',
-     body:function(){return 'Firma "ProSport Solutions" składa propozycję: 50 000 zł za prawo do nazwy stadionu przez sezon. Kibice mogą być niezadowoleni.';},
+     title:t('kron_m01_title'),
+     body:function(){return t('kron_m01_body');},
      choices:[
-       {label:'Przyjmujesz — 50 000 zł do kasy',
+       {label:t('kron_m01_c1_label'),
         effect:function(){
           G.budget+=50000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:50000,cost:0,bal:G.budget,season:G.season,note:'Kronika: sponsor stadionu'});G.reputation=Math.max(0,(G.reputation||30)-15);
           kron.flags._stadSponsorDone=true;
-          addNews('[Sponsor] ProSport Solutions na tablicy stadionu. +50 000 zł, reputacja -15.','budget');
+          addNews(t('kron_m01_c1_news'),'budget');
         },
-        outcome:function(){return '+50 000 zł (budżet: '+fmtVal(G.budget)+'). Reputacja: '+(G.reputation||0)+' (-15).';}},
-       {label:'Odrzucasz — stadion zostaje wasz',
+        outcome:function(){return t('kron_m01_c1_outcome').replace('{val}',fmtVal(G.budget)).replace('{rep}',G.reputation||0);}},
+       {label:t('kron_m01_c2_label'),
         effect:function(){G.reputation=Math.min(1000,(G.reputation||30)+5);kron.flags._stadSponsorDone=true;},
-        outcome:function(){return 'Oferta odrzucona. Reputacja: '+(G.reputation||0)+' (+5). Kibice zadowoleni.';}},
-       {label:'Negocjujesz — koszulki zamiast stadionu (30 000 zł)',
+        outcome:function(){return t('kron_m01_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_m01_c3_label'),
         effect:function(){
           kron.flags._m01budgetBefore=G.budget;
-          if(Math.random()<0.70){G.budget+=30000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:30000,cost:0,bal:G.budget,season:G.season,note:'Kronika: umowa sponsorska (koszulki)'});addNews('[Sponsor] Umowa na koszulki: +30 000 zł.','budget');}
-          else{addNews('[Sponsor] Firma odrzuciła kontrpropozycję.','club');}
+          if(Math.random()<0.70){G.budget+=30000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:30000,cost:0,bal:G.budget,season:G.season,note:'Kronika: umowa sponsorska (koszulki)'});addNews(t('kron_m01_c3_news_win'),'budget');}
+          else{addNews(t('kron_m01_c3_news_lose'),'club');}
           kron.flags._stadSponsorDone=true;
         },
         outcome:function(){
           const gotMoney=G.budget>=(kron.flags._m01budgetBefore||0)+25000;
-          return gotMoney?'+30 000 zł za umowę koszulkową (budżet: '+fmtVal(G.budget)+'). Bez kary reputacji.':'Firma odrzuciła kontrpropozycję. Brak przychodu.';
+          return gotMoney?t('kron_m01_c3_outcome_win').replace('{val}',fmtVal(G.budget)):t('kron_m01_c3_outcome_lose');
         }},
      ]},
 
@@ -425,30 +426,30 @@ function kronTrigger(){
        const lost=(lastM.isMyH?(lastM.hg<lastM.ag):(lastM.ag<lastM.hg));
        return (lost&&myStr>oppStr+8)?28:0;
      },
-     title:'Kontrowersyjna decyzja sędziego',
+     title:t('kron_sp05_title'),
      body:function(){
        const lastM=G.mHist&&G.mHist.length?G.mHist[G.mHist.length-1]:null;
-       return 'Analiza wideo ostatniego meczu '+(lastM?'('+lastM.hn+' vs '+lastM.an+')':'')+' potwierdza: sędzia popełnił oczywisty błąd, który kosztował was punkty. Prasa pyta o stanowisko.';
+       return t('kron_sp05_body').replace('{match}',lastM?'('+lastM.hn+' vs '+lastM.an+')':'');
      },
      choices:[
-       {label:'Oficjalna skarga do związku (ryzyko kary)',
+       {label:t('kron_sp05_c1_label'),
         effect:function(){
           kron.flags._sp05budgetBefore=G.budget;kron.flags._sp05repBefore=G.reputation||30;
-          if(Math.random()<0.30){G.reputation=Math.min(1000,(G.reputation||30)+10);addNews('[Skarga] Związek przyznał rację! Reputacja +10.','ok');}
-          else{G.budget=Math.max(0,G.budget-3000);addNews('[Skarga] Skarga odrzucona. Kara: 3 000 zł za "atak na sędziego".','err');}
+          if(Math.random()<0.30){G.reputation=Math.min(1000,(G.reputation||30)+10);addNews(t('kron_sp05_c1_news_win'),'ok');}
+          else{G.budget=Math.max(0,G.budget-3000);addNews(t('kron_sp05_c1_news_lose'),'err');}
         },
         outcome:function(){
           const repGrew=(G.reputation||0)>(kron.flags._sp05repBefore||0);
-          return repGrew?'Związek przyznał rację! Reputacja +10 (teraz: '+(G.reputation||0)+').':'Skarga odrzucona. Kara: -3 000 zł (budżet: '+fmtVal(G.budget)+').';
+          return repGrew?t('kron_sp05_c1_outcome_win').replace('{rep}',G.reputation||0):t('kron_sp05_c1_outcome_lose').replace('{val}',fmtVal(G.budget));
         }},
-       {label:'Kampania medialna — prasa po waszej stronie',
+       {label:t('kron_sp05_c2_label'),
         effect:function(){G.reputation=Math.min(1000,(G.reputation||30)+5);},
-        outcome:function(){return 'Media nagłośniły sprawę. Reputacja: '+(G.reputation||0)+' (+5). Wynik meczu bez zmian.';}},
-       {label:'Milczysz — szatnia cię szanuje za spokój',
+        outcome:function(){return t('kron_sp05_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_sp05_c3_label'),
         effect:function(){
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});
         },
-        outcome:function(){return 'Spokój i klasa. '+starters.length+' zawodników z formy +2. Szatnia szanuje decyzję.';}},
+        outcome:function(){return t('kron_sp05_c3_outcome').replace('{n}',starters.length);}},
      ]},
 
     // SP-01: Tajemniczy skaut na treningu
@@ -457,65 +458,65 @@ function kronTrigger(){
        const w=my.filter(function(p){return p.fromAcademy&&ovr(p)>=52;});
        return w.length>=1?20:0;
      },
-     title:'Tajemniczy skaut na treningu',
+     title:t('kron_sp01_title'),
      body:function(){
        const w=my.filter(function(p){return p.fromAcademy&&ovr(p)>=52;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._sp01pid=w?w.id:-1;
-       return 'Na trybunach treningowych siedzi nieznajomy z notatnikiem. Agent twierdzi, że to skaut z wyższej ligi, zainteresowany '+(w?w.name:'Twoim wychowankiem')+' (OVR '+(w?ovr(w):'?')+').';
+       return t('kron_sp01_body').replace('{name}',w?w.name:t('kron_sp01_fallback_name')).replace('{ovr}',w?ovr(w):'?');
      },
      choices:[
-       {label:'Zapraszasz go — bezpośredni kontakt',
+       {label:t('kron_sp01_c1_label'),
         effect:function(){
           kron.flags._sp01offerWeek=(G.round||1)+2;
-          addNews('[Skaut] Tajemniczy skaut umówiony na rozmowę. Oferta może nadejść za 2 kolejki.','scout');
+          addNews(t('kron_sp01_c1_news'),'scout');
         },
-        outcome:function(){return 'Kontakt nawiązany. Czekaj na ofertę.';}},
-       {label:'Prosisz o odejście — chronisz taktykę',
+        outcome:function(){return t('kron_sp01_c1_outcome');}},
+       {label:t('kron_sp01_c2_label'),
         effect:function(){},
-        outcome:function(){return 'Skaut opuścił trening. Informacje taktyczne bezpieczne.';}},
-       {label:'Ignorujesz — sam zdecyduje',
+        outcome:function(){return t('kron_sp01_c2_outcome');}},
+       {label:t('kron_sp01_c3_label'),
         effect:function(){
           if(Math.random()<0.40){
-            const t=G.players.find(function(p){return p.id===kron.flags._sp01pid;});
-            if(t){
-              const offerVal=Math.round((t.value||30000)*1.20/1000)*1000;
-              kron.flags._sp01autoOffer={pid:t.id,val:offerVal};
-              addNews('[Transfer] Niezapowiedziana oferta: '+fmtVal(offerVal)+' za '+t.name+'. Sprawdź transfery!','budget');
+            const tr=G.players.find(function(p){return p.id===kron.flags._sp01pid;});
+            if(tr){
+              const offerVal=Math.round((tr.value||30000)*1.20/1000)*1000;
+              kron.flags._sp01autoOffer={pid:tr.id,val:offerVal};
+              addNews(t('kron_sp01_c3_news').replace('{val}',fmtVal(offerVal)).replace('{name}',tr.name),'budget');
             }
           }
         },
         outcome:function(){
           if(kron.flags._sp01autoOffer){
-            const t=G.players.find(function(p){return p.id===kron.flags._sp01autoOffer.pid;});
-            return (t?t.name:'Zawodnik')+': niezapowiedziana oferta '+fmtVal(kron.flags._sp01autoOffer.val)+' w newsach!';
+            const tr=G.players.find(function(p){return p.id===kron.flags._sp01autoOffer.pid;});
+            return t('kron_sp01_c3_outcome_offer').replace('{name}',tr?tr.name:t('kron_fallback_player')).replace('{val}',fmtVal(kron.flags._sp01autoOffer.val));
           }
-          return 'Skaut odszedł bez kontaktu. Tym razem nic się nie wydarzyło.';
+          return t('kron_sp01_c3_outcome_none');
         }},
      ]},
 
     // K-07: Nagroda — mecz towarzyski za granicą
     {id:'sp06_friendly_abroad', category:'⚽ SPORTOWE',
      weight:function(){return (G.round>=8&&G.round<=20&&!kron.usedThisSeason.includes('sp06_friendly_abroad'))?10:0;},
-     title:'Zaproszenie na mecz zagraniczny',
-     body:function(){return 'Klub z Czech zaprasza na towarzyski mecz. Oferują 10 000 zł honorarium, lot i hotel. Stracisz 2 dni treningu, ale drużyna zobaczy nowe środowisko.';},
+     title:t('kron_sp06_title'),
+     body:function(){return t('kron_sp06_body');},
      choices:[
-       {label:'Jedziesz — 10 000 zł i mecz towarzyski',
+       {label:t('kron_sp06_c1_label'),
         effect:function(){
           G.budget+=10000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:10000,cost:0,bal:G.budget,season:G.season,note:'Kronika: mecz za granicą'});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
-          addNews('[Klub] Towarzyski za granicą! +10 000 zł, morale rośnie.','club');
+          addNews(t('kron_sp06_c1_news'),'club');
         },
-        outcome:function(){return '+10 000 zł. Forma składu +5. Drużyna zintegrowała się.';}},
-       {label:'Odrzucasz — skupiasz się na sezonie',
+        outcome:function(){return t('kron_sp06_c1_outcome');}},
+       {label:t('kron_sp06_c2_label'),
         effect:function(){},
-        outcome:function(){return 'Zaproszenie odrzucone. Pełny fokus na ligę.';}},
-       {label:'Proponujesz mecz u siebie za 5 000 zł',
+        outcome:function(){return t('kron_sp06_c2_outcome');}},
+       {label:t('kron_sp06_c3_label'),
         effect:function(){
           G.budget+=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:5000,cost:0,bal:G.budget,season:G.season,note:'Kronika: mecz za granicą (opcja B)'});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});
-          addNews('[Klub] Towarzyski na własnym stadionie. +5 000 zł.','club');
+          addNews(t('kron_sp06_c3_news'),'club');
         },
-        outcome:function(){return '+5 000 zł. Krótka stymulacja formy.';}},
+        outcome:function(){return t('kron_sp06_c3_outcome');}},
      ]},
 
     // ── GRUPA 1 ─────────────────────────────────────────────────────────
@@ -534,56 +535,56 @@ function kronTrigger(){
        if(!captain||ovr(captain)<58)return 0;
        return 30;
      },
-     title:'Bunt kapitana',
+     title:t('kron_s02_title'),
      body:function(){
        const captain=starters.slice().sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._s02captainId=captain?captain.id:-1;
        const loseStr=(G.mHist||[]).slice(-3).length;
-       return (captain?captain.name:'Kapitan składu')+' (OVR '+(captain?ovr(captain):'?')+') zebrał szatnię za Twoimi plecami. Po '+loseStr+' porażkach z rzędu publicznie kwestionuje Twoje decyzje taktyczne. Atmosfera jest napięta.';
+       return t('kron_s02_body').replace('{name}',captain?captain.name:t('kron_s02_fallback_captain')).replace('{ovr}',captain?ovr(captain):'?').replace('{n}',loseStr);
      },
      choices:[
-       {label:'Rozmawiasz twarzą w twarz — dajesz mu rację (morale +8, obrona/pomoc forma -5)',
+       {label:t('kron_s02_c1_label'),
         effect:function(){
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
           const cap=G.players.find(function(p){return p.id===kron.flags._s02captainId;});
           if(cap)cap.form=Math.min(100,(cap.form||80)+5);
           const midDef=starters.filter(function(p){return p.pos==='OBR'||p.pos==='POL';}).slice(0,2);
           midDef.forEach(function(p){p.form=Math.max(40,(p.form||80)-5);});
-          addNews('['+(cap?cap.name:'Kapitan')+'] uspokoił sytuację po rozmowie z trenerem.','club');
+          addNews(t('kron_s02_c1_news').replace('{name}',cap?cap.name:t('kron_s02_fallback_captain_short')),'club');
         },
         outcome:function(){
           const cap=G.players.find(function(p){return p.id===kron.flags._s02captainId;});
-          return 'Rozmowa przyniosła efekt. Skład forma +8. '+(cap?cap.name+' zadowolony.':'');
+          return t('kron_s02_c1_outcome')+' '+(cap?t('kron_s02_c1_outcome_suffix').replace('{name}',cap.name):'');
         }},
-       {label:'Odbierasz opaskę kapitańską publicznie (rep -10, kapitan forma -15)',
+       {label:t('kron_s02_c2_label'),
         effect:function(){
           const cap=G.players.find(function(p){return p.id===kron.flags._s02captainId;});
           G.reputation=Math.max(0,(G.reputation||30)-10);
           if(cap){cap.form=Math.max(15,(cap.form||80)-15);cap._benchWeeks=(cap._benchWeeks||0)+2;}
-          addNews('[Szatnia] Opaska odebrana '+(cap?cap.name:'kapitanowi')+'. Napięcie w szatni wzrosło.','err');
+          addNews(t('kron_s02_c2_news').replace('{name}',cap?cap.name:t('kron_s02_fallback_captain_dat')),'err');
         },
         outcome:function(){
           const cap=G.players.find(function(p){return p.id===kron.flags._s02captainId;});
-          return 'Opaska odebrana. Reputacja: '+(G.reputation||0)+' (-10). '+(cap?cap.name+' forma: '+cap.form+'%.':'');
+          return t('kron_s02_c2_outcome').replace('{rep}',G.reputation||0)+' '+(cap?t('kron_s02_c2_outcome_suffix').replace('{name}',cap.name).replace('{form}',cap.form):'');
         }},
-       {label:'Organizujesz głosowanie szatni — demokracja (55/45)',
+       {label:t('kron_s02_c3_label'),
         effect:function(){
           const cap=G.players.find(function(p){return p.id===kron.flags._s02captainId;});
           if(Math.random()<0.55){
             starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
-            addNews('[Szatnia] Głosowanie: szatnia po stronie trenera. Jedność wróciła.','ok');
+            addNews(t('kron_s02_c3_news_win'),'ok');
             kron.flags._s02result='win';
           } else {
             G.reputation=Math.max(0,(G.reputation||30)-5);
             if(cap)cap.form=Math.min(100,(cap.form||80)+8);
             starters.filter(function(p){return p.id!==kron.flags._s02captainId;}).forEach(function(p){p.form=Math.max(40,(p.form||80)-5);});
-            addNews('[Szatnia] Głosowanie: szatnia za '+(cap?cap.name:'kapitanem')+'. Autorytet trenera nadszarpnięty.','err');
+            addNews(t('kron_s02_c3_news_lose').replace('{name}',cap?cap.name:t('kron_s02_fallback_captain_inst')),'err');
             kron.flags._s02result='lose';
           }
         },
         outcome:function(){
-          if(kron.flags._s02result==='win')return 'Głosowanie wygrałeś — drużyna za tobą. Forma +5 dla składu.';
-          return 'Głosowanie przegrałeś. Reputacja -5. Skład forma -5, kapitan +8.';
+          if(kron.flags._s02result==='win')return t('kron_s02_c3_outcome_win');
+          return t('kron_s02_c3_outcome_lose');
         }},
      ]},
 
@@ -595,39 +596,39 @@ function kronTrigger(){
        });
        return legend?20:0;
      },
-     title:'Pożegnanie legendy',
+     title:t('kron_s03_title'),
      body:function(){
        const legend=myPl().filter(function(p){
          return (p.age||25)>=34&&(p._seasonsAtClub||0)>=2&&!p.injured;
        }).sort(function(a,b){return (b._seasonsAtClub||0)-(a._seasonsAtClub||0);})[0];
        kron.flags._s03legendId=legend?legend.id:-1;
        const seas=legend?(legend._seasonsAtClub||2):2;
-       return (legend?legend.name:'Doświadczony zawodnik')+' ('+(legend?legend.age:'?')+' lat, '+seas+' sezony w klubie) sygnalizuje przez agenta, że to może być jego ostatni sezon. Media pytają o ceremonię pożegnalną.';
+       return t('kron_s03_body').replace('{name}',legend?legend.name:t('kron_t05_fallback_name')).replace('{age}',legend?legend.age:'?').replace('{seasons}',seas);
      },
      choices:[
-       {label:'Organizujesz uroczystość pożegnalną (-5 000 zł, rep +15, morale +5)',
+       {label:t('kron_s03_c1_label'),
         effect:function(){
-          if(G.budget<5000){notif('Brak budżetu na ceremonię!','err');kron.flags._s03result='noBudget';return;}
+          if(G.budget<5000){notif(t('kron_s03_c1_notif_nobudget'),'err');kron.flags._s03result='noBudget';return;}
           G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: galeria sław'});
           G.reputation=Math.min(1000,(G.reputation||30)+15);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
           if(leg)leg.form=Math.min(100,(leg.form||80)+10);
-          addNews('[Klub] Ceremonia pożegnalna. Reputacja +15, morale drużyny wzrosło.','ok');
+          addNews(t('kron_s03_c1_news'),'ok');
           kron.flags._s03result='ceremony';
         },
         outcome:function(){
-          if(kron.flags._s03result==='noBudget')return 'Brak budżetu — ceremonia się nie odbyła. Legenda odchodzi bez słowa.';
+          if(kron.flags._s03result==='noBudget')return t('kron_s03_c1_outcome_nobudget');
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
-          return 'Ceremonia z pompą! -5 000 zł. Reputacja: '+(G.reputation||0)+' (+15). '+(leg?leg.name+' forma: '+leg.form+'%':'');
+          return t('kron_s03_c1_outcome').replace('{rep}',G.reputation||0)+' '+(leg?t('kron_s03_c1_outcome_suffix').replace('{name}',leg.name).replace('{form}',leg.form):'');
         }},
-       {label:'Cichy odejście — nie robisz z tego tematu',
+       {label:t('kron_s03_c2_label'),
         effect:function(){kron.flags._s03result='silent';},
         outcome:function(){
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
-          return (leg?leg.name:'Zawodnik')+' odchodzi spokojnie. Bez kary, bez premii.';
+          return t('kron_s03_c2_outcome').replace('{name}',leg?leg.name:t('kron_fallback_player'));
         }},
-       {label:'Proponujesz przedłużenie o 1 sezon (50/50 — może odmówić)',
+       {label:t('kron_s03_c3_label'),
         effect:function(){
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
           if(!leg){kron.flags._s03result='noPlayer';return;}
@@ -635,20 +636,20 @@ function kronTrigger(){
             leg.contract=(leg.contract||1)+1;
             leg._seasonsAtClub=(leg._seasonsAtClub||2)+1;
             leg.form=Math.min(100,(leg.form||80)+5);
-            addNews('[Transfer] '+leg.name+' przedłużył kontrakt o 1 sezon! Legenda zostaje.','ok');
+            addNews(t('news_tr_legend_extend').replace('{name}',leg.name),'ok');
             kron.flags._s03result='extended';
           } else {
             leg.form=Math.max(30,(leg.form||80)-8);
             G.reputation=Math.max(0,(G.reputation||30)-5);
-            addNews('[Transfer] '+leg.name+' odrzucił przedłużenie. Odejdzie na koniec sezonu.','err');
+            addNews(t('news_tr_legend_reject').replace('{name}',leg.name),'err');
             kron.flags._s03result='refused';
           }
         },
         outcome:function(){
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
-          if(kron.flags._s03result==='extended')return (leg?leg.name:'Zawodnik')+' zostaje! Kontrakt +1 sezon. Forma +5.';
-          if(kron.flags._s03result==='refused')return (leg?leg.name:'Zawodnik')+' odmówił. Forma -8, reputacja -5.';
-          return 'Zawodnik nie istnieje w składzie.';
+          if(kron.flags._s03result==='extended')return t('kron_s03_c3_outcome_extended').replace('{name}',leg?leg.name:t('kron_fallback_player'));
+          if(kron.flags._s03result==='refused')return t('kron_s03_c3_outcome_refused').replace('{name}',leg?leg.name:t('kron_fallback_player'));
+          return t('kron_s03_c3_outcome_noplayer');
         }},
      ]},
 
@@ -657,58 +658,58 @@ function kronTrigger(){
      weight:function(){
        return (G.round>5&&starters.length>=8)?18:0;
      },
-     title:'Przeciek z szatni',
+     title:t('kron_s05_title'),
      body:function(){
        const suspects=starters.filter(function(p){return (p._benchWeeks||0)>=1||ovr(p)<55;});
        const suspect=suspects.length?suspects[Math.floor(Math.random()*suspects.length)]:starters[Math.floor(Math.random()*starters.length)];
        kron.flags._s05suspectId=suspect?suspect.id:-1;
-       return 'Dziennikarz z lokalnej gazety opublikował szczegóły taktyczne i cytaty z zamkniętego spotkania przed meczem. Ktoś z szatni rozmawiał z mediami. Atmosfera jest lodowata.';
+       return t('kron_s05_body');
      },
      choices:[
-       {label:'Dochodzenie wewnętrzne (-3 000 zł, 60% szans na znalezienie winnego)',
+       {label:t('kron_s05_c1_label'),
         effect:function(){
-          if(G.budget<3000){notif('Brak budżetu!','err');kron.flags._s05result='noBudget';return;}
+          if(G.budget<3000){notif(t('kron_notif_no_budget'),'err');kron.flags._s05result='noBudget';return;}
           G.budget-=3000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:3000,bal:G.budget,season:G.season,note:'Kronika: odwołanie od sędziego'});
           G.reputation=Math.max(0,(G.reputation||30)-5);
           const suspect=G.players.find(function(p){return p.id===kron.flags._s05suspectId;});
           if(Math.random()<0.60&&suspect){
             suspect.form=Math.max(20,(suspect.form||80)-10);
             suspect.starter=false;
-            addNews('[Szatnia] Dochodzenie: '+suspect.name+' odsunięty od składu za przeciek.','err');
+            addNews(t('kron_s05_c1_news_found').replace('{name}',suspect.name),'err');
             kron.flags._s05result='found';
             kron.flags._s05culpritName=suspect.name;
           } else {
             starters.forEach(function(p){p.form=Math.max(40,(p.form||80)-3);});
-            addNews('[Szatnia] Dochodzenie bez rezultatu. Napięcie rośnie.','err');
+            addNews(t('kron_s05_c1_news_notfound'),'err');
             kron.flags._s05result='notFound';
           }
         },
         outcome:function(){
-          if(kron.flags._s05result==='noBudget')return 'Brak budżetu — dochodzenie wstrzymane.';
-          if(kron.flags._s05result==='found')return 'Winny: '+(kron.flags._s05culpritName||'?')+'. Odsunięty od składu. Rep -5, budżet -3 000 zł.';
-          return 'Winnego nie znaleziono. Cały skład forma -3. Budżet -3 000 zł.';
+          if(kron.flags._s05result==='noBudget')return t('kron_s05_c1_outcome_nobudget');
+          if(kron.flags._s05result==='found')return t('kron_s05_c1_outcome_found').replace('{name}',kron.flags._s05culpritName||'?');
+          return t('kron_s05_c1_outcome_notfound');
         }},
-       {label:'Zamrażasz temat — media się uspokoją (rep -8)',
+       {label:t('kron_s05_c2_label'),
         effect:function(){
           G.reputation=Math.max(0,(G.reputation||30)-8);
-          addNews('[Szatnia] Klub nie komentuje przecieku. Kibice niezadowoleni.','club');
+          addNews(t('kron_s05_c2_news'),'club');
           kron.flags._s05result='ignored';
         },
         outcome:function(){
-          return 'Temat zamrożony. Reputacja: '+(G.reputation||0)+' (-8). Zero kosztów.';
+          return t('kron_s05_c2_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Transparentność — przyznajesz otwarcie (rep +5, jeden zawodnik forma -5)',
+       {label:t('kron_s05_c3_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+5);
           const suspect=G.players.find(function(p){return p.id===kron.flags._s05suspectId;});
           if(suspect)suspect.form=Math.max(30,(suspect.form||80)-5);
-          addNews('[Szatnia] Trener przyznał — transparentność doceniona przez media.','ok');
+          addNews(t('kron_s05_c3_news'),'ok');
           kron.flags._s05result='transparent';
           kron.flags._s05culpritName=suspect?suspect.name:'';
         },
         outcome:function(){
           const name=kron.flags._s05culpritName;
-          return 'Transparentność popłaciła. Reputacja: '+(G.reputation||0)+' (+5). '+(name?name+' forma -5.':'');
+          return t('kron_s05_c3_outcome').replace('{rep}',G.reputation||0)+' '+(name?t('kron_s05_c3_outcome_suffix').replace('{name}',name):'');
         }},
      ]},
 
@@ -968,16 +969,16 @@ function kronTrigger(){
        const rebel=myPl().find(function(p){return p._wantsOut;});
        return rebel?40:0;
      },
-     title:'Gwiazda chce odejść',
+     title:t('kron_k04_title'),
      body:function(){
        const rebel=myPl().filter(function(p){return p._wantsOut;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
        kron.flags._k04rebelId=rebel?rebel.id:-1;
        const offerVal=rebel?Math.round((rebel.value||50000)*1.30/1000)*1000:0;
        kron.flags._k04offerVal=offerVal;
-       return (rebel?rebel.name:'Zawodnik')+' (OVR '+(rebel?ovr(rebel):'?')+') dał ultimatum przez agenta: albo odejdzie w zimowym oknie, albo będzie sabotował atmosferę w szatni. Klub z wyższej ligi oferuje '+fmtVal(offerVal)+'. Zarząd czeka na Twoją decyzję.';
+       return t('kron_k04_body').replace('{name}',rebel?rebel.name:t('kron_fallback_player')).replace('{ovr}',rebel?ovr(rebel):'?').replace('{val}',fmtVal(offerVal));
      },
      choices:[
-       {label:'Sprzedajesz — bierzesz 130% wartości',
+       {label:t('kron_k04_c1_label'),
         effect:function(){
           const rebel=G.players.find(function(p){return p.id===kron.flags._k04rebelId;});
           const val=kron.flags._k04offerVal||0;
@@ -985,17 +986,17 @@ function kronTrigger(){
           G.budget+=val;
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'sell',name:rebel.name,val:val,week:G.week,season:G.season});
-          addNews('[Transfer] '+rebel.name+' sprzedany za '+fmtVal(val)+'. Szatnia może odetchnąć.','budget');
+          addNews(t('kron_k04_c1_news').replace('{name}',rebel.name).replace('{val}',fmtVal(val)),'budget');
           rebel.clubId=0;rebel.starter=false;rebel.status='freeAgent';rebel.isFreeAgent=true;rebel._wantsOut=false;
           G.players=G.players.filter(function(p){return p.id!==rebel.id;});
           if(!G.fa)G.fa=[];G.fa.push(rebel);
           kron.flags._k04result='sold';kron.flags._k04name=rebel.name;kron.flags._k04val=val;
         },
         outcome:function(){
-          if(kron.flags._k04result==='gone')return 'Zawodnik już nie ma go w składzie.';
-          return (kron.flags._k04name||'Zawodnik')+' sprzedany za '+fmtVal(kron.flags._k04val||0)+'. Budżet wzrósł.';
+          if(kron.flags._k04result==='gone')return t('kron_k04_c1_outcome_gone');
+          return t('kron_k04_c1_outcome').replace('{name}',kron.flags._k04name||t('kron_fallback_player')).replace('{val}',fmtVal(kron.flags._k04val||0));
         }},
-       {label:'Dajesz mu opaskę kapitańską — próba zatrzymania (forma +10, ryzyko)',
+       {label:t('kron_k04_c2_label'),
         effect:function(){
           const rebel=G.players.find(function(p){return p.id===kron.flags._k04rebelId;});
           if(!rebel){kron.flags._k04result='gone';return;}
@@ -1006,33 +1007,33 @@ function kronTrigger(){
             // Stary kapitan (najwyższe OVR poza rebeliantem) traci morale
             const oldCap=myPl().filter(function(p){return p.id!==rebel.id&&p.starter;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
             if(oldCap)oldCap.form=Math.max(40,(oldCap.form||80)-8);
-            addNews('[Szatnia] '+rebel.name+' nowym kapitanem. Zostaje w klubie.','ok');
+            addNews(t('kron_k04_c2_news_win').replace('{name}',rebel.name),'ok');
             kron.flags._k04result='captain';
           } else {
             rebel.form=Math.max(10,(rebel.form||80)-15);
-            addNews('[Szatnia] '+rebel.name+' odrzucił propozycję. Sytuacja eskaluje.','err');
+            addNews(t('kron_k04_c2_news_lose').replace('{name}',rebel.name),'err');
             kron.flags._k04result='captainFail';
           }
           kron.flags._k04name=rebel.name;
         },
         outcome:function(){
           const rebel=G.players.find(function(p){return p.id===kron.flags._k04rebelId;});
-          if(kron.flags._k04result==='captain')return (kron.flags._k04name||'Zawodnik')+' nowym kapitanem! Forma +10, zostaje. Poprzedni kapitan forma -8.';
-          if(kron.flags._k04result==='captainFail')return (kron.flags._k04name||'Zawodnik')+' odrzucił opaskę. Forma: '+(rebel?rebel.form:'?')+'% (-15). Kryzys trwa.';
-          return 'Zawodnik nie istnieje w składzie.';
+          if(kron.flags._k04result==='captain')return t('kron_k04_c2_outcome_win').replace('{name}',kron.flags._k04name||t('kron_fallback_player'));
+          if(kron.flags._k04result==='captainFail')return t('kron_k04_c2_outcome_lose').replace('{name}',kron.flags._k04name||t('kron_fallback_player')).replace('{form}',rebel?rebel.form:'?');
+          return t('kron_k04_c2_outcome_gone');
         }},
-       {label:'Ignorujesz ultimatum — niech sabotuje (cały skład forma -5 przez presję)',
+       {label:t('kron_k04_c3_label'),
         effect:function(){
           const rebel=G.players.find(function(p){return p.id===kron.flags._k04rebelId;});
           // Zatruwa atmosferę — cały skład traci formę
           myPl().forEach(function(p){p.form=Math.max(30,(p.form||80)-5);});
           if(rebel)rebel.form=Math.max(10,(rebel.form||80)-10);
           G.reputation=Math.max(0,(G.reputation||30)-8);
-          addNews('[Szatnia] '+(rebel?rebel.name:'Zawodnik')+' otwarcie krytykuje klub w mediach. Atmosfera toksyczna.','err');
-          kron.flags._k04result='ignored';kron.flags._k04name=rebel?rebel.name:'Zawodnik';
+          addNews(t('kron_k04_c3_news').replace('{name}',rebel?rebel.name:t('kron_fallback_player')),'err');
+          kron.flags._k04result='ignored';kron.flags._k04name=rebel?rebel.name:t('kron_fallback_player');
         },
         outcome:function(){
-          return 'Ignorowanie kryzysu kosztuje: cały skład forma -5, '+(kron.flags._k04name||'zawodnik')+' forma -10, reputacja -8.';
+          return t('kron_k04_c3_outcome').replace('{name}',kron.flags._k04name||t('kron_fallback_player'));
         }},
      ]},
 
@@ -1042,7 +1043,7 @@ function kronTrigger(){
        // Trigger: flaga _s01canRepeat ustawiona gdy gracz ignorował pierwszą imprezę
        return kron.flags._s01canRepeat?35:0;
      },
-     title:'Impreza znowu — tym razem z dowodem',
+     title:t('kron_s07_title'),
      body:function(){
        // Ci sami winowajcy co poprzednio (lub losowi starterzy)
        const prev=kron.flags._s01pids||[];
@@ -1051,10 +1052,10 @@ function kronTrigger(){
          starters.slice().sort(function(){return Math.random()-0.5;}).slice(0,3);
        kron.flags._s07pids=picks.map(function(p){return p.id;});
        const names=picks.map(function(p){return p.name.split(' ')[1]||p.name;}).join(', ');
-       return 'Tabloid opublikował zdjęcia: '+names+' znowu bawili się do świtu przed meczem. Tym razem media mają twarde dowody i tytuł "BAŁAGAN W KLUBIE". Zarząd czeka na natychmiastową reakcję.';
+       return t('kron_s07_body').replace('{names}',names);
      },
      choices:[
-       {label:'Zawieszasz ich publicznie — zero tolerancji (forma -15, rep +10)',
+       {label:t('kron_s07_c1_label'),
         effect:function(){
           (kron.flags._s07pids||[]).forEach(function(id){
             const p=G.players.find(function(x){return x.id===id;});
@@ -1062,18 +1063,18 @@ function kronTrigger(){
           });
           G.reputation=Math.min(1000,(G.reputation||30)+10);
           kron.flags._s01canRepeat=false;// reset — nauczka zadziałała
-          addNews('[Szatnia] Zawieszenie po skandalu. Zero tolerancji. Reputacja +10.','ok');
+          addNews(t('kron_s07_c1_news'),'ok');
         },
         outcome:function(){
           const names=(kron.flags._s07pids||[]).map(function(id){
             const p=G.players.find(function(x){return x.id===id;});return p?p.name.split(' ')[1]:'?';
           }).join(', ');
-          return names+' zawieszeni. Forma -15, odsunięci od składu. Reputacja: '+(G.reputation||0)+' (+10).';
+          return t('kron_s07_c1_outcome').replace('{names}',names).replace('{rep}',G.reputation||0);
         }},
-       {label:'Wykupujesz milczenie mediów (-25 000 zł, sprawa znika)',
+       {label:t('kron_s07_c2_label'),
         effect:function(){
           if(G.budget<25000){
-            notif('Brak budżetu na wykupienie milczenia!','err');
+            notif(t('kron_s07_c2_notif_nobudget'),'err');
             // Mimo braku kasy sprawa i tak cichnie — ale reputacja spada
             G.reputation=Math.max(0,(G.reputation||30)-15);
             kron.flags._s07result='noBudget';
@@ -1081,23 +1082,23 @@ function kronTrigger(){
           }
           G.budget-=25000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:25000,bal:G.budget,season:G.season,note:'Kronika: wykup milczenia (skandal)'});
           kron.flags._s01canRepeat=false;
-          addNews('[Szatnia] Sprawa wyciszona. Budżet: -25 000 zł.','budget');
+          addNews(t('kron_s07_c2_news'),'budget');
           kron.flags._s07result='paid';
         },
         outcome:function(){
-          if(kron.flags._s07result==='noBudget')return 'Brak budżetu — milczenia nie wykupiono. Reputacja: '+(G.reputation||0)+' (-15). Skandal żyje.';
-          return 'Milczenie wykupione za 25 000 zł. Sprawa znika z mediów. Winni grają dalej.';
+          if(kron.flags._s07result==='noBudget')return t('kron_s07_c2_outcome_nobudget').replace('{rep}',G.reputation||0);
+          return t('kron_s07_c2_outcome_paid');
         }},
-       {label:'Ignorujesz po raz drugi — szatnia traci respekt (rep -20, skład forma -8)',
+       {label:t('kron_s07_c3_label'),
         effect:function(){
           G.reputation=Math.max(0,(G.reputation||30)-20);
           myPl().forEach(function(p){p.form=Math.max(30,(p.form||80)-8);});
           // Flaga zostaje — może wrócić jeszcze raz ale z większą wagą
-          addNews('[Szatnia] Brak reakcji na powtórny skandal. Klub stał się pośmiewiskiem ligi.','err');
+          addNews(t('kron_s07_c3_news'),'err');
           kron.flags._s07result='ignored';
         },
         outcome:function(){
-          return 'Brak reakcji. Reputacja: '+(G.reputation||0)+' (-20). Cały skład forma -8. Klub w mediach jako przykład bałaganu.';
+          return t('kron_s07_c3_outcome').replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1181,60 +1182,60 @@ function kronTrigger(){
        const nm=G.schedule&&G.schedule.find(function(m){return m.rnd===G.round&&!m.done&&(m.h===G.myClubId||m.a===G.myClubId);});
        return nm?28:0;
      },
-     title:'Ten sam sędzia — znowu',
+     title:t('kron_sp08_title'),
      body:function(){
        const nm=G.schedule&&G.schedule.find(function(m){return m.rnd===G.round&&!m.done&&(m.h===G.myClubId||m.a===G.myClubId);});
        const oppId=nm?(nm.h===G.myClubId?nm.a:nm.h):0;
        const oppClub=(G.leagues||[]).flatMap(function(l){return l.clubs||[];}).find(function(c){return c.id===oppId;});
-       kron.flags._sp08oppName=oppClub?oppClub.n:'Rywal';
-       return 'Liga właśnie ogłosiła obsadę sędziowską. Sędzia z kontrowersyjnego meczu prowadzi Wasze starcie z '+(oppClub?oppClub.n:'rywalem')+'. Media już piszą o "zemście w stroju sędziowskim". Co robisz przed meczem?';
+       kron.flags._sp08oppName=oppClub?oppClub.n:t('kron_fallback_rival');
+       return t('kron_sp08_body').replace('{opp}',oppClub?oppClub.n:t('kron_sp08_fallback_opp'));
      },
      choices:[
-       {label:'Oficjalny protest do ligi przed meczem (30% szans na zmianę sędziego)',
+       {label:t('kron_sp08_c1_label'),
         effect:function(){
           if(Math.random()<0.30){
             G.reputation=Math.min(1000,(G.reputation||30)+5);
-            addNews('[Liga] Protest przyjęty — sędzia zmieniony. Reputacja +5.','ok');
+            addNews(t('kron_sp08_c1_news_win'),'ok');
             kron.flags._sp08result='changed';
           } else {
             G.budget=Math.max(0,G.budget-5000);
             G.reputation=Math.max(0,(G.reputation||30)-5);
-            addNews('[Liga] Protest odrzucony. Kara 5 000 zł za "zakłócanie porządku".','err');
+            addNews(t('kron_sp08_c1_news_lose'),'err');
             kron.flags._sp08result='rejected';
           }
         },
         outcome:function(){
-          if(kron.flags._sp08result==='changed')return 'Protest przyjęty! Sędzia zmieniony. Reputacja +5.';
-          return 'Protest odrzucony. Budżet -5 000 zł, reputacja -5. Sędzia prowadzi mecz.';
+          if(kron.flags._sp08result==='changed')return t('kron_sp08_c1_outcome_win');
+          return t('kron_sp08_c1_outcome_lose');
         }},
-       {label:'Skupiasz się na grze — motywujesz drużynę przez złość (forma +6)',
+       {label:t('kron_sp08_c2_label'),
         effect:function(){
           // Złość motywuje — skład dostaje boost formy
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+6);});
-          addNews('[Szatnia] Trener zamienił frustrację w motywację. Drużyna zmobilizowana.','ok');
+          addNews(t('kron_sp08_c2_news'),'ok');
           kron.flags._sp08result='motivated';
         },
         outcome:function(){
-          return 'Złość zamieniona w energię. Cały skład forma +6. Czas pokazać im na boisku.';
+          return t('kron_sp08_c2_outcome');
         }},
-       {label:'Publicznie ostrzegasz sędziego w mediach (ryzyko kary, skład forma +3)',
+       {label:t('kron_sp08_c3_label'),
         effect:function(){
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});
           if(Math.random()<0.40){
             // Liga ukarała za wypowiedź
             G.budget=Math.max(0,G.budget-8000);
             G.reputation=Math.max(0,(G.reputation||30)-8);
-            addNews('[Liga] Kara za wypowiedź medialna: -8 000 zł, reputacja -8. Ale drużyna nabuzowana.','err');
+            addNews(t('kron_sp08_c3_news_punish'),'err');
             kron.flags._sp08result='punished';
           } else {
             G.reputation=Math.min(1000,(G.reputation||30)+3);
-            addNews('[Media] Wypowiedź trenera zrobiła furorę. Reputacja +3, skład forma +3.','ok');
+            addNews(t('kron_sp08_c3_news_praise'),'ok');
             kron.flags._sp08result='praised';
           }
         },
         outcome:function(){
-          if(kron.flags._sp08result==='punished')return 'Liga ukarała za wypowiedź: -8 000 zł, reputacja -8. Skład forma +3.';
-          return 'Media po Twojej stronie. Reputacja: '+(G.reputation||0)+' (+3). Skład forma +3.';
+          if(kron.flags._sp08result==='punished')return t('kron_sp08_c3_outcome_punish');
+          return t('kron_sp08_c3_outcome_praise').replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1251,18 +1252,18 @@ function kronTrigger(){
        const justWon=leagueTrophies[0].season===G.season;
        return justWon?50:0;
      },
-     title:'Pierwsze mistrzostwo!',
+     title:t('kron_x01_title'),
      body:function(){
        const trophy=(G.trophies||[]).find(function(t){return t.type==='league';});
-       kron.flags._x01league=trophy?trophy.leagueName:'Liga';
+       kron.flags._x01league=trophy?trophy.leagueName:t('kron_x01_fallback_league');
        kron.flags._x01season=G.season;
-       return 'Koniec sezonu '+G.season+'. Twój klub po raz pierwszy w historii zdobył tytuł mistrza — '+(trophy?trophy.leagueName:'ligi')+'! Media szaleją, kibice na ulicach. Jak przejdziecie do historii?';
+       return t('kron_x01_body').replace('{season}',G.season).replace('{league}',trophy?trophy.leagueName:t('kron_x01_fallback_league'));
      },
      choices:[
-       {label:'Sala sławy i tablica pamiątkowa na stadionie (-15 000 zł, rep +25)',
+       {label:t('kron_x01_c1_label'),
         effect:function(){
           if(G.budget<15000){
-            notif('Brak budżetu na upamiętnienie!','err');
+            notif(t('kron_x01_c1_notif_nobudget'),'err');
             G.reputation=Math.min(1000,(G.reputation||30)+10);
             kron.flags._x01result='noBudget';
             return;
@@ -1274,36 +1275,36 @@ function kronTrigger(){
           G.flags.firstTitleSeason=G.season;
           G.flags.firstTitleLeague=kron.flags._x01league;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
-          addNews('[Historia] Sala sławy otwarta! Pierwsze mistrzostwo uwiecznione na stadionie. Reputacja +25.','ok');
+          addNews(t('kron_x01_c1_news'),'ok');
           kron.flags._x01result='monument';
         },
         outcome:function(){
-          if(kron.flags._x01result==='noBudget')return 'Brak budżetu — bez tablicy. Reputacja i tak +10 za sam tytuł.';
-          return 'Sala sławy i tablica gotowe! -15 000 zł. Reputacja: '+(G.reputation||0)+' (+25). Skład forma +8.';
+          if(kron.flags._x01result==='noBudget')return t('kron_x01_c1_outcome_nobudget');
+          return t('kron_x01_c1_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Wielka parada miejska — oddajesz chwałę kibicom (rep +20, bez kosztów)',
+       {label:t('kron_x01_c2_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+20);
           G.flags=G.flags||{};
           G.flags.firstTitleSeason=G.season;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+6);});
-          addNews('[Historia] Parada przez miasto! Tysiące kibiców świętuje pierwsze mistrzostwo.','ok');
+          addNews(t('kron_x01_c2_news'),'ok');
           kron.flags._x01result='parade';
         },
         outcome:function(){
-          return 'Parada była legendarna. Reputacja: '+(G.reputation||0)+' (+20). Skład forma +6.';
+          return t('kron_x01_c2_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Skromna uroczystość — pieniądze na wzmocnienia (sponsor daje +5 000 zł, rep +8)',
+       {label:t('kron_x01_c3_label'),
         effect:function(){
           G.budget+=5000;
           G.reputation=Math.min(1000,(G.reputation||30)+8);
           G.flags=G.flags||{};
           G.flags.firstTitleSeason=G.season;
-          addNews('[Historia] Skromne świętowanie — klub myśli już o kolejnym sezonie. Sponsor nagrodził +5 000 zł.','budget');
+          addNews(t('kron_x01_c3_news'),'budget');
           kron.flags._x01result='modest';
         },
         outcome:function(){
-          return 'Skromnie ale konkretnie. Budżet +5 000 zł, reputacja: '+(G.reputation||0)+' (+8). Oczy na przód.';
+          return t('kron_x01_c3_outcome').replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1321,7 +1322,7 @@ function kronTrigger(){
        const inRelegation=myPos>=total-2;
        return inRelegation?45:0;
      },
-     title:'Zarząd stawia ultimatum',
+     title:t('kron_x02_title'),
      body:function(){
        const sorted=[...G.standing].sort(function(a,b){return b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga);});
        const total=sorted.length;
@@ -1334,23 +1335,23 @@ function kronTrigger(){
        const roundsLeft=(G.standing[0]?(G.standing[0].p||0):0);
        const totalRounds=(total-1)*2;
        kron.flags._x02roundsLeft=Math.max(1,totalRounds-roundsLeft);
-       return 'Miejsce '+myPos+' na '+total+'. Brakuje '+Math.max(1,ptsToSafe)+' pkt do bezpiecznej strefy. Zarząd wezwał Cię na pilne spotkanie: "Masz '+kron.flags._x02roundsLeft+' kolejek. Albo wyniki, albo zmiany."';
+       return t('kron_x02_body').replace('{pos}',myPos).replace('{total}',total).replace('{pts}',Math.max(1,ptsToSafe)).replace('{rounds}',kron.flags._x02roundsLeft);
      },
      choices:[
-       {label:'Akceptujesz presję — mowa motywacyjna do szatni (skład morale +12, rep -5)',
+       {label:t('kron_x02_c1_label'),
         effect:function(){
           G.reputation=Math.max(0,(G.reputation||30)-5);
           myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+12);});
-          addNews('[Zarząd] Ultimatum przyjęte. Trener zmobilizował szatnię — wszyscy walczą o przetrwanie.','ok');
+          addNews(t('kron_x02_c1_news'),'ok');
           kron.flags._x02result='motivated';
         },
         outcome:function(){
-          return 'Szatnia zmobilizowana. Cały skład forma +12. Reputacja: '+(G.reputation||0)+' (-5). Teraz czas na punkty.';
+          return t('kron_x02_c1_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Rezygnujesz z części budżetu na wzmocnienia (-20 000 zł, możesz kupić z FA)',
+       {label:t('kron_x02_c2_label'),
         effect:function(){
           if(G.budget<20000){
-            notif('Niewystarczający budżet!','err');
+            notif(t('kron_x02_c2_notif_nobudget'),'err');
             // Mimo to szatnia dostaje małe wzmocnienie moralne
             myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
             kron.flags._x02result='noBudget';
@@ -1367,25 +1368,25 @@ function kronTrigger(){
               rescue.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(rescue),avgRat:null,_current:true});
               G.fa=G.fa.filter(function(p){return p.id!==rescue.id;});
               G.players.push(rescue);
-              addNews('[Ratunek] '+rescue.name+' (OVR '+ovr(rescue)+') podpisał kontrakt kryzysowy! -20 000 zł.','budget');
+              addNews(t('kron_x02_c2_news').replace('{name}',rescue.name).replace('{ovr}',ovr(rescue)),'budget');
               kron.flags._x02rescueName=rescue.name;
             }
           }
           kron.flags._x02result='transfer';
         },
         outcome:function(){
-          if(kron.flags._x02result==='noBudget')return 'Brak budżetu na wzmocnienie. Skład morale +5. Musisz sobie poradzić tym co masz.';
-          return 'Kryzysowy transfer wykonany! '+(kron.flags._x02rescueName||'Nowy zawodnik')+' dołącza. Budżet -20 000 zł.';
+          if(kron.flags._x02result==='noBudget')return t('kron_x02_c2_outcome_nobudget');
+          return t('kron_x02_c2_outcome').replace('{name}',kron.flags._x02rescueName||t('kron_fallback_newplayer'));
         }},
-       {label:'Kontratak — publicznie krytykujesz zarząd (rep -15, skład forma +15)',
+       {label:t('kron_x02_c3_label'),
         effect:function(){
           G.reputation=Math.max(0,(G.reputation||30)-15);
           myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+15);});
-          addNews('[Kryzys] Trener stanął murem za drużyną, atakując zarząd publicznie. Szatnia zjednoczona.','err');
+          addNews(t('kron_x02_c3_news'),'err');
           kron.flags._x02result='rebel';
         },
         outcome:function(){
-          return 'Odwaga kosztuje. Reputacja: '+(G.reputation||0)+' (-15). Ale szatnia forma +15 — grają dla trenera, nie dla zarządu.';
+          return t('kron_x02_c3_outcome').replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1404,69 +1405,69 @@ function kronTrigger(){
        const roundsLeft=totalRounds-played;
        return (roundsLeft<=3&&roundsLeft>=1)?40:0;
      },
-     title:'Noc przed awansem',
+     title:t('kron_x03_title'),
      body:function(){
        const sorted=[...G.standing].sort(function(a,b){return b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga);});
        const second=sorted[1];
        const myEntry=sorted[0];
        const lead=myEntry&&second?(myEntry.pts-second.pts):0;
        kron.flags._x03lead=lead;
-       const nextLeague=LEAGUE_NAMES[(G.myLeague||8)-1]||'wyższa liga';
+       const nextLeague=LEAGUE_NAMES[(G.myLeague||8)-1]||t('kron_x03_fallback_league');
        kron.flags._x03nextLeague=nextLeague;
        const totalRounds=(G.standing.length-1)*2;
        const played=G.standing[0]?(G.standing[0].p||0):0;
        kron.flags._x03roundsLeft=(totalRounds-played);
-       return 'Prowadzisz tabele o '+lead+' pkt. Do końca sezonu zostały '+kron.flags._x03roundsLeft+' kolejki. Jeden dobry wynik może dać awans do '+nextLeague+'. Jak motywujesz drużynę przed decydującymi meczami?';
+       return t('kron_x03_body').replace('{lead}',lead).replace('{rounds}',kron.flags._x03roundsLeft).replace('{league}',nextLeague);
      },
      choices:[
-       {label:'Wielka mowa motywacyjna — "gramy dla historii" (50/50: forma +10 lub bez efektu)',
+       {label:t('kron_x03_c1_label'),
         effect:function(){
           if(Math.random()<0.50){
             starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+10);});
-            addNews('[Szatnia] Mowa trenera przeszła do legendy. Drużyna nabuzowana przed decydującymi meczami.','ok');
+            addNews(t('kron_x03_c1_news_win'),'ok');
             kron.flags._x03result='speechWin';
           } else {
-            addNews('[Szatnia] Mowa trenera nie trafiła w serca. Drużyna skupiona, ale bez dodatkowego ognia.','club');
+            addNews(t('kron_x03_c1_news_lose'),'club');
             kron.flags._x03result='speechFail';
           }
         },
         outcome:function(){
-          if(kron.flags._x03result==='speechWin')return 'Mowa trafiła w serce! Cały skład forma +10. Czas na historię.';
-          return 'Mowa nie zapaliła. Brak efektu. Drużyna gra swoje — może wystarczy.';
+          if(kron.flags._x03result==='speechWin')return t('kron_x03_c1_outcome_win');
+          return t('kron_x03_c1_outcome_lose');
         }},
-       {label:'Premia za awans dla każdego zawodnika (-20 000 zł, forma +8 gwarantowane)',
+       {label:t('kron_x03_c2_label'),
         effect:function(){
           if(G.budget<20000){
-            notif('Brak budżetu na premię!','err');
+            notif(t('kron_x03_c2_notif_nobudget'),'err');
             starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+4);});
             kron.flags._x03result='noBudget';
             return;
           }
           G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:'Kronika: premia przed awansem'});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
-          addNews('[Szatnia] Premia awansowa ogłoszona. Każdy zawodnik wie co walczy. Forma rośnie.','budget');
+          addNews(t('kron_x03_c2_news'),'budget');
           kron.flags._x03result='bonus';
         },
         outcome:function(){
-          if(kron.flags._x03result==='noBudget')return 'Brak budżetu na premię. Skład forma +4 — sam entuzjazm.';
-          return 'Premia ogłoszona! Budżet -20 000 zł. Cały skład forma +8. Motywacja finansowa działa.';
+          if(kron.flags._x03result==='noBudget')return t('kron_x03_c2_outcome_nobudget');
+          return t('kron_x03_c2_outcome');
         }},
-       {label:'Wyjazd integracyjny dzień przed meczem (-8 000 zł, forma +5, rep +5)',
+       {label:t('kron_x03_c3_label'),
         effect:function(){
           if(G.budget<8000){
-            notif('Brak budżetu na wyjazd!','err');
+            notif(t('kron_x03_c3_notif_nobudget'),'err');
             kron.flags._x03result='noBudget2';
             return;
           }
           G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: kara za protest (sędzia)'});
           G.reputation=Math.min(1000,(G.reputation||30)+5);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
-          addNews('[Szatnia] Wyjazd integracyjny przed decydującymi meczami. Jedność drużyny na poziomie.','ok');
+          addNews(t('kron_x03_c3_news'),'ok');
           kron.flags._x03result='trip';
         },
         outcome:function(){
-          if(kron.flags._x03result==='noBudget2')return 'Brak budżetu na wyjazd.';
-          return 'Wyjazd udany! -8 000 zł. Skład forma +5, reputacja: '+(G.reputation||0)+' (+5).';
+          if(kron.flags._x03result==='noBudget2')return t('kron_x03_c3_outcome_nobudget');
+          return t('kron_x03_c3_outcome').replace('{rep}',G.reputation||0);
         }},
      ]},
 
@@ -1481,26 +1482,26 @@ function kronTrigger(){
        const rivalStr=G.rival.strength||50;
        return (rivalStr>myAvgOvr+8)?30:0;
      },
-     title:'Rywal buduje dynastię',
+     title:t('kron_x04_title'),
      body:function(){
        const myAvgOvr=myPl().length?Math.round(myPl().reduce(function(s,p){return s+ovr(p);},0)/myPl().length):50;
        const rivalStr=G.rival.strength||50;
        const gap=rivalStr-myAvgOvr;
        kron.flags._x04gap=gap;
-       kron.flags._x04rivalName=(G.rival&&G.rival.n)||'Rywal';
-       return (G.rival?G.rival.n:'Rywal')+' dominuje ligę od '+Math.floor(gap/3)+' sezonów. Ich średnia OVR przewyższa Twoją o '+gap+' punktów. Media pytają: "Czy to już koniec ery '+( G.myClub?G.myClub.n:'Twojego klubu')+'?" Jak odpowiadasz?';
+       kron.flags._x04rivalName=(G.rival&&G.rival.n)||t('kron_fallback_rival');
+       return t('kron_x04_body').replace('{rival}',G.rival?G.rival.n:t('kron_fallback_rival')).replace('{years}',Math.floor(gap/3)).replace('{gap}',gap).replace('{club}',G.myClub?G.myClub.n:t('kron_x04_fallback_club'));
      },
      choices:[
-       {label:'Ignorujesz — skupiasz się na własnej grze (rep +5, nic więcej)',
+       {label:t('kron_x04_c1_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+5);
-          addNews('[Media] Trener odmawia komentarza o rywalu: "Skupiamy się na sobie." Media doceniają spokój.','ok');
+          addNews(t('kron_x04_c1_news'),'ok');
           kron.flags._x04result='ignored';
         },
         outcome:function(){
-          return 'Spokój jako odpowiedź. Reputacja: '+(G.reputation||0)+' (+5). Czas pokaże kto miał rację.';
+          return t('kron_x04_c1_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Inwestujesz w akademię — odpowiedź długoterminowa (rep +10, akademia awansuje)',
+       {label:t('kron_x04_c2_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+10);
           // Wzmocnij akademię jeśli istnieje
@@ -1523,18 +1524,18 @@ function kronTrigger(){
               kron.flags._x04prodigyName=youngster.name;
             }
           }
-          addNews('[Akademia] Inwestycja w przyszłość jako odpowiedź na dominację rywala. '+(kron.flags._x04prodigyName?kron.flags._x04prodigyName+' dołącza do akademii.':''),'ok');
+          addNews(t('kron_x04_c2_news').replace('{extra}',kron.flags._x04prodigyName?t('kron_x04_c2_news_extra').replace('{name}',kron.flags._x04prodigyName):''),'ok');
           kron.flags._x04result='academy';
         },
         outcome:function(){
           const pName=kron.flags._x04prodigyName;
-          return 'Akademia wzmocniona! Reputacja: '+(G.reputation||0)+' (+10). '+(pName?pName+' to nowy prospect.':'Poziom akademii wzrósł.');
+          return t('kron_x04_c2_outcome').replace('{rep}',G.reputation||0).replace('{extra}',pName?t('kron_x04_c2_outcome_extra').replace('{name}',pName):t('kron_x04_c2_outcome_extra_none'));
         }},
-       {label:'Wielki transfer — odpowiadasz siłą (+OVR, kosztowne)',
+       {label:t('kron_x04_c3_label'),
         effect:function(){
           // Znajdź najlepszego FA i podpisz drogo
           if(!G.fa||!G.fa.length){
-            notif('Brak wolnych agentów na rynku!','err');
+            notif(t('kron_x04_c3_notif_nofa'),'err');
             kron.flags._x04result='noFA';
             return;
           }
@@ -1542,7 +1543,7 @@ function kronTrigger(){
           if(!star){kron.flags._x04result='noFA';return;}
           const cost=Math.round((star.value||40000)*0.80/1000)*1000;
           if(G.budget<cost){
-            notif('Brak budżetu na gwiazdorski transfer!','err');
+            notif(t('kron_x04_c3_notif_nobudget'),'err');
             kron.flags._x04result='noBudget';
             return;
           }
@@ -1557,13 +1558,13 @@ function kronTrigger(){
           G.fin.transfers.push({type:'buy',name:star.name,val:cost,fee:cost,week:G.week,season:G.season});
           // Rywal słabnie psychicznie — obniż symboliczne
           if(G.rival.strength!==undefined)G.rival.strength=Math.max(0,(G.rival.strength||50)-3);
-          addNews('[Transfer] '+star.name+' (OVR '+ovr(star)+') odpowiedzią na dynastię rywala! Budżet: -'+fmtVal(cost)+'.','budget');
+          addNews(t('kron_x04_c3_news').replace('{name}',star.name).replace('{ovr}',ovr(star)).replace('{val}',fmtVal(cost)),'budget');
           kron.flags._x04result='transfer';kron.flags._x04starName=star.name;kron.flags._x04cost=cost;
         },
         outcome:function(){
-          if(kron.flags._x04result==='noFA')return 'Brak odpowiednich graczy na rynku. Dynastia rywala trwa.';
-          if(kron.flags._x04result==='noBudget')return 'Brak budżetu na gwiazdę. Musisz znaleźć inną odpowiedź.';
-          return (kron.flags._x04starName||'Nowy zawodnik')+' w drużynie! Budżet -'+fmtVal(kron.flags._x04cost||0)+'. Rywal siła -3.';
+          if(kron.flags._x04result==='noFA')return t('kron_x04_c3_outcome_nofa');
+          if(kron.flags._x04result==='noBudget')return t('kron_x04_c3_outcome_nobudget');
+          return t('kron_x04_c3_outcome').replace('{name}',kron.flags._x04starName||t('kron_fallback_newplayer')).replace('{val}',fmtVal(kron.flags._x04cost||0));
         }},
      ]},
 
@@ -1579,14 +1580,14 @@ function kronTrigger(){
        });
        return lostRecently?20:0;
      },
-     title:'Rywal zna Twoją taktykę',
+     title:t('kron_sp09_title'),
      body:function(){
-       kron.flags._sp09rivalName=(G.rival&&G.rival.n)||'Rywal';
+       kron.flags._sp09rivalName=(G.rival&&G.rival.n)||t('kron_fallback_rival');
        kron.flags._sp09formation=G.formation||'4-3-3';
-       return 'Analityk '+(G.rival?G.rival.n:'Rywala')+' opublikował w mediach szczegółową rozbiorkę Twojej formacji '+(G.formation||'4-3-3')+'. Schematy pressingu, ustawienia przy stałych fragmentach, rotacje — wszystko ujawnione. Jak reagujesz?';
+       return t('kron_sp09_body').replace('{rival}',G.rival?G.rival.n:t('kron_sp09_fallback_rival_gen')).replace('{formation}',G.formation||'4-3-3');
      },
      choices:[
-       {label:'Zmieniasz formację — element zaskoczenia (forma -5)',
+       {label:t('kron_sp09_c1_label'),
         effect:function(){
           const formations=['4-3-3','4-4-2','3-5-2','5-3-2','4-2-4'];
           const current=G.formation||'4-3-3';
@@ -1596,33 +1597,33 @@ function kronTrigger(){
           kron.flags._sp09newForm=newForm;
           starters.forEach(function(p){p.form=Math.max(40,(p.form||80)-5);});
           G.formation=newForm;
-          addNews('[Taktyka] Formacja zmieniona z '+current+' na '+newForm+'. Skład forma -5.','club');
+          addNews(t('kron_sp09_c1_news').replace('{old}',current).replace('{new}',newForm),'club');
           kron.flags._sp09result='changed';
         },
         outcome:function(){
-          return 'Formacja: '+(kron.flags._sp09oldForm||'stara')+' → '+(kron.flags._sp09newForm||'nowa')+'. Skład forma -5. Rywal dezorientowany.';
+          return t('kron_sp09_c1_outcome').replace('{old}',kron.flags._sp09oldForm||t('kron_sp09_c1_fallback_old')).replace('{new}',kron.flags._sp09newForm||t('kron_sp09_c1_fallback_new'));
         }},
-       {label:'Podwajasz trening taktyczny (-5 000 zł, forma +3)',
+       {label:t('kron_sp09_c2_label'),
         effect:function(){
-          if(G.budget<5000){notif('Brak budżetu!','err');kron.flags._sp09result='noBudget';return;}
+          if(G.budget<5000){notif(t('kron_notif_no_budget'),'err');kron.flags._sp09result='noBudget';return;}
           G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: podwójny trening taktyczny'});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});
-          addNews('[Trening] Intensywna analiza taktyczna. Skład forma +3.','ok');
+          addNews(t('kron_sp09_c2_news'),'ok');
           kron.flags._sp09result='trained';
         },
         outcome:function(){
-          if(kron.flags._sp09result==='noBudget')return 'Brak budżetu na dodatkowy trening.';
-          return 'Trening taktyczny wykonany. -5 000 zł. Skład forma +3.';
+          if(kron.flags._sp09result==='noBudget')return t('kron_sp09_c2_outcome_nobudget');
+          return t('kron_sp09_c2_outcome');
         }},
-       {label:'Blefujesz w mediach — dajesz fałszywy plan (rep +5, rywal siła -2)',
+       {label:t('kron_sp09_c3_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+5);
           if(G.rival&&G.rival.strength!==undefined)G.rival.strength=Math.max(0,(G.rival.strength||50)-2);
-          addNews('[Media] Trener podał mediom fałszywy plan taktyczny. '+(kron.flags._sp09rivalName||'Rywal')+' się pomyli.','ok');
+          addNews(t('kron_sp09_c3_news').replace('{rival}',kron.flags._sp09rivalName||t('kron_fallback_rival')),'ok');
           kron.flags._sp09result='bluff';
         },
         outcome:function(){
-          return 'Blef w mediach! Reputacja: '+(G.reputation||0)+' (+5). '+(kron.flags._sp09rivalName||'Rywal')+' siła -2.';
+          return t('kron_sp09_c3_outcome').replace('{rep}',G.reputation||0).replace('{rival}',kron.flags._sp09rivalName||t('kron_fallback_rival'));
         }},
      ]},
 
@@ -1633,54 +1634,54 @@ function kronTrigger(){
        if(kron.flags._m06sponsorActive)return 0;
        return 18;
      },
-     title:'Sponsor koszulkowy — oferta',
+     title:t('kron_m06_title'),
      body:function(){
        kron.flags._m06annual=15000;
-       return 'Firma "MaxBet Plus" oferuje umowę na 3 sezony: 15 000 zł rocznie za umieszczenie logo na koszulkach. Łącznie '+fmtVal(45000)+'. Część kibiców może protestować zależnie od Twojej reputacji.';
+       return t('kron_m06_body').replace('{total}',fmtVal(45000));
      },
      choices:[
-       {label:'Podpisujesz umowę (+15 000 zł, pierwsza rata od razu)',
+       {label:t('kron_m06_c1_label'),
         effect:function(){
           G.budget+=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:15000,cost:0,bal:G.budget,season:G.season,note:'Kronika: kontrakt sponsorski koszulki'});
           kron.flags._m06sponsorActive=true;
           kron.flags._m06seasonsLeft=2;
           if((G.reputation||0)>=300){
             G.reputation=Math.max(0,(G.reputation||30)-5);
-            addNews('[Sponsor] Kontrakt koszulkowy: +15 000 zł. Część kibiców niezadowolona — rep -5.','budget');
+            addNews(t('kron_m06_c1_news_hirep'),'budget');
           } else {
-            addNews('[Sponsor] Kontrakt koszulkowy podpisany! +15 000 zł. Kibice rozumieją.','budget');
+            addNews(t('kron_m06_c1_news_lowrep'),'budget');
           }
           kron.flags._m06result='signed';
         },
         outcome:function(){
-          return 'Umowa podpisana! +15 000 zł. '+((G.reputation||0)<300?'Kibice ok.':'Rep -5 — bogaci kibice nie lubią reklam.');
+          return t('kron_m06_c1_outcome').replace('{suffix}',(G.reputation||0)<300?t('kron_m06_c1_outcome_suffix_ok'):t('kron_m06_c1_outcome_suffix_rep'));
         }},
-       {label:'Odrzucasz — niezależność klubu (rep +8)',
+       {label:t('kron_m06_c2_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+8);
-          addNews('[Klub] Oferta sponsorska odrzucona. Wartości nad pieniądzem. Rep +8.','ok');
+          addNews(t('kron_m06_c2_news'),'ok');
           kron.flags._m06result='refused';
         },
         outcome:function(){
-          return 'Oferta odrzucona. Reputacja: '+(G.reputation||0)+' (+8). Wizerunek czysty.';
+          return t('kron_m06_c2_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Negocjujesz 20 000 zł/sezon (60% szans)',
+       {label:t('kron_m06_c3_label'),
         effect:function(){
           if(Math.random()<0.60){
             G.budget+=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:20000,cost:0,bal:G.budget,season:G.season,note:'Kronika: premia za wyniki (zarząd)'});
             kron.flags._m06sponsorActive=true;
             kron.flags._m06seasonsLeft=2;
             kron.flags._m06annual=20000;
-            addNews('[Sponsor] Negocjacje udane! 20 000 zł/sezon. Budżet +20 000 zł.','budget');
+            addNews(t('kron_m06_c3_news_win'),'budget');
             kron.flags._m06result='negotiated';
           } else {
-            addNews('[Sponsor] Negocjacje nieudane — firma wybrała inny klub.','err');
+            addNews(t('kron_m06_c3_news_lose'),'err');
             kron.flags._m06result='failed';
           }
         },
         outcome:function(){
-          if(kron.flags._m06result==='negotiated')return 'Negocjacje udane! 20 000 zł/sezon. Budżet +20 000 zł.';
-          return 'Negocjacje spaliły na panewce. Okazja stracona.';
+          if(kron.flags._m06result==='negotiated')return t('kron_m06_c3_outcome_win');
+          return t('kron_m06_c3_outcome_lose');
         }},
      ]},
 
@@ -1691,52 +1692,52 @@ function kronTrigger(){
        });
        return legend?22:0;
      },
-     title:'Legenda odchodzi na emeryturę',
+     title:t('kron_h01_title'),
      body:function(){
        const legend=myPl().filter(function(p){
          return (p.age||25)>=36&&(p._seasonsAtClub||0)>=4&&ovr(p)>=60&&!p.injured;
        }).sort(function(a,b){return (b._seasonsAtClub||0)-(a._seasonsAtClub||0);})[0];
        kron.flags._h01legendId=legend?legend.id:-1;
-       kron.flags._h01legendName=legend?legend.name:'Zawodnik';
+       kron.flags._h01legendName=legend?legend.name:t('kron_fallback_player');
        kron.flags._h01seasons=legend?(legend._seasonsAtClub||4):4;
-       return (legend?legend.name:'Zawodnik')+' ('+(legend?legend.age:'?')+' lat, '+(legend?legend._seasonsAtClub||4:4)+' sezony w klubie, OVR '+(legend?ovr(legend):'?')+') ogłasza koniec kariery. Liga proponuje wpis do galerii sław. Jak go żegnasz?';
+       return t('kron_h01_body').replace('{name}',legend?legend.name:t('kron_fallback_player')).replace('{age}',legend?legend.age:'?').replace('{seasons}',legend?legend._seasonsAtClub||4:4).replace('{ovr}',legend?ovr(legend):'?');
      },
      choices:[
-       {label:'Wspierasz wpis do galerii sław ligi (-5 000 zł, rep +10, morale +5)',
+       {label:t('kron_h01_c1_label'),
         effect:function(){
-          if(G.budget<5000){notif('Brak budżetu!','err');kron.flags._h01result='noBudget';return;}
+          if(G.budget<5000){notif(t('kron_notif_no_budget'),'err');kron.flags._h01result='noBudget';return;}
           G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: wyjazd integracyjny'});
           G.reputation=Math.min(1000,(G.reputation||30)+10);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           G.flags=G.flags||{};
           if(!G.flags.hallOfFame)G.flags.hallOfFame=[];
           G.flags.hallOfFame.push({name:kron.flags._h01legendName,season:G.season,seasons:kron.flags._h01seasons});
-          addNews('[Historia] '+kron.flags._h01legendName+' w galerii sław ligi! Rep +10.','ok');
+          addNews(t('kron_h01_c1_news').replace('{name}',kron.flags._h01legendName),'ok');
           kron.flags._h01result='hallOfFame';
         },
         outcome:function(){
-          if(kron.flags._h01result==='noBudget')return 'Brak budżetu — bez wpisu do galerii.';
-          return kron.flags._h01legendName+' w galerii sław! -5 000 zł. Rep: '+(G.reputation||0)+' (+10). Morale składu +5.';
+          if(kron.flags._h01result==='noBudget')return t('kron_h01_c1_outcome_nobudget');
+          return t('kron_h01_c1_outcome').replace('{name}',kron.flags._h01legendName).replace('{rep}',G.reputation||0);
         }},
-       {label:'Złota odprawa klubowa (-15 000 zł, morale +8, rep +15)',
+       {label:t('kron_h01_c2_label'),
         effect:function(){
-          if(G.budget<15000){notif('Brak budżetu na odprawę!','err');kron.flags._h01result='noBudget2';return;}
+          if(G.budget<15000){notif(t('kron_h01_c2_notif_nobudget'),'err');kron.flags._h01result='noBudget2';return;}
           G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:'Kronika: złota odprawa (legenda)'});
           G.reputation=Math.min(1000,(G.reputation||30)+15);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
           G.flags=G.flags||{};
           if(!G.flags.hallOfFame)G.flags.hallOfFame=[];
           G.flags.hallOfFame.push({name:kron.flags._h01legendName,season:G.season,seasons:kron.flags._h01seasons,golden:true});
-          addNews('[Historia] '+kron.flags._h01legendName+' otrzymał złotą odprawę. Legenda klubu.','ok');
+          addNews(t('kron_h01_c2_news').replace('{name}',kron.flags._h01legendName),'ok');
           kron.flags._h01result='golden';
         },
         outcome:function(){
-          if(kron.flags._h01result==='noBudget2')return 'Brak budżetu na odprawę. Legenda odchodzi bez należytego pożegnania.';
-          return 'Złota odprawa! -15 000 zł. Rep: '+(G.reputation||0)+' (+15). Skład morale +8.';
+          if(kron.flags._h01result==='noBudget2')return t('kron_h01_c2_outcome_nobudget');
+          return t('kron_h01_c2_outcome').replace('{rep}',G.reputation||0);
         }},
-       {label:'Nie angażujesz się — odejdzie sam po sezonie (nic)',
+       {label:t('kron_h01_c3_label'),
         effect:function(){kron.flags._h01result='ignored';},
-        outcome:function(){return kron.flags._h01legendName+' odchodzi cicho. Bez kosztów, bez premii.';}},
+        outcome:function(){return t('kron_h01_c3_outcome').replace('{name}',kron.flags._h01legendName);}},
      ]},
 
     {id:'tr01_training_accident', category:'💥 KRYZYS',
@@ -1745,55 +1746,55 @@ function kronTrigger(){
        const noInjuries=myPl().every(function(p){return !p.injured;});
        return noInjuries?15:0;
      },
-     title:'Wypadek na treningu',
+     title:t('kron_tr01_title'),
      body:function(){
        const atRisk=myPl().filter(function(p){return p.starter&&!p.injured;});
        const victim=atRisk.length?atRisk[Math.floor(Math.random()*atRisk.length)]:null;
        kron.flags._tr01victimId=victim?victim.id:-1;
-       kron.flags._tr01victimName=victim?victim.name:'Zawodnik';
-       return (victim?victim.name:'Zawodnik')+' ('+(victim?victim.pos:'?')+') skręcił kostkę podczas rozgrzewki. Lekarz: "To wina zużytego sprzętu na boisku treningowym." Bez wymiany infrastruktury podobne wypadki będą się powtarzać.';
+       kron.flags._tr01victimName=victim?victim.name:t('kron_fallback_player');
+       return t('kron_tr01_body').replace('{name}',victim?victim.name:t('kron_fallback_player')).replace('{pos}',victim?victim.pos:'?');
      },
      choices:[
-       {label:'Inwestujesz w nowy sprzęt treningowy (-12 000 zł, bezpieczeństwo wzrasta)',
+       {label:t('kron_tr01_c1_label'),
         effect:function(){
-          if(G.budget<12000){notif('Brak budżetu!','err');kron.flags._tr01result='noBudget';return;}
+          if(G.budget<12000){notif(t('kron_notif_no_budget'),'err');kron.flags._tr01result='noBudget';return;}
           G.budget-=12000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:12000,bal:G.budget,season:G.season,note:'Kronika: nowy sprzęt bezpieczeństwa'});
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
           if(victim){victim.injured=true;victim.injuredWeeks=1+Math.floor(Math.random()*2);victim.starter=false;}
           G.flags=G.flags||{};
           G.flags.trainingUpgrade=true;
           G.flags.trainingUpgradeSeason=G.season;
-          addNews('[Trening] Nowy sprzęt zamówiony! -12 000 zł. '+(victim?victim.name+' kontuzja '+victim.injuredWeeks+' tyg.':'')+' Bezpieczeństwo wzrosło.','budget');
+          addNews(t('kron_tr01_c1_news').replace('{extra}',victim?t('kron_tr01_c1_news_extra').replace('{name}',victim.name).replace('{weeks}',victim.injuredWeeks):''),'budget');
           kron.flags._tr01result='upgraded';
         },
         outcome:function(){
-          if(kron.flags._tr01result==='noBudget')return 'Brak budżetu — sprzęt bez zmian. Ryzyko pozostaje.';
+          if(kron.flags._tr01result==='noBudget')return t('kron_tr01_c1_outcome_nobudget');
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
-          return 'Sprzęt wymieniony! -12 000 zł. '+(victim?victim.name+' kontuzja '+victim.injuredWeeks+' tyg. ':'')+' Ryzyko kontuzji niższe w tym sezonie.';
+          return t('kron_tr01_c1_outcome').replace('{extra}',victim?t('kron_tr01_c1_outcome_extra').replace('{name}',victim.name).replace('{weeks}',victim.injuredWeeks):'');
         }},
-       {label:'Zgłaszasz do ubezpieczyciela — darmowe, 3 tyg. przestoju (forma -3)',
+       {label:t('kron_tr01_c2_label'),
         effect:function(){
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
           if(victim){victim.injured=true;victim.injuredWeeks=2;victim.starter=false;}
           starters.filter(function(p){return !p.injured;}).forEach(function(p){p.form=Math.max(40,(p.form||80)-3);});
-          addNews('[Ubezpieczenie] Sprawa zgłoszona. Treningi ograniczone 3 tyg. Skład forma -3.','club');
+          addNews(t('kron_tr01_c2_news'),'club');
           kron.flags._tr01result='insurance';
         },
         outcome:function(){
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
-          return 'Ubezpieczyciel przejmuje sprawę. Bez kosztów, ale '+(victim?victim.name+' kontuzja 2 tyg., ':'')+' skład forma -3.';
+          return t('kron_tr01_c2_outcome').replace('{extra}',victim?t('kron_tr01_c2_outcome_extra').replace('{name}',victim.name):'');
         }},
-       {label:'Zatuszowujesz — "tak miało być" (rep -8, ofiara forma -10, _wantsOut)',
+       {label:t('kron_tr01_c3_label'),
         effect:function(){
           G.reputation=Math.max(0,(G.reputation||30)-8);
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
           if(victim){victim.form=Math.max(20,(victim.form||80)-10);victim._wantsOut=true;}
-          addNews('[Kryzys] Wypadek zatuszowany. '+(victim?victim.name:'Zawodnik')+' czuje się zdradzony. Rep -8.','err');
+          addNews(t('kron_tr01_c3_news').replace('{name}',victim?victim.name:t('kron_fallback_player')),'err');
           kron.flags._tr01result='covered';
         },
         outcome:function(){
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
-          return 'Zatuszowane. Rep: '+(G.reputation||0)+' (-8). '+(victim?victim.name+' forma -10, _wantsOut=true.':'');
+          return t('kron_tr01_c3_outcome').replace('{rep}',G.reputation||0).replace('{extra}',victim?t('kron_tr01_c3_outcome_extra').replace('{name}',victim.name):'');
         }},
      ]},
 
@@ -1807,55 +1808,55 @@ function kronTrigger(){
        });
        return burnout?20:0;
      },
-     title:'Wypalenie talentu',
+     title:t('kron_a05_title'),
      body:function(){
        const burnout=(G.academy.prospects||[]).filter(function(p){
          return (p.potential||0)>=75&&(p.seasonsInAcademy||0)>=2;
        }).sort(function(a,b){return (b.potential||0)-(a.potential||0);})[0];
        kron.flags._a05prospectIdx=G.academy.prospects.indexOf(burnout);
-       kron.flags._a05prospectName=burnout?burnout.name:'Talent';
+       kron.flags._a05prospectName=burnout?burnout.name:t('kron_a05_fallback_short');
        kron.flags._a05potential=burnout?(burnout.potential||75):75;
-       return (burnout?burnout.name:'Twój talent')+' (potential '+(burnout?burnout.potential||75:75)+') sygnalizuje przez rodziców że potrzebuje przerwy. Trenuje bez przerwy od '+(burnout?burnout.seasonsInAcademy||2:2)+' sezonów i jest wyczerpany psychicznie.';
+       return t('kron_a05_body').replace('{name}',burnout?burnout.name:t('kron_a05_fallback_name')).replace('{pot}',burnout?burnout.potential||75:75).replace('{seasons}',burnout?burnout.seasonsInAcademy||2:2);
      },
      choices:[
-       {label:'Dajesz mu wolne — przerwa 3 tygodnie (potential -2, wróci forma +15)',
+       {label:t('kron_a05_c1_label'),
         effect:function(){
           const p=G.academy.prospects[kron.flags._a05prospectIdx];
           if(p){p.potential=Math.max(50,(p.potential||75)-2);p._onBreak=true;p._breakWeeks=3;}
-          addNews('[Akademia] '+kron.flags._a05prospectName+' dostał przerwę. Potential -2, wróci zmotywowany.','ok');
+          addNews(t('kron_a05_c1_news').replace('{name}',kron.flags._a05prospectName),'ok');
           kron.flags._a05result='break';
         },
         outcome:function(){
-          return kron.flags._a05prospectName+' na urlopie. Potential: '+(kron.flags._a05potential-2)+' (-2). Wraca za 3 tygodnie forma +15.';
+          return t('kron_a05_c1_outcome').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential-2);
         }},
-       {label:'Ignorujesz — "talent musi cierpieć" (30% szans potential -5)',
+       {label:t('kron_a05_c2_label'),
         effect:function(){
           const p=G.academy.prospects[kron.flags._a05prospectIdx];
           if(Math.random()<0.30&&p){
             p.potential=Math.max(40,(p.potential||75)-5);
-            addNews('[Akademia] '+kron.flags._a05prospectName+' wypalił się. Potential -5.','err');
+            addNews(t('kron_a05_c2_news_burnout').replace('{name}',kron.flags._a05prospectName),'err');
             kron.flags._a05result='burnout';
           } else {
-            addNews('[Akademia] '+kron.flags._a05prospectName+' przetrwał presję. Na razie.','club');
+            addNews(t('kron_a05_c2_news_survived').replace('{name}',kron.flags._a05prospectName),'club');
             kron.flags._a05result='survived';
           }
         },
         outcome:function(){
-          if(kron.flags._a05result==='burnout')return kron.flags._a05prospectName+' wypalił się! Potential: '+(kron.flags._a05potential-5)+' (-5).';
-          return kron.flags._a05prospectName+' przetrwał presję. Brak strat tym razem.';
+          if(kron.flags._a05result==='burnout')return t('kron_a05_c2_outcome_burnout').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential-5);
+          return t('kron_a05_c2_outcome_survived').replace('{name}',kron.flags._a05prospectName);
         }},
-       {label:'Wysyłasz do psychologa sportowego (-8 000 zł, potential +1)',
+       {label:t('kron_a05_c3_label'),
         effect:function(){
-          if(G.budget<8000){notif('Brak budżetu!','err');kron.flags._a05result='noBudget';return;}
+          if(G.budget<8000){notif(t('kron_notif_no_budget'),'err');kron.flags._a05result='noBudget';return;}
           G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: psycholog sportowy'});
           const p=G.academy.prospects[kron.flags._a05prospectIdx];
           if(p){p.potential=Math.min(99,(p.potential||75)+1);p._psychSupport=true;}
-          addNews('[Akademia] '+kron.flags._a05prospectName+' pod opieką psychologa. Potential +1.','ok');
+          addNews(t('kron_a05_c3_news').replace('{name}',kron.flags._a05prospectName),'ok');
           kron.flags._a05result='psych';
         },
         outcome:function(){
-          if(kron.flags._a05result==='noBudget')return 'Brak budżetu na psychologa.';
-          return kron.flags._a05prospectName+' po sesjach. -8 000 zł. Potential: '+(kron.flags._a05potential+1)+' (+1).';
+          if(kron.flags._a05result==='noBudget')return t('kron_a05_c3_outcome_nobudget');
+          return t('kron_a05_c3_outcome').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential+1);
         }},
      ]},
 
@@ -1866,28 +1867,28 @@ function kronTrigger(){
        const hasObserved=G.scout&&G.scout.observed&&G.scout.observed.length>0;
        return (hasScout||hasObserved)?18:0;
      },
-     title:'Atak hakerski na dane skautingowe',
+     title:t('kron_dc01_title'),
      body:function(){
        const obsCount=(G.scout&&G.scout.observed&&G.scout.observed.length)||0;
        kron.flags._dc01obsCount=obsCount;
-       return 'Klub otrzymał alert bezpieczeństwa: nieznany haker wykradł dane skautingowe. '+(obsCount>0?'Obserwowałeś '+obsCount+' zawodników — ':'')+' Twoje raporty i rankingi są teraz jawne. Rywal może wiedzieć kogo planujesz kupić.';
+       return t('kron_dc01_body').replace('{obs}',obsCount>0?t('kron_dc01_body_obs').replace('{n}',obsCount):'');
      },
      choices:[
-       {label:'Płacisz za zabezpieczenie systemu (-18 000 zł, dane bezpieczne)',
+       {label:t('kron_dc01_c1_label'),
         effect:function(){
-          if(G.budget<18000){notif('Brak budżetu!','err');kron.flags._dc01result='noBudget';return;}
+          if(G.budget<18000){notif(t('kron_notif_no_budget'),'err');kron.flags._dc01result='noBudget';return;}
           G.budget-=18000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:18000,bal:G.budget,season:G.season,note:'Kronika: zabezpieczenie systemu IT'});
           G.flags=G.flags||{};
           G.flags.dataSecure=true;
           G.flags.dataSecureSeason=G.season;
-          addNews('[Bezpieczeństwo] System zabezpieczony. -18 000 zł. Dane skautingowe chronione.','budget');
+          addNews(t('kron_dc01_c1_news'),'budget');
           kron.flags._dc01result='secured';
         },
         outcome:function(){
-          if(kron.flags._dc01result==='noBudget')return 'Brak budżetu — system niezabezpieczony.';
-          return 'System zabezpieczony! -18 000 zł. Dane skautingowe znowu prywatne.';
+          if(kron.flags._dc01result==='noBudget')return t('kron_dc01_c1_outcome_nobudget');
+          return t('kron_dc01_c1_outcome');
         }},
-       {label:'Ignorujesz — rywal przejmuje listę obserwowanych (FA traci 2 najlepszych)',
+       {label:t('kron_dc01_c2_label'),
         effect:function(){
           if(G.fa&&G.fa.length>=2){
             const sorted=[...G.fa].sort(function(a,b){return ovr(b)-ovr(a);});
@@ -1897,28 +1898,28 @@ function kronTrigger(){
               G.fa=G.fa.filter(function(x){return x.id!==p.id;});
               if(G.rival&&G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+1;
             });
-            addNews('[Haker] Rywal przejął dane i podpisał '+(kron.flags._dc01stolenNames||'najlepszych FA')+'!','err');
+            addNews(t('kron_dc01_c2_news_stolen').replace('{names}',kron.flags._dc01stolenNames||t('kron_dc01_fallback_stolen')),'err');
           } else {
-            addNews('[Haker] Dane wyciekły, FA był pusty. Brak bezpośredniej straty.','club');
+            addNews(t('kron_dc01_c2_news_empty'),'club');
           }
           kron.flags._dc01result='ignored';
         },
         outcome:function(){
-          if(kron.flags._dc01stolenNames)return 'Rywal wykorzystał wyciek: '+(kron.flags._dc01stolenNames)+' znikli z FA. Rywal silniejszy.';
-          return 'Dane wyciekły, FA był pusty. Tym razem miałeś szczęście.';
+          if(kron.flags._dc01stolenNames)return t('kron_dc01_c2_outcome_stolen').replace('{names}',kron.flags._dc01stolenNames);
+          return t('kron_dc01_c2_outcome_empty');
         }},
-       {label:'Zgłaszasz do ligi — transparentność (rep +8, jeden FA i tak przepada)',
+       {label:t('kron_dc01_c3_label'),
         effect:function(){
           G.reputation=Math.min(1000,(G.reputation||30)+8);
           if(G.fa&&G.fa.length){
             const lost=[...G.fa].sort(function(a,b){return ovr(b)-ovr(a);})[0];
             if(lost){G.fa=G.fa.filter(function(p){return p.id!==lost.id;});kron.flags._dc01lostName=lost.name;}
           }
-          addNews('[Liga] Incydent zgłoszony. Rep +8. Dane i tak wyciekły — '+(kron.flags._dc01lostName||'jeden zawodnik')+' stracony.','ok');
+          addNews(t('kron_dc01_c3_news').replace('{name}',kron.flags._dc01lostName||t('kron_dc01_fallback_lost')),'ok');
           kron.flags._dc01result='reported';
         },
         outcome:function(){
-          return 'Zgłoszenie do ligi: rep: '+(G.reputation||0)+' (+8). '+(kron.flags._dc01lostName||'Zawodnik')+' z FA przepadł.';
+          return t('kron_dc01_c3_outcome').replace('{rep}',G.reputation||0).replace('{name}',kron.flags._dc01lostName||t('kron_fallback_player'));
         }},
      ]},
 
