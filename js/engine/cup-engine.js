@@ -1,5 +1,5 @@
 const CUP_WEEKS=[5,10,15,21,27,33]; // tygodnie rund 1-6
-const CUP_ROUND_NAMES=['1/32 FINAŁU','1/16 FINAŁU','ĆWIERĆFINAŁ','PÓŁFINAŁ','PÓŁFINAŁ','FINAŁ'];
+const CUP_ROUND_NAMES=[t('cup_rlabel_r1'),t('cup_rlabel_r2'),t('cup_rlabel_qf'),t('cup_rlabel_sf1'),t('cup_rlabel_sf2'),t('cup_rlabel_final')];
 // Poprawka: rundy 0-5 → 64→32→16→8→4→2→1
 function _cupRoundLabels(){
   return [t('cup_rlabel_r1'),t('cup_rlabel_r2'),t('cup_rlabel_qf'),t('cup_rlabel_sf1'),t('cup_rlabel_sf2'),t('cup_rlabel_final')];
@@ -25,7 +25,7 @@ function grantCupReward(rIdx,won){
   G.reputation=Math.min(1000,(G.reputation||30)+reward.rep);
   if(!G.fin)G.fin={};
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:reward.cash,cost:0,bal:G.budget,note:'Puchar: '+reward.label});
+  G.fin.hist.push({w:G.week,inc:reward.cash,cost:0,bal:G.budget,note:t('cup_note_prefix')+reward.label});
   addNews(t('news_cup_reward_round').replace('{label}',reward.label).replace('{cash}',fmt(reward.cash)).replace('{rep}',reward.rep),'budget');
 }
 
@@ -50,7 +50,7 @@ function initCup(){
       const sorted=[...st].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
       top8=sorted.slice(0,8).map(entry=>{
         const club=ALL_CLUBS.find(c=>parseInt(c.id)===parseInt(entry.cid));
-        return{cid:parseInt(entry.cid),name:club?club.n:('Klub '+entry.cid),league:lvl,pts:entry.pts};
+        return{cid:parseInt(entry.cid),name:club?club.n:t('cup_fallback_club').replace('{id}',entry.cid),league:lvl,pts:entry.pts};
       });
     }
     participants.push(...top8);
@@ -241,7 +241,7 @@ function advanceCupRound(rIdx){
         if(!G.allTimeStats.cupWins)G.allTimeStats.cupWins=0;
         G.allTimeStats.cupWins++;
         if(!G.trophies)G.trophies=[];
-        G.trophies.push({type:'cup',id:'cup_winner',name:'Puchar Mistrzowski',season:G.season,place:1,clubId:G.myClubId});
+        G.trophies.push({type:'cup',id:'cup_winner',name:t('ht_champions_cup'),season:G.season,place:1,clubId:G.myClubId});
       } else if(isMyFinal){
         // Nagroda za finał (przegrana)
         const _fReward=CUP_REWARDS[5];
@@ -249,12 +249,12 @@ function advanceCupRound(rIdx){
           G.budget+=_fReward.cash;
           G.reputation=Math.min(1000,(G.reputation||30)+_fReward.rep);
           if(!G.fin)G.fin={};if(!G.fin.hist)G.fin.hist=[];
-          G.fin.hist.push({w:G.week,inc:_fReward.cash,cost:0,bal:G.budget,note:'Puchar: Finalista'});
+          G.fin.hist.push({w:G.week,inc:_fReward.cash,cost:0,bal:G.budget,note:t('cup_note_prefix')+t('ht_cup_finalist')});
           addNews(t('news_cup_final_reward').replace('{cash}',fmt(_fReward.cash)).replace('{rep}',_fReward.rep),'budget');
         }
         addNews(t('news_cup_final_loss').replace('{score}',finalMatch.hg+':'+finalMatch.ag),'info');
         if(!G.trophies)G.trophies=[];
-        G.trophies.push({type:'cup',id:'cup_final',name:'Finalista Pucharu',season:G.season,place:2});
+        G.trophies.push({type:'cup',id:'cup_final',name:t('ht_cup_finalist'),season:G.season,place:2});
       } else {
         addNews(t('news_cup_won_by').replace('{name}',winEntry.name),'info');
       }
@@ -292,7 +292,7 @@ function updateCupTileBadge(){
   let badge=tile.querySelector('.cup-tile-badge');
   if(!G||!G.cup){if(badge)badge.remove();return;}
   const rIdx=G.cup.currentRound;
-  const label=G.cup.winner?'KONIEC':G.cup.active?'R'+(rIdx+1):'OUT';
+  const label=G.cup.winner?t('cup_badge_done'):G.cup.active?'R'+(rIdx+1):t('cup_badge_out');
   if(!badge){badge=document.createElement('div');badge.className='cup-tile-badge';tile.appendChild(badge);}
   badge.textContent=label;
 }
@@ -446,13 +446,13 @@ function renderCupZwyciezcy(){
     html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid '+(isLast?'var(--am)':'#0d1f0d')+';'+(isLast?'margin-top:2px':'')+'">'+
       '<div style="font-size:var(--fs-dense);color:'+(isLast?'var(--am)':'var(--wh)')+'">'+rw.label+'</div>'+
       '<div style="display:flex;gap:10px;align-items:center">'+
-        '<span style="font-size:var(--fs-dense);color:var(--gb)">+'+fmt(rw.cash)+' zł</span>'+
+        '<span style="font-size:var(--fs-dense);color:var(--gb)">+'+fmt(rw.cash)+'</span>'+
         '<span style="font-size:var(--fs-dense);color:var(--am)">+'+rw.rep+' rep</span>'+
       '</div>'+
     '</div>';
   });
   html+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:5px">'+
-    t('cup_total_title').replace('{cash}','<span style="color:var(--gb)">'+fmt(CUP_REWARDS.reduce((s,r)=>s+r.cash,0)+CUP_REWARD_WIN.cash)+' zł</span>').replace('{rep}','<span style="color:var(--am)">+'+(CUP_REWARDS.reduce((s,r)=>s+r.rep,0)+CUP_REWARD_WIN.rep)+' rep</span>')+
+    t('cup_total_title').replace('{cash}','<span style="color:var(--gb)">'+fmt(CUP_REWARDS.reduce((s,r)=>s+r.cash,0)+CUP_REWARD_WIN.cash)+'</span>').replace('{rep}','<span style="color:var(--am)">+'+(CUP_REWARDS.reduce((s,r)=>s+r.rep,0)+CUP_REWARD_WIN.rep)+' rep</span>')+
   '</div>';
   html+='</div>';
 

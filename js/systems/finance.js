@@ -35,12 +35,12 @@ function renderFinZarzadInner(tab){
   if(tab==='cele'){
     // Użyj board-cele jako bufor, potem przepisz
     const buf=document.getElementById('board-cele');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">Błąd: brak bufora zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">'+t('fin_err_no_board_buffer')+'</div>';return;}
     renderBoardCele();
     inner.innerHTML=buf.innerHTML;
   } else {
     const buf=document.getElementById('board-historia');
-    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">Błąd: brak bufora historii zarządu.</div>';return;}
+    if(!buf){inner.innerHTML='<div style="color:var(--gr);padding:12px;font-size:var(--fs-body)">'+t('fin_err_no_board_hist_buffer')+'</div>';return;}
     renderBoardHistoria();
     inner.innerHTML=buf.innerHTML;
   }
@@ -514,7 +514,7 @@ function renderFinHistoria(){
   });
 
   html+='</tbody></table>';
-  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">\u2605 = tydzie\u0144 wyp\u0142aty pensji (co 4 tyg.).</div>';
+  html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 0 8px">'+t('fin_salary_week_legend')+'</div>';
   el.innerHTML=html;
 }
 

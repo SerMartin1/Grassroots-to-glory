@@ -89,22 +89,22 @@
 
 <!-- DEV MODE PANEL -->
 <div id="v-dev" class="view">
-  <div class="ph"><div class="ph-title">⚙️ TRYB DEV</div><button class="btn-back" onclick="go('v-menu')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="dev_title">⚙️ TRYB DEV</div><button class="btn-back" onclick="go('v-menu')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div style="padding:14px">
-    <div style="background:#1a1a00;border:1px solid #555;padding:10px 12px;margin-bottom:12px;font-size:var(--fs-dense);color:#888">
+    <div id="dev-desc" style="background:#1a1a00;border:1px solid #555;padding:10px 12px;margin-bottom:12px;font-size:var(--fs-dense);color:#888">
       Tryb deweloperski — symulacja sezonów bez UI.<br>Usuń z wersji produkcyjnej (DEV_MODE=false).
     </div>
-    <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">LICZBA SEZONÓW DO SYMULACJI</div>
+    <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px" data-i18n="dev_seasons_lbl">LICZBA SEZONÓW DO SYMULACJI</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <button onclick="changeDevSeasons(-1)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">-</button>
       <div id="dev-seasons-val" style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">5</div>
       <button onclick="changeDevSeasons(1)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">+</button>
     </div>
-    <div id="dev-status" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">
+    <div id="dev-status" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px" data-i18n="dev_status_default">
       Wczytaj grę przed symulacją.
     </div>
-    <button id="dev-run-btn" onclick="runDevSim()" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:14px;cursor:pointer;margin-bottom:8px">▶ SYMULUJ SEZONY</button>
-    <button id="dev-play-btn" onclick="devGoToGame()" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer;margin-bottom:12px;display:none">▶ WRÓĆ DO GRY</button>
+    <button id="dev-run-btn" onclick="runDevSim()" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:14px;cursor:pointer;margin-bottom:8px" data-i18n="dev_run_btn">▶ SYMULUJ SEZONY</button>
+    <button id="dev-play-btn" onclick="devGoToGame()" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer;margin-bottom:12px;display:none" data-i18n="dev_play_btn">▶ WRÓĆ DO GRY</button>
     <div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">LOG</div>
     <div id="dev-log" style="background:#000;border:1px solid var(--gl);padding:8px;max-height:300px;overflow-y:auto;font-size:var(--fs-dense);color:var(--gr)">
       —
@@ -249,7 +249,7 @@
      ══════════════════════════════════════════════════════════ -->
 <div id="modal-kronika" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9995;background:rgba(0,0,0,0.88);align-items:center;justify-content:center">
   <div style="background:var(--gd);border:3px solid var(--am);border-bottom:6px solid var(--ad);width:92%;max-width:380px;padding:0;max-height:90vh;overflow-y:auto">
-    <div style="background:var(--am);color:#000;font-weight:700;font-size:var(--fs-micro);padding:8px 12px;letter-spacing:1px">📰 KRONIKA KLUBU</div>
+    <div style="background:var(--am);color:#000;font-weight:700;font-size:var(--fs-micro);padding:8px 12px;letter-spacing:1px" data-i18n="kron_modal_title">📰 KRONIKA KLUBU</div>
     <div style="padding:14px 14px 0 14px">
       <div id="kron-category" style="font-weight:700;font-size:var(--fs-h3);color:var(--gr);letter-spacing:1px;margin-bottom:6px"></div>
       <div id="kron-title" style="font-weight:700;font-size:var(--fs-h2);color:var(--am);margin-bottom:10px;line-height:1.6"></div>
@@ -289,10 +289,10 @@
 
 <!-- SQUAD PANEL -->
 <div id="p-squad" class="panel">
-  <div class="ph"><div class="ph-title" id="squad-panel-title">👥 SKŁAD</div><button class="btn-back" onclick="closePanel('p-squad')" id="squad-back-btn">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" id="squad-panel-title" data-i18n="squad_panel_title">👥 SKŁAD</div><button class="btn-back" onclick="closePanel('p-squad')" id="squad-back-btn" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="sq-top-bar" style="flex-wrap:wrap;gap:4px">
-      <span class="sq-tac-lbl" id="squad-club-name">ZAWODNICY</span>
+      <span class="sq-tac-lbl" id="squad-club-name" data-i18n="squad_players_label">ZAWODNICY</span>
       <span style="font-size:var(--fs-dense);color:var(--gr)" id="squad-summary"></span>
     </div>
     <div class="tabs">
@@ -542,28 +542,28 @@
 <!-- MODAL MOMENTUM -->
 <div id="mom-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center" onclick="this.style.display='none'">
   <div style="background:var(--tb);border:1px solid var(--gl);padding:16px;width:88%;max-width:340px;font-size:var(--fs-meta);border-left:3px solid var(--am)" onclick="event.stopPropagation()">
-    <div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:10px;letter-spacing:1px">⚡ MOMENTUM — CO TO?</div>
-    <div style="color:var(--wh);line-height:1.6;margin-bottom:8px">Igła pokazuje kto ma <b style="color:var(--am)">inicjatywę</b> w meczu.</div>
+    <div id="mom-title" style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:10px;letter-spacing:1px">⚡ MOMENTUM — CO TO?</div>
+    <div id="mom-intro" style="color:var(--wh);line-height:1.6;margin-bottom:8px">Igła pokazuje kto ma <b style="color:var(--am)">inicjatywę</b> w meczu.</div>
     <div style="background:#0a1f0a;border:1px solid var(--gl);padding:8px;margin-bottom:8px">
-      <div style="color:var(--gb);margin-bottom:4px">⚽ Po Twoim golu:</div>
-      <div style="color:var(--wh)">Twój klub <b>+2.5</b> &nbsp;|&nbsp; Rywal <b style="color:var(--rd)">−1.5</b></div>
+      <div id="mom-after-your-goal" style="color:var(--gb);margin-bottom:4px">⚽ Po Twoim golu:</div>
+      <div id="mom-your-delta" style="color:var(--wh)">Twój klub <b>+2.5</b> &nbsp;|&nbsp; Rywal <b style="color:var(--rd)">−1.5</b></div>
     </div>
     <div style="background:#1f0707;border:1px solid var(--gl);padding:8px;margin-bottom:8px">
-      <div style="color:var(--rd);margin-bottom:4px">⚽ Po golu rywala:</div>
-      <div style="color:var(--wh)">Rywal <b>+2.5</b> &nbsp;|&nbsp; Twój klub <b style="color:var(--rd)">−1.5</b></div>
+      <div id="mom-after-opp-goal" style="color:var(--rd);margin-bottom:4px">⚽ Po golu rywala:</div>
+      <div id="mom-opp-delta" style="color:var(--wh)">Rywal <b>+2.5</b> &nbsp;|&nbsp; Twój klub <b style="color:var(--rd)">−1.5</b></div>
     </div>
-    <div style="color:var(--gr);margin-bottom:6px">🕐 Bez gola: impet powoli <b style="color:var(--wh)">wraca do zera</b> (≈1.5 pkt / 10 min)</div>
+    <div id="mom-decay" style="color:var(--gr);margin-bottom:6px">🕐 Bez gola: impet powoli <b style="color:var(--wh)">wraca do zera</b> (≈1.5 pkt / 10 min)</div>
     <div style="background:#1a1500;border:1px solid var(--gl);padding:8px;margin-bottom:10px">
-      <div style="color:var(--am);margin-bottom:4px">📈 Wpływ na silnik:</div>
-      <div style="color:var(--wh)">Max momentum (+10) daje <b style="color:var(--gb)">+8%</b> do szansy strzału</div>
-      <div style="color:var(--wh)">Min momentum (−10) daje <b style="color:var(--rd)">−8%</b></div>
+      <div id="mom-engine-title" style="color:var(--am);margin-bottom:4px">📈 Wpływ na silnik:</div>
+      <div id="mom-max-effect" style="color:var(--wh)">Max momentum (+10) daje <b style="color:var(--gb)">+8%</b> do szansy strzału</div>
+      <div id="mom-min-effect" style="color:var(--wh)">Min momentum (−10) daje <b style="color:var(--rd)">−8%</b></div>
     </div>
     <div style="display:flex;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">
-      <div style="flex:1;text-align:center;padding:4px;background:#0a1f0a;border:1px solid var(--gb)"><span style="color:var(--rd)">◄ RYWAL</span></div>
-      <div style="flex:1;text-align:center;padding:4px;background:#111;border:1px solid #333"><span style="color:var(--gr)">= NEUTRALNIE</span></div>
-      <div style="flex:1;text-align:center;padding:4px;background:#0a1f0a;border:1px solid var(--gb)"><span style="color:var(--gb)">TWÓJ ►</span></div>
+      <div style="flex:1;text-align:center;padding:4px;background:#0a1f0a;border:1px solid var(--gb)"><span style="color:var(--rd)" data-i18n="mom_opp_label">◄ RYWAL</span></div>
+      <div style="flex:1;text-align:center;padding:4px;background:#111;border:1px solid #333"><span style="color:var(--gr)" data-i18n="mom_neutral_label">= NEUTRALNIE</span></div>
+      <div style="flex:1;text-align:center;padding:4px;background:#0a1f0a;border:1px solid var(--gb)"><span style="color:var(--gb)" data-i18n="mom_your_label">TWÓJ ►</span></div>
     </div>
-    <button onclick="document.getElementById('mom-modal').style.display='none'" style="width:100%;background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-meta);padding:7px;cursor:pointer">✕ ZAMKNIJ</button>
+    <button onclick="document.getElementById('mom-modal').style.display='none'" style="width:100%;background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-meta);padding:7px;cursor:pointer" data-i18n="mom_close_btn">✕ ZAMKNIJ</button>
   </div>
 </div>
 
@@ -587,7 +587,7 @@
       <button class="tab-btn" onclick="trTab('sprzedaj',this)" data-i18n="tr_tab_sell">SPRZEDAJ</button>
       <button class="tab-btn" onclick="trTab('skauci',this)" data-i18n="tr_tab_scouts">SKAUCI</button>
       <button class="tab-btn" onclick="trTab('historia',this)" data-i18n="tr_tab_history">HISTORIA</button>
-      <button class="tab-btn" onclick="trTab('analityka',this)">📊 ANALITYKA</button>
+      <button class="tab-btn" onclick="trTab('analityka',this)" data-i18n="tr_tab_analytics">📊 ANALITYKA</button>
     </div>
     <div id="tr-kup" class="tab-pane on" style="padding:8px"></div>
     <div id="tr-sprzedaj" class="tab-pane" style="padding:8px"></div>
@@ -602,55 +602,55 @@
   <div class="ph"><div class="ph-title" data-i18n="tile_training">🏃 TRENING</div><button class="btn-back" onclick="closePanel('p-training')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="sq-tabs2">
-      <button class="sq-tab2-btn on" onclick="trainTab('plan',this)">PLAN</button>
-      <button class="sq-tab2-btn" onclick="trainTab('obozy',this)">OBOZY</button>
-      <button class="sq-tab2-btn" onclick="trainTab('postep',this)">POSTĘP</button>
+      <button class="sq-tab2-btn on" onclick="trainTab('plan',this)" data-i18n="train_tab_plan">PLAN</button>
+      <button class="sq-tab2-btn" onclick="trainTab('obozy',this)" data-i18n="train_tab_camps">OBOZY</button>
+      <button class="sq-tab2-btn" onclick="trainTab('postep',this)" data-i18n="train_tab_progress">POSTĘP</button>
     </div>
     <div id="tr-plan" class="sq-tab-pane2 on" style="padding:10px 12px">
-      <div class="info-bar" id="tr-info">Ustaw plan treningowy</div>
-      <div class="sect">FOKUS TRENINGOWY</div>
+      <div class="info-bar" id="tr-info" data-i18n="train_set_plan">Ustaw plan treningowy</div>
+      <div class="sect" data-i18n="train_focus_header">FOKUS TRENINGOWY</div>
       <div id="tr-opts"></div>
-      <div class="sect" style="margin-top:12px">INTENSYWNOŚĆ</div>
+      <div class="sect" style="margin-top:12px" data-i18n="train_intensity_header">INTENSYWNOŚĆ</div>
       <div id="tr-intensity"></div>
       <div id="tr-centrum"></div>
-    <div id="tr-injury-warn" style="display:none;background:#2a0000;border:1px solid var(--rd);padding:6px 10px;font-size:var(--fs-dense);color:var(--rd);margin-top:8px">⚠ Wysoka intensywność — ryzyko kontuzji 12%</div>
+    <div id="tr-injury-warn" style="display:none;background:#2a0000;border:1px solid var(--rd);padding:6px 10px;font-size:var(--fs-dense);color:var(--rd);margin-top:8px" data-i18n="train_injury_warn">⚠ Wysoka intensywność — ryzyko kontuzji 12%</div>
     </div>
     <div id="tr-obozy" class="sq-tab-pane2" style="padding:10px 12px">
-      <div class="sect">OBÓZ DRUŻYNOWY</div>
+      <div class="sect" data-i18n="train_camp_team_header">OBÓZ DRUŻYNOWY</div>
       <div style="background:var(--tb);border:1px solid var(--gl);padding:12px;margin-bottom:10px;font-size:var(--fs-dense)">
-        <div style="color:var(--wh);font-size:var(--fs-dense);margin-bottom:4px">🏕 OBÓZ PRZYGOTOWAWCZY</div>
-        <div style="color:var(--gr);margin-bottom:4px">Tylko w tygodniu 1–2 sezonu • Forma → 100 dla każdego zawodnika • Wzrost OVR o +1 dla wszystkich zawodników • Bonus na 4, 7 lub 10 kolejek</div>
+        <div style="color:var(--wh);font-size:var(--fs-dense);margin-bottom:4px" data-i18n="train_camp_prep_title">🏕 OBÓZ PRZYGOTOWAWCZY</div>
+        <div style="color:var(--gr);margin-bottom:4px" data-i18n="train_camp_prep_desc">Tylko w tygodniu 1–2 sezonu • Forma → 100 dla każdego zawodnika • Wzrost OVR o +1 dla wszystkich zawodników • Bonus na 4, 7 lub 10 kolejek</div>
         <div id="camp-status" style="color:var(--am);font-size:var(--fs-dense);margin-bottom:6px"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px">
-          <button onclick="startTeamCamp('NOR')" style="background:#0d1a0d;border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
+          <button id="tr-camp-normal-btn" onclick="startTeamCamp('NOR')" style="background:#0d1a0d;border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
             NORMALNY<br><span style="color:var(--am)">4 kol.</span><br><span style="color:var(--gr)">2000/os.</span>
           </button>
-          <button onclick="startTeamCamp('PRO')" style="background:#0d1a0d;border:1px solid var(--gb);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
+          <button id="tr-camp-pro-btn" onclick="startTeamCamp('PRO')" style="background:#0d1a0d;border:1px solid var(--gb);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
             PRO<br><span style="color:var(--am)">7 kol.</span><br><span style="color:var(--gr)">3000/os.</span>
           </button>
-          <button onclick="startTeamCamp('ELITE')" style="background:#0d1a0d;border:1px solid var(--am);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
+          <button id="tr-camp-elite-btn" onclick="startTeamCamp('ELITE')" style="background:#0d1a0d;border:1px solid var(--am);color:var(--wh);font-size:var(--fs-dense);padding:6px;cursor:pointer">
             ELITE<br><span style="color:var(--am)">10 kol.</span><br><span style="color:var(--gr)">4500/os.</span>
           </button>
         </div>
       </div>
-      <div class="sect">OBÓZ INDYWIDUALNY</div>
+      <div class="sect" data-i18n="train_camp_ind_sect">OBÓZ INDYWIDUALNY</div>
       <div style="background:var(--tb);border:1px solid var(--gl);padding:12px;font-size:var(--fs-dense)">
-        <div style="color:var(--wh);font-size:var(--fs-dense);margin-bottom:4px">👤 OBÓZ INDYWIDUALNY</div>
-        <div style="color:var(--gr);margin-bottom:4px">1 tydzień • Forma → 100 • +4–6 do każdego atrybutu fokusa</div>
-        <div style="color:var(--gr);margin-bottom:6px">Koszt: <span style="color:var(--am)">2000 zł/zawodnik</span> • Max 4 zawodników/sezon • Pauzuje 1 tydzień</div>
+        <div style="color:var(--wh);font-size:var(--fs-dense);margin-bottom:4px" data-i18n="train_camp_ind_title">👤 OBÓZ INDYWIDUALNY</div>
+        <div style="color:var(--gr);margin-bottom:4px" data-i18n="train_camp_ind_desc">1 tydzień • Forma → 100 • +4–6 do każdego atrybutu fokusa</div>
+        <div id="tr-camp-ind-cost-info" style="color:var(--gr);margin-bottom:6px">Koszt: <span style="color:var(--am)">2000 zł/zawodnik</span> • Max 4 zawodników/sezon • Pauzuje 1 tydzień</div>
         <div id="ind-camp-used" style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:4px"></div>
         <div id="ind-camp-list" style="max-height:200px;overflow-y:auto;margin-bottom:6px"></div>
-        <div style="margin-bottom:6px;font-size:var(--fs-dense);color:var(--gr)">Wybierz fokus obozu:</div>
+        <div style="margin-bottom:6px;font-size:var(--fs-dense);color:var(--gr)" data-i18n="train_camp_focus_select">Wybierz fokus obozu:</div>
         <select id="ind-camp-attr-sel" style="width:100%;background:#0d1a0d;border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:4px;margin-bottom:8px">
-          <option value="ATK">⚽ ATAK (Strzał + Technika)</option>
-          <option value="POL">🎯 POMOC (Podania + Mentalność)</option>
-          <option value="OBR">🛡️ OBRONA (Odbiór + Fizyczność)</option>
+          <option value="ATK" id="tr-camp-opt-atk">⚽ ATAK (Strzał + Technika)</option>
+          <option value="POL" id="tr-camp-opt-pol">🎯 POMOC (Podania + Mentalność)</option>
+          <option value="OBR" id="tr-camp-opt-obr">🛡️ OBRONA (Odbiór + Fizyczność)</option>
         </select>
-        <button onclick="sendIndCamp()" style="width:100%;background:var(--gm);border:1px solid var(--gb);color:var(--gb);font-size:var(--fs-dense);padding:8px;cursor:pointer">WYŚLIJ NA OBÓZ (2000 ZŁ/OS.)</button>
+        <button onclick="sendIndCamp()" style="width:100%;background:var(--gm);border:1px solid var(--gb);color:var(--gb);font-size:var(--fs-dense);padding:8px;cursor:pointer" data-i18n="train_camp_send_btn">WYŚLIJ NA OBÓZ (2000 ZŁ/OS.)</button>
       </div>
     </div>
     <div id="tr-postep" class="sq-tab-pane2" style="padding:10px 12px">
-      <div class="info-bar">Postęp sezonu</div>
+      <div class="info-bar" data-i18n="train_season_progress">Postęp sezonu</div>
       <div id="tr-progress-list"></div>
     </div>
   </div>
@@ -662,9 +662,9 @@
   <div class="ph"><div class="ph-title" data-i18n="stad_title">🏟️ STADION</div><button class="btn-back" onclick="closePanel('p-stadium')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
-      <button class="tab-btn active" onclick="stadTab('przeglad',this)">PRZEGLĄD</button>
-      <button class="tab-btn" onclick="stadTab('rozbudowa',this)">ROZBUDOWA</button>
-      <button class="tab-btn" onclick="stadTab('historia',this)">HISTORIA</button>
+      <button class="tab-btn active" onclick="stadTab('przeglad',this)" data-i18n="stad_tab_overview">PRZEGLĄD</button>
+      <button class="tab-btn" onclick="stadTab('rozbudowa',this)" data-i18n="stad_tab_expand">ROZBUDOWA</button>
+      <button class="tab-btn" onclick="stadTab('historia',this)" data-i18n="stad_tab_history">HISTORIA</button>
     </div>
     <div id="stad-przeglad" class="tab-pane on" style="padding:10px"></div>
     <div id="stad-rozbudowa" class="tab-pane" style="padding:10px"></div>
@@ -690,8 +690,8 @@
   <div class="ph"><div class="ph-title" data-i18n="fin_tab_board">📋 ZARZĄD</div><button class="btn-back" onclick="closePanel('p-board')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
-      <button class="tab-btn active" onclick="boardTab('cele',this)">CELE</button>
-      <button class="tab-btn" onclick="boardTab('historia',this)">HISTORIA</button>
+      <button class="tab-btn active" onclick="boardTab('cele',this)" data-i18n="fin_board_goals">CELE</button>
+      <button class="tab-btn" onclick="boardTab('historia',this)" data-i18n="fin_tab_history">HISTORIA</button>
     </div>
     <div id="board-cele" class="tab-pane on" style="padding:10px"></div>
     <div id="board-historia" class="tab-pane" style="padding:10px"></div>
@@ -703,11 +703,11 @@
   <div class="panel-body" style="padding:0">
     <div class="money-bar" id="fin-bal" style="margin:0;border-radius:0">STAN KONTA: —</div>
     <div class="tabs">
-      <button class="tab-btn active" onclick="finTab('przeglad',this)">PRZEGLĄD</button>
-      <button class="tab-btn" onclick="finTab('historia',this)">HISTORIA</button>
-      <button class="tab-btn" onclick="finTab('sezony',this)">SEZONY</button>
-      <button class="tab-btn" onclick="finTab('kontrakty',this)">KONTRAKTY</button>
-      <button class="tab-btn" data-tab="zarzad" onclick="finTab('zarzad',this)" style="color:#e6a800">ZARZĄD</button>
+      <button class="tab-btn active" data-tab="przeglad" onclick="finTab('przeglad',this)" data-i18n="fin_tab_overview">PRZEGLĄD</button>
+      <button class="tab-btn" data-tab="historia" onclick="finTab('historia',this)" data-i18n="fin_tab_history">HISTORIA</button>
+      <button class="tab-btn" data-tab="sezony" onclick="finTab('sezony',this)" data-i18n="fin_tab_seasons">SEZONY</button>
+      <button class="tab-btn" data-tab="kontrakty" onclick="finTab('kontrakty',this)" data-i18n="fin_tab_contracts">KONTRAKTY</button>
+      <button class="tab-btn" data-tab="zarzad" onclick="finTab('zarzad',this)" style="color:#e6a800" data-i18n="fin_tab_board">ZARZĄD</button>
     </div>
     <div id="fin-przeglad" class="tab-pane on" style="padding:0"></div>
     <div id="fin-kontrakty" class="tab-pane" style="padding:10px"></div>
@@ -727,8 +727,8 @@
   <div class="ph"><div class="ph-title" data-i18n="tile_world">🌍 RYNEK ŚWIATA</div><button class="btn-back" onclick="closePanel('p-world')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="tabs">
-      <button class="tab-btn active" id="world-tab-transfers" onclick="worldTab('transfers',this)">💸 REKORDOWE TRANSFERY</button>
-      <button class="tab-btn" id="world-tab-clubs" onclick="worldTab('clubs',this)">📊 AKTYWNE KLUBY</button>
+      <button class="tab-btn active" id="world-tab-transfers" onclick="worldTab('transfers',this)" data-i18n="world_tab_transfers">💸 REKORDOWE TRANSFERY</button>
+      <button class="tab-btn" id="world-tab-clubs" onclick="worldTab('clubs',this)" data-i18n="world_tab_clubs">📊 AKTYWNE KLUBY</button>
     </div>
     <div id="world-transfers" class="tab-pane on" style="padding:0"></div>
     <div id="world-clubs" class="tab-pane" style="padding:10px"></div>
@@ -741,19 +741,19 @@
   <div class="panel-body" style="padding:0">
     <div class="info-bar" id="hist-club" style="margin:0;border-radius:0;border-bottom:1px solid var(--gl)">—</div>
     <div class="tabs">
-      <button class="tab-btn active" onclick="histTab('sezony',this)">SEZONY</button>
-      <button class="tab-btn" onclick="histTab('rekordy',this)">REKORDY</button>
-      <button class="tab-btn" onclick="histTab('zawodnicy',this)">ZAWODNICY</button>
-      <button class="tab-btn" onclick="histTab('dynastia',this)">DYNASTIA</button>
-      <button class="tab-btn" id="hist-tab-dc" onclick="histTab('dc',this)" style="color:#00acc1;border-left:2px solid #00acc1;flex:1.2">📊 DATA</button>
+      <button class="tab-btn active" data-tab="sezony" onclick="histTab('sezony',this)" data-i18n="hist_tab_seasons">SEZONY</button>
+      <button class="tab-btn" data-tab="rekordy" onclick="histTab('rekordy',this)" data-i18n="hist_tab_records">REKORDY</button>
+      <button class="tab-btn" data-tab="zawodnicy" onclick="histTab('zawodnicy',this)" data-i18n="hist_tab_players">ZAWODNICY</button>
+      <button class="tab-btn" data-tab="dynastia" onclick="histTab('dynastia',this)" data-i18n="hist_tab_dynasty">DYNASTIA</button>
+      <button class="tab-btn" id="hist-tab-dc" data-tab="dc" onclick="histTab('dc',this)" style="color:#00acc1;border-left:2px solid #00acc1;flex:1.2" data-i18n="hist_tab_data">📊 DATA</button>
     </div>
     <!-- DC sub-zakładki — widoczne tylko gdy aktywna zakładka DATA -->
     <div id="hist-dc-subtabs" style="display:none;flex-shrink:0;background:#071a20;border-bottom:2px solid #005f6b;">
       <div style="font-weight:700;font-size:var(--fs-micro);color:#1a4a52;padding:0 6px;display:flex;align-items:center;flex-shrink:0;border-right:1px solid #0d3038;letter-spacing:.5px">▸ DC</div>
-      <button id="dcsub-wzrost"  class="dc-sub-btn active" onclick="dcSub('wzrost',this)">WZROST</button>
-      <button id="dcsub-kadra"   class="dc-sub-btn" onclick="dcSub('kadra',this)">KADRA</button>
-      <button id="dcsub-klub"    class="dc-sub-btn" onclick="dcSub('klub',this)">KLUB</button>
-      <button id="dcsub-legendy" class="dc-sub-btn" onclick="dcSub('legendy',this)" style="color:#ffd54f">⭐ LEGENDY</button>
+      <button id="dcsub-wzrost"  class="dc-sub-btn active" onclick="dcSub('wzrost',this)" data-i18n="hist_dc_growth">WZROST</button>
+      <button id="dcsub-kadra"   class="dc-sub-btn" onclick="dcSub('kadra',this)" data-i18n="hist_dc_squad">KADRA</button>
+      <button id="dcsub-klub"    class="dc-sub-btn" onclick="dcSub('klub',this)" data-i18n="hist_dc_club">KLUB</button>
+      <button id="dcsub-legendy" class="dc-sub-btn" onclick="dcSub('legendy',this)" style="color:#ffd54f" data-i18n="hist_dc_legends">⭐ LEGENDY</button>
     </div>
     <div id="hist-sezony" class="tab-pane on" style="padding:10px"></div>
     <div id="hist-rekordy" class="tab-pane" style="padding:10px"></div>
@@ -876,7 +876,7 @@
 
 <!-- CLUB SQUAD PANEL -->
 <div id="p-club-squad" class="panel">
-  <div class="ph"><div class="ph-title" id="cs-title">SKŁAD DRUŻYNY</div><button class="btn-back" onclick="closePanel('p-club-squad')">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" id="cs-title">SKŁAD DRUŻYNY</div><button class="btn-back" onclick="closePanel('p-club-squad')" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div class="sq-top-bar"><span class="sq-tac-lbl" id="cs-club-name">—</span><span class="sq-sum2-val" id="cs-count" style="font-size:var(--fs-dense);margin-left:8px"></span></div>
     <div id="cs-all"></div>
@@ -899,9 +899,9 @@
     </div>
     <!-- ZAKŁADKI -->
     <div style="display:flex;border-bottom:2px solid var(--gb);flex-shrink:0">
-      <button id="cm-tab-karta" onclick="cmTab('karta')" style="flex:1;background:var(--gm);border:none;border-right:1px solid var(--gl);color:var(--am);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid var(--am)">KARTA KLUBU</button>
-      <button id="cm-tab-sklad" onclick="cmTab('sklad')" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent">SKŁAD</button>
-      <button id="cm-tab-historia" onclick="cmTab('historia')" style="flex:1;background:var(--tb);border:none;color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent">HISTORIA</button>
+      <button id="cm-tab-karta" onclick="cmTab('karta')" style="flex:1;background:var(--gm);border:none;border-right:1px solid var(--gl);color:var(--am);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid var(--am)" data-i18n="cm_tab_card">KARTA KLUBU</button>
+      <button id="cm-tab-sklad" onclick="cmTab('sklad')" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="tile_squad">SKŁAD</button>
+      <button id="cm-tab-historia" onclick="cmTab('historia')" style="flex:1;background:var(--tb);border:none;color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="fin_tab_history">HISTORIA</button>
     </div>
     <!-- TREŚĆ -->
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">

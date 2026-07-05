@@ -60,7 +60,7 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
       genDemands(_tmp);
       _tmp.section='sale'; // od razu dostepny gdy okno sie otworzy
       const _clubs=(G.leagues||[]).flatMap(l=>l.clubs||[]).filter(c=>c.id!==G.myClubId);
-      const _club=_clubs.length?_clubs[Math.floor(Math.random()*_clubs.length)]:{n:'nieznanego klubu'};
+      const _club=_clubs.length?_clubs[Math.floor(Math.random()*_clubs.length)]:{n:t('week_fallback_club')};
       _tmp.prevClub=_club.n;
       if(!G.rumourPool)G.rumourPool=[];
       // Max 5 w poczekalni
@@ -104,7 +104,7 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
           }
         }
         G.news=G.news||[];
-        G.news.unshift({msg:'[Skaut A] Raport gotowy: '+name+'. Sprawdz zakładke Skauci.',type:'scout',week:G.week,season:G.season,action:'skauci',actionLabel:'SKAUCI'});
+        G.news.unshift({msg:t('week_notif_scout_report').replace('{name}',name),type:'scout',week:G.week,season:G.season,action:'skauci',actionLabel:t('tr_tab_scouts')});
         if(G.news.length>30)G.news.pop();
         renderNews();
         return null; // usuń z aktywnych
@@ -157,7 +157,7 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
       if(!G.noFocusWeeks)G.noFocusWeeks=0;
       G.noFocusWeeks++;
       if(G.noFocusWeeks>=5&&G.noFocusWeeks<=9){
-        G.news=G.news||[];G.news.unshift({msg:'⚠️ Brak fokusa treningowego od '+G.noFocusWeeks+' tyg.! Zawodnicy nie rozwijają atrybutów.',type:'err',week:G.week,season:G.season,action:'training_plan',actionLabel:'PLAN'});renderNews();
+        G.news=G.news||[];G.news.unshift({msg:t('week_notif_no_focus').replace('{n}',G.noFocusWeeks),type:'err',week:G.week,season:G.season,action:'training_plan',actionLabel:t('startnews_action_plan')});renderNews();
       }
     } else {
       G.noFocusWeeks=0;
@@ -247,20 +247,20 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
   // Suspension countdown for my players
   if(p.suspension>0){
     p.suspension--;
-    if(p.suspension===0){notif(p.name+' wraca po zawieszeniu','ok');addNews(t('news_back_susp').replace('{name}',p.name),'back');}
+    if(p.suspension===0){notif(t('week_notif_back_suspension').replace('{name}',p.name),'ok');addNews(t('news_back_susp').replace('{name}',p.name),'back');}
   }
   // Kronika: iniekcja — po meczu forma obniżona przez 2 tygodnie
   if(p._injectPenalty>0){p._injectPenalty--;p.form=Math.max(40,(p.form||80)-5);}
   if(p.onIndCamp&&p.indCampWeeks>0){
     p.indCampWeeks--;
-    if(p.indCampWeeks===0){p.onIndCamp=false;notif(p.name+' wraca z obozu indywidualnego!','ok');}
+    if(p.indCampWeeks===0){p.onIndCamp=false;notif(t('week_notif_back_ind_camp').replace('{name}',p.name),'ok');}
   }
   if(p.injured&&p.injuryWeeks>0){
     p.injuryWeeks--;
     if(p.injuryWeeks===0){
       p.injured=false;p.injuryType=null;
       p.form=Math.max(30,p.form);
-      notif(p.name+' wraca po kontuzji!','ok');
+      notif(t('week_notif_back_injury').replace('{name}',p.name),'ok');
       addNews(t('news_back_inj').replace('{name}',p.name),'back');
     }
   }
@@ -274,7 +274,7 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
   if(p.suspension>0)p.suspension--;
   if(p.onIndCamp&&p.indCampWeeks>0){
     p.indCampWeeks--;
-    if(p.indCampWeeks===0){p.onIndCamp=false;notif(p.name+' wraca z obozu indywidualnego!','ok');}
+    if(p.indCampWeeks===0){p.onIndCamp=false;notif(t('week_notif_back_ind_camp').replace('{name}',p.name),'ok');}
   }
   if(p.injured&&p.injuryWeeks>0){p.injuryWeeks--;if(p.injuryWeeks===0){p.injured=false;p.injuryType=null;p.form=Math.max(30,p.form);}}
 });processAIOffers();
@@ -299,7 +299,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
       G.stadium.building=null;
       pushTimeline('stadium_expand','🏗️',t('tl_stadium_expand').replace('{n}',G.stadium.capacity.toLocaleString('pl-PL')),{sentiment:'pos',weight:10});
       addNews(t('news_stad_expand_ready').replace('{n}',G.stadium.capacity.toLocaleString('pl-PL')),'club');
-      notif('Stadion gotowy: '+G.stadium.capacity+' miejsc.','ok');
+      notif(t('week_notif_stadium_ready').replace('{n}',G.stadium.capacity),'ok');
     }
   }
   // Odśwież aktywny tab stadionu jeśli panel jest otwarty
@@ -322,7 +322,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
       G.stadium.hist.push({season:G.season,week:G.week,module:mod.name+' L'+(mb.lvl+1),cost:mb.cost,capAfter:G.stadium.capacity||200});
       G.stadium.modulBuilding=null;
       addNews(t('news_stad_module_ready').replace('{icon}',mod.icon).replace('{name}',mod.name).replace('{lvl}',mb.lvl+1).replace('{effect}',next.effect),'club');
-      notif(mod.name+' L'+(mb.lvl+1)+' ukończony!','ok');
+      notif(t('week_notif_module_done').replace('{name}',mod.name).replace('{n}',mb.lvl+1),'ok');
       if(typeof renderStadModuly==='function')renderStadModuly();
     }
   }
@@ -334,7 +334,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
     // Store player IDs for clickable links
     const _nameLinks=_expiring.map(p=>'<span data-pid="'+p.id+'" style="cursor:pointer;text-decoration:underline">'+p.name.split(' ')[1]+'</span>').join(', ');
     if(!G.news)G.news=[];
-    const _exp=G.week===4?6:32;G.news.unshift({msg:'Wygasające kontrakty: '+_expiring.map(p=>p.name.split(' ')[1]).join(', '),type:'contract',week:G.week,season:G.season,pids:_expiring.map(p=>p.id),expires:_exp});
+    const _exp=G.week===4?6:32;G.news.unshift({msg:t('week_news_expiring_contracts').replace('{names}',_expiring.map(p=>p.name.split(' ')[1]).join(', ')),type:'contract',week:G.week,season:G.season,pids:_expiring.map(p=>p.id),expires:_exp});
     if(G.news.length>30)G.news.pop();
     renderNews();
   }
@@ -357,7 +357,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
     const _ticketActual=G.fin.tickets||0;
     const _incActual=_inc.total-(_inc.tickets||0)+_ticketActual;
     const _hEntry={w:G.week,inc:_incActual,cost:_maint,bal:G.budget,costMaint:_maint,costSalary:0,costTC:0,costAcad:0};
-    if(G.week%4===0){const _sal=G.fin.salaries||0;_hEntry.cost+=_sal;_hEntry.costSalary=_sal;G.budget-=_sal;_hEntry.bal=G.budget;if(G.budget<0)notif('⚠ UJEMNY BUDŻET!','err');}
+    if(G.week%4===0){const _sal=G.fin.salaries||0;_hEntry.cost+=_sal;_hEntry.costSalary=_sal;G.budget-=_sal;_hEntry.bal=G.budget;if(G.budget<0)notif(t('week_notif_negative_budget'),'err');}
     // Centrum treningowe
     if(G.trainingCenter&&G.trainingCenter.level>0&&!G.trainingCenter.building){
       const _tcUpk=tcUpkeep(G.trainingCenter.level-1);
@@ -369,7 +369,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
       const _alIdx=G.academy.level-1;const _upk=acadUpkeep(_alIdx);
       G.budget-=_upk;G.fin.academyUpkeep=_upk;
       _hEntry.cost+=_upk;_hEntry.costAcad=_upk;_hEntry.bal=G.budget;
-      if(G.budget<0)notif('⚠ UJEMNY BUDŻET!','err');
+      if(G.budget<0)notif(t('week_notif_negative_budget'),'err');
     }
     if(!_hEntry.season)_hEntry.season=G.season;
     G.fin.hist.push(_hEntry);
@@ -414,9 +414,9 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
           sc.observed.push(found);
         }
       }
-const name=found?found.name:'brak kandydatow';
+const name=found?found.name:t('week_fallback_no_candidates');
       G.news=G.news||[];
-      G.news.unshift({msg:'[Skaut A] Raport gotowy: '+name+'. Sprawdz zakladke Skauci.',type:'scout',week:G.week,season:G.season,action:'skauci',actionLabel:'SKAUCI'});
+      G.news.unshift({msg:t('week_notif_scout_report').replace('{name}',name),type:'scout',week:G.week,season:G.season,action:'skauci',actionLabel:t('tr_tab_scouts')});
       if(G.news.length>30)G.news.pop();
       renderNews();
     });
@@ -449,7 +449,7 @@ const name=found?found.name:'brak kandydatow';
       const _tcName=G.trainingCenter.building.name;
       G.trainingCenter.building=null;
       addNews(t('news_tc_ready').replace('{n}',_tcName),'club');
-      notif('Centrum: '+_tcName+' ukończone!','ok');
+      notif(t('week_notif_tc_done').replace('{name}',_tcName),'ok');
     }
   }
   // Utrzymanie centrum — koszt uwzględniony w bloku fin.hist powyżej
@@ -464,7 +464,7 @@ const name=found?found.name:'brak kandydatow';
       const _aName=G.academy.building.name;
       G.academy.building=null;
       addNews(t('news_academy_ready').replace('{name}',_aName),'academy');
-      notif('Akademia '+_aName+' ukończona!','ok');
+      notif(t('week_notif_academy_done').replace('{name}',_aName),'ok');
     }
   }
   // Liga min — sprawdz zawodnikow
@@ -478,7 +478,7 @@ const name=found?found.name:'brak kandydatow';
   // ── PAMIĘĆ KIBICÓW — niezależny, rzadki trigger ─────────────────────
   if(G.week>=4&&!G.seasonEnded){fanMemoryTrigger();}
   // Akademia — koszt uwzględniony w bloku fin.hist powyżej
-  if(G.round>30&&!G.seasonEnded){G.seasonEnded=true;calcSeasonValuations();updateHdr();notif('Sezon '+G.season+' zakończony!','ok');
+  if(G.round>30&&!G.seasonEnded){G.seasonEnded=true;calcSeasonValuations();updateHdr();notif(t('week_notif_season_end').replace('{n}',G.season),'ok');
   // Zapisz historię sezonu dla WSZYSTKICH zawodników — musi być TU, przed startNewSeason które resetuje p.st
   const _allForHistory=[...G.players,...(G.fa||[])];
   // Uzupełnij luki — każdy zawodnik powinien mieć wpis dla każdego sezonu od S1 do bieżącego
@@ -489,7 +489,7 @@ const name=found?found.name:'brak kandydatow';
     if(!p.st)p.st={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0};
     if(!p.history)p.history=[];
     const _hClub=ALL_CLUBS.find(c=>c.id===p.clubId);
-    const _clubName=_hClub?_hClub.n:(p.clubId===0?'Wolny agent':'?');
+    const _clubName=_hClub?_hClub.n:(p.clubId===0?t('plr_free_agent'):'?');
     const _avgRat=p.seasonRatings&&p.seasonRatings.length?Math.round(p.seasonRatings.reduce((s,r)=>s+r,0)/p.seasonRatings.length*10)/10:null;
     // Jeśli jest wpis _current dla tego sezonu — zaktualizuj go zamiast duplikować
     const _curIdx=p.history.findIndex(h=>h._current&&h.season===G.season&&h.clubId===p.clubId);
@@ -521,7 +521,7 @@ const name=found?found.name:'brak kandydatow';
   });
   // Awans/spadek wpływa na wartość zawodników
   const _oldLvl=G.myLeague||8;
-  if(_bonus>0){G.budget+=_bonus;G.seasonBonus=_bonus;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:_bonus,cost:0,bal:G.budget,season:G.season,note:'Premia ligowa: miejsce '+(_pos+1)+'.'});addNews(t('news_league_bonus').replace('{n}',_pos+1).replace('{val}',fmtVal(_bonus)),'club');}
+  if(_bonus>0){G.budget+=_bonus;G.seasonBonus=_bonus;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:_bonus,cost:0,bal:G.budget,season:G.season,note:t('week_note_league_bonus').replace('{n}',_pos+1)});addNews(t('news_league_bonus').replace('{n}',_pos+1).replace('{val}',fmtVal(_bonus)),'club');}
   else{G.seasonBonus=0;}
   // Rekordy sezonowe
   if(!G.records)G.records={maxWinStreak:0,maxUnbeatenStreak:0,maxLoseStreak:0,unbeatenStreak:0,bestWin:null,maxGoalsSeason:0,maxGoalsSeason_s:0,minConcededSeason:99,minConcededSeason_s:0,minGoalsSeason:999,minGoalsSeason_s:0,maxConcededSeason:0,maxConcededSeason_s:0};
@@ -557,17 +557,17 @@ const name=found?found.name:'brak kandydatow';
   if(!G.trophies)G.trophies=[];
   // Niepokonani: 0 porażek w tym sezonie
   if((_myStand.l||0)===0&&_myStand.p>0&&!G.trophies.find(t=>t.id==='unbeaten_season'&&t.season===G.season))
-    G.trophies.push({type:'special',id:'unbeaten_season',name:'Niepokonani',season:G.season});
+    G.trophies.push({type:'special',id:'unbeaten_season',name:t('trophy_unbeaten'),season:G.season});
   if(_gf2>=80&&!G.trophies.find(t=>t.id==='strzelnica'&&t.season===G.season))
-    G.trophies.push({type:'special',id:'strzelnica',name:'Strzelnica',season:G.season});
+    G.trophies.push({type:'special',id:'strzelnica',name:t('trophy_sharpshooters'),season:G.season});
   if(_ga2===0&&!G.trophies.find(t=>t.id==='mur'&&t.season===G.season))
-    G.trophies.push({type:'special',id:'mur',name:'Mur Obronny',season:G.season});
+    G.trophies.push({type:'special',id:'mur',name:t('trophy_defensive_wall'),season:G.season});
   if((G.records.maxWinStreak||0)>=10&&!G.trophies.find(t=>t.id==='seria10'&&t.season===G.season))
-    G.trophies.push({type:'special',id:'seria10',name:'Seria 10',season:G.season});
+    G.trophies.push({type:'special',id:'seria10',name:t('trophy_streak10'),season:G.season});
   if(myPl().some(p=>p.fromAcademy&&G.allTimeStats&&G.allTimeStats.players[p.id]&&G.allTimeStats.players[p.id].matches>=20)&&!G.trophies.find(t=>t.id==='odkrywca'))
-    G.trophies.push({type:'special',id:'odkrywca',name:'Odkrywca',season:G.season});
+    G.trophies.push({type:'special',id:'odkrywca',name:t('trophy_talent_spotter'),season:G.season});
   if(G.stadium&&G.stadium.capacity>=10000&&!G.trophies.find(t=>t.id==='budowlaniec'))
-    G.trophies.push({type:'special',id:'budowlaniec',name:'Budowlaniec',season:G.season});
+    G.trophies.push({type:'special',id:'budowlaniec',name:t('trophy_builder'),season:G.season});
   // Nagrody indywidualne zawodników — zapis do p.awards
   (function(){
     var _squad=myPl();
@@ -582,15 +582,15 @@ const name=found?found.name:'brak kandydatow';
     _squad.forEach(function(p){
       if(!p.awards)p.awards=[];
       // Drużynowe
-      if(_leagueWon)p.awards.push({type:'league',icon:'🏆',label:'Mistrzostwo ligi',tier:'gold',season:G.season});
-      if(_cupWon)p.awards.push({type:'cup_win',icon:'🥇',label:'Puchar Mistrzowski',tier:'gold',season:G.season});
-      if(_cupFin&&!_cupWon)p.awards.push({type:'cup_final',icon:'🥈',label:'Finalista Pucharu',tier:'silver',season:G.season});
-      if(_promotionWon&&!_leagueWon)p.awards.push({type:'promotion',icon:'⬆️',label:'Awans — 2. miejsce',tier:'silver',season:G.season});
+      if(_leagueWon)p.awards.push({type:'league',icon:'🏆',label:t('award_league_title'),tier:'gold',season:G.season});
+      if(_cupWon)p.awards.push({type:'cup_win',icon:'🥇',label:t('ht_champions_cup'),tier:'gold',season:G.season});
+      if(_cupFin&&!_cupWon)p.awards.push({type:'cup_final',icon:'🥈',label:t('ht_cup_finalist'),tier:'silver',season:G.season});
+      if(_promotionWon&&!_leagueWon)p.awards.push({type:'promotion',icon:'⬆️',label:t('award_promotion'),tier:'silver',season:G.season});
       // Indywidualne
-      if(_topScr&&p.id===_topScr.id&&(_topScr.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:'Top Strzelec — '+(p.st.g||0)+'G',tier:'indiv',season:G.season});
-      if(_topRat&&p.id===_topRat.id&&p.seasonRatings&&p.seasonRatings.length>=5){var _ar=Math.round(p.seasonRatings.reduce(function(s,r){return s+r;},0)/p.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:'Gracz Sezonu — '+_ar,tier:'indiv',season:G.season});}
+      if(_topScr&&p.id===_topScr.id&&(_topScr.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',_topScr.st.g||0),tier:'indiv',season:G.season});
+      if(_topRat&&p.id===_topRat.id&&p.seasonRatings&&p.seasonRatings.length>=5){var _ar=Math.round(p.seasonRatings.reduce(function(s,r){return s+r;},0)/p.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:G.season});}
       // Legenda
-      if(G.legends&&G.legends.find(function(l){return l.id===p.id&&l.season===G.season;}))p.awards.push({type:'legend',icon:'👑',label:'Legenda Klubu',tier:'legend',season:G.season});
+      if(G.legends&&G.legends.find(function(l){return l.id===p.id&&l.season===G.season;}))p.awards.push({type:'legend',icon:'👑',label:t('award_club_legend'),tier:'legend',season:G.season});
       // Wierny Klubowi (One Club Man) — 5+ sezonów z minutami w tym samym klubie
       var _clubSeasons=(p.history||[]).filter(function(h){return h.clubId===G.myClubId&&!h._placeholder&&(h.m||0)>0;});
       if(_clubSeasons.length>=5&&!p.awards.find(function(a){return a.type==='one_club_man';}))

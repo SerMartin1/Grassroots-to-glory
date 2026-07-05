@@ -8,14 +8,14 @@ function go(vid){
     const btnTut=document.getElementById('btn-tutorial-toggle');
     if(btn){
       btn.style.display=G?'block':'none';
-      if(G)btn.textContent='▶ WRÓĆ DO GRY — '+(G.myClub?G.myClub.n:'')+(G.season?' (S'+G.season+' T'+G.week+')':'');
+      if(G)btn.textContent=t('nav_resume_btn').replace('{club}',G.myClub?G.myClub.n:'')+(G.season?t('nav_resume_season_info').replace('{season}',G.season).replace('{week}',G.week):'');
     }
     if(btnSave)btnSave.style.display=G?'block':'none';
     if(btnTut){
       btnTut.style.display=G?'block':'none';
       if(G){
         const off=G.tutorialOff;
-        btnTut.textContent='📡 TUTORIAL: '+(off?'WYŁ':'WŁ');
+        btnTut.textContent=t('nav_tutorial_label')+(off?t('tutorial_state_off'):t('tutorial_state_on'));
         btnTut.style.color=off?'var(--gr)':'var(--am)';
         btnTut.style.borderColor=off?'var(--gr)':'var(--am)';
       }
@@ -133,7 +133,7 @@ function advWeekPrep(){
       const _n=G.trainingCenter.building.name;
       G.trainingCenter.building=null;
       addNews&&addNews(t('news_tc_ready').replace('{n}',_n),'club');
-      notif&&notif('Centrum: '+_n+' ukończone!','ok');
+      notif&&notif(t('nav_notif_tc_done').replace('{name}',_n),'ok');
     }
   }
   // Odliczanie rozbudowy trybun w preseason
@@ -146,8 +146,8 @@ function advWeekPrep(){
       if(!G.stadium.hist)G.stadium.hist=[];
       G.stadium.hist.push({season:G.season,week:G.week,seats:_b.seats,cost:_b.cost,capAfter:G.stadium.capacity});
       G.stadium.building=null;
-      addNews&&addNews(t('news_stad_expand_ready').replace('{n}',G.stadium.capacity.toLocaleString('pl-PL')),'club');
-      notif&&notif('Stadion gotowy: '+G.stadium.capacity+' miejsc.','ok');
+      addNews&&addNews(t('news_stad_expand_ready').replace('{n}',G.stadium.capacity.toLocaleString(LANG==='en'?'en-GB':'pl-PL')),'club');
+      notif&&notif(t('nav_notif_stadium_ready').replace('{n}',G.stadium.capacity),'ok');
     }
   }
   // Odliczanie budowy modułu stadionu w preseason
@@ -168,14 +168,14 @@ function advWeekPrep(){
       G.stadium.hist.push({season:G.season,week:G.week,module:mod.name+' L'+(mb.lvl+1),cost:mb.cost,capAfter:G.stadium.capacity||200});
       G.stadium.modulBuilding=null;
       addNews(t('news_stad_module_ready').replace('{icon}',mod.icon).replace('{name}',mod.name).replace('{lvl}',mb.lvl+1).replace('{effect}',next.effect),'club');
-      notif(mod.name+' L'+(mb.lvl+1)+' ukończony!','ok');
+      notif(t('nav_notif_module_done').replace('{name}',mod.name+' L'+(mb.lvl+1)),'ok');
       if(typeof renderStadModuly==='function')renderStadModuly();
     }
   }
   // Process team camp during preseason weeks
   if(G.campActive&&G.campWeeks>0){
     G.campWeeks--;
-    notif('Obóz: tydzień '+(2-G.campWeeks)+'/2','ok');
+    notif(t('nav_notif_camp_week').replace('{n}',2-G.campWeeks),'ok');
     if(G.campWeeks===0){
       const posMainAttr={NAP:'sht',POL:'pas',OBR:'def',GK:'def'};
       myPl().forEach(p=>{
@@ -194,7 +194,7 @@ function advWeekPrep(){
       });
       G.campActive=false;
       addNews(t('news_camp_done').replace('{n}',G.campRoundsBonus||4),'ok');
-      notif('Drużyna wróciła z obozu!','ok');
+      notif(t('nav_notif_camp_done'),'ok');
     }
   }
   updateHdr();
@@ -248,11 +248,11 @@ function advWeekPrep(){
     });
     addNews(t('news_tr_summer_closed'),'budget');
   }
-  notif('Tydzień '+G.week+(G.week<3?' — przygotowania':' — czas na mecz!'),'ok');
+  notif(t('nav_notif_week').replace('{n}',G.week)+(G.week<3?t('nav_week_prep_suffix'):t('nav_week_match_suffix')),'ok');
 }
 function tryOpenMatch(){
   if(!G)return;
-  if(G.week<3){notif('Sezon zacznie się w tygodniu 3. Trwają przygotowania!','err');return;}
+  if(G.week<3){notif(t('nav_notif_season_not_started'),'err');return;}
   // Wariant 1: auto-uzupełnij skład z ławki jeśli ktoś kontuzjowany/zawieszony
   const autoFixed=autoFillSquadFromBench();
   const crisis=checkSquadCrisis();
@@ -261,7 +261,7 @@ function tryOpenMatch(){
     return;
   }
   if(autoFixed.length){
-    notif('Auto-uzupełniono skład: '+autoFixed.join(', '),'ok');
+    notif(t('nav_notif_auto_filled').replace('{names}',autoFixed.join(', ')),'ok');
   }
   openPanel('p-match');
 }
@@ -306,10 +306,10 @@ function checkSquadCrisis(){
   const needPOL=Math.max(0,lim.POL-healthyPl.filter(p=>p.pos==='POL').length);
   const needNAP=Math.max(0,lim.NAP-healthyPl.filter(p=>p.pos==='NAP').length);
   const totalMissing=needGK+needOBR+needPOL+needNAP;
-  if(!anyGK.length)issues.push('Brak zdrowego bramkarza w kadrze!');
+  if(!anyGK.length)issues.push(t('nav_crisis_no_gk'));
   if(totalMissing>0){
     const haveTotal=lim.GK+lim.OBR+lim.POL+lim.NAP;
-    issues.push('Za mało zdrowych zawodników na wymaganych pozycjach: '+(haveTotal-totalMissing)+'/'+haveTotal);
+    issues.push(t('nav_crisis_not_enough').replace('{have}',haveTotal-totalMissing).replace('{total}',haveTotal));
   }
   return{hasCrisis:issues.length>0,issues,stCount,required,needGK,needOBR,needPOL,needNAP,totalMissing};
 }
@@ -319,7 +319,7 @@ function _faCrisisMissingHtml(crisis){
   if((crisis.needOBR||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needOBR+'× CB</span>');
   if((crisis.needPOL||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needPOL+'× MID</span>');
   if((crisis.needNAP||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needNAP+'× ST</span>');
-  const _missHtml=_miss.length?'<div style="margin-top:6px;font-size:var(--fs-dense)">Brakuje do formacji <b>'+G.formation+'</b>: '+_miss.join(', ')+'</div>':'';
+  const _missHtml=_miss.length?'<div style="margin-top:6px;font-size:var(--fs-dense)">'+t('nav_crisis_missing_formation').replace('{formation}','<b>'+G.formation+'</b>').replace('{list}',_miss.join(', '))+'</div>':'';
   return crisis.issues.map(function(i){return '⚠️ '+i;}).join('<br>')+_missHtml;
 }
 function openFACrisis(crisis){
@@ -371,7 +371,7 @@ function signFreeAgent(id){
   G.fa=G.fa.filter(x=>x.id!==id);
   G.fin.salaries=myPl().reduce((s,x)=>s+x.salary,0);
   addNews(t('news_wa_signed').replace('{name}',p.name),'ok');
-  notif(p.name+' w drużynie!','ok');
+  notif(t('nav_notif_fa_signed').replace('{name}',p.name),'ok');
   const crisis=checkSquadCrisis();
   if(crisis.hasCrisis){
     openFACrisis(crisis);
@@ -557,7 +557,7 @@ function renderSquadStats(){
       '<td style="text-align:right;color:var(--am)">'+(p.st.g||0)+'</td><td style="text-align:right;color:var(--gb)">'+(p.st.a||0)+'</td><td style="text-align:right">'+(p.st.m||0)+'</td>';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
       '<td style="padding:5px 8px;color:var(--gr)">'+(p.jerseyNum||'—')+'</td>'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="Filtruj '+( POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh);vertical-align:middle"><span class="sq-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;padding-right:8px;color:var(--gr)">'+(p.age||'—')+'</td>'+
       '<td style="text-align:right;padding-right:10px;color:'+oc+'">'+o+'</td>'+
@@ -607,7 +607,7 @@ function renderSquadHealth(){
     const fatCol=fat>70?'var(--rd)':fat>50?'var(--am)':'var(--gb)';
     const fatLbl=fat>70?t('squad_fat_overloaded'):fat>50?t('squad_fat_tired'):t('squad_fat_ok');
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'health\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'health\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;color:'+fc+'">'+fm+'%</td>'+
       '<td style="text-align:right;color:'+fatCol+'">'+fat+'%<br><span style="font-size:var(--fs-dense)">'+fatLbl+'</span></td>'+
@@ -641,7 +641,7 @@ function renderSquadContracts(){
     const cc=p.contract<=1?'var(--rd)':p.contract<=2?'var(--am)':'var(--wh)';
     const vc=p.value>=20000?'var(--gb)':p.value>=5000?'var(--am)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
-      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'contracts\',\''+p.pos+'\')" title="Filtruj '+(POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
+      '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'contracts\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;color:var(--wh)">'+fmt(p.salary||0)+'</td>'+
       '<td style="text-align:right;color:'+cc+'">'+t('squad_contract_seasons').replace('{n}',p.contract)+(p.contract<=1?' ⚠️':'')+'</td>'+

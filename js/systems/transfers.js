@@ -1,16 +1,17 @@
 const DEMAND_TYPES=[
-  {id:'salary',    icon:'[PLN]', label:'Pensja',      descFn:function(p,G2){const min=Math.round((p.salary*1.15)/50)*50;return{text:'Min '+fmt(min)+'/mc',met:(p._ofS||0)>=min};}},
-  {id:'contract',  icon:'[KNT]', label:'Kontrakt',    descFn:function(p,G2){const min=p.age<=25?3:2;return{text:'Min '+min+' sez.',met:(p._ofC||0)>=min};}},
-  {id:'starter',   icon:'[GRA]', label:'Czas gry',    descFn:function(p,G2){return{text:'Starter 60%+ mecz.',met:!!(p._ofSt)};}},
-  {id:'ambition',  icon:'[AMB]', label:'Ambicja',     descFn:function(p,G2){const need=Math.max(1,(G2.myLeague||8)-1);return{text:'Liga '+need+'+ w 2 sez.',met:(G2.myLeague||8)<=need+1};}},
-  {id:'develop',   icon:'[CEN]', label:'Centrum',     descFn:function(p,G2){return{text:'Centrum Szkoleniowe',met:!!(G2.trainingCenter&&G2.trainingCenter.level>0)};}},
-  {id:'reputation',icon:'[REP]', label:'Reputacja',   descFn:function(p,G2){return{text:'Rep '+p._repNeed+'+',met:(G2.reputation||30)>=(p._repNeed||50)};}},
+  {id:'salary',    icon:'[PLN]', labelKey:'tr_demand_salary_label',      descFn:function(p,G2){const min=Math.round((p.salary*1.15)/50)*50;return{text:t('tr_demand_salary_text').replace('{min}',fmt(min)),met:(p._ofS||0)>=min};}},
+  {id:'contract',  icon:'[KNT]', labelKey:'tr_demand_contract_label',    descFn:function(p,G2){const min=p.age<=25?3:2;return{text:t('tr_demand_contract_text').replace('{n}',min),met:(p._ofC||0)>=min};}},
+  {id:'starter',   icon:'[GRA]', labelKey:'tr_demand_starter_label',    descFn:function(p,G2){return{text:t('tr_demand_starter_text'),met:!!(p._ofSt)};}},
+  {id:'ambition',  icon:'[AMB]', labelKey:'tr_demand_ambition_label',     descFn:function(p,G2){const need=Math.max(1,(G2.myLeague||8)-1);return{text:t('tr_demand_ambition_text').replace('{n}',need),met:(G2.myLeague||8)<=need+1};}},
+  {id:'develop',   icon:'[CEN]', labelKey:'tr_demand_develop_label',     descFn:function(p,G2){return{text:t('tr_demand_develop_text'),met:!!(G2.trainingCenter&&G2.trainingCenter.level>0)};}},
+  {id:'reputation',icon:'[REP]', labelKey:'tr_demand_reputation_label',   descFn:function(p,G2){return{text:t('tr_demand_reputation_text').replace('{n}',p._repNeed),met:(G2.reputation||30)>=(p._repNeed||50)};}},
   // TOP4 nowe warunki
-  {id:'signing',   icon:'[SIG]', label:'Bonus podpisania', descFn:function(p,G2){const bon=Math.round(p.salary*2/500)*500;return{text:'Premia '+fmt(bon)+' zl przy podpisaniu',met:!!(p._ofSig),bonus:bon};}},
-  {id:'league_min',icon:'[LIG]', label:'Liga min.',   descFn:function(p,G2){const need=Math.max(1,(p._ligaNeed||Math.min(7,G2.myLeague||8)));return{text:'Min liga '+need+' (nie spasc ponizej)',met:(G2.myLeague||8)<=need};}},
-  {id:'bonus_perf',icon:'[BON]', label:'Premia wyniki',descFn:function(p,G2){const bon=Math.round(p.salary*0.5/50)*50;return{text:'Premia '+fmt(bon)+'/mc za awans/TOP3',met:!!(p._ofBonus),bonus:bon};}},
-  {id:'loyalty',   icon:'[LOY]', label:'Lojalnosc',   descFn:function(p,G2){return{text:'Gwarancja: nie sprzedawaj przez 2 sez.',met:!!(p._ofLoyalty)};}},
+  {id:'signing',   icon:'[SIG]', labelKey:'tr_demand_signing_label', descFn:function(p,G2){const bon=Math.round(p.salary*2/500)*500;return{text:t('tr_demand_signing_text').replace('{val}',fmt(bon)),met:!!(p._ofSig),bonus:bon};}},
+  {id:'league_min',icon:'[LIG]', labelKey:'tr_demand_league_min_label',   descFn:function(p,G2){const need=Math.max(1,(p._ligaNeed||Math.min(7,G2.myLeague||8)));return{text:t('tr_demand_league_min_text').replace('{n}',need),met:(G2.myLeague||8)<=need};}},
+  {id:'bonus_perf',icon:'[BON]', labelKey:'tr_demand_bonus_perf_label',descFn:function(p,G2){const bon=Math.round(p.salary*0.5/50)*50;return{text:t('tr_demand_bonus_perf_text').replace('{val}',fmt(bon)),met:!!(p._ofBonus),bonus:bon};}},
+  {id:'loyalty',   icon:'[LOY]', labelKey:'tr_demand_loyalty_label',   descFn:function(p,G2){return{text:t('tr_demand_loyalty_text'),met:!!(p._ofLoyalty)};}},
 ];
+DEMAND_TYPES.forEach(d=>Object.defineProperty(d,'label',{get(){return t(d.labelKey);},enumerable:true}));
 function genDemands(p){
   if(!p._repNeed)p._repNeed=Math.round((50+Math.random()*250)/50)*50;
   if(!p._ligaNeed)p._ligaNeed=Math.max(1,Math.min(7,(G&&G.myLeague)||8));
@@ -57,7 +58,7 @@ function demandsHtmlInteractive(p,o){
       chk='<input type="checkbox" '+checked+' data-f="'+field+'" onclick="toggleBuyOffer(this,this.dataset.f)" style="cursor:pointer;margin:0"> ';
     }
     return '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--gl);font-size:var(--fs-dense)">'+
-      '<span style="color:'+(met?'var(--gb)':'var(--rd)')+';">'+(met?'OK':'NIE')+'</span>'+
+      '<span style="color:'+(met?'var(--gb)':'var(--rd)')+';">'+(met?'OK':t('tr_demand_not_met'))+'</span>'+
       chk+
       '<span style="color:var(--gr)">'+dt.icon+' '+dt.label+':</span>'+
       '<span style="color:'+(met?'var(--gb)':'var(--wh)')+'">'+r2.text+'</span>'+
@@ -70,7 +71,7 @@ function demandsHtml(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty){
   if(!p.demands)return'';
   const res=getDemandResults(p,ofS,ofC,ofSt,ofSig,ofBonus,ofLoyalty);
   return res.map(r=>'<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:var(--fs-dense)">'+
-    '<span style="color:'+(r.met?'var(--gb)':'var(--rd)')+';">'+(r.met?'OK':'NIE')+'</span>'+
+    '<span style="color:'+(r.met?'var(--gb)':'var(--rd)')+';">'+(r.met?'OK':t('tr_demand_not_met'))+'</span>'+
     '<span style="color:var(--gr)">'+r.icon+' '+r.label+':</span>'+
     '<span style="color:'+(r.met?'var(--gb)':'var(--wh)')+'">'+r.text+'</span></div>').join('');
 }
@@ -121,7 +122,7 @@ function genTalent(){
   const lgs=(G.leagues||[]).flatMap(l=>l.clubs||[]);
   const nearClubs=lgs.filter(c=>c.id!==G.myClubId);
   const srcClub=nearClubs.length&&Math.random()<0.6?nearClubs[Math.floor(Math.random()*nearClubs.length)]:null;
-  p.prevClub=srcClub?srcClub.n:'Bez klubu (amator)';
+  p.prevClub=srcClub?srcClub.n:t('tr_fallback_no_club');
   p.prevLeague=srcClub?myLvl:0;
   p._isTalent=true;
   p._talentDecisionWeeks=2; // gracz ma 2 kolejki na decyzję
@@ -158,17 +159,18 @@ function getMarketClubName(lvl){
   if(candidates.length)return candidates[Math.floor(Math.random()*candidates.length)];
   // Fallback do ALL_CLUBS jeśli brak
   const ac=(ALL_CLUBS||[]).filter(c=>c.id!==G.myClubId);
-  return ac.length?ac[Math.floor(Math.random()*ac.length)].n:'Nieznany';
+  return ac.length?ac[Math.floor(Math.random()*ac.length)].n:t('tr_fallback_unknown_club');
 }
 const TRANSFER_REASONS=[
-  {id:'contract_end',label:'Wygasajacy kontrakt',priceMult:0.80,icon:'[WYG]'},
-  {id:'conflict',    label:'Konflikt z trenerem',priceMult:0.90,icon:'[KON]'},
-  {id:'wants_more',  label:'Chce wiecej grac',   priceMult:0.95,icon:'[CZG]'},
-  {id:'financial',   label:'Problemy finansowe', priceMult:0.75,icon:'[FIN]'},
-  {id:'overpriced',  label:'Ambitny transfer',   priceMult:1.20,icon:'[AMB]'},
-  {id:'surplus',     label:'Nadmiar na pozycji', priceMult:0.85,icon:'[NAD]'},
-  {id:'new_chapter', label:'Nowy rozdzial',      priceMult:1.00,icon:'[NOW]'},
+  {id:'contract_end',labelKey:'tr_reason_contract_end',priceMult:0.80,icon:'[WYG]'},
+  {id:'conflict',    labelKey:'tr_reason_conflict',priceMult:0.90,icon:'[KON]'},
+  {id:'wants_more',  labelKey:'tr_reason_wants_more',   priceMult:0.95,icon:'[CZG]'},
+  {id:'financial',   labelKey:'tr_reason_financial', priceMult:0.75,icon:'[FIN]'},
+  {id:'overpriced',  labelKey:'tr_reason_overpriced',   priceMult:1.20,icon:'[AMB]'},
+  {id:'surplus',     labelKey:'tr_reason_surplus', priceMult:0.85,icon:'[NAD]'},
+  {id:'new_chapter', labelKey:'tr_reason_new_chapter',      priceMult:1.00,icon:'[NOW]'},
 ];
+TRANSFER_REASONS.forEach(r=>Object.defineProperty(r,'label',{get(){return t(r.labelKey);},enumerable:true}));
 const LEAGUE_NAMES_TR=new Proxy({},{get(target,prop){return _leagueNamesMap()[prop];}});
 function genTransferContext(p,lvl){
   p.prevClub=getMarketClubName(lvl);
@@ -197,8 +199,8 @@ function genTransferContext(p,lvl){
 }
 function sectionBadge(p){
   const s=p.section||'sale';
-  if(s==='sale')return '<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">NA SPRZEDAZ</span>';
-  return '<span style="font-size:var(--fs-dense);color:var(--am);border:1px solid var(--am);padding:1px 4px">PLOTKA +'+(p.rumourWeeks||2)+' tyg.</span>';
+  if(s==='sale')return '<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">'+t('tr_badge_for_sale')+'</span>';
+  return '<span style="font-size:var(--fs-dense);color:var(--am);border:1px solid var(--am);padding:1px 4px">'+t('tr_badge_rumour').replace('{n}',p.rumourWeeks||2)+'</span>';
 }
 function lastSeasonHtml(p){
   if(!p.lastSeason)return'';const s=p.lastSeason;
@@ -383,18 +385,18 @@ function renderBuyTab(){
   const _f=G._trFilters;
   // Pozycja + sortowanie z toggle kierunku
   const _posOpts=['','GK','OBR','POL','NAP'];
-  const _posLbls={'':'Wszyscy','GK':'GK','OBR':'OBR','POL':'POL','NAP':'NAP'};
+  const _posLbls={'':t('tr_filter_all'),'GK':POS_SHORT.GK,'OBR':POS_SHORT.OBR,'POL':POS_SHORT.POL,'NAP':POS_SHORT.NAP};
   const _sortOpts=['ovr','age','price','demands'];
-  const _sortLbls={ovr:'OVR',age:'Wiek',price:'Cena',demands:'Zadania'};
+  const _sortLbls={ovr:'OVR',age:t('tr_sort_age'),price:t('tr_sort_price'),demands:t('tr_sort_demands')};
   const _arrow=_f.sortDir>0?'\u2193':'\u2191'; // ↓ lub ↑
   const _filterBar=
     '<div style="font-size:var(--fs-dense);margin-bottom:8px;border-bottom:1px solid var(--gl);padding-bottom:8px">'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin-bottom:5px">'+
-      '<span style="color:var(--gr);margin-right:2px">POZ:</span>'+
+      '<span style="color:var(--gr);margin-right:2px">'+t('tr_filter_pos_label')+'</span>'+
       _posOpts.map(v=>'<button data-key="pos" data-val="'+v+'" onclick="setTrFilter(this.dataset.key,this.dataset.val)" style="font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.pos===v?'var(--am)':'var(--gl)')+';background:'+(_f.pos===v?'var(--am)':'var(--tb)')+';color:'+(_f.pos===v?'#000':'var(--gr)')+';cursor:pointer">'+(_posLbls[v]||v)+'</button>').join('')+
     '</div>'+
     '<div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">'+
-      '<span style="color:var(--gr);margin-right:2px">SORTUJ:</span>'+
+      '<span style="color:var(--gr);margin-right:2px">'+t('tr_sort_label')+'</span>'+
       _sortOpts.map(v=>'<button data-val="'+v+'" onclick="toggleTrSort(this.dataset.val)" style="font-size:var(--fs-dense);padding:1px 7px;border:1px solid '+(_f.sortBy===v?'var(--gb)':'var(--gl)')+';background:'+(_f.sortBy===v?'var(--gm)':'var(--tb)')+';color:'+(_f.sortBy===v?'var(--gb)':'var(--gr)')+';cursor:pointer">'+(_sortLbls[v]||v)+(_f.sortBy===v?' '+_arrow:'')+  '</button>').join('')+
     '</div>'+
     '</div>';
@@ -436,52 +438,52 @@ function renderBuyTab(){
     const showSal=_isObs?fmt(p.salary):'~'+fmt(Math.round(p.salary*(0.85+Math.random()*0.30)/50)*50);
     return '<div class="tcard" style="margin-bottom:8px;border-left:3px solid '+bdr+'">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'+
-        (p._dedicated?'<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 4px">PASUJE DO SKLADU (Twoj '+POS_SHORT[p.pos]+' sr.OVR '+p._weakOvr+')</span>':
-         p._premium?'<span style="font-size:var(--fs-dense);color:#ffd700;border:1px solid #ffd700;padding:1px 4px">PREMIUM — raz na sezon</span>':
-         p._timed?'<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">WYGASA ZA 1 TYG.</span>':
+        (p._dedicated?'<span style="font-size:var(--fs-dense);color:var(--gb);border:1px solid var(--gb);padding:1px 4px">'+t('tr_badge_fits_squad').replace('{pos}',POS_SHORT[p.pos]).replace('{n}',p._weakOvr)+'</span>':
+         p._premium?'<span style="font-size:var(--fs-dense);color:#ffd700;border:1px solid #ffd700;padding:1px 4px">'+t('tr_badge_premium')+'</span>':
+         p._timed?'<span style="font-size:var(--fs-dense);color:var(--rd);border:1px solid var(--rd);padding:1px 4px">'+t('tr_badge_expires')+'</span>':
          sectionBadge(p))+
-        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-size:var(--fs-dense);color:var(--am)">OSTATNIA SZANSA</span>':'')+
+        (p._deadline&&!p._timed&&!p._dedicated&&!p._premium?'<span style="font-size:var(--fs-dense);color:var(--am)">'+t('tr_badge_last_chance')+'</span>':'')+
         (p.prevClub?(p._fromClubId?'<span style="font-size:var(--fs-dense);color:var(--am);cursor:pointer;text-decoration:underline" onclick="openClubModal('+p._fromClubId+')">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>':'<span style="font-size:var(--fs-dense);color:var(--gr)">'+p.prevClub+' • '+(LEAGUE_NAMES_TR[p.prevLeague]||t('league_fallback'))+'</span>'):'')+
       '</div>'+
       '<div style="flex:1">'+
         '<div style="display:flex;align-items:center;gap:6px">'+
           '<span class="tr-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;line-height:0;flex-shrink:0"></span>'+
           '<div class="tname">'+p.name+'</div>'+
-          (_isObs?'<span style="font-size:var(--fs-dense);color:var(--gb)">✔ obserwowany</span>':'') +
-          (_isWatching?'<span style="font-size:var(--fs-dense);color:var(--am)">[w obs.]</span>':'')+
+          (_isObs?'<span style="font-size:var(--fs-dense);color:var(--gb)">'+t('tr_watched_badge')+'</span>':'') +
+          (_isWatching?'<span style="font-size:var(--fs-dense);color:var(--am)">'+t('tr_watching_badge')+'</span>':'')+
           (p._hot?'<span style="font-size:var(--fs-dense);color:var(--gb)">[HOT]</span>':'')+
         '</div>'+
-        '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • <span style="color:'+col+'">'+_ovrLabel+'</span> • Pot: '+(_isObs?p.potential:(_showPot!=null?'~'+_showPot:'???'))+'</div>'+
+        '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • <span style="color:'+col+'">'+_ovrLabel+'</span> • '+t('tr_pot_label')+' '+(_isObs?p.potential:(_showPot!=null?'~'+_showPot:'???'))+'</div>'+
         '<div style="display:flex;gap:8px;margin-top:2px">'+lastSeasonHtml(p)+'&nbsp;'+transferReasonHtml(p)+'</div>'+
-        '<div class="tdet" style="color:var(--gr)">Wartość: '+fmtVal(calcValueDynamic(p))+(p._hot?' [HOT +20%]':'')+'</div>'+
-        (isRum?'<div class="tdet" style="color:var(--am)">Dostepny za '+(p.rumourWeeks||1)+' tyg.</div>':
-          '<div class="tdet" style="color:var(--am)">Cena: <b>'+showPrice+'</b> • Pensja: '+showSal+'/mc</div>')+
+        '<div class="tdet" style="color:var(--gr)">'+t('tr_value_label')+fmtVal(calcValueDynamic(p))+(p._hot?' [HOT +20%]':'')+'</div>'+
+        (isRum?'<div class="tdet" style="color:var(--am)">'+t('tr_available_in').replace('{n}',p.rumourWeeks||1)+'</div>':
+          '<div class="tdet" style="color:var(--am)">'+t('tr_price_salary_line').replace('{price}','<b>'+showPrice+'</b>').replace('{sal}',showSal)+'</div>')+
         '<div>'+getDemandPreview(p)+'</div>'+
       '</div>'+
       '<div style="text-align:right;margin-left:8px">'+
-        (isRum?'<div style="font-size:var(--fs-dense);color:var(--am)">wkrotce</div>':
+        (isRum?'<div style="font-size:var(--fs-dense);color:var(--am)">'+t('tr_soon')+'</div>':
           '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">'+
             '<button class="btn-buy" onclick="buyTransfer('+p.id+')" '+(_windowClosed||bought>=3?'disabled style="opacity:0.4"':'')+'>'+(_windowClosed?t('tr_window_closed_short'):t('tr_btn_buy_short'))+'</button>'+
-            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">OBSERWUJ</button>':'')+
+            (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">'+t('tr_watch_btn')+'</button>':'')+
           '</div>')+
       '</div></div>';
   }
   const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
-    '🔒 Okno zamknięte — <span style="color:var(--wh)">'+tw.next+'</span>'+(tw.eta?' za <span style="color:var(--am)">'+tw.eta+' kol.</span>':'')+
-    ' | Możesz obserwować zawodników skautem</div>':'';
-  el.innerHTML=_closedBanner+_filterBar+'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?'Kupiono: <span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'/3</span> w tym oknie':'Przeglądasz rynek — kupno zablokowane')+'</div>'+
-    _sh('NA SPRZEDAZ',_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
-    _sh('PLOTKI',_rum.length,'var(--am)')+_rum.map(p=>_tcard(p,bought)).join('')+
-    (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:var(--fs-dense)">Brak zawodnikow</div>':'')+
+    t('tr_window_closed_prefix')+'<span style="color:var(--wh)">'+tw.next+'</span>'+(tw.eta?t('tr_window_closed_eta').replace('{n}',tw.eta):'')+
+    t('tr_window_closed_suffix')+'</div>':'';
+  el.innerHTML=_closedBanner+_filterBar+'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?t('tr_bought_count').replace('{n}','<span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'</span>'):t('tr_browsing_locked'))+'</div>'+
+    _sh(t('tr_badge_for_sale'),_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
+    _sh(t('tr_section_rumours'),_rum.length,'var(--am)')+_rum.map(p=>_tcard(p,bought)).join('')+
+    (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('tr_no_players')+'</div>':'')+
     '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-size:var(--fs-dense);color:var(--gr)">'+
-      '<div style="color:var(--am);margin-bottom:5px">LEGENDA</div>'+
+      '<div style="color:var(--am);margin-bottom:5px">'+t('tr_legend_title')+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:3px">'+
-        '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--rd);flex-shrink:0"></span>NA SPRZEDAZ — wystawiony przez klub AI</div>'+
-        '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--am);flex-shrink:0"></span>PLOTKA — dostepny za kilka tygodni</div>'+
-        '<div style="margin-top:3px">Poprz.sez: M=mecze G=gole A=asysty CS=czyste konta (GK)</div>'+
-        '<div>[WYG]=wygasajacy kontrakt [KON]=konflikt z trenerem [FIN]=problemy finansowe</div>'+
-        '<div>[AMB]=ambitny transfer [NAD]=nadmiar [CZG]=chce grac [NOW]=nowy rozdzial</div>'+
-        '<div style="margin-top:3px">Oczekiwania: 0/3=odmowa 1/3=niezadow. 2/3=neutralny 3/3=zmotywowany</div>'+
+        '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--rd);flex-shrink:0"></span>'+t('tr_legend_for_sale')+'</div>'+
+        '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:12px;border-left:3px solid var(--am);flex-shrink:0"></span>'+t('tr_legend_rumour')+'</div>'+
+        '<div style="margin-top:3px">'+t('tr_legend_stats')+'</div>'+
+        '<div>'+t('tr_legend_reasons1')+'</div>'+
+        '<div>'+t('tr_legend_reasons2')+'</div>'+
+        '<div style="margin-top:3px">'+t('tr_legend_demands')+'</div>'+
       '</div>'+
     '</div>';
   if(typeof pxFace==='function'){el.querySelectorAll('.tr-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),2));}});}
@@ -493,36 +495,36 @@ function renderSellTab(){
   // Oferty AI za wystawionych zawodników
   let offerHtml='';
   if(G.pendingOffers&&G.pendingOffers.length){
-    offerHtml='<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">📨 OFERTY AI</div>'+
+    offerHtml='<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px;border-bottom:1px solid var(--gl);padding-bottom:4px">'+t('tr_offers_ai_title')+'</div>'+
     G.pendingOffers.map(o=>{
       const p=G.players.find(x=>x.id===o.pid);if(!p)return'';
       return '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px 10px;margin-bottom:6px;font-size:var(--fs-dense)">'+
-        '<div style="color:var(--wh)">'+o.clubName+' oferuje <b style="color:var(--am)">'+fmtVal(o.price)+'</b> za '+p.name+'</div>'+
-        '<div style="color:var(--gr);margin-top:2px">Wartość: '+fmtVal(p.value)+' • Oferta: '+(Math.round(o.price/p.value*100))+'%</div>'+
+        '<div style="color:var(--wh)">'+t('tr_offer_line').replace('{club}',o.clubName).replace('{price}','<b style="color:var(--am)">'+fmtVal(o.price)+'</b>').replace('{name}',p.name)+'</div>'+
+        '<div style="color:var(--gr);margin-top:2px">'+t('tr_offer_value_line').replace('{value}',fmtVal(p.value)).replace('{pct}',Math.round(o.price/p.value*100))+'</div>'+
         '<div style="display:flex;gap:6px;margin-top:6px">'+
-          '<button class="btn-buy" style="background:var(--gb);flex:1" onclick="acceptOffer('+o.pid+')">PRZYJMIJ</button>'+
-          '<button class="btn-buy" style="background:#3d0000;border:1px solid var(--rd);color:var(--rd);flex:1" onclick="rejectOffer('+o.pid+')">ODRZUĆ</button>'+
+          '<button class="btn-buy" style="background:var(--gb);flex:1" onclick="acceptOffer('+o.pid+')">'+t('tr_accept_btn')+'</button>'+
+          '<button class="btn-buy" style="background:#3d0000;border:1px solid var(--rd);color:var(--rd);flex:1" onclick="rejectOffer('+o.pid+')">'+t('tr_reject_btn')+'</button>'+
         '</div></div>';
     }).join('')+'<hr style="border-color:var(--gl);margin:8px 0">';
   }
   if(!tw.open){
-    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-size:var(--fs-dense);color:var(--gr)">🔒 Wystawianie na sprzedaż dostępne w oknie transferowym</div>'+
-      '<div style="margin-top:12px;font-size:var(--fs-dense);color:var(--gb)">MÓJ SKŁAD</div>'+
-      myPl().map(p=>'<div class="tcard" style="margin-top:4px"><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+' • '+fmtVal(p.value)+'</div></div>').join('');
+    el.innerHTML=offerHtml+'<div style="background:var(--tb);border:1px solid var(--gl);padding:12px;text-align:center;font-size:var(--fs-dense);color:var(--gr)">'+t('tr_sell_window_closed')+'</div>'+
+      '<div style="margin-top:12px;font-size:var(--fs-dense);color:var(--gb)">'+t('tr_my_squad_title')+'</div>'+
+      myPl().map(p=>'<div class="tcard" style="margin-top:4px"><div class="tname">'+p.name+'</div><div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • OVR '+ovr(p)+' • '+fmtVal(p.value)+'</div></div>').join('');
     return;
   }
   const tw2=isTransferWindow();
   const sold2=G.trSoldThisWindow||0;
   el.innerHTML=offerHtml+
     '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+
-      (tw2.open?'🟢 Okno '+tw2.type+' • cena 70–100% wartości':'🔴 Okno zamknięte • cena 50–75% wartości')+
-      (tw2.open?' • Sprzedano: <span style="color:'+(sold2>=3?'var(--rd)':'var(--am)')+'">'+sold2+'/3</span>':'')+
+      (tw2.open?t('tr_sell_window_open').replace('{type}',tw2.type==='LETNIE'?t('window_summer'):t('window_winter')):t('tr_sell_window_closed_price'))+
+      (tw2.open?t('tr_sold_count').replace('{n}','<span style="color:'+(sold2>=3?'var(--rd)':'var(--am)')+'">'+sold2+'</span>'):'')+
     '</div>'+
     myPl().sort((a,b)=>ovr(b)-ovr(a)).map(p=>{
       return '<div class="tcard" style="margin-bottom:4px">'+
         '<div style="flex:1"><div class="tname">'+p.name+'</div>'+
-        '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+'</div>'+
-        '<div class="tdet" style="color:var(--gr)">Wartość rynkowa: '+fmtVal(p.value)+'</div></div>'+
+        '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • OVR '+ovr(p)+'</div>'+
+        '<div class="tdet" style="color:var(--gr)">'+t('tr_market_value_label')+fmtVal(p.value)+'</div></div>'+
         '<button class="btn-buy" style="background:var(--rd);color:#fff" onclick="openSellModal('+p.id+')">'+t('tr_btn_sell')+'</button></div>';
     }).join('');
 }
@@ -532,8 +534,8 @@ function renderHistoriaTab(){
   const wydano=hist.filter(t=>t.type==='buy').reduce((s,t)=>s+t.val,0);
   const zarobiono=hist.filter(t=>t.type==='sell').reduce((s,t)=>s+t.val,0);
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">WYDANO</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">ZAROBIONO</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">'+t('tr_spent_label')+'</div><div style="color:var(--rd)">'+fmtVal(wydano)+'</div></div>'+
+    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;font-size:var(--fs-dense)"><div style="color:var(--gr)">'+t('tr_earned_label')+'</div><div style="color:var(--gb)">'+fmtVal(zarobiono)+'</div></div>'+
   '</div>'+
   (hist.length?hist.slice().reverse().map(tr=>
     '<div style="border-bottom:1px solid var(--gm);padding:6px 0;font-size:var(--fs-dense)">'+
@@ -543,7 +545,7 @@ function renderHistoriaTab(){
       (tr.club?' <span style="color:var(--gr)">← '+tr.club+'</span>':'')+
       ' <span style="color:var(--gr)">S'+tr.season+' T'+tr.week+'</span>'+
     '</div>'
-  ).join(''):'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px 0">Brak transakcji</div>');
+  ).join(''):'<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px 0">'+t('tr_no_transactions')+'</div>');
 }
 // ── ANALITYKA TRANSFEROWA ─────────────────────────────────────────────────
 let _analSubTab='rankingi';
@@ -557,8 +559,8 @@ function renderAnalitykaTab(){
   const el=document.getElementById('tr-analityka');if(!el||!G)return;
   el.innerHTML=
     '<div style="display:flex;border-bottom:2px solid var(--gl)">'+
-      '<button class="anal-tab-btn sq-tab2-btn on" onclick="analTab(\'rankingi\',this)">RANKINGI</button>'+
-      '<button class="anal-tab-btn sq-tab2-btn" onclick="analTab(\'statystyki\',this)">STATYSTYKI</button>'+
+      '<button class="anal-tab-btn sq-tab2-btn on" onclick="analTab(\'rankingi\',this)">'+t('tr_anal_tab_rankings')+'</button>'+
+      '<button class="anal-tab-btn sq-tab2-btn" onclick="analTab(\'statystyki\',this)">'+t('tr_anal_tab_stats')+'</button>'+
     '</div>'+
     '<div id="anal-content" style="padding:10px 12px;overflow-y:auto"></div>';
   renderAnalitykaContent();
@@ -594,11 +596,11 @@ function renderAnalitykaContent(){
   function fv(v){if(!v&&v!==0)return'—';if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return Math.round(v/1000)+'K';return v+'';}
 
   if(_analSubTab==='rankingi'){
-    if(!paired.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">Brak zakończonych transferów do analizy.</div>';return;}
+    if(!paired.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">'+t('tr_anal_no_completed')+'</div>';return;}
     const best=byRoi.slice(0,3);
     const worst=[...byRoi].reverse().slice(0,Math.min(2,byRoi.length));
     const medals=['🥇','🥈','🥉'];
-    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">🏆 NAJLEPSZE TRANSFERY</div>';
+    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">'+t('tr_anal_best_title')+'</div>';
     h+=best.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
@@ -611,14 +613,14 @@ function renderAnalitykaContent(){
         '</div>'+
         '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+(t.isAcad?' 🌱':'')+'</span>'+
-          '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+' zł</span>'+
+          '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+(LANG==='pl'?' zł':'')+'</span>'+
         '</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+
-          (t.buyPrice===0?'gratis':fv(t.buyPrice))+' → '+fv(t.sellPrice)+
+          (t.buyPrice===0?t('tr_anal_free'):fv(t.buyPrice))+' → '+fv(t.sellPrice)+
         '</div>'+
       '</div>';
     }).join('');
-    h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--rd);margin:12px 0 8px;letter-spacing:1px">💀 NAJGORSZE TRANSFERY</div>';
+    h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--rd);margin:12px 0 8px;letter-spacing:1px">'+t('tr_anal_worst_title')+'</div>';
     h+=worst.map((t,i)=>{
       const r=roiCalc(t.buyPrice,t.sellPrice);
       const profit=t.sellPrice-t.buyPrice;
@@ -629,13 +631,13 @@ function renderAnalitykaContent(){
         '</div>'+
         '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+'</span>'+
-          '<span style="color:var(--rd)">'+fv(profit)+' zł</span>'+
+          '<span style="color:var(--rd)">'+fv(profit)+(LANG==='pl'?' zł':'')+'</span>'+
         '</div>'+
       '</div>';
     }).join('');
     // Bar chart bilans per sezon
     if(seasons.length){
-      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:12px 0 8px;letter-spacing:1px">📈 BILANS NETTO PER SEZON</div>';
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:12px 0 8px;letter-spacing:1px">'+t('tr_anal_season_net_title')+'</div>';
       const seasonNets=seasons.map(s=>{
         const nb=buys.filter(b=>b.season===s).reduce((x,b)=>x+b.val,0);
         const ns=sells.filter(sl=>sl.season===s).reduce((x,sl)=>x+sl.val,0);
@@ -647,7 +649,7 @@ function renderAnalitykaContent(){
         const col=x.net>=0?'var(--gb)':'var(--rd)';
         return '<div style="margin-bottom:9px">'+
           '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:3px">'+
-            '<span style="color:var(--gr)">SEZON '+x.s+'</span>'+
+            '<span style="color:var(--gr)">'+t('tr_anal_season_label').replace('{n}',x.s)+'</span>'+
             '<span style="font-weight:700;font-size:var(--fs-h3);color:'+col+'">'+(x.net>=0?'+':'')+fv(x.net)+'</span>'+
           '</div>'+
           '<div style="height:10px;background:#000;border:1px solid var(--gl)">'+
@@ -660,13 +662,13 @@ function renderAnalitykaContent(){
 
   } else {
     // ── STATYSTYKI ──
-    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">KLUCZOWE WSKAŹNIKI</div>';
+    let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">'+t('tr_anal_key_metrics')+'</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
       [
-        {icon:'💰',lbl:'Bilans netto',val:(totalNet>=0?'+':'')+fv(totalNet)+' zł',col:totalNet>=0?'var(--gb)':'var(--rd)'},
-        {icon:'📊',lbl:'Śr. zysk/tr.',val:(avgProfit>=0?'+':'')+fv(avgProfit),col:avgProfit>=0?'var(--gb)':'var(--rd)'},
-        {icon:'🎂',lbl:'Śr. wiek kupow.',val:avgBuyAge+' lat',col:'var(--am)'},
-        {icon:'🌱',lbl:'Wychowankowie',val:acadsSprzedani+' sprzed.',col:'var(--gb)'},
+        {icon:'💰',lbl:t('tr_anal_net_balance'),val:(totalNet>=0?'+':'')+fv(totalNet)+(LANG==='pl'?' zł':''),col:totalNet>=0?'var(--gb)':'var(--rd)'},
+        {icon:'📊',lbl:t('tr_anal_avg_profit'),val:(avgProfit>=0?'+':'')+fv(avgProfit),col:avgProfit>=0?'var(--gb)':'var(--rd)'},
+        {icon:'🎂',lbl:t('tr_anal_avg_buy_age'),val:avgBuyAge+t('tr_years_suffix'),col:'var(--am)'},
+        {icon:'🌱',lbl:t('tr_anal_academy_grads'),val:acadsSprzedani+t('tr_anal_sold_suffix'),col:'var(--gb)'},
       ].map(b=>
         '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px;text-align:center">'+
           '<div style="font-size:var(--fs-display);margin-bottom:4px">'+b.icon+'</div>'+
@@ -677,13 +679,13 @@ function renderAnalitykaContent(){
     '</div>';
     // ROI per zawodnik
     if(byRoi.length){
-      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">ROI% PER ZAWODNIK</div>';
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">'+t('tr_anal_roi_title')+'</div>';
       h+='<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense);margin-bottom:12px">'+
         '<thead><tr style="border-bottom:1px solid var(--gl)">'+
-          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">ZAWODNIK</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">KUPNO</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">SPRZED.</th>'+
-          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">ROI</th>'+
+          '<th style="text-align:left;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">'+t('tr_anal_col_player')+'</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">'+t('tr_anal_col_bought')+'</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">'+t('tr_anal_col_sold')+'</th>'+
+          '<th style="text-align:right;padding:5px 4px;color:var(--am);font-weight:700;font-size:var(--fs-h3)">'+t('tr_anal_col_roi')+'</th>'+
         '</tr></thead><tbody>'+
         byRoi.map(t=>{
           const r=roiCalc(t.buyPrice,t.sellPrice);
@@ -704,24 +706,24 @@ function renderAnalitykaContent(){
       posG[t.pos].count++;posG[t.pos].net+=t.sellPrice-t.buyPrice;
     });
     if(Object.keys(posG).length){
-      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">BILANS WG POZYCJI</div>';
+      h+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">'+t('tr_anal_by_position')+'</div>';
       h+=Object.entries(posG).map(([pos,d])=>{
         const avg=Math.round(d.net/d.count);
         const posColors={NAP:'var(--rd)',POL:'var(--am)',OBR:'var(--gb)',GK:'#64b5f6'};
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 6px;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)">'+
           '<span><span style="background:'+(posColors[pos]||'var(--gr)')+';color:#000;padding:1px 5px;margin-right:6px">'+pos+'</span>'+
           '<span style="color:var(--gr)">×'+d.count+'</span></span>'+
-          '<span style="color:'+(avg>=0?'var(--gb)':'var(--rd)')+'">śr. '+(avg>=0?'+':'')+fv(avg)+' / tr.</span>'+
+          '<span style="color:'+(avg>=0?'var(--gb)':'var(--rd)')+'">'+t('tr_anal_avg_per_transfer').replace('{val}',(avg>=0?'+':'')+fv(avg))+'</span>'+
         '</div>';
       }).join('');
     }
     // Ocena dyrektora
     h+='<div style="margin-top:14px;background:#0d1f0d;border:1px solid var(--am);padding:10px 12px">'+
-      '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">🏅 OCENA DYREKTORA SPORTOWEGO</div>'+
+      '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">'+t('tr_anal_director_title')+'</div>'+
       '<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.6">'+
-        (paired.length===0?'Brak zakończonych transferów.':
-          totalNet>0?'Bilans na plusie (+'+fv(totalNet)+' zł). Niezłe oko do talentów!':
-          'Bilans na minusie. Czas na lepsze zakupy.')+
+        (paired.length===0?t('tr_anal_director_none'):
+          totalNet>0?t('tr_anal_director_positive').replace('{val}',fv(totalNet)+(LANG==='pl'?' zł':'')):
+          t('tr_anal_director_negative'))+
       '</div>'+
     '</div>';
     el.innerHTML=h;
@@ -733,8 +735,8 @@ function buyTransfer(id){
   if(!G)return;
   const p=(G.transferMarket||[]).find(x=>String(x.id)===String(id));
   if(!p)return;
-  if((G.trBoughtThisWindow||0)>=3){notif('Limit 3 zakupów w oknie!','err');return;}
-  if(G.budget<p.transferPrice){notif('Za mało pieniędzy!','err');return;}
+  if((G.trBoughtThisWindow||0)>=3){notif(t('tr_notif_limit3'),'err');return;}
+  if(G.budget<p.transferPrice){notif(t('tr_notif_no_money'),'err');return;}
   if(!p.demands)genDemands(p);
   buyId=id;
   _buyOffer={salary:Math.round(p.salary*1.15/50)*50,contract:2,starter:false,signing:false,bonus:false,loyalty:false};
@@ -746,7 +748,7 @@ function renderBuyModal(p){
   const o=_buyOffer;
   const met=demandsMetCount(p,o.salary,o.contract,o.starter,o.signing,o.bonus,o.loyalty);
   const metCol=met>=3?'var(--gb)':met>=2?'var(--am)':'var(--rd)';
-  const metLbl=met>=3?'Zmotywowany':met>=2?'Neutralny':met===1?'Niezadowolony':'Odmowa';
+  const metLbl=met>=3?t('tr_met_motivated'):met>=2?t('tr_met_neutral'):met===1?t('tr_met_unhappy'):t('tr_met_refuse');
   // OVR z niepewnością — taka sama logika jak na karcie zawodnika
   const _isObs=!!(p._observed||(G&&G.scout&&(G.scout.observed||[]).find(x=>x.id===p.id)));
   const _rawOvr=ovr(p);
@@ -757,29 +759,29 @@ function renderBuyModal(p){
   const _ovrLabel=_isObs?('OVR '+_rawOvr):('OVR ~'+_showOvr+' ±'+_err.max);
   mt.innerHTML=
     '<div style="">'+
-    '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:4px">'+p.name+' ('+POS_SHORT[p.pos]+', '+p.age+'l, '+_ovrLabel+')</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:4px">'+p.name+' ('+POS_SHORT[p.pos]+', '+p.age+t('tr_age_suffix')+', '+_ovrLabel+')</div>'+
     (function(){
       const _bon=o.signing&&p.demands&&p.demands.includes('signing')?Math.round(Math.max(p.salary,o.salary||p.salary)*2/500)*500:0;
       const _total=p.transferPrice+_bon;
-      return '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">Cena zakupu: <b style="color:var(--am)">'+fmt(p.transferPrice)+'</b></div>'+
-        (_bon>0?'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">Bonus podpisania: <b style="color:var(--rd)">'+fmtVal(_bon)+'</b></div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;border-top:1px solid var(--gl);padding-top:4px">ŁĄCZNY KOSZT: <b style="color:var(--rd)">'+fmtVal(_total)+'</b></div>'
+      return '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">'+t('tr_buy_price_label')+'<b style="color:var(--am)">'+fmt(p.transferPrice)+'</b></div>'+
+        (_bon>0?'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">'+t('tr_signing_bonus_label')+'<b style="color:var(--rd)">'+fmtVal(_bon)+'</b></div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;border-top:1px solid var(--gl);padding-top:4px">'+t('tr_total_cost_label')+'<b style="color:var(--rd)">'+fmtVal(_total)+'</b></div>'
         :'<div style="margin-bottom:8px"></div>');
     })()+
     '<div style="border:1px solid var(--gl);padding:8px;margin-bottom:8px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">OCZEKIWANIA ZAWODNIKA ('+met+'/3)</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">'+t('tr_player_demands_title').replace('{n}',met)+'</div>'+
       demandsHtmlInteractive(p,o)+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;font-size:var(--fs-dense)">'+
       '<div style="border:1px solid var(--gl);padding:6px">'+
-        '<div style="color:var(--gr);margin-bottom:3px">Pensja /mc</div>'+
+        '<div style="color:var(--gr);margin-bottom:3px">'+t('tr_salary_month_label')+'</div>'+
         '<div style="display:flex;gap:3px">'+
           '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="-500" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-sal" style="color:var(--am);flex:1;text-align:center">'+fmt(o.salary)+'</span>'+
           '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="salary" data-v="500" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">+</button>'+
         '</div></div>'+
       '<div style="border:1px solid var(--gl);padding:6px">'+
-        '<div style="color:var(--gr);margin-bottom:3px">Kontrakt (sez.)</div>'+
+        '<div style="color:var(--gr);margin-bottom:3px">'+t('tr_contract_seasons_label')+'</div>'+
         '<div style="display:flex;gap:3px">'+
           '<button onclick="adjOffer(this.dataset.f,+this.dataset.v)" data-f="contract" data-v="-1" style="background:var(--gm);border:none;color:var(--wh);font-size:var(--fs-dense);padding:2px 6px;cursor:pointer">-</button>'+
           '<span id="o-con" style="color:var(--am);flex:1;text-align:center">'+o.contract+'</span>'+
@@ -788,7 +790,7 @@ function renderBuyModal(p){
     '</div>'+
 
     '<div style="border:1px solid '+metCol+';padding:6px;font-size:var(--fs-dense);color:'+metCol+'">'+
-      'Wynik: <b>'+met+'/3</b> — '+metLbl+
+      t('tr_result_label').replace('{n}','<b>'+met+'</b>').replace('{label}',metLbl)+
     '</div>'+
     '</div>';
 }
@@ -810,9 +812,9 @@ function doBuy(){
   // Sprawdz demands
   const o=_buyOffer;
   const _sigBon=o.signing&&p.demands&&p.demands.includes('signing')?Math.round(Math.max(p.salary,o.salary||p.salary)*2/500)*500:0;
-  if(G.budget<p.transferPrice+_sigBon){notif('Za mało pieniędzy! Potrzebujesz '+fmtVal(p.transferPrice+_sigBon)+' (cena + bonus podpisania).','err');closeModal('m-buy');return;}
+  if(G.budget<p.transferPrice+_sigBon){notif(t('tr_notif_no_money_total').replace('{val}',fmtVal(p.transferPrice+_sigBon)),'err');closeModal('m-buy');return;}
   const met=demandsMetCount(p,o.salary,o.contract,o.starter);
-  if(met<=0){notif('Zawodnik odmawia! Zmień ofertę.','err');return;}
+  if(met<=0){notif(t('tr_notif_refuses'),'err');return;}
   if(p.transferPrice>0)G.budget-=p.transferPrice;
   p.clubId=G.myClubId;
   p.contract=o.contract||2;
@@ -829,7 +831,7 @@ function doBuy(){
   if(o.signing&&p.demands&&p.demands.includes('signing')){
     const bon=_sigBon||Math.round(p.salary*2/500)*500;
     G.budget-=bon;
-    G.fin.hist.push({w:G.week,inc:0,cost:bon,bal:G.budget,season:G.season,note:'Bonus podpisania: '+p.name});
+    G.fin.hist.push({w:G.week,inc:0,cost:bon,bal:G.budget,season:G.season,note:t('tr_note_signing_bonus').replace('{name}',p.name)});
     addNews(t('news_signing_bonus').replace('{name}',p.name).replace('{val}',fmtVal(bon)),'err');
   }
   // Loyalty — zapisz gwarancję
@@ -893,7 +895,7 @@ function doBuy(){
     }
   }
   closeModal('m-buy');fillTransfers();updateHdr();
-  notif(p.name+' w klubie za '+fmtVal(p.transferPrice)+'!','ok');
+  notif(t('tr_notif_bought').replace('{name}',p.name).replace('{val}',fmtVal(p.transferPrice)),'ok');
   addNews(t('news_tr_bought').replace('{name}',p.name).replace('{val}',fmtVal(p.transferPrice)).replace('{n}',p.contract),'ok');
 }
 function toggleListed(id){
@@ -902,18 +904,18 @@ function toggleListed(id){
   if(G.listedPlayers.includes(id)){
     G.listedPlayers=G.listedPlayers.filter(x=>x!==id);
   } else {
-    if(G.listedPlayers.length>=3){notif('Max 3 zawodników na sprzedaż!','err');return;}
+    if(G.listedPlayers.length>=3){notif(t('tr_notif_max_sell'),'err');return;}
     // v212: Więź z Klubem — ostrzeżenie przy wystawieniu
     const _lp=G.players.find(x=>x.id===id);
     if(_lp){
       const _bond=getBondLevel(_lp);
       if(_bond&&_bond.level>=2){
-        notif(_bond.icon+' '+_lp.name+' jest '+_bond.name+' ('+_bond.seasons+' sez.). Szatnia może to odczuć!','');
+        notif(t('tr_notif_bond_warn').replace('{icon}',_bond.icon).replace('{name}',_lp.name).replace('{bond}',_bond.name).replace('{n}',_bond.seasons),'');
       } else {
-        notif('Zawodnik wystawiony — AI złoży ofertę w ciągu 1 tygodnia','ok');
+        notif(t('tr_notif_listed'),'ok');
       }
     } else {
-      notif('Zawodnik wystawiony — AI złoży ofertę w ciągu 1 tygodnia','ok');
+      notif(t('tr_notif_listed'),'ok');
     }
     G.listedPlayers.push(id);
   }
@@ -922,8 +924,8 @@ function toggleListed(id){
 function acceptOffer(pid){
   if(!G||!G.pendingOffers)return;
   const o=G.pendingOffers.find(x=>x.pid===pid);if(!o)return;
-  const p=G.players.find(x=>x.id===pid);if(!p){G.pendingOffers=G.pendingOffers.filter(x=>x.pid!==pid);notif('Zawodnik już sprzedany!','err');renderSellTab();return;}
-  if(p.clubId!==G.myClubId){G.pendingOffers=G.pendingOffers.filter(x=>x.pid!==pid);notif('Zawodnik już nie jest w Twoim klubie!','err');renderSellTab();return;}
+  const p=G.players.find(x=>x.id===pid);if(!p){G.pendingOffers=G.pendingOffers.filter(x=>x.pid!==pid);notif(t('tr_notif_already_sold'),'err');renderSellTab();return;}
+  if(p.clubId!==G.myClubId){G.pendingOffers=G.pendingOffers.filter(x=>x.pid!==pid);notif(t('tr_notif_not_in_club'),'err');renderSellTab();return;}
   G.budget+=o.price;
   // Zapisz transfer w ostatnim wpisie historii
   if(!p.history)p.history=[];
@@ -948,17 +950,17 @@ function acceptOffer(pid){
     if(!G.academy.hist)G.academy.hist=[];
     var _ahSell=G.academy.hist.find(function(h){return h.pid===p.id;});
     var _peakOvr8=Math.max.apply(null,(p.history||[]).map(function(h){return h.ovr||0;}).concat([ovr(p)]));
-    if(_ahSell){_ahSell.soldTo=o.clubName;_ahSell.fee=o.price;_ahSell.soldAge=p.age;_ahSell.peakOvr=_peakOvr8;_ahSell.action='Sprzedany do '+o.clubName;}
-    else{G.academy.hist.push({pid:p.id,season:G.season,name:p.name,pos:POS_SHORT[p.pos]||p.pos,action:'Sprzedany do '+o.clubName,soldTo:o.clubName,fee:o.price,soldAge:p.age,peakOvr:_peakOvr8,archetype:p.archetype||null,joinedSeason:p.history&&p.history.find(function(h){return h.fromAcademy;})?p.history.find(function(h){return h.fromAcademy;}).season:G.season});}
+    if(_ahSell){_ahSell.soldTo=o.clubName;_ahSell.fee=o.price;_ahSell.soldAge=p.age;_ahSell.peakOvr=_peakOvr8;_ahSell.action=t('tr_academy_action_sold').replace('{club}',o.clubName);}
+    else{G.academy.hist.push({pid:p.id,season:G.season,name:p.name,pos:POS_SHORT[p.pos]||p.pos,action:t('tr_academy_action_sold').replace('{club}',o.clubName),soldTo:o.clubName,fee:o.price,soldAge:p.age,peakOvr:_peakOvr8,archetype:p.archetype||null,joinedSeason:p.history&&p.history.find(function(h){return h.fromAcademy;})?p.history.find(function(h){return h.fromAcademy;}).season:G.season});}
   }
   addNews(t('news_sold_to').replace('{name}',p.name).replace('{club}',o.clubName).replace('{val}',fmtVal(o.price)),'ok');
-  notif(p.name+' sprzedany za '+fmtVal(o.price)+'!','ok');
+  notif(t('tr_notif_sold_for').replace('{name}',p.name).replace('{val}',fmtVal(o.price)),'ok');
   fillTransfers();updateHdr();
 }
 function rejectOffer(pid){
   if(!G||!G.pendingOffers)return;
   G.pendingOffers=G.pendingOffers.filter(x=>x.pid!==pid);
-  notif('Oferta odrzucona','ok');
+  notif(t('tr_notif_offer_rejected'),'ok');
   renderSellTab();
 }
 function processAIOffers(){
@@ -978,7 +980,7 @@ function processAIOffers(){
         const mult=(80+r(0,50))/100; // 80-130% wartości w oknie
         const price=Math.round(p.value*mult*_bondMult/500)*500;
         const club=pick(ALL_CLUBS.filter(c=>c.id!==G.myClubId));
-        G.pendingOffers.push({pid,price,clubName:club?club.n:'Nieznany klub'});
+        G.pendingOffers.push({pid,price,clubName:club?club.n:t('tr_fallback_unknown_club2')});
         addNews(t('news_tr_sell_offer').replace('{name}',p.name).replace('{val}',fmtVal(price)).replace('{club}',club?club.n:t('news_tr_other_club')),'info');G.news[0].action='sell_offer';G.news[0].actionLabel=t('news_tr_action_sell');G.news[0].pid=p.id;
       }
     });
@@ -997,7 +999,7 @@ function processAIOffers(){
       const price=Math.round(target.value*mult*_bondMultT/500)*500;
       const club=pick(ALL_CLUBS.filter(c=>c.id!==G.myClubId));
       if(!G.pendingOffers.find(o=>o.pid===target.id)){
-        G.pendingOffers.push({pid:target.id,price,clubName:club?club.n:'Nieznany klub'});
+        G.pendingOffers.push({pid:target.id,price,clubName:club?club.n:t('tr_fallback_unknown_club2')});
         addNews(t('news_tr_sell_offer_surprise').replace('{name}',target.name).replace('{val}',fmtVal(price)).replace('{club}',club?club.n:t('news_tr_other_club')),'info');G.news[0].action='sell_offer';G.news[0].actionLabel=t('news_tr_action_sell');G.news[0].pid=target.id;
       }
     }
@@ -1007,7 +1009,7 @@ function getDemandPreview(p){
   if(!p.demands||!G)return'';
   const met=demandsMetCount(p,Math.round(p.salary*1.15/50)*50,2,false);
   const col=met>=3?'var(--gb)':met>=2?'var(--am)':'var(--rd)';
-  return '<span style="font-size:var(--fs-dense);color:'+col+'">Oczekiwania: '+met+'/3 spełnionych</span>';
+  return '<span style="font-size:var(--fs-dense);color:'+col+'">'+t('tr_demand_preview').replace('{n}',met)+'</span>';
 }
 function setTrFilter(key,val){
   if(!G)return;
@@ -1030,43 +1032,43 @@ function scoutObserveMarket(pid){
   if(!G)return;initScout();
   const def=getScoutDef();
   const active=(G.scout.modeA||[]).filter(o=>!o.done);
-  if(active.length>=def.modeA_slots){notif('Pelny limit obserwacji ('+def.modeA_slots+')!','err');return;}
+  if(active.length>=def.modeA_slots){notif(t('tr_notif_obs_limit_n').replace('{n}',def.modeA_slots),'err');return;}
   const p=(G.transferMarket||[]).find(x=>x.id===pid)||(G.rumourPool||[]).find(x=>x.id===pid);
-  if(!p){notif('Zawodnik niedostepny.','err');return;}
-  if(G.scout.observed&&G.scout.observed[pid]){notif('Juz obserwowany!','err');return;}
+  if(!p){notif(t('tr_notif_player_unavailable'),'err');return;}
+  if(G.scout.observed&&G.scout.observed[pid]){notif(t('tr_notif_already_watched'),'err');return;}
   G.scout.modeA=G.scout.modeA||[];
   G.scout.modeA.push({targetId:pid,targetType:'player',name:p.name,roundsLeft:def.time,done:false});
   addNews(t('news_scout_obs_started').replace('{name}',p.name).replace('{n}',def.time),'scout');
-  notif('Obserwacja: '+p.name+' ('+def.time+' kol.)','ok');
+  notif(t('tr_notif_watching').replace('{name}',p.name).replace('{n}',def.time),'ok');
   fillTransfers();
 }
 function scoutObserveClub(clubId){
   if(!G)return;initScout();
   const def=getScoutDef();
   const active=(G.scout.modeA||[]).filter(o=>!o.done);
-  if(active.length>=def.modeA_slots){notif('Pelny limit obserwacji!','err');return;}
+  if(active.length>=def.modeA_slots){notif(t('tr_notif_obs_limit'),'err');return;}
   G.scout.modeA=G.scout.modeA||[];
   G.scout.modeA.push({targetId:clubId,targetType:'club',roundsLeft:def.time+1,done:false});
   const cl=(G.leagues||[]).flatMap(l=>l.clubs||[]).find(c=>c.id===clubId);
-  notif('Obserwacja klubu: '+(cl?cl.n:'?')+' ('+(def.time+1)+' kol.)','ok');
+  notif(t('tr_notif_watching_club').replace('{name}',cl?cl.n:'?').replace('{n}',def.time+1),'ok');
   renderScoutsTab();
 }
 function scoutSearchTalent(pos){
   if(!G)return;initScout();
   const def=getScoutDef();
   const acadLvl=getAcadLvl();
-  if(acadLvl===0){notif('Potrzebujesz Akademii zeby podpisywac juniorow!','err');return;}
+  if(acadLvl===0){notif(t('tr_notif_need_academy'),'err');return;}
   const maxT=[0,2,4,6,8][acadLvl]||2;
   const signedThisSeason=(G.scout.signedThisSeason||0);
-  if(signedThisSeason>=maxT){notif('Limit talentow w tym sezonie: '+maxT+'!','err');return;}
+  if(signedThisSeason>=maxT){notif(t('tr_notif_talent_limit_n').replace('{n}',maxT),'err');return;}
   const active=(G.scout.modeB||[]).filter(o=>!o.done);
-  if(active.length>=1){notif('Skaut juz szuka talentow!','err');return;}
+  if(active.length>=1){notif(t('tr_notif_scout_busy_talent'),'err');return;}
   G.scout.modeB=G.scout.modeB||[];
   const myLvl=G.myLeague||8;
   const range=def.modeB_range||1;
   const region=t('league_fallback')+' '+(myLvl-range)+'-'+(myLvl+range);
   G.scout.modeB.push({pos:pos||'',region,roundsLeft:def.time,done:false});
-  notif('Skaut szuka talentow ('+def.time+' kol.)','ok');
+  notif(t('tr_notif_scout_searching').replace('{n}',def.time),'ok');
   renderScoutsTab();
 }
 function signTalent(idx){
@@ -1074,19 +1076,19 @@ function signTalent(idx){
   const d=G.scout.discovered[idx];if(!d)return;
   const p=d.player;
   const cost=p._signingCost||0;
-  if(G.budget<cost){notif('Za malo srodkow! ('+fmt(cost)+' zl)','err');return;}
+  if(G.budget<cost){notif(t('tr_notif_no_funds_cost').replace('{cost}',fmt(cost)),'err');return;}
   const acadLvl=getAcadLvl();
   const maxT=[0,2,4,6,8][acadLvl]||2;
-  if((G.scout.signedThisSeason||0)>=maxT){notif('Limit talentow w tym sezonie!','err');return;}
+  if((G.scout.signedThisSeason||0)>=maxT){notif(t('tr_notif_talent_limit'),'err');return;}
   G.budget-=cost;
-  if(cost>0){if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Talent (skaut A): '+p.name});}
+  if(cost>0){if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('tr_note_talent_a').replace('{name}',p.name)});}
   p.clubId=G.myClubId;p.starter=false;p.contract=p.contract||2;
   p.boughtSeason=G.season||1;p.boughtPrice=0;
   G.players.push(p);
   G.scout.discovered.splice(idx,1);
   G.scout.signedThisSeason=(G.scout.signedThisSeason||0)+1;
   addNews(t('news_scout_talent_signed').replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]).replace('{age}',p.age).replace('{pot}',p.potential).replace('{cost}',cost>0?t('news_scout_cost_suffix').replace('{val}',fmt(cost)):''),'scout');
-  notif('Podpisano: '+p.name,'ok');
+  notif(t('tr_notif_signed').replace('{name}',p.name),'ok');
   renderScoutsTab();
 }
 function rejectTalent(idx){
@@ -1099,10 +1101,10 @@ function rejectTalent(idx){
 function upgradeScouta(id){
   if(!G)return;initScout();
   const def=SCOUTS_DEF.find(s=>s.id===id);if(!def)return;
-  if(G.budget<def.cost){notif('Za malo srodkow!','err');return;}
+  if(G.budget<def.cost){notif(t('tr_notif_no_funds'),'err');return;}
   G.budget-=def.cost;G.scout.level=id;
-  notif('Skaut ulepszony: '+def.name,'ok');
-  addNews(t('news_scout_hired').replace('{name}',def.name).replace('{val}',fmt(def.cost)),'ok');
+  notif(t('tr_notif_scout_upgraded').replace('{name}',t('scout_name_'+def.id)),'ok');
+  addNews(t('news_scout_hired').replace('{name}',t('scout_name_'+def.id)).replace('{val}',fmt(def.cost)),'ok');
   renderScoutsTab();
 }
 function renderScoutsTab(){
@@ -1113,15 +1115,15 @@ function renderScoutsTab(){
   let html='<div style="font-size:var(--fs-dense)">';
   // ── POZIOM SKAUTA ───────────────────────────────────────────────────
   html+='<div style="border:1px solid var(--am);padding:8px;margin-bottom:8px">'+
-    '<div style="color:var(--am);margin-bottom:4px">SKAUT: '+(sd.label||sd.name||'').toUpperCase()+'</div>'+
-    '<div style="color:var(--gr)">Tryb A: maks '+sd.modeA_slots+' obserwacje | czas raportu: '+sd.time+' kolejki</div>'+
-    '<div style="color:var(--gr)">Tryb B: wiek '+(sd.modeB_minAge||17)+'+, pot maks '+(sd.modeB_maxPot||75)+', czas '+sd.time+' kol.</div>'+
-    (sd.cost>0?'<div style="color:var(--rd);margin-top:3px">Koszt: '+fmt(sd.cost)+' przy zatrudnieniu + co sezon</div>':'<div style="color:var(--gb);margin-top:3px">Koszt: bezpłatny</div>');
+    '<div style="color:var(--am);margin-bottom:4px">'+t('tr_scout_level_label').replace('{name}',t('scout_name_'+sd.id).toUpperCase())+'</div>'+
+    '<div style="color:var(--gr)">'+t('tr_mode_a_info').replace('{n}',sd.modeA_slots).replace('{t}',sd.time)+'</div>'+
+    '<div style="color:var(--gr)">'+t('tr_mode_b_info').replace('{age}',sd.modeB_minAge||17).replace('{pot}',sd.modeB_maxPot||75).replace('{t}',sd.time)+'</div>'+
+    (sd.cost>0?'<div style="color:var(--rd);margin-top:3px">'+t('tr_scout_cost_recurring').replace('{cost}',fmt(sd.cost))+'</div>':'<div style="color:var(--gb);margin-top:3px">'+t('tr_scout_cost_free')+'</div>');
   // Lista wszystkich poziomów do odblokowania
   const myLvl=G.myLeague||8;
   const upgradeOptions=SCOUTS_DEF.filter(s=>s.id!=='free'&&s.id!==sd.id);
   if(upgradeOptions.length){
-    html+='<div style="margin-top:6px;color:var(--gr);font-size:var(--fs-dense);letter-spacing:1px">DOSTĘPNE POZIOMY:</div>';
+    html+='<div style="margin-top:6px;color:var(--gr);font-size:var(--fs-dense);letter-spacing:1px">'+t('tr_available_levels')+'</div>';
     upgradeOptions.forEach(opt=>{
       const isActive=opt.id===sd.id;
       const leagueOk=myLvl<=opt.minLeague;// np. minLeague:6 = dostępny od VI ligi wzwyż (myLvl 1-6)
@@ -1129,42 +1131,44 @@ function renderScoutsTab(){
       if(leagueOk){
         if(budgetOk){
           html+='<button data-sid="'+opt.id+'" onclick="upgradeScout(this.dataset.sid)" style="width:100%;margin-top:4px;background:var(--am);color:#000;border:none;font-size:var(--fs-dense);padding:6px;cursor:pointer;text-align:left">'+
-            '▶ '+(opt.label||opt.name)+' — '+fmt(opt.cost)+' zł</button>';
+            t('tr_upgrade_btn').replace('{name}',t('scout_name_'+opt.id)).replace('{cost}',fmt(opt.cost))+'</button>';
         } else {
           html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:var(--fs-dense);color:var(--rd)">'+
-            (opt.label||opt.name)+' — brakuje '+fmt(opt.cost-G.budget)+' zł</div>';
+            t('tr_upgrade_missing').replace('{name}',t('scout_name_'+opt.id)).replace('{cost}',fmt(opt.cost-G.budget))+'</div>';
         }
       } else {
         const reqName=LEAGUE_NAMES[opt.minLeague]||t('league_n').replace('{n}',opt.minLeague);
         html+='<div style="margin-top:4px;background:var(--tb);border:1px solid var(--gl);padding:5px;font-size:var(--fs-dense);color:var(--gr)">'+
-          '🔒 '+(opt.label||opt.name)+' — wymaga '+reqName+' lub wyżej</div>';
+          t('tr_upgrade_locked').replace('{name}',t('scout_name_'+opt.id)).replace('{league}',reqName)+'</div>';
       }
     });
   }
   html+='</div>';
   // ── TRYB A — aktywne obserwacje ─────────────────────────────────────
-  html+='<div style="color:var(--am);margin-bottom:4px">TRYB A — OBSERWACJA RYNKU</div>';
+  html+='<div style="color:var(--am);margin-bottom:4px">'+t('tr_mode_a_title')+'</div>';
   const actA=sc.modeA||[];
   if(actA.length){
     actA.forEach(obs=>{
-      const src=obs.sourceType==='market'?'Zawodnik z rynku':obs.sourceType==='rumour'?'Zawodnik z plotki':'Klub AI';
+      const src=obs.sourceType==='market'?t('tr_src_market'):obs.sourceType==='rumour'?t('tr_src_rumour'):t('tr_src_club');
       html+='<div style="border:1px solid var(--gl);padding:6px;margin-bottom:4px">'+
-        '<div style="color:var(--wh)">'+src+' — raport za <b>'+obs.roundsLeft+'</b> kolejki</div>'+
+        '<div style="color:var(--wh)">'+t('tr_obs_report_eta').replace('{src}',src).replace('{n}','<b>'+obs.roundsLeft+'</b>')+'</div>'+
         '</div>';
     });
   } else {
-    html+='<div style="color:var(--gr);margin-bottom:4px">Brak aktywnych obserwacji</div>';
+    html+='<div style="color:var(--gr);margin-bottom:4px">'+t('tr_no_active_obs')+'</div>';
   }
   if(actA.length<sd.modeA_slots){
     const slotsLeft=sd.modeA_slots-actA.length;
+    const _p1=LANG==='pl'?(slotsLeft>1?'ów':''):(slotsLeft>1?'s':'');
+    const _p2=LANG==='pl'?(slotsLeft>1?'ch':''):'';
     html+='<div style="margin-bottom:8px">'
-      +'<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:6px">WYŚLIJ NA OBSERWACJĘ ('+slotsLeft+' slot'+(slotsLeft>1?'ów':'')+' wolny'+(slotsLeft>1?'ch':'')+')</div>'
+      +'<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:6px">'+t('tr_send_obs_title').replace('{n}',slotsLeft).replace('{p1}',_p1).replace('{p2}',_p2)+'</div>'
       // Karta: Z plotki
       +'<div onclick="sendScoutModeA(\'rumour\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--am);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
         +'<span style="font-size:var(--fs-display);flex-shrink:0">💬</span>'
         +'<div style="flex:1">'
-          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">Z PLOTKI</div>'
-          +'<div style="font-size:var(--fs-dense);color:var(--gr)">Obserwuj zawodnika z aktualnych plotek transferowych</div>'
+          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">'+t('tr_from_rumour_title')+'</div>'
+          +'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('tr_from_rumour_desc')+'</div>'
         +'</div>'
         +'<span style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">▶</span>'
       +'</div>'
@@ -1172,72 +1176,72 @@ function renderScoutsTab(){
       +'<div onclick="sendScoutModeA(\'club\',0,0)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--tb);border:2px solid var(--gl);border-left:4px solid var(--gb);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background=\'var(--gm)\'" onmouseout="this.style.background=\'var(--tb)\'">'
         +'<span style="font-size:var(--fs-display);flex-shrink:0">🔍</span>'
         +'<div style="flex:1">'
-          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);margin-bottom:3px">KONKRETNY KLUB</div>'
-          +'<div style="font-size:var(--fs-dense);color:var(--gr)">Sprawdź skład wybranego rywala i znajdź kandydatów</div>'
+          +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);margin-bottom:3px">'+t('tr_specific_club_title')+'</div>'
+          +'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('tr_specific_club_desc')+'</div>'
         +'</div>'
         +'<span style="font-weight:700;font-size:var(--fs-h3);color:var(--gb)">▶</span>'
       +'</div>'
-      +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:0 2px">💡 Możesz też kliknąć OBSERWUJ na karcie zawodnika w zakładce KUP</div>'
+      +'<div style="font-size:var(--fs-dense);color:var(--gr);padding:0 2px">'+t('tr_obs_hint')+'</div>'
     +'</div>';
   } else {
-    html+='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">Wszystkie sloty zajęte ('+actA.length+'/'+sd.modeA_slots+')</div>';
+    html+='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:8px">'+t('tr_all_slots_taken').replace('{a}',actA.length).replace('{b}',sd.modeA_slots)+'</div>';
   }
   // Wyniki obserwacji A (obserwowani)
   const obsv=sc.observed||[];
   if(obsv.length){
-    html+='<div style="color:var(--gb);margin-bottom:4px">RAPORTY GOTOWE ('+obsv.length+')</div>';
+    html+='<div style="color:var(--gb);margin-bottom:4px">'+t('tr_reports_ready').replace('{n}',obsv.length)+'</div>';
     obsv.forEach((p,idx)=>{
       html+='<div style="border:1px solid var(--gb);padding:6px;margin-bottom:4px">'+
         '<div style="color:var(--gb)">'+p.name+' ✓</div>'+
-        '<div style="color:var(--gr)">'+POS_SHORT[p.pos]+' • '+p.age+'l • OVR '+ovr(p)+' • Pot: '+p.potential+'</div>'+
-        '<div style="color:var(--gr)">'+p.prevClub+' • Cena: '+fmtVal(p.transferPrice)+'</div>'+
-        '<div style="color:var(--gb);font-size:8px">✓ Dostępny w zakładce KUP (okno transferowe)</div>'+
+        '<div style="color:var(--gr)">'+POS_SHORT[p.pos]+' • '+p.age+t('tr_age_suffix')+' • OVR '+ovr(p)+' • '+t('tr_pot_label')+' '+p.potential+'</div>'+
+        '<div style="color:var(--gr)">'+t('tr_prev_club_price').replace('{club}',p.prevClub).replace('{price}',fmtVal(p.transferPrice))+'</div>'+
+        '<div style="color:var(--gb);font-size:8px">'+t('tr_available_in_buy_tab')+'</div>'+
       '</div>';
     });
   }
   // ── TRYB B — talenty ────────────────────────────────────────────────
   html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px">'+
-    '<div style="color:var(--am);margin-bottom:4px">TRYB B — ODKRYWANIE TALENTÓW</div>';
+    '<div style="color:var(--am);margin-bottom:4px">'+t('tr_mode_b_title')+'</div>';
   if(!canB){
     html+='<div style="border:1px solid var(--gl);padding:8px;color:var(--gr)">'+
-      '<div style="color:var(--am);margin-bottom:4px">Tryb B niedostępny</div>'+
-      '<div>Zbuduj Akademię Piłkarską żeby odkrywać talentów.</div>'+
-      '<div style="font-size:var(--fs-dense);margin-top:4px">Akademia Podstawowa: max 2 talenty/sezon, pot do 75<br>'+
-      'Akademia Elitarna: max 8 talentów/sezon, pot do 92</div>'+
+      '<div style="color:var(--am);margin-bottom:4px">'+t('tr_mode_b_unavailable')+'</div>'+
+      '<div>'+t('tr_mode_b_need_academy')+'</div>'+
+      '<div style="font-size:var(--fs-dense);margin-top:4px">'+t('tr_academy_basic_info')+'<br>'+
+      t('tr_academy_elite_info')+'</div>'+
     '</div>';
   } else {
     const maxT=acadMaxTalents();
     const curT=myPl().filter(p=>p._isTalent).length;
-    html+='<div style="color:var(--gr);margin-bottom:4px">Podpisani talenci: '+curT+'/'+maxT+'/sezon (poziom akademii '+acadLvl+')</div>';
+    html+='<div style="color:var(--gr);margin-bottom:4px">'+t('tr_signed_talents').replace('{cur}',curT).replace('{max}',maxT).replace('{lvl}',acadLvl)+'</div>';
     if(sc.modeB&&sc.modeB.active){
       html+='<div style="border:1px solid var(--am);padding:6px;margin-bottom:6px">'+
-        '<div style="color:var(--am)">Skaut w terenie — powrót za '+sc.modeB.roundsLeft+' kolejki</div>'+
-        '<div style="color:var(--gr);font-size:var(--fs-dense)">Region: liga ±'+sd.modeB_range+' • Wiek: '+sd.modeB_minAge+'-20</div></div>';
+        '<div style="color:var(--am)">'+t('tr_scout_in_field').replace('{n}',sc.modeB.roundsLeft)+'</div>'+
+        '<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('tr_scout_region').replace('{n}',sd.modeB_range).replace('{age}',sd.modeB_minAge)+'</div></div>';
     } else if(curT<maxT){
-      html+='<div style="color:var(--gr);margin-bottom:4px">Wyślij skauta:</div>'+
+      html+='<div style="color:var(--gr);margin-bottom:4px">'+t('tr_send_scout_label')+'</div>'+
         '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">'+
-        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-size:var(--fs-dense);padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos||'Dowolna')+'</button>').join('')+
+        ['','GK','OBR','POL','NAP'].map(pos=>'<button data-pos="'+pos+'" onclick="sendScoutModeB(this.dataset.pos)" style="font-size:var(--fs-dense);padding:2px 7px;border:1px solid var(--gl);background:var(--tb);color:var(--gr);cursor:pointer">'+(pos?POS_SHORT[pos]:t('tr_pos_any'))+'</button>').join('')+
         '</div>';
     } else {
-      html+='<div style="color:var(--rd)">Osiągnięto limit talentów na ten sezon</div>';
+      html+='<div style="color:var(--rd)">'+t('tr_talent_limit_reached')+'</div>';
     }
     // Odkryci talenci do decyzji
     const disc=sc.discovered||[];
     if(disc.length){
-      html+='<div style="color:var(--gb);margin-bottom:4px">ODKRYCI ('+disc.length+') — decyduj szybko!</div>';
+      html+='<div style="color:var(--gb);margin-bottom:4px">'+t('tr_discovered_title').replace('{n}',disc.length)+'</div>';
       disc.forEach((p,idx)=>{
         const cost=p.signingCost||0;
         html+='<div style="border:1px solid var(--gb);padding:8px;margin-bottom:6px">'+
           '<div style="display:flex;justify-content:space-between">'+
             '<div style="color:var(--gb)">'+p.name+'</div>'+
-            '<div style="color:var(--rd);font-size:var(--fs-dense)">'+p._talentDecisionWeeks+' kolejki na decyzję</div>'+
+            '<div style="color:var(--rd);font-size:var(--fs-dense)">'+t('tr_decision_weeks').replace('{n}',p._talentDecisionWeeks)+'</div>'+
           '</div>'+
-          '<div style="color:var(--gr)">'+POS_SHORT[p.pos]+' • '+p.age+'l • OVR '+ovr(p)+' • <b style="color:var(--am)">Pot: '+p.potential+'</b></div>'+
+          '<div style="color:var(--gr)">'+POS_SHORT[p.pos]+' • '+p.age+t('tr_age_suffix')+' • OVR '+ovr(p)+' • <b style="color:var(--am)">'+t('tr_pot_label')+' '+p.potential+'</b></div>'+
           '<div style="color:var(--gr)">'+p.prevClub+'</div>'+
-          '<div style="color:var(--am)">Koszt podpisania: '+(cost>0?fmt(cost):'GRATIS (amator)')+'</div>'+
+          '<div style="color:var(--am)">'+t('tr_signing_cost_label')+(cost>0?fmt(cost):t('tr_free_amateur'))+'</div>'+
           '<div style="display:flex;gap:4px;margin-top:6px">'+
-            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:6px;cursor:pointer">PODPISZ</button>'+
-            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-size:var(--fs-meta);padding:6px;cursor:pointer">ODRZUĆ</button>'+
+            '<button onclick="signTalent('+idx+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('tr_sign_btn')+'</button>'+
+            '<button onclick="dismissTalent('+idx+')" style="flex:1;background:var(--gm);color:var(--gr);border:1px solid var(--gl);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('tr_reject_talent_btn')+'</button>'+
           '</div></div>';
       });
     }
@@ -1249,18 +1253,18 @@ function upgradeScout(id){
   if(!G)return;
   const def=SCOUTS_DEF.find(s=>s.id===id);if(!def)return;
   const myLvl=G.myLeague||8;
-  if(myLvl>def.minLeague){notif('Ten skaut wymaga '+(LEAGUE_NAMES[def.minLeague]||'wyższej ligi')+' lub wyżej!','err');return;}
-  if(G.budget<def.cost){notif('Za mało środków!','err');return;}
+  if(myLvl>def.minLeague){notif(t('tr_upgrade_higher_league').replace('{league}',LEAGUE_NAMES[def.minLeague]||t('board_fallback_higher_league')),'err');return;}
+  if(G.budget<def.cost){notif(t('tr_notif_no_funds2'),'err');return;}
   G.budget-=def.cost;
   if(!G.scout)G.scout={level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]};
   G.scout.level=id;
-  const _defName=def.label||def.name||id;
+  const _defName=t('scout_name_'+def.id);
   // Koszt w finansach
   if(!G.fin)G.fin={};
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:def.cost,bal:G.budget,note:'Skaut: '+_defName});
+  G.fin.hist.push({w:G.week,inc:0,cost:def.cost,bal:G.budget,note:t('tr_note_scout_hired').replace('{name}',_defName)});
   addNews(t('news_scout_hired_once').replace('{name}',_defName).replace('{val}',fmt(def.cost)),'ok');
-  notif(_defName+' zatrudniony!','ok');
+  notif(t('tr_notif_scout_hired').replace('{name}',_defName),'ok');
   renderScoutsTab();
 }
 function scoutAddToMarket(idx){
@@ -1271,19 +1275,19 @@ function scoutAddToMarket(idx){
   G.scout.observed[p.id]=true;
   G.transferMarket.push(p);
   G.scout.clubReports.splice(idx,1);
-  notif(p.name+' dodany do rynku z pelnymi danymi.','ok');
+  notif(t('tr_notif_added_to_market').replace('{name}',p.name),'ok');
   renderScoutsTab();fillTransfers();
 }
 function showClubPicker(){
   if(!G)return;
   const def=getScoutDef();
   const active=(G.scout.modeA||[]).filter(o=>!o.done);
-  if(active.length>=def.modeA_slots){notif('Pelny limit obserwacji!','err');return;}
+  if(active.length>=def.modeA_slots){notif(t('tr_notif_obs_limit'),'err');return;}
   const myLvl=G.myLeague||8;
   const clubs=(G.leagues||[]).filter(l=>Math.abs(l.level-myLvl)<=1).flatMap(l=>l.clubs||[]).filter(c=>c.id!==G.myClubId);
   const el=document.getElementById('tr-skauci');if(!el)return;
   const picker='<div style="border:1px solid var(--am);padding:8px;margin-top:6px;font-size:var(--fs-dense)">'+
-    '<div style="color:var(--am);margin-bottom:4px">WYBIERZ KLUB DO OBSERWACJI</div>'+
+    '<div style="color:var(--am);margin-bottom:4px">'+t('tr_pick_club_title')+'</div>'+
     clubs.slice(0,12).map(c=>'<button onclick="scoutObserveClub('+c.id+')" style="display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--gl);background:transparent;color:var(--gr);font-size:var(--fs-dense);padding:4px 0;cursor:pointer">'+c.n+'</button>').join('')+
   '</div>';
   el.insertAdjacentHTML('beforeend',picker);
@@ -1292,53 +1296,53 @@ function sendScoutModeA(sourceType, targetId, sourceId){
   if(!G||!G.scout)return;
   const sd=scoutDef();
   if((G.scout.modeA||[]).length>=sd.modeA_slots){
-    notif('Skaut zajęty! Max '+sd.modeA_slots+' obserwacje.','err');return;
+    notif(t('tr_notif_scout_busy_max').replace('{n}',sd.modeA_slots),'err');return;
   }
   const obs={sourceType,targetId:targetId||0,sourceId:sourceId||0,roundsLeft:sd.time};
   if(!G.scout.modeA)G.scout.modeA=[];
   G.scout.modeA.push(obs);
-  const label=sourceType==='market'?'zawodnik z rynku':sourceType==='rumour'?'zawodnik z plotki':'losowy klub';
+  const label=sourceType==='market'?t('tr_label_market'):sourceType==='rumour'?t('tr_label_rumour'):t('tr_label_random_club');
   addNews(t('news_scout_a_sent').replace('{label}',label).replace('{n}',sd.time),'scout');
-  notif('Skaut wysłany!','ok');
+  notif(t('tr_notif_scout_sent'),'ok');
   fillTransfers();
 }
 function sendScoutModeB(pos){
   if(!G||!G.scout)return;
-  if(!canScoutModeB()){notif('Tryb B wymaga Akademii!','err');return;}
-  if(G.scout.modeB&&G.scout.modeB.active){notif('Skaut już szuka talentów!','err');return;}
+  if(!canScoutModeB()){notif(t('tr_notif_need_academy_b'),'err');return;}
+  if(G.scout.modeB&&G.scout.modeB.active){notif(t('tr_notif_already_searching'),'err');return;}
   const sd=scoutDef();
   G.scout.modeB={active:true,roundsLeft:sd.time,pos:pos||''};
   addNews(t('news_scout_b_sent').replace('{pos}',pos?t('news_scout_b_sent_pos').replace('{pos}',POS_SHORT[pos]):'').replace('{n}',sd.time),'scout');
-  notif('Skaut wyruszył!','ok');
+  notif(t('tr_notif_scout_departed'),'ok');
   fillTransfers();
 }
 function signTalent(idx){
   if(!G||!G.scout||!G.scout.discovered)return;
   const p=G.scout.discovered[idx];if(!p)return;
   const cost=p.signingCost||0;
-  if(cost>0&&G.budget<cost){notif('Za mało środków! Potrzeba '+fmt(cost),'err');return;}
+  if(cost>0&&G.budget<cost){notif(t('tr_notif_no_funds_need').replace('{cost}',fmt(cost)),'err');return;}
   const maxT=acadMaxTalents();
   const curT=myPl().filter(x=>x._isTalent).length;
-  if(curT>=maxT&&maxT>0){notif('Limit talentów: '+maxT+'/sezon (poziom akademii)','err');return;}
-  if(cost>0){G.budget-=cost;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Talent (skaut B): '+p.name});}
+  if(curT>=maxT&&maxT>0){notif(t('tr_talent_limit_academy').replace('{max}',maxT),'err');return;}
+  if(cost>0){G.budget-=cost;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('tr_note_talent_b').replace('{name}',p.name)});}
   p.clubId=G.myClubId;p.contract=r(2,4);p.starter=false;
   G.players.push(p);
   G.scout.discovered.splice(idx,1);
   addNews(t('news_scout_b_signed').replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]).replace('{age}',p.age).replace('{pot}',p.potential).replace('{cost}',cost>0?t('news_scout_b_cost').replace('{val}',fmt(cost)):t('news_scout_b_free')),'scout');
-  notif('Podpisano '+p.name+'!','ok');
+  notif(t('tr_notif_signed2').replace('{name}',p.name),'ok');
   fillTransfers();
 }
 function dismissTalent(idx){
   if(!G||!G.scout||!G.scout.discovered)return;
   const p=G.scout.discovered[idx];if(!p)return;
   G.scout.discovered.splice(idx,1);
-  notif('Odrzucono '+p.name,'info');
+  notif(t('tr_notif_rejected').replace('{name}',p.name),'info');
   fillTransfers();
 }
 function observeFromMarket(pid){
   if(!G)return;
   const p=(G.transferMarket||[]).find(x=>String(x.id)===String(pid));
-  if(!p){notif('Nie znaleziono zawodnika','err');return;}
+  if(!p){notif(t('tr_notif_player_not_found'),'err');return;}
   sendScoutModeA('market',pid,0);
 }
 function fillTransfers(){
@@ -1350,7 +1354,7 @@ function fillTransfers(){
   if(wb){
     const tw=isTransferWindow();
     if(tw.open){
-      wb.innerHTML='<span style="color:var(--gb)">'+t('tr_window_open').replace('{type}',tw.type)+'</span> • '+t('tr_window_left').replace('{n}',tw.weeksLeft);
+      wb.innerHTML='<span style="color:var(--gb)">'+t('tr_window_open').replace('{type}',tw.type==='LETNIE'?t('window_summer'):t('window_winter'))+'</span> • '+t('tr_window_left').replace('{n}',tw.weeksLeft);
     } else {
       wb.innerHTML='<span style="color:var(--rd)">'+t('tr_window_closed')+'</span>'+(tw.eta?' • '+t('tr_window_eta').replace('{n}',tw.eta):' • '+tw.next);
     }

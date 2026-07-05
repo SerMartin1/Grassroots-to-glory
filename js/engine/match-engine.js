@@ -1,4 +1,4 @@
-function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();notif('Brak meczu w tej kolejce — tydzień minął.','info');closePanel('p-match');fillMatch&&fillMatch();return;}const stC=mySt().length,lim=formationLimits(),req=1+lim.OBR+lim.POL+lim.NAP;if(stC<req){notif('Wybierz sk\u0142ad! Brakuje '+(req-stC)+' zawodnik\u00f3w','err');return;}const injuredStarters=mySt().filter(p=>p.injured||p.suspension>0);if(injuredStarters.length){injuredStarters.forEach(p=>{p.starter=false;});notif('Usunięto z składu: '+injuredStarters.map(p=>p.name).join(', ')+' (kontuzja/zawieszenie)','err');fillTacSquad();fillSquad();return;}
+function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();notif(t('match_notif_no_match_week'),'info');closePanel('p-match');fillMatch&&fillMatch();return;}const stC=mySt().length,lim=formationLimits(),req=1+lim.OBR+lim.POL+lim.NAP;if(stC<req){notif(t('match_notif_select_squad').replace('{n}',req-stC),'err');return;}const injuredStarters=mySt().filter(p=>p.injured||p.suspension>0);if(injuredStarters.length){injuredStarters.forEach(p=>{p.starter=false;});notif(t('match_notif_removed_injured').replace('{names}',injuredStarters.map(p=>p.name).join(', ')),'err');fillTacSquad();fillSquad();return;}
   // Ukryj przycisk taktyki pucharowej gdy mecz startuje
   var _ctb=document.getElementById('cup-tac-btn');if(_ctb)_ctb.style.display='none';
   const btn=document.getElementById('btn-sim');btn.disabled=true;matchInProgress=true;document.getElementById('m-lock-note')&&(document.getElementById('m-lock-note').style.display='none');btn.style.display='none';btn.textContent=t('match_in_progress');const _mls3=document.getElementById('m-live-stats');if(_mls3)_mls3.style.display='block';const _s0=id=>document.getElementById(id);if(_s0('ls-poss-h')){_s0('ls-poss-h').textContent='50%';_s0('ls-poss-a').textContent='50%';}if(_s0('ls-poss-bar-h')){_s0('ls-poss-bar-h').style.flex='50';_s0('ls-poss-bar-a').style.flex='50';}if(_s0('ls-shots-h')){_s0('ls-shots-h').textContent='0';_s0('ls-shots-a').textContent='0';}if(_s0('ls-on-h')){_s0('ls-on-h').textContent='0';_s0('ls-on-a').textContent='0';}if(_s0('ls-fouls-h')){_s0('ls-fouls-h').textContent='0';_s0('ls-fouls-a').textContent='0';}// Ukryj wiersze statystyk — pojawią się przy pierwszej akcji
@@ -81,11 +81,11 @@ function upUI(min,hG,aG){
     const _lbl=_s('ls-mom-label');
     if(_lbl){
       let _lt,_lc;
-      if(mh>=7){_lt='⚡ '+(_s('m-home-name')?_s('m-home-name').textContent.replace(' ⭐',''):'MÓJ KLUB')+' DOMINUJE!';_lc='var(--gb)';}
-      else if(mh>=3){_lt='↗ '+(_s('m-home-name')?_s('m-home-name').textContent.replace(' ⭐',''):'MÓJ KLUB')+' na prowadzeniu';_lc='#8ab88a';}
-      else if(mh<=-7){_lt='🔥 RYWAL DOMINUJE!';_lc='var(--rd)';}
-      else if(mh<=-3){_lt='↘ Rywal przejmuje inicjatywę';_lc='#c06060';}
-      else{_lt='⇔ Wyrównana walka';_lc='var(--gr)';}
+      if(mh>=7){_lt=t('match_mom_dominates').replace('{club}',_s('m-home-name')?_s('m-home-name').textContent.replace(' ⭐',''):t('match_my_club_fallback'));_lc='var(--gb)';}
+      else if(mh>=3){_lt=t('match_mom_leading').replace('{club}',_s('m-home-name')?_s('m-home-name').textContent.replace(' ⭐',''):t('match_my_club_fallback'));_lc='#8ab88a';}
+      else if(mh<=-7){_lt=t('match_mom_opp_dominates');_lc='var(--rd)';}
+      else if(mh<=-3){_lt=t('match_mom_opp_leading');_lc='#c06060';}
+      else{_lt=t('match_momentum_even');_lc='var(--gr)';}
       _lbl.textContent=_lt;
       _lbl.style.color=_lc;
     }
@@ -264,9 +264,9 @@ const hSt=tS(m.h),aSt=tS(m.a);
   window._matchPressFouls=pressMod.myFouls;
 const hSc=G.players.filter(p=>p.clubId===m.h&&p.starter&&p.pos!=='GK'),aSc=G.players.filter(p=>p.clubId===m.a&&p.starter&&p.pos!=='GK');
 function bldEvs(act,atk,def,gk,sc,isH,phase){const evts=[],mins=[];
-  const _narr_e=['Dobra organizacja w środku pola.','Rytm gry ustalony.','Krótkie podania w obronie.','Presja na 16.'];
-  const _narr_m=['Groźna kontra!','Walka o każdą piłkę.','Intensywna faza meczu.','Niebezpieczne dojście!'];
-  const _narr_l=['Walka o utrzymanie wyniku!','Emocjonująca końcówka!','Wszyscy atakują!','Czas ucieka!'];
+  const _narr_e=[t('match_narr_early_1'),t('match_narr_early_2'),t('match_narr_early_3'),t('match_narr_early_4')];
+  const _narr_m=[t('match_narr_mid_1'),t('match_narr_mid_2'),t('match_narr_mid_3'),t('match_narr_mid_4')];
+  const _narr_l=[t('match_narr_late_1'),t('match_narr_late_2'),t('match_narr_late_3'),t('match_narr_late_4')];
   const _np=phase==='early'?_narr_e:phase==='late'?_narr_l:_narr_m;
   const _nn=Math.floor(act/4);
   for(let _ni=0;_ni<_nn;_ni++){
@@ -371,7 +371,7 @@ evts.push({min,type:'goal',sid:sc2.id,isH,scorer:sc2.last,scorerName:sc2.name||s
       if(ratings[kpPick.id])ratings[kpPick.id].keyPasses=(ratings[kpPick.id].keyPasses||0)+1;
     }
   }
-  const _stxt=isAccurate?(sc2.last+' strzela - '+(gkPlayer?gkPlayer.last:'GK')+' broni!'):(sc2.last+' - '+['mija łuk!','w poprzeczkę!','zablokowany!','nad bramką!'][Math.floor(Math.random()*4)]);
+  const _stxt=isAccurate?t('match_shot_saved').replace('{scorer}',sc2.last).replace('{gk}',gkPlayer?gkPlayer.last:'GK'):(sc2.last+' - '+[t('match_miss_1'),t('match_miss_2'),t('match_miss_3'),t('match_miss_4')][Math.floor(Math.random()*4)]);
   evts.push({min,type:'shot',text:_stxt,isH,pid:sc2.id,onTarget:isAccurate});
 }});return evts;}
 function bldSetPieces(sc, isH){
@@ -404,7 +404,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
     } else {
       // Część chybionych cornerów trafia w ręce bramkarza (celny ale obroniony)
       if(Math.random()<0.35){if(isH)liveStats.hOn++;else liveStats.aOn++;if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;}
-      evts.push({min,type:'corner',text:'Różny! '+crnTaker.last+' dośrodkowuje - '+(Math.random()<0.5?'główka obroniona!':'piłka za autem.'),isH});
+      evts.push({min,type:'corner',text:t('match_corner_text').replace('{taker}',crnTaker.last).replace('{result}',Math.random()<0.5?t('match_corner_header_saved'):t('match_corner_out')),isH});
     }
   }
 
@@ -426,7 +426,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
     } else {
       // Część wolnych trafia w bramkarza (celny obroniony) zamiast w mur/obok
       if(Math.random()<0.40){if(isH)liveStats.hOn++;else liveStats.aOn++;if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;}
-      evts.push({min,type:'freekick',text:'Rzut wolny '+fkTaker.last+' ('+dist+'m) - '+(Math.random()<0.5?'w mur!':'obroniony!'),isH});
+      evts.push({min,type:'freekick',text:t('match_freekick_text').replace('{taker}',fkTaker.last).replace('{dist}',dist).replace('{result}',Math.random()<0.5?t('match_freekick_wall'):t('match_freekick_saved')),isH});
     }
   }
 
@@ -445,7 +445,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
 if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false]};
     } else {
       if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;
-      evts.push({min,type:'penalty_saved',text:'KARNY! '+fkTaker.last+' strzela - OBRONA '+(oppGK?oppGK.last:'')+'!',isH});
+      evts.push({min,type:'penalty_saved',text:t('match_penalty_saved').replace('{taker}',fkTaker.last).replace('{gk}',oppGK?oppGK.last:''),isH});
     }
   }
   return evts;
@@ -461,15 +461,15 @@ function bldCards(pls){
       if(isMy)liveStats.hFouls++;else liveStats.aFouls++;
       yellows[p.id]=(yellows[p.id]||0)+1;
       if(ratings[p.id])ratings[p.id].cards=(ratings[p.id].cards||0)+1;
-      evts.push({min:r(5,85),type:'yellow',text:'\u017c\u00f3\u0142ta kartka: '+p.last,sid:p.id,isMy});
+      evts.push({min:r(5,85),type:'yellow',text:t('match_yellow_card').replace('{name}',p.last),sid:p.id,isMy});
       // 2nd yellow = red card
       if(yellows[p.id]>=2){
-        evts.push({min:r(86,89),type:'red2y',text:'CZERWONA KARTKA (2x\u017c\u00f3\u0142ta): '+p.last+'! Schodzi z boiska!',sid:p.id,isMy});
+        evts.push({min:r(86,89),type:'red2y',text:t('match_red_card_2y').replace('{name}',p.last),sid:p.id,isMy});
       }
     }
     // Direct red card chance
     if(Math.random()<0.007){
-      evts.push({min:r(10,85),type:'red',text:'CZERWONA KARTKA: '+p.last+'! Schodzi z boiska!',sid:p.id,isMy:p.clubId===G.myClubId});
+      evts.push({min:r(10,85),type:'red',text:t('match_red_card').replace('{name}',p.last),sid:p.id,isMy:p.clubId===G.myClubId});
     }
   });
   return evts;
@@ -505,17 +505,17 @@ function _applyMomentum(isScorer,evtMin){
   if(!G.momentumTutorialSeen){
     G.momentumTutorialSeen=true;
     setTimeout(function(){
-      notif('⚡ MOMENTUM: igła w prawo = Twój klub dominuje. Gol daje +2.5 impetu, rywal traci −1.5. Wyższy impet → łatwiej strzelić!','info');
+      notif(t('match_momentum_tutorial'),'info');
     },800);
   }
   // Narracja gdy momentum wysoki (>6)
   if(_momentum[isScorer]>=6){
-    const _mTxt=['⚡ Drużyna na fali po golu!','🔥 Rosnące ciśnienie na rywala!','💥 Gol nakręcił zawodników!'];
+    const _mTxt=[t('match_mom_high_1'),t('match_mom_high_2'),t('match_mom_high_3')];
     _momEvts.push({min:Math.min(89,(evtMin||1)+2),type:'narration',
       text:_mTxt[Math.floor(Math.random()*_mTxt.length)],isH:isScorer});
   }
   if(_momentum[!isScorer]<=-6){
-    const _dTxt=['😔 Widać psychiczne załamanie po straconej bramce.','🥶 Rywal przejął kontrolę!'];
+    const _dTxt=[t('match_mom_low_1'),t('match_mom_low_2')];
     _momEvts.push({min:Math.min(89,(evtMin||1)+3),type:'narration',
       text:_dTxt[Math.floor(Math.random()*_dTxt.length)],isH:!isScorer});
   }
@@ -568,26 +568,26 @@ const ph3A=bldEvs(a3fAdj,aSt.atk,hSt.def,hSt.gkOvr,aSc,false,'late');
 const specialEvts=[];
 // Narracja
 if(_isDerby)specialEvts.push({min:r(5,15),type:'narration',
-  text:'🔥 DERBY! Atmosfera na stadionie elektryzuje.',isH:isMyH});
-if(_redH)specialEvts.push({min:r(62,75),type:'narration',text:'🟥 Gra w osłabieniu! Gospodarz broni z dziesięcioma.',isH:true});
-if(_redA)specialEvts.push({min:r(62,75),type:'narration',text:'🟥 Gra w osłabieniu! Gość broni z dziesięcioma.',isH:false});
+  text:t('match_derby_text'),isH:isMyH});
+if(_redH)specialEvts.push({min:r(62,75),type:'narration',text:t('match_down_home'),isH:true});
+if(_redA)specialEvts.push({min:r(62,75),type:'narration',text:t('match_down_away'),isH:false});
 // Zmęczenie w 3. fazie — komunikat
-if(avgPhy<45&&isMyH)specialEvts.push({min:r(65,80),type:'narration',text:'😓 Widać zmęczenie w nogach. Rywal dominuje końcówkę.',isH:false});
+if(avgPhy<45&&isMyH)specialEvts.push({min:r(65,80),type:'narration',text:t('match_fatigue_text'),isH:false});
 // v198: TAKTYCZNA DECYZJA W POŁOWIE — event w 46. minucie
 window._tacticalShift={actMod:1.0,shotMod:1.0,saveMod:1.0,used:false};
 specialEvts.push({min:46,type:'tacticalChoice',isH:isMyH,
-  text:'⚙️ Przerwa! Wybierz taktykę na drugą połowę.'});
+  text:t('match_halftime_narr')});
 // Kontra gdy Instrukcja=Kontry
 if(G.instruction==='Kontry'&&Math.random()<0.3){
   const cScorer=hSc.length?hSc[Math.floor(Math.random()*hSc.length)]:null;
-  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:'⚡ Szybka kontra! '+cScorer.last+'—',isH:isMyH});
+  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:t('match_counter_text').replace('{name}',cScorer.last),isH:isMyH});
 }
 // Pressing — dodatkowe faule
-if(G.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:'💪 Intensywny pressing w środku pola!',isH:isMyH});
+if(G.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:t('match_press_text'),isH:isMyH});
 // Linia wysoka — spalony
 if(_oR>0&&Math.random()<_oR){
   const offsAtt=aSc.length?aSc[Math.floor(Math.random()*aSc.length)]:null;
-  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:'🚩 Spalony! Akcja '+offsAtt.last+' unieważniona.',isH:false});
+  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:t('match_offside_text').replace('{name}',offsAtt.last),isH:false});
 }
 const spMy=bldSetPieces(isMyH?hSc:aSc,isMyH);const spOp=bldSetPieces(isMyH?aSc:hSc,!isMyH);
 allEvts=[...ph1H,...ph1A,...ph2H,...ph2A,...ph3H,...ph3A,...bldCards(allPl),...specialEvts,...spMy,...spOp,..._momEvts].sort((a,b)=>a.min-b.min);// v197: _momEvts = zdarzenia narracyjne momentum
@@ -676,8 +676,7 @@ function next(){if(idx2>=allEvts.length){m.done=true;m.hg=fHG;m.ag=fAG;if(!m._is
       }
     });
     if(_matchGrowths.length>0){
-      const attrNames={tec:'Technika',pas:'Podania',sht:'Strzał',def:'Obrona',phy:'Fizyczność',men:'Mentalność'};
-      const msg='Wzrost przez grę: '+_matchGrowths.map(g=>g.last+' +'+(attrNames[g.attr]||g.attr)).join(', ');
+      const msg=t('match_growth_msg').replace('{list}',_matchGrowths.map(g=>g.last+' +'+t('attr_'+g.attr)).join(', '));
       if(!G.news)G.news=[];
       G.news.unshift({msg,type:'ok',week:G.week,season:G.season,pids:_matchGrowths.map(g=>g.id)});
       if(G.news.length>30)G.news.pop();
@@ -704,7 +703,7 @@ function next(){if(idx2>=allEvts.length){m.done=true;m.hg=fHG;m.ag=fAG;if(!m._is
     const susGames=r(1,3);
     if(!p.suspension)p.suspension=0;
     p.suspension+=susGames;
-    notif(p.name+' zawiesz. na '+susGames+' mec.','err');addNews(t('news_red_card').replace('{name}',p.name).replace('{n}',susGames),'card');
+    notif(t('match_notif_suspended').replace('{name}',p.name).replace('{n}',susGames),'err');addNews(t('news_red_card').replace('{name}',p.name).replace('{n}',susGames),'card');
   }
   });
 if(m.h===G.myClubId){const inc=r(200,800);G.budget+=inc;G.fin.tickets+=inc;}
@@ -796,13 +795,13 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
     const _oppEnt=_pIsH?_pm.a:_pm.h;
     const _oppC=ALL_CLUBS.find(c=>c.id===_oppEnt.cid)||{n:_oppEnt.name};
     G._cupMatchActive={match:_pm,rIdx:_prIdx,isMyH:_pIsH,oppCid:_oppEnt.cid};
-    upUI(90,fHG,fAG);btn.style.display='block';btn.textContent='\u2714 MECZ SKO\u0143CZONY';btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;
+    upUI(90,fHG,fAG);btn.style.display='block';btn.textContent=t('match_finished_btn');btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;
     const mtabsEnd=document.getElementById('m-tabs');if(mtabsEnd)mtabsEnd.style.display='flex';// v199: log zostaje w #mlog wewnątrz m-speed-btns — zostaje widoczny po meczu
     const ocenyBtn=document.querySelector('#m-tabs .sq-tab2-btn:nth-child(2)');
     if(ocenyBtn)matchTab('oceny',ocenyBtn);
     // Po chwili — otwórz mecz pucharowy (gracz może ustawić skład przez przycisk w panelu meczu)
     setTimeout(()=>{
-      notif('🥇 Teraz rozegraj mecz PUCHAROWY vs '+_oppC.n+'!','ok');
+      notif(t('match_cup_next_notif').replace('{opp}',_oppC.n),'ok');
       matchInProgress=false;
       fillMatch();
       openPanel('p-match');
@@ -841,7 +840,7 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
       addNews(t('news_league_skipped').replace('{hg}',_skippedLg.hg).replace('{ag}',_skippedLg.ag).replace('{n}',G.round),'info');
     }
   }
-  advWeek();upUI(90,fHG,fAG);btn.style.display='block';btn.textContent='\u2714 MECZ SKO\u0143CZONY';btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;// v199: blokuj auto-reload fillMatch
+  advWeek();upUI(90,fHG,fAG);btn.style.display='block';btn.textContent=t('match_finished_btn');btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;// v199: blokuj auto-reload fillMatch
   // ── PUCHAR: rozstrzygnij mecz gracza jeśli aktywny (mecz pucharowy) ──
   const _wasCupMatch=!!(G._cupMatchActive);
   if(G._cupMatchActive){
@@ -869,13 +868,13 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
           if(!G.pendingOffers)G.pendingOffers=[];
           G.pendingOffers.push({pid:p.id,price:_hotPrice,clubId:_buyer.id,clubName:_buyer.n});
           addNews(t('news_tr_hot_offer').replace('{name}',p.name).replace('{price}',fmtVal(_hotPrice)).replace('{buyer}',_buyer.n),'info');
-          G.news[0].action='sell_offer';G.news[0].actionLabel='SPRZEDAJ';G.news[0].pid=p.id;
+          G.news[0].action='sell_offer';G.news[0].actionLabel=t('news_tr_action_sell');G.news[0].pid=p.id;
         }
       }
       // poza oknem — cichy wzrost wartości, bez newsa
     }
   });
-  const _relEnd=document.getElementById('m-relacja');if(_relEnd&&!_relEnd.classList.contains('on')){}const bb2=document.getElementById('btn-match-back');if(bb2){bb2.style.display='block';bb2.style.background='var(--gb)';bb2.style.color='#000';bb2.textContent='\u25c4 WR\u00d3\u0106';}updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');notif((iW?'\ud83c\udfc6 WYGRANA!':iL?'\u2639 PRZEGRANA':'\ud83e\udd1d REMIS!')+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
+  const _relEnd=document.getElementById('m-relacja');if(_relEnd&&!_relEnd.classList.contains('on')){}const bb2=document.getElementById('btn-match-back');if(bb2){bb2.style.display='block';bb2.style.background='var(--gb)';bb2.style.color='#000';bb2.textContent=t('modal_back');}updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
 const ev=allEvts[idx2++];
       // Inkrementuj liveStats sukcesywnie dla każdego zdarzenia
       const _isH=ev.isH;
@@ -911,8 +910,8 @@ const ev=allEvts[idx2++];
             const assP=ev.assisterId?G.players.find(x=>x.id===ev.assisterId):null;
             assistStr=assP?' <span style="color:var(--gr)">(as. <span style="cursor:pointer;text-decoration:underline;color:var(--wh)" onclick="event.stopPropagation();showById('+assP.id+')">'+ev.assister+'</span>)</span>':' <span style="color:var(--gr)">(as. '+ev.assister+')</span>';
           }
-          const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">[róż.]</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">[rz.w.]</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">[kar.]</span>':'';
-          txt='<b>GOL! '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">Wychowanek od S'+_acadDebH3.season+' • OVR '+_acadDebH3.ovr+'→'+ovr(scorerP)+'</div>':'');
+          const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">'+t('match_sp_corner')+'</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">'+t('match_sp_freekick')+'</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">'+t('match_sp_penalty')+'</span>':'';
+          txt='<b>'+t('match_goal_label')+' '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">'+t('match_academy_debut_badge').replace('{season}',_acadDebH3.season).replace('{a}',_acadDebH3.ovr).replace('{b}',ovr(scorerP))+'</div>':'');
         } else if(ev.type==='shot'){
           cls+=isMy?'shot-my':'shot-opp'; icon=isMy?'→':'←';
         } else if(ev.type==='narration'){
@@ -927,9 +926,9 @@ const ev=allEvts[idx2++];
           cls+='card-red'; icon='🔴';
         } else if(ev.type==='tacticalChoice'&&!window._tacticalShift.used&&matchSpeed>0){
           cls+='narr-my'; icon='⚙️';
-          const _tBtns=[{key:'attack',label:'⚔️ Atak totale',desc:'+20% strzałów -15% save',shotMod:1.20,saveMod:0.85},{key:'counter',label:'🏃 Kontratak',desc:'+25% strzałów mniej akcji',shotMod:1.25,saveMod:1.05},{key:'defend',label:'🛡️ Graj na czas',desc:'-20% akcji +12% save',shotMod:0.85,saveMod:1.12},{key:'press',label:'💪 Pressing',desc:'+15% akcji -8% strzałów',shotMod:0.92,saveMod:1.00}];
+          const _tBtns=[{key:'attack',label:t('match_tac_attack_label'),desc:t('match_tac_attack_desc'),shotMod:1.20,saveMod:0.85},{key:'counter',label:t('match_tac_counter_label'),desc:t('match_tac_counter_desc'),shotMod:1.25,saveMod:1.05},{key:'defend',label:t('match_tac_defend_label'),desc:t('match_tac_defend_desc'),shotMod:0.85,saveMod:1.12},{key:'press',label:t('match_tac_press_label'),desc:t('match_tac_press_desc'),shotMod:0.92,saveMod:1.00}];
           const _tacId='tac-countdown-'+Date.now();
-          txt='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">⚙ PRZERWA — WYBIERZ TAKTYKĘ NA 2. POŁOWĘ</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">Wybór możliwy tylko teraz</span>'
+          txt='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">'+t('match_halftime_title')+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+t('match_halftime_subtitle')+'</span>'
             +'<div style="display:flex;align-items:center;gap:8px;margin:5px 0">'
             +'<div style="flex:1;height:4px;background:#1a1a1a;border:1px solid var(--gl)"><div id="'+_tacId+'-bar" style="height:100%;background:var(--am);width:100%;transition:width 1s linear"></div></div>'
             +'<span style="font-size:var(--fs-body);color:var(--am);min-width:28px;text-align:right"><b id="'+_tacId+'-sec">10</b>s</span>'
@@ -957,7 +956,7 @@ const ev=allEvts[idx2++];
                 if(!window._tacticalShift.used){
                   window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
                   const mlog2=document.getElementById('mlog');
-                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent='⏱️ Przerwa skończona — brak zmiany taktyki.';mlog2.appendChild(_d2);}
+                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent=t('match_halftime_over');mlog2.appendChild(_d2);}
                 }
                 window._tacResumeNext&&window._tacResumeNext();
               }

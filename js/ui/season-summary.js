@@ -49,7 +49,7 @@ function showSeasonSummary(){
   // Nagłówek
   const lbl=document.getElementById('mss-season-label');
   const badge=document.getElementById('mss-league-badge');
-  if(lbl)lbl.textContent='Sezon '+(G.season||1);
+  if(lbl)lbl.textContent=t('mss_season_label').replace('{n}',G.season||1);
   if(badge)badge.textContent=(G.leagues&&G.leagues.find(l=>l.level===G.myLeague)&&G.leagues.find(l=>l.level===G.myLeague).name)||(LEAGUE_NAMES[G.myLeague||8]||'');
 
   // Zbierz dane
@@ -101,9 +101,9 @@ function showSeasonSummary(){
   // ── TAB: WYNIKI ────────────────────────────────────────────
   const promRelLabel=(()=>{
     const leagueLevel=G.myLeague||8;
-    if(pos===1)return '<span style="color:var(--am)">🏆 MISTRZOSTWO!</span>';
-    if(pos<=2&&leagueLevel>1)return '<span style="color:var(--gb)">⬆ AWANS</span>';
-    if(pos>=totalClubs-1&&leagueLevel<8)return '<span style="color:var(--rd)">⬇ ZAGROŻENIE SPADKIEM</span>';
+    if(pos===1)return '<span style="color:var(--am)">'+t('mss_champion')+'</span>';
+    if(pos<=2&&leagueLevel>1)return '<span style="color:var(--gb)">'+t('mss_promoted')+'</span>';
+    if(pos>=totalClubs-1&&leagueLevel<8)return '<span style="color:var(--rd)">'+t('mss_relegation_threat')+'</span>';
     return '';
   })();
 
@@ -111,26 +111,26 @@ function showSeasonSummary(){
 
   document.getElementById('mss-wyniki').innerHTML=`
     <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:1px">POZYCJA W LIDZE</div>
+      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:1px">${t('mss_league_position')}</div>
       <div style="font-size:var(--fs-dense);color:${posColor}">${pos}.</div>
-      <div style="font-size:var(--fs-dense);color:var(--gr)">z ${totalClubs} drużyn</div>
+      <div style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_of_clubs').replace('{n}',totalClubs)}</div>
       ${promRelLabel?'<div style="margin-top:4px;font-size:var(--fs-dense)">'+promRelLabel+'</div>':''}
     </div>
     <div style="background:#0a1a0a;border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;text-align:center;gap:4px">
-        <div><div style="font-size:var(--fs-dense);color:var(--gr)">PKT</div><div style="font-size:var(--fs-dense);color:var(--am)">${myS.pts||0}</div></div>
-        <div><div style="font-size:var(--fs-dense);color:var(--gr)">W</div><div style="font-size:var(--fs-dense);color:var(--gb)">${myS.w||0}</div></div>
-        <div><div style="font-size:var(--fs-dense);color:var(--gr)">R</div><div style="font-size:var(--fs-dense);color:var(--wh)">${myS.d||0}</div></div>
-        <div><div style="font-size:var(--fs-dense);color:var(--gr)">P</div><div style="font-size:var(--fs-dense);color:var(--rd)">${myS.l||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_col_pts')}</div><div style="font-size:var(--fs-dense);color:var(--am)">${myS.pts||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_col_w')}</div><div style="font-size:var(--fs-dense);color:var(--gb)">${myS.w||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_col_d')}</div><div style="font-size:var(--fs-dense);color:var(--wh)">${myS.d||0}</div></div>
+        <div><div style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_col_l')}</div><div style="font-size:var(--fs-dense);color:var(--rd)">${myS.l||0}</div></div>
       </div>
-      <div style="text-align:center;margin-top:4px;font-size:var(--fs-dense);color:var(--wh)">${myS.gf||0}:${myS.ga||0} <span style="color:var(--gr);font-size:var(--fs-dense)">gole</span></div>
+      <div style="text-align:center;margin-top:4px;font-size:var(--fs-dense);color:var(--wh)">${myS.gf||0}:${myS.ga||0} <span style="color:var(--gr);font-size:var(--fs-dense)">${t('mss_goals_label')}</span></div>
     </div>
-    ${topScorer?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">⚽ TOP STRZELEC SEZONU</div>
+    ${topScorer?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">${t('mss_top_scorer')}</div>
     <div onclick="showById(${topScorer.id})" style="background:#0a1a0a;border:1px solid var(--am);padding:6px 10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
       <span style="font-size:var(--fs-dense);color:var(--am)">${topScorer.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
-      <span style="font-size:var(--fs-dense);color:var(--am)">${topScorer.st&&topScorer.st.g||0} goli</span>
+      <span style="font-size:var(--fs-dense);color:var(--am)">${t('mss_goals_suffix').replace('{n}',topScorer.st&&topScorer.st.g||0)}</span>
     </div>`:''}
-    ${topRating?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">⭐ NAJLEPSZY GRACZ SEZONU</div>
+    ${topRating?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:2px">${t('mss_top_rating')}</div>
     <div onclick="showById(${topRating.id})" style="background:#0a1a0a;border:1px solid var(--gb);padding:6px 10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
       <span style="font-size:var(--fs-dense);color:var(--gb)">${topRating.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
       <span style="font-size:var(--fs-dense);color:var(--gb)">${(topRating.seasonRatings.reduce((s,r)=>s+r,0)/topRating.seasonRatings.length).toFixed(1)} avg</span>
@@ -144,24 +144,24 @@ function showSeasonSummary(){
     const mColor=lastGoals.mainDone?'var(--gb)':'var(--rd)';
     const oIcon=lastGoals.optDone===true?'✅':lastGoals.optDone===false?'❌':'—';
     const oColor=lastGoals.optDone===true?'var(--gb)':lastGoals.optDone===false?'var(--rd)':'var(--gr)';
-    const ocena=lastGoals.mainDone?'<span style="color:var(--gb)">Zarząd jest zadowolony</span>':'<span style="color:var(--rd)">Zarząd rozczarowany</span>';
+    const ocena=lastGoals.mainDone?'<span style="color:var(--gb)">'+t('mss_board_happy')+'</span>':'<span style="color:var(--rd)">'+t('mss_board_disappointed')+'</span>';
     celeHtml=`
-      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">CEL GŁÓWNY</div>
+      <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">${t('mss_main_goal')}</div>
       <div style="background:#0a1a0a;border:1px solid ${mColor};padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
         <span style="font-size:var(--fs-dense)">${mIcon}</span>
         <span style="font-size:var(--fs-dense);color:${mColor}">${lastGoals.mainGoal||'—'}</span>
       </div>
-      ${lastGoals.optGoal?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">CEL OPCJONALNY</div>
+      ${lastGoals.optGoal?`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">${t('mss_opt_goal')}</div>
       <div style="background:#0a1a0a;border:1px solid ${oColor};padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
         <span style="font-size:var(--fs-dense)">${oIcon}</span>
         <span style="font-size:var(--fs-dense);color:${oColor}">${lastGoals.optGoal}</span>
       </div>`:''}
       <div style="background:#111;border:1px solid var(--gl);padding:8px 12px;text-align:center;font-size:var(--fs-dense);margin-top:6px">
         ${ocena}
-        ${(lastGoals.streakAfter||0)>=2?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:3px">⚠ Presja zarządu x'+(lastGoals.streakAfter)+'</div>':''}
+        ${(lastGoals.streakAfter||0)>=2?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:3px">'+t('mss_board_pressure').replace('{n}',lastGoals.streakAfter)+'</div>':''}
       </div>`;
   } else {
-    celeHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:16px">Brak celów zarządu w tym sezonie.</div>';
+    celeHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:16px">'+t('mss_no_goals')+'</div>';
   }
   document.getElementById('mss-cele').innerHTML=celeHtml;
 
@@ -177,37 +177,37 @@ function showSeasonSummary(){
     document.getElementById('mss-finanse').innerHTML=`
     <div style="background:#0a1a0a;border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">📺 Przychody operacyjne</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_income_op')}</span>
         <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(totalInc)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">💸 Wydatki operacyjne</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_cost_op')}</span>
         <span style="font-size:var(--fs-dense);color:var(--rd)">-${fmtVal(totalCost)}</span>
       </div>
       ${_trNet!==0?`<div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">🔄 Transfery</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_transfers_label')}</span>
         <span style="font-size:var(--fs-dense);color:${_trNet>=0?'var(--gb)':'var(--rd)'}">${_trNet>=0?'+':''}${fmtVal(_trNet)}</span>
       </div>`:''}
       ${(G.seasonBonus&&G.seasonBonus>0)?`<div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">🏆 Premia</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_bonus_label')}</span>
         <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(G.seasonBonus)}</span>
       </div>`:''}
       <div style="border-top:1px solid var(--gl);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">Suma</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_sum_label')}</span>
         <span style="font-size:var(--fs-dense);color:var(--wh)">${_nettoSign}${fmtVal(totalInc-totalCost+_trNet+(G.seasonBonus||0))}</span>
       </div>
     </div>
     <div style="background:#0a1a0a;border:1px solid var(--am);padding:10px 12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">Budżet na start sezonu</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_budget_start')}</span>
         <span style="font-size:var(--fs-dense);color:var(--wh)">${fmt(_bStart)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:var(--fs-dense);color:var(--gr)">Budżet na koniec sezonu</span>
+        <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_budget_end')}</span>
         <span style="font-size:var(--fs-dense);color:var(--am)">${fmt(G.budget)}</span>
       </div>
       <div style="border-top:1px solid var(--gl);padding-top:6px;display:flex;justify-content:space-between">
-        <span style="font-size:var(--fs-dense);color:var(--wh)">Wynik netto sezonu</span>
+        <span style="font-size:var(--fs-dense);color:var(--wh)">${t('mss_net_result')}</span>
         <span style="font-size:var(--fs-dense);color:${_nettoColor}">${_nettoSign}${fmtVal(_nettoReal)}</span>
       </div>
     </div>
@@ -217,27 +217,27 @@ function showSeasonSummary(){
   // ── TAB: TRANSFERY ─────────────────────────────────────────
   let trHtml='';
   if(trSeason.length===0){
-    trHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">Brak transferów w tym sezonie.</div>';
+    trHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">'+t('mss_no_transfers')+'</div>';
   } else {
     const trBalColor=trEarned-trSpent>=0?'var(--gb)':'var(--rd)';
     const trBalSign=trEarned-trSpent>=0?'+':'';
     trHtml=`
       <div style="background:#0a1a0a;border:1px solid var(--gl);padding:10px 12px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:var(--fs-dense);color:var(--gr)">Zakupy (${trBought.length})</span>
+          <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_purchases').replace('{n}',trBought.length)}</span>
           <span style="font-size:var(--fs-dense);color:var(--rd)">-${fmtVal(trSpent)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:var(--fs-dense);color:var(--gr)">Sprzedaże (${trSold.length})</span>
+          <span style="font-size:var(--fs-dense);color:var(--gr)">${t('mss_sales').replace('{n}',trSold.length)}</span>
           <span style="font-size:var(--fs-dense);color:var(--gb)">+${fmtVal(trEarned)}</span>
         </div>
         <div style="border-top:1px solid var(--gl);padding-top:8px;display:flex;justify-content:space-between">
-          <span style="font-size:var(--fs-dense);color:var(--wh)">Bilans</span>
+          <span style="font-size:var(--fs-dense);color:var(--wh)">${t('mss_balance')}</span>
           <span style="font-size:var(--fs-dense);color:${trBalColor}">${trBalSign}${fmtVal(trEarned-trSpent)}</span>
         </div>
       </div>`;
     if(trBought.length>0){
-      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">POZYSKANI</div>';
+      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+t('mss_acquired')+'</div>';
       trBought.forEach(t=>{
         const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--gb);cursor:pointer">${t.name} <span style="font-size:var(--fs-dense)">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
         trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense)">
@@ -245,7 +245,7 @@ function showSeasonSummary(){
       });
     }
     if(trSold.length>0){
-      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">SPRZEDANI</div>';
+      trHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">'+t('mss_sold_section')+'</div>';
       trSold.forEach(t=>{
         const _nameEl=t.id?`<span onclick="showById(${t.id})" style="color:var(--rd);cursor:pointer">${t.name} <span style="font-size:var(--fs-dense)">↗</span></span>`:`<span style="color:var(--wh)">${t.name}</span>`;
         trHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense)">
@@ -258,14 +258,14 @@ function showSeasonSummary(){
   // ── TAB: WYCENY ────────────────────────────────────────────
   let wycHtml='';
   if(valSnap.length===0){
-    wycHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">Wyceny są obliczane na koniec sezonu.<br>Zagraj sezon do końca aby zobaczyć zmiany.</div>';
+    wycHtml='<div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;padding:20px">'+t('mss_val_pending')+'</div>';
   } else {
     const risers=[...valSnap].sort((a,b)=>b.diff-a.diff).filter(v=>v.diff>0);
     const fallers=[...valSnap].sort((a,b)=>a.diff-b.diff).filter(v=>v.diff<0);
     const unchanged=valSnap.filter(v=>v.diff===0);
-    wycHtml=`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">${valSnap.length} zawodników • ${risers.length} wzrostów • ${fallers.length} spadków</div>`;
+    wycHtml=`<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">${t('mss_val_summary').replace('{n}',valSnap.length).replace('{up}',risers.length).replace('{down}',fallers.length)}</div>`;
     if(risers.length>0){
-      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px;letter-spacing:1px">▲ WZROSTY WARTOŚCI</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px;letter-spacing:1px">'+t('mss_risers')+'</div>';
       risers.slice(0,8).forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a2a1a;cursor:pointer">
           <div><div style="font-size:var(--fs-dense);color:var(--gb)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></div><div style="font-size:var(--fs-dense);color:var(--gr)">${v.oldVal>0?fmtVal(v.oldVal):'—'} → ${fmtVal(v.newVal)}</div></div>
@@ -274,7 +274,7 @@ function showSeasonSummary(){
       });
     }
     if(fallers.length>0){
-      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--rd);margin:10px 0 4px;letter-spacing:1px">▼ SPADKI WARTOŚCI</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--rd);margin:10px 0 4px;letter-spacing:1px">'+t('mss_fallers')+'</div>';
       fallers.slice(0,8).forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a2a1a;cursor:pointer">
           <div><div style="font-size:var(--fs-dense);color:var(--rd)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></div><div style="font-size:var(--fs-dense);color:var(--gr)">${fmtVal(v.oldVal)} → ${fmtVal(v.newVal)}</div></div>
@@ -283,7 +283,7 @@ function showSeasonSummary(){
       });
     }
     if(!risers.length&&!fallers.length){
-      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">AKTUALNE WYCENY SKŁADU</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+t('mss_current_valuations')+'</div>';
       [...valSnap].sort((a,b)=>b.newVal-a.newVal).forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense);cursor:pointer">
           <span style="color:var(--am)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
@@ -291,7 +291,7 @@ function showSeasonSummary(){
         </div>`;
       });
     } else if(unchanged.length>0){
-      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">BEZ ZMIAN</div>';
+      wycHtml+='<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0 4px">'+t('mss_unchanged')+'</div>';
       unchanged.forEach(v=>{
         wycHtml+=`<div onclick="showById(${v.id})" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a2a1a;font-size:var(--fs-dense);cursor:pointer">
           <span style="color:var(--wh)">${v.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
@@ -364,7 +364,7 @@ function startNewSeason(){
         G.budget-=_sdS.cost;
         if(!G.fin)G.fin={};
         if(!G.fin.hist)G.fin.hist=[];
-        G.fin.hist.push({w:1,inc:0,cost:_sdS.cost,bal:G.budget,note:'Utrzymanie: '+(_sdS.label||_sdS.name)});
+        G.fin.hist.push({w:1,inc:0,cost:_sdS.cost,bal:G.budget,note:t('mss_note_scout_upkeep').replace('{name}',_sdS.label||_sdS.name)});
         addNews(t('news_scout_fee').replace('{label}',_sdS.label||_sdS.name).replace('{cost}',fmt(_sdS.cost)),'scout');
       } else {
         G.scout.level='free';
@@ -389,7 +389,7 @@ function startNewSeason(){
       if(G.contracts[k]&&G.contracts[k].seasonsLeft>0){
         G.contracts[k].seasonsLeft--;
         if(G.contracts[k].seasonsLeft<=0){
-          G.news=G.news||[];G.news.unshift({msg:'📋 Wygasł kontrakt: '+k+'. Podpisz nowy w Finansach.',type:'info',week:G.week||1,season:G.season,action:'finance',actionLabel:'FINANSE'});renderNews();
+          G.news=G.news||[];G.news.unshift({msg:t('mss_news_expired_contract').replace('{name}',k),type:'info',week:G.week||1,season:G.season,action:'finance',actionLabel:t('tile_finance')});renderNews();
           G.contracts[k]={weekly:0,seasonsLeft:0};
         }
       }
@@ -464,10 +464,10 @@ function startNewSeason(){
               const budgetBonus=LEAGUE_BUDGET[newLvl]-LEAGUE_BUDGET[lvl];
               if(budgetBonus>0)G.budget+=budgetBonus;
               G.fin.sponsors=LEAGUE_SPONSORS[newLvl]||G.fin.sponsors;
-              promotionNews.push('🏆 AWANS do '+LEAGUE_NAMES[newLvl]+'! Budżet +'+fmtVal(budgetBonus));
+              promotionNews.push({mine:true,dir:'up',league:LEAGUE_NAMES[newLvl],val:fmtVal(budgetBonus)});
               G.reputation=Math.min(1000,(G.reputation||10)+50);G.frequency=Math.min(100,(G.frequency||40)+10);
             } else {
-              if(lvl===G.myLeague||lvl-1===G.myLeague)promotionNews.push('⬆ '+club.n+' awansuje do '+LEAGUE_NAMES[lvl-1]);
+              if(lvl===G.myLeague||lvl-1===G.myLeague)promotionNews.push({mine:false,dir:'up',club:club.n,league:LEAGUE_NAMES[lvl-1]});
               // Oznacz klub AI jako awansowany
               if(club.ai)club.ai.promoted=true;
             }
@@ -494,10 +494,10 @@ function startNewSeason(){
               const newLvl=lvl+1;G.myLeague=newLvl;
               myPl().forEach(function(p){p.value=Math.round(calcValue(ovr(p),p.age)*0.87/1000)*1000||p.value;});
               G.fin.sponsors=LEAGUE_SPONSORS[newLvl]||G.fin.sponsors;
-              promotionNews.push('😢 SPADEK do '+LEAGUE_NAMES[newLvl]+'!');
+              promotionNews.push({mine:true,dir:'down',league:LEAGUE_NAMES[newLvl]});
               G.reputation=Math.max(0,(G.reputation||10)-30);G.frequency=Math.max(10,(G.frequency||40)-10);
             } else {
-              if(lvl===G.myLeague||lvl+1===G.myLeague)promotionNews.push('⬇ '+club.n+' spada do '+LEAGUE_NAMES[lvl+1]);
+              if(lvl===G.myLeague||lvl+1===G.myLeague)promotionNews.push({mine:false,dir:'down',club:club.n,league:LEAGUE_NAMES[lvl+1]});
               // Oznacz klub AI jako spadkowicz
               if(club.ai)club.ai.relegated=true;
             }
@@ -535,21 +535,21 @@ function startNewSeason(){
     // Pokaż news o awansach/spadkach
     if(promotionNews.length){
       // Wiadomość gracza osobno
-      const myMsgs=promotionNews.filter(m=>m.includes('AWANS do')||m.includes('SPADEK do'));
-      const aiMsgs=promotionNews.filter(m=>!m.includes('AWANS do')&&!m.includes('SPADEK do'));
-      myMsgs.forEach(msg=>addNews(msg,'club'));
+      const myMsgs=promotionNews.filter(m=>m.mine);
+      const aiMsgs=promotionNews.filter(m=>!m.mine);
+      myMsgs.forEach(m=>addNews(m.dir==='up'?t('mss_news_promoted').replace('{league}',m.league).replace('{val}',m.val):t('mss_news_relegated').replace('{league}',m.league),'club'));
       // AI awanse/spadki z ligi gracza - jedna zbiorcza wiadomość
-      const aiUp=aiMsgs.filter(m=>m.startsWith('⬆'));
-      const aiDown=aiMsgs.filter(m=>m.startsWith('⬇'));
+      const aiUp=aiMsgs.filter(m=>m.dir==='up');
+      const aiDown=aiMsgs.filter(m=>m.dir==='down');
       if(aiUp.length){
-        const names=aiUp.map(m=>m.replace('⬆ ','').split(' awansuje')[0]).join(', ');
-        const dest=aiUp[0].split('awansuje do ')[1]||'';
-        addNews('⬆ Awans do '+dest+': '+names,'info');
+        const names=aiUp.map(m=>m.club).join(', ');
+        const dest=aiUp[0].league||'';
+        addNews(t('mss_news_ai_promoted').replace('{league}',dest).replace('{names}',names),'info');
       }
       if(aiDown.length){
-        const names=aiDown.map(m=>m.replace('⬇ ','').split(' spada')[0]).join(', ');
-        const dest=aiDown[0].split('spada do ')[1]||'';
-        addNews('⬇ Spadek do '+dest+': '+names,'info');
+        const names=aiDown.map(m=>m.club).join(', ');
+        const dest=aiDown[0].league||'';
+        addNews(t('mss_news_ai_relegated').replace('{league}',dest).replace('{names}',names),'info');
       }
     }
   } else {
@@ -559,7 +559,7 @@ function startNewSeason(){
   // ── AI TRANSFERY SEZONOWE ─────────────────────────────────
   try{ aiTransferSeason(false); }catch(e){ console.warn('aiTransferSeason error:',e); }
   updateHdr();
-  notif('Nowy sezon '+G.season+'!','ok');
+  notif(t('mss_notif_new_season').replace('{n}',G.season),'ok');
   generateProspects();
   // ── RAPORT ROCZNIKA AKADEMII ─────────────────────────────────────────
   if(G.academy&&G.academy.level>0&&G.season>1){
@@ -581,20 +581,20 @@ function startNewSeason(){
         var _lastM=_lastH11.length?(_lastH11[0].m||0):0;
         if(_lastM>0&&_totalPrev===0&&!_debutant11)_debutant11=p;
       });
-      var _rMsg='📋 Raport rocznika S'+(G.season-1)+': ';
-      if(_bestGrowth11&&_bestGrowthVal11>0)_rMsg+='🎓 '+_bestGrowth11.name+' urósł najbardziej (+'+_bestGrowthVal11+' OVR). ';
-      if(_debutant11)_rMsg+='⚡ '+_debutant11.name+' zadebiutował w składzie! ';
-      if(_grads11.length>0)_rMsg+='Masz '+_grads11.length+' wychowanków w składzie.';
-      if(G.academy.hist)G.academy.hist.push({season:G.season,name:'RAPORT',pos:'',action:_rMsg,isReport:true});
+      var _rMsg=t('mss_academy_report_prefix').replace('{n}',G.season-1);
+      if(_bestGrowth11&&_bestGrowthVal11>0)_rMsg+=t('mss_academy_growth').replace('{name}',_bestGrowth11.name).replace('{n}',_bestGrowthVal11);
+      if(_debutant11)_rMsg+=t('mss_academy_debut').replace('{name}',_debutant11.name);
+      if(_grads11.length>0)_rMsg+=t('mss_academy_count').replace('{n}',_grads11.length);
+      if(G.academy.hist)G.academy.hist.push({season:G.season,name:t('mss_academy_report_label'),pos:'',action:_rMsg,isReport:true});
       addNews(_rMsg,'ok');
     }
   }
   genBoardGoals();
   if(!G.news)G.news=[];
-  G.news.unshift({msg:'🔓 Letnie okno transferowe OTWARTE — masz 2 tygodnie na transfery!',type:'budget',week:1,season:G.season,expires:3,action:'transfers',actionLabel:'TRANSFERY'});
-  G.news.unshift({msg:'💰 Podpisz kontrakty sponsorskie na nowy sezon!',type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:'KONTRAKTY'});
-  G.news.unshift({msg:'🏕 Wyślij zespół na obóz przygotowawczy przed sezonem!',type:'train',week:1,season:G.season,expires:3,action:'camp',actionLabel:'OBÓZ'});
-  G.news.unshift({msg:'📋 Zarząd wyznaczył cele na sezon '+G.season+'! Wybierz cel główny i bonus.',type:'club',week:G.week||1,season:G.season,action:'board',actionLabel:'ZARZĄD'});
+  G.news.unshift({msg:t('startnews_summer_window'),type:'budget',week:1,season:G.season,expires:3,action:'transfers',actionLabel:t('tile_transfers')});
+  G.news.unshift({msg:t('startnews_sponsor'),type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:t('fin_tab_contracts')});
+  G.news.unshift({msg:t('startnews_camp'),type:'train',week:1,season:G.season,expires:3,action:'camp',actionLabel:t('startnews_action_camp')});
+  G.news.unshift({msg:t('startnews_board_goals').replace('{season}',G.season),type:'club',week:G.week||1,season:G.season,action:'board',actionLabel:t('fin_tab_board')});
   genTransferMarket();G.trBoughtThisWindow=0;G.listedPlayers=[];G.pendingOffers=[];G.indCampUsed=0;renderNews();
 }
 function fillLeaguesOverview(){
@@ -786,13 +786,13 @@ function renderHistoria(lvl,sub){
   const pane=document.getElementById('lgpane'+lvl+'_historia');
   if(!pane)return;
   const lgHistData=(G.lgHist&&G.lgHist[lvl])||[];
-  const noBrak='<div style="color:var(--gr);font-size:var(--fs-meta);padding:16px 12px;text-align:center;line-height:1.6">Brak historii.<br>Dane zapisują się automatycznie<br>po zakończeniu każdego sezonu.</div>';
+  const noBrak='<div style="color:var(--gr);font-size:var(--fs-meta);padding:16px 12px;text-align:center;line-height:1.6">'+t('lg_hist_no_data')+'</div>';
 
   // sub-tabs bar
   const activeSub=sub||'mistrzowie';
   const subBar='<div style="display:flex;background:#0a1a0a;border-bottom:1px solid var(--gl)">'+
     ['mistrzowie','miejsca','legenda'].map(s=>{
-      const lbl=s==='mistrzowie'?'👑 MISTRZOWIE':s==='miejsca'?'📊 HISTORIA MIEJSC':'🌍 LEGENDA';
+      const lbl=s==='mistrzowie'?t('lg_hist_tab_champions'):s==='miejsca'?t('lg_hist_tab_positions'):t('lg_hist_tab_legend');
       const isOn=s===activeSub;
       return '<button onclick="renderHistoria('+lvl+',\''+s+'\')" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gl);border-bottom:'+(isOn?'2px solid var(--am)':'none')+';color:'+(isOn?'var(--am)':'var(--gr)')+';font-weight:700;font-size:var(--fs-micro);padding:9px 2px;cursor:pointer">'+lbl+'</button>';
     }).join('')+
@@ -813,7 +813,7 @@ function renderHistoria(lvl,sub){
         '<span style="font-size:var(--fs-meta);color:var(--gr);width:28px">S'+h.season+'</span>'+
         '<span style="font-size:15px">👑</span>'+
         '<span style="flex:1;font-size:var(--fs-body);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+( h.champion?h.champion.n:'—')+'</span>'+
-        '<span style="font-size:var(--fs-meta);color:var(--gr)">'+(h.champion?h.champion.pts+' pkt':'')+'</span>'+
+        '<span style="font-size:var(--fs-meta);color:var(--gr)">'+(h.champion?h.champion.pts+t('lg_hist_pts_suffix'):'')+'</span>'+
       '</div>';
     }).join('');
     pane.innerHTML=subBar+rows;
@@ -845,21 +845,21 @@ function renderHistoria(lvl,sub){
         cells+
       '</tr>';
     }).join('');
-    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="Otwórz tabelę sezonu '+s+'" style="width:26px;font-weight:700;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
+    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="'+t('lg_season_table_title').replace('{n}',s)+'" style="width:26px;font-weight:700;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
     const legend=
       '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--gl)">'+
-        '<span style="font-size:var(--fs-dense);color:var(--gr)">Legenda:</span>'+
-        '<span style="background:#7a5c00;color:#ffd54f;font-size:var(--fs-dense);padding:1px 5px">👑 Mistrz</span>'+
-        '<span style="background:#3a3a3a;color:#ccc;font-size:var(--fs-dense);padding:1px 5px">2 msc</span>'+
-        '<span style="background:#5c3a1a;color:#d4a574;font-size:var(--fs-dense);padding:1px 5px">3 msc</span>'+
-        '<span style="background:#0d2b0d;color:var(--gb);font-size:var(--fs-dense);padding:1px 5px">TOP 25%</span>'+
-        '<span style="background:#2b0d0d;color:var(--rd);font-size:var(--fs-dense);padding:1px 5px">↓ Spadek</span>'+
+        '<span style="font-size:var(--fs-dense);color:var(--gr)">'+t('lg_hist_legend_label')+'</span>'+
+        '<span style="background:#7a5c00;color:#ffd54f;font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_champion')+'</span>'+
+        '<span style="background:#3a3a3a;color:#ccc;font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_2nd')+'</span>'+
+        '<span style="background:#5c3a1a;color:#d4a574;font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_3rd')+'</span>'+
+        '<span style="background:#0d2b0d;color:var(--gb);font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_top25')+'</span>'+
+        '<span style="background:#2b0d0d;color:var(--rd);font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_relegation')+'</span>'+
       '</div>';
     pane.innerHTML=subBar+
-      '<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">▲ kliknij S# aby otworzyć tabelę sezonu</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">'+t('lg_hist_click_hint')+'</div>'+
       '<div style="overflow-x:auto;padding:4px 8px">'+
         '<table style="border-collapse:collapse">'+
-          '<thead><tr><th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">Drużyna</th>'+seasonHdrs+'</tr></thead>'+
+          '<thead><tr><th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">'+t('lg_hist_team_col')+'</th>'+seasonHdrs+'</tr></thead>'+
           '<tbody>'+teamRows+'</tbody>'+
         '</table>'+
       '</div>'+legend;
@@ -904,19 +904,19 @@ function showLgSeasonTable(lvl,season){
       '<table style="width:100%;border-collapse:collapse">'+
         '<thead><tr style="border-bottom:1px solid var(--gl);color:var(--gr)">'+
           '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">#</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:left">KLUB</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">M</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--gb)">W</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">R</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--rd)">P</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GF</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">GA</th>'+
-          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--am)">PKT</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:left">'+t('tbl_col_club')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">'+t('tbl_col_m')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--gb)">'+t('tbl_col_w')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">'+t('tbl_col_d')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--rd)">'+t('tbl_col_l')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">'+t('tbl_col_gf')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center">'+t('tbl_col_ga')+'</th>'+
+          '<th style="font-size:var(--fs-dense);font-weight:normal;padding:3px;text-align:center;color:var(--am)">'+t('tbl_col_pts')+'</th>'+
         '</tr></thead>'+
         '<tbody>'+rows+'</tbody>'+
       '</table>'+
       '<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;margin-top:8px;border-top:1px solid var(--gl);padding-top:6px">'+
-        'dotknij tło lub ✕ aby zamknąć'+
+        t('lg_close_hint')+
       '</div>'+
     '</div>';
 }
@@ -950,16 +950,16 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="padding:10px 12px 4px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🏆</span>'+
-        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">LIGA — TABELA WSZECH CZASÓW</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--am)">'+t('lg_alltime_table_title')+'</span>'+
       '</div>'+
       '<div style="overflow-x:auto">'+
         '<table style="width:100%;border-collapse:collapse">'+
           '<thead><tr style="border-bottom:1px solid var(--gl)">'+
             '<th style="text-align:left;padding:3px 2px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">#</th>'+
-            '<th style="text-align:left;padding:3px 2px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">KLUB</th>'+
-            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--am);font-weight:normal">PKT</th>'+
-            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--gb);font-weight:normal">GF</th>'+
-            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--rd);font-weight:normal">GA</th>'+
+            '<th style="text-align:left;padding:3px 2px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">'+t('tbl_col_club')+'</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--am);font-weight:normal">'+t('tbl_col_pts')+'</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--gb);font-weight:normal">'+t('tbl_col_gf')+'</th>'+
+            '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--rd);font-weight:normal">'+t('tbl_col_ga')+'</th>'+
             '<th style="padding:3px 4px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">🏆</th>'+
           '</tr></thead>'+
           '<tbody>'+ligaRows+'</tbody>'+
@@ -988,7 +988,7 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
       '<div style="width:'+barPct+'%;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:2px"></div>'+
     '</div>'+
     '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr)">'+
-      '<span>'+prestige+' PKT PRESTIŻU</span><span>MAX '+maxPrestige+'</span>'+
+      '<span>'+t('lg_prestige_pts_label').replace('{n}',prestige)+'</span><span>'+t('lg_prestige_max_label').replace('{n}',maxPrestige)+'</span>'+
     '</div>';
   const klubMiniRows=klubRanking.slice(0,5).map((c,i)=>{
     const isMy=c.cid===myClubId;
@@ -996,7 +996,7 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:6px;cursor:pointer">'+
       '<div style="display:flex;justify-content:space-between;font-size:var(--fs-meta);margin-bottom:2px">'+
         '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-weight:700;font-size:var(--fs-h3);margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
-        '<span style="color:#a78bfa">'+c.p+' pkt</span>'+
+        '<span style="color:#a78bfa">'+c.p+t('lg_hist_pts_suffix')+'</span>'+
       '</div>'+
       '<div style="background:var(--tb);height:4px;border-radius:2px;overflow:hidden">'+
         '<div style="width:'+barW+'%;height:100%;background:'+(isMy?'linear-gradient(90deg,#7c3aed,#a78bfa)':'var(--gl)')+';border-radius:2px"></div>'+
@@ -1007,23 +1007,23 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="padding:10px 12px 4px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:var(--fs-body)">⭐</span>'+
-        '<span style="font-weight:700;font-size:var(--fs-h3);color:#a78bfa">KLUB — RANKING PRESTIŻU</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:#a78bfa">'+t('lg_prestige_title')+'</span>'+
       '</div>'+
       '<div style="background:#0d2b0d;border:1px solid var(--gb);border-left:4px solid #a78bfa;padding:10px 12px;margin-bottom:10px">'+
         '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:var(--fs-meta);margin-bottom:8px">'+
-          '<div><div style="color:var(--gr)">🏆 TROFEA</div><div style="color:#a78bfa">'+leagueTitles+'</div></div>'+
-          '<div><div style="color:var(--gr)">⬆ AWANSE</div><div style="color:#a78bfa">'+promotions+'</div></div>'+
-          '<div><div style="color:var(--gr)">🎖 OSIĄG.</div><div style="color:#a78bfa">'+specialTrophies+'</div></div>'+
-          '<div><div style="color:var(--gr)">🏟 STADION</div><div style="color:#a78bfa">'+stadiumCap.toLocaleString()+'</div></div>'+
-          '<div><div style="color:var(--gr)">⭐ PRESTIŻ</div><div style="color:#a78bfa">'+prestige+' pkt</div></div>'+
+          '<div><div style="color:var(--gr)">'+t('lg_prestige_trophies')+'</div><div style="color:#a78bfa">'+leagueTitles+'</div></div>'+
+          '<div><div style="color:var(--gr)">'+t('lg_prestige_promotions')+'</div><div style="color:#a78bfa">'+promotions+'</div></div>'+
+          '<div><div style="color:var(--gr)">'+t('lg_prestige_achievements')+'</div><div style="color:#a78bfa">'+specialTrophies+'</div></div>'+
+          '<div><div style="color:var(--gr)">'+t('lg_prestige_stadium')+'</div><div style="color:#a78bfa">'+stadiumCap.toLocaleString()+'</div></div>'+
+          '<div><div style="color:var(--gr)">'+t('lg_prestige_score')+'</div><div style="color:#a78bfa">'+prestige+t('lg_hist_pts_suffix')+'</div></div>'+
         '</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px;line-height:1.4">'+
-          'Prestiż = trofea ×100 + awanse ×30 + osiągnięcia ×20 + pojemność stadionu ÷100'+
+          t('lg_prestige_formula')+
         '</div>'+
         myPrestigeBar+
       '</div>'+
-      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">TOP 5 — PRESTIŻ W LIDZE</div>'+
+      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">'+t('lg_prestige_top5')+'</div>'+
       klubMiniRows+
     '</div>';
 
@@ -1045,7 +1045,7 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     });
   }
   // Uzupełnij własny klub jeśli nie pojawia się w lgHist
-  if(!worldMap.has(myClubId))worldMap.set(myClubId,{cid:myClubId,n:G.myClub.n,pkt:prestige,titles:leagueTitles,topLeague:G.myLeague||8,liga:typeof LEAGUE_NAMES!=='undefined'?LEAGUE_NAMES[G.myLeague||8]:'Twoja Liga'});
+  if(!worldMap.has(myClubId))worldMap.set(myClubId,{cid:myClubId,n:G.myClub.n,pkt:prestige,titles:leagueTitles,topLeague:G.myLeague||8,liga:typeof LEAGUE_NAMES!=='undefined'?LEAGUE_NAMES[G.myLeague||8]:t('lg_fallback_your_league')});
   const worldRanking=[...worldMap.values()].sort((a,b)=>(b.titles*100+b.pkt)-(a.titles*100+a.pkt));
   const topW=worldRanking[0]?(worldRanking[0].titles*100+worldRanking[0].pkt)||1:1;
   const worldRows=worldRanking.slice(0,10).map((c,i)=>{
@@ -1067,7 +1067,7 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
     '<div style="padding:10px 12px 12px;border-top:1px solid var(--gl)">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
         '<span style="font-size:14px">🌍</span>'+
-        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--gb)">ŚWIAT — RANKING HISTORYCZNY</span>'+
+        '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--gb)">'+t('lg_world_ranking_title')+'</span>'+
       '</div>'+
       worldRows+
     '</div>';
@@ -1083,7 +1083,7 @@ function lgRefreshWyniki(lvl){
   if(!pane||!G)return;
   const sched=(G.allSchedules&&G.allSchedules[lvl])||[];
   if(!sched.length){
-    pane.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">Brak danych</div>';
+    pane.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
     return;
   }
   const isMyLg=lvl===G.myLeague;
@@ -1101,7 +1101,7 @@ function lgRefreshWyniki(lvl){
 
     let hdrBg,hdrColor,rndIcon,rndBadge;
     if(isCurrent){
-      hdrBg='#1a2d00';hdrColor='var(--am)';rndIcon='▶ ';rndBadge='<span style="color:var(--am);font-size:var(--fs-dense)">TERAZ</span>';
+      hdrBg='#1a2d00';hdrColor='var(--am)';rndIcon='▶ ';rndBadge='<span style="color:var(--am);font-size:var(--fs-dense)">'+t('lg_round_now')+'</span>';
     } else if(isDone){
       hdrBg='#0d1f0d';hdrColor='var(--gr)';rndIcon='';rndBadge='<span style="color:var(--gr);font-size:7px">✓</span>';
     } else {
@@ -1111,7 +1111,7 @@ function lgRefreshWyniki(lvl){
     const anchorId=isCurrent?'lgcurr'+lvl:'';
     html+='<div'+(anchorId?' id="'+anchorId+'"':'')+'>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 12px;background:'+hdrBg+';border-bottom:1px solid var(--gl);border-top:1px solid #0a1a0a;position:sticky;top:0;z-index:2;">'+
-        '<span style="color:'+hdrColor+'">'+rndIcon+'KOL. '+rnd+'</span>'+
+        '<span style="color:'+hdrColor+'">'+rndIcon+t('lg_round_label').replace('{n}',rnd)+'</span>'+
         rndBadge+
       '</div>';
 
@@ -1211,12 +1211,12 @@ function toggleFullTable(lvl){
     tbody.innerHTML=top3.map((s,i)=>rowHtml(s,i,s.cid===G.myClubId)).join('')+
       (showMy?'<tr><td colspan="10" style="padding:1px 6px;color:var(--gr);font-size:var(--fs-dense)">···</td></tr>'+rowHtml(showMy,myPos-1,true):'');
     _injectCrests(tbody);
-    btn.textContent='▼ PEŁNA TABELA';
+    btn.textContent=t('tbl_full_table');
     btn.dataset.expanded='0';
   } else {
     tbody.innerHTML=st.map((s,i)=>rowHtml(s,i,s.cid===G.myClubId)).join('');
     _injectCrests(tbody);
-    btn.textContent='▲ ZWIŃ TABELĘ';
+    btn.textContent=t('lg_btn_collapse_table');
     btn.dataset.expanded='1';
   }
 }

@@ -68,30 +68,30 @@ function getTraitEffect(p, traitId){
 }
 
 function fillFinance(){if(!G)return;
-  const fb=document.getElementById('fin-bal');if(fb)fb.textContent='STAN KONTA: '+fmt(G.budget);
+  const fb=document.getElementById('fin-bal');if(fb)fb.textContent=t('fin_balance')+' '+fmt(G.budget);
   const activeTab=document.querySelector('#p-finance .tab-btn.active');
-  const tabName=activeTab?activeTab.textContent.trim():'PRZEGLĄD';
-  if(tabName==='PRZEGLĄD')renderFinPrzeglad();
-  else if(tabName==='KONTRAKTY')renderFinKontrakty();
-  else if(tabName==='HISTORIA')renderFinHistoria();
-  else if(tabName==='SEZONY')renderFinSezony();
+  const tabName=activeTab?activeTab.dataset.tab:'przeglad';
+  if(tabName==='przeglad')renderFinPrzeglad();
+  else if(tabName==='kontrakty')renderFinKontrakty();
+  else if(tabName==='historia')renderFinHistoria();
+  else if(tabName==='sezony')renderFinSezony();
   else renderFinPrzeglad();
   const inc=calcWeeklyIncome();
   const fi=document.getElementById('fin-inc');
   if(fi)fi.innerHTML=
-    '<div class="fsec">PRZYCHODY TYGODNIOWE</div>'+
-    '<div class="frow"><span class="flbl">Sponsorzy</span><span class="fpos">+'+fmt(inc.sponsors)+'</span></div>'+
-    '<div class="frow"><span class="flbl">Bilety</span><span class="fpos">+'+fmt(inc.tickets)+'</span></div>'+
-    '<div class="frow"><span class="flbl">Gadżety</span><span class="fpos">+'+fmt(inc.gadgets)+'</span></div>'+
-    '<div class="frow"><span class="flbl">Reklamy</span><span class="fpos">+'+fmt(inc.ads)+'</span></div>'+
-    (inc.tv>0?'<div class="frow"><span class="flbl">Telewizja</span><span class="fpos">+'+fmt(inc.tv)+'</span></div>':'')+
-    (inc.vip>0?'<div class="frow"><span class="flbl">Loże VIP</span><span class="fpos">+'+fmt(inc.vip)+'</span></div>':'')+
-    '<div class="frow" style="border-top:1px solid var(--gb);margin-top:2px"><span class="flbl" style="color:var(--gb)">RAZEM/TYG</span><span class="fpos" style="color:var(--gb)">+'+fmt(inc.total)+'</span></div>'+
-    '<div style="color:var(--gr);font-size:var(--fs-dense);padding:4px 0">⭐ Rep: '+(G.reputation||10)+' • Mn: ×'+(Math.round((G.reputation||10)/50*100)/100).toFixed(2)+' • Frekw: '+(G.frequency||40)+'% • Stadion: '+((G.stadium&&G.stadium.capacity)||200)+' m.</div>';
+    '<div class="fsec">'+t('ht_fin_income_weekly')+'</div>'+
+    '<div class="frow"><span class="flbl">'+t('fin_sponsors')+'</span><span class="fpos">+'+fmt(inc.sponsors)+'</span></div>'+
+    '<div class="frow"><span class="flbl">'+t('ht_fin_tickets')+'</span><span class="fpos">+'+fmt(inc.tickets)+'</span></div>'+
+    '<div class="frow"><span class="flbl">'+t('fin_gadgets')+'</span><span class="fpos">+'+fmt(inc.gadgets)+'</span></div>'+
+    '<div class="frow"><span class="flbl">'+t('fin_ads')+'</span><span class="fpos">+'+fmt(inc.ads)+'</span></div>'+
+    (inc.tv>0?'<div class="frow"><span class="flbl">'+t('ht_fin_tv')+'</span><span class="fpos">+'+fmt(inc.tv)+'</span></div>':'')+
+    (inc.vip>0?'<div class="frow"><span class="flbl">'+t('ht_fin_vip')+'</span><span class="fpos">+'+fmt(inc.vip)+'</span></div>':'')+
+    '<div class="frow" style="border-top:1px solid var(--gb);margin-top:2px"><span class="flbl" style="color:var(--gb)">'+t('ht_fin_total_week')+'</span><span class="fpos" style="color:var(--gb)">+'+fmt(inc.total)+'</span></div>'+
+    '<div style="color:var(--gr);font-size:var(--fs-dense);padding:4px 0">'+t('ht_fin_summary').replace('{rep}',G.reputation||10).replace('{mult}',(Math.round((G.reputation||10)/50*100)/100).toFixed(2)).replace('{freq}',G.frequency||40).replace('{cap}',(G.stadium&&G.stadium.capacity)||200)+'</div>';
   const fc=document.getElementById('fin-cost');
   if(fc)fc.innerHTML=
-    '<div class="fsec">KOSZTY</div>'+
-    '<div class="frow"><span class="flbl">Pensje (co 4 tyg.)</span><span class="fneg">-'+fmt(G.fin.salaries||0)+'</span></div>';
+    '<div class="fsec">'+t('fin_hist_col_costs')+'</div>'+
+    '<div class="frow"><span class="flbl">'+t('ht_fin_salary')+'</span><span class="fneg">-'+fmt(G.fin.salaries||0)+'</span></div>';
   const fs=document.getElementById('fin-sum');
   if(fs){
     const _st=[...G.standing].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
@@ -99,23 +99,23 @@ function fillFinance(){if(!G)return;
     const _bArr=(FIN.bonus&&FIN.bonus[G.myLeague||8])||[];
     const _exp=_bArr[_pos-1]||0;
     fs.innerHTML=
-      '<div class="fsec">BILANS I PREMIA</div>'+
-      '<div class="frow"><span>STAN KONTA</span><span class="'+(G.budget>=0?'fpos':'fneg')+'">'+fmt(G.budget)+'</span></div>'+
-      '<div class="frow"><span class="flbl">Miejsce w tabeli</span><span style="color:var(--am)">'+_pos+'.</span></div>'+
-      '<div class="frow"><span class="flbl">Premia prognozowana</span><span class="fpos">+'+fmt(_exp)+'</span></div>'+
-      (G.seasonBonus>0?'<div class="frow"><span class="flbl">Ostatnia premia</span><span class="fpos">+'+fmt(G.seasonBonus)+'</span></div>':'');
+      '<div class="fsec">'+t('ht_fin_balance_bonus')+'</div>'+
+      '<div class="frow"><span>'+t('ht_fin_balance_bare')+'</span><span class="'+(G.budget>=0?'fpos':'fneg')+'">'+fmt(G.budget)+'</span></div>'+
+      '<div class="frow"><span class="flbl">'+t('ht_fin_table_pos')+'</span><span style="color:var(--am)">'+_pos+'.</span></div>'+
+      '<div class="frow"><span class="flbl">'+t('ht_fin_bonus_forecast')+'</span><span class="fpos">+'+fmt(_exp)+'</span></div>'+
+      (G.seasonBonus>0?'<div class="frow"><span class="flbl">'+t('ht_fin_bonus_last')+'</span><span class="fpos">+'+fmt(G.seasonBonus)+'</span></div>':'');
   }
   const fh=document.getElementById('fin-hist');
   if(fh){
     const rows=G.fin.hist.slice(-8).reverse();
-    fh.innerHTML='<div class="fsec">HISTORIA</div>'+
+    fh.innerHTML='<div class="fsec">'+t('fin_tab_history')+'</div>'+
       (rows.length?
         '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
         '<thead><tr>'+
-          '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">TYG</th>'+
-          '<th style="text-align:right;padding:4px 6px;color:var(--gb);border-bottom:1px solid var(--gl)">PRZYCHÓD</th>'+
-          '<th style="text-align:right;padding:4px 6px;color:var(--rd);border-bottom:1px solid var(--gl)">KOSZTY</th>'+
-          '<th style="text-align:right;padding:4px 6px;color:var(--am);border-bottom:1px solid var(--gl)">STAN</th>'+
+          '<th style="text-align:left;padding:4px 6px;color:var(--gr);border-bottom:1px solid var(--gl)">'+t('fin_hist_col_week')+'</th>'+
+          '<th style="text-align:right;padding:4px 6px;color:var(--gb);border-bottom:1px solid var(--gl)">'+t('ht_fin_income_col')+'</th>'+
+          '<th style="text-align:right;padding:4px 6px;color:var(--rd);border-bottom:1px solid var(--gl)">'+t('fin_hist_col_costs')+'</th>'+
+          '<th style="text-align:right;padding:4px 6px;color:var(--am);border-bottom:1px solid var(--gl)">'+t('fin_hist_col_balance')+'</th>'+
         '</tr></thead>'+
         '<tbody>'+rows.map(h=>
           '<tr style="border-bottom:1px solid #0d1f0d">'+
@@ -126,14 +126,14 @@ function fillFinance(){if(!G)return;
           '</tr>'
         ).join('')+
         '</tbody></table>'
-      :'<div style="color:var(--gr);padding:8px;font-size:var(--fs-dense)">Brak historii</div>');
+      :'<div style="color:var(--gr);padding:8px;font-size:var(--fs-dense)">'+t('ht_fin_no_history')+'</div>');
   }
 }
 
 function fillHistory(){
   if(!G)return;
   const hc=document.getElementById('hist-club');
-  if(hc)hc.textContent=G.myClub.n+' \u2022 Sezon '+G.season;
+  if(hc)hc.textContent=G.myClub.n+t('ht_club_season_suffix').replace('{n}',G.season);
   if(!G.cHist)G.cHist=[];
   if(!G.trophies)G.trophies=[];
   if(!G.allTimeStats)G.allTimeStats={players:{},bestSeller:null,bestBuyer:null};
@@ -149,12 +149,12 @@ function fillHistory(){
     });
   }
   const activeTab=document.querySelector('#p-history .tab-btn.active');
-  const tab=activeTab?activeTab.textContent.trim():'SEZONY';
-  if(tab==='SEZONY')renderHistSezony();
-  else if(tab==='REKORDY')renderHistRekordy();
-  else if(tab==='ZAWODNICY')renderHistZawodnicy();
-  else if(tab==='TROFEA')renderHistDynastia();
-  else if(tab==='📊 DATA'){const activeBtn=document.querySelector('.dc-sub-btn.active');dcRender(activeBtn?activeBtn.id.replace('dcsub-',''):'wzrost');}
+  const tab=activeTab?activeTab.dataset.tab:'sezony';
+  if(tab==='sezony')renderHistSezony();
+  else if(tab==='rekordy')renderHistRekordy();
+  else if(tab==='zawodnicy')renderHistZawodnicy();
+  else if(tab==='dynastia')renderHistDynastia();
+  else if(tab==='dc'){const activeBtn=document.querySelector('.dc-sub-btn.active');dcRender(activeBtn?activeBtn.id.replace('dcsub-',''):'wzrost');}
   else renderHistSezony();
 }
 
@@ -181,7 +181,7 @@ function histTab(tab,btn){
 }
 function renderHistSezony(){
   const el=document.getElementById('hist-sezony');if(!el||!G)return;
-  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">Historia pojawi sie po zakonczeniu pierwszego sezonu.</div>';return;}
+  if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('ht_no_seasons_history')+'</div>';return;}
   el.innerHTML=G.cHist.slice().reverse().map((h,ri)=>{
     const myName=G.myClub.n;
     const oi=G.cHist.indexOf(h);
@@ -192,27 +192,27 @@ function renderHistSezony(){
     const hasTable=h.table&&h.table.length>0;
     return '<div class="hentry" style="border-color:'+(isP?'var(--gb)':isR?'var(--rd)':'var(--gl)')+'">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
-        '<div class="hentry-s">SEZON '+(h.season||'?')+(h.reconstructed?' *':'')+'</div>'+
+        '<div class="hentry-s">'+t('ht_season_label').replace('{n}',h.season||'?')+(h.reconstructed?' *':'')+'</div>'+
         '<div style="display:flex;gap:6px;align-items:center">'+
           '<div style="font-size:var(--fs-dense);color:var(--gr)">'+(h.league||'?')+'</div>'+
-          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-size:var(--fs-dense);color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">TABELA</div>':'')+
+          (hasTable?'<div onclick="showSeasonTable('+oi+')" style="font-size:var(--fs-dense);color:var(--am);cursor:pointer;border:1px solid var(--am);padding:1px 4px">'+t('ht_table_btn')+'</div>':'')+
         '</div>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:var(--fs-dense)">'+
-        '<div><div style="color:var(--gr)">Miejsce</div><div style="color:'+pc+'">'+(h.pos||'?')+(isP?' ⬆':isR?' ⬇':'')+'</div></div>'+
-        '<div><div style="color:var(--gr)">Punkty</div><div style="color:var(--wh)">'+(h.pts||0)+'</div></div>'+
-        '<div><div style="color:var(--gr)">Bramki</div><div style="color:var(--wh)">'+(h.gf||0)+':'+(h.ga||0)+'</div></div>'+
-        '<div><div style="color:var(--gr)">Mecze</div><div style="color:var(--wh)">'+(h.p||((h.w||0)+(h.d||0)+(h.l||0)))+'</div></div>'+
-        '<div><div style="color:var(--gr)">Wygrane</div><div style="color:var(--gb)">'+(h.w||0)+'</div></div>'+
-        '<div><div style="color:var(--gr)">Remisy</div><div style="color:var(--gr)">'+(h.d||0)+'</div></div>'+
-        '<div><div style="color:var(--gr)">Porażki</div><div style="color:var(--rd)">'+(h.l||0)+'</div></div>'+
-        (h.budget>0?'<div><div style="color:var(--gr)">Budzet</div><div style="color:var(--am)">'+fmt(h.budget)+'</div></div>':'<div></div>')+
-        '<div><div style="color:var(--gr)">Reputacja</div><div style="color:var(--wh)">'+(h.reputation||'?')+'</div></div>'+
-        (h.bonus>0?'<div><div style="color:var(--gr)">Premia</div><div style="color:var(--gb)">+'+fmt(h.bonus)+'</div></div>':'<div></div>')+
+        '<div><div style="color:var(--gr)">'+t('ht_row_position')+'</div><div style="color:'+pc+'">'+(h.pos||'?')+(isP?' ⬆':isR?' ⬇':'')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_points')+'</div><div style="color:var(--wh)">'+(h.pts||0)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_goals')+'</div><div style="color:var(--wh)">'+(h.gf||0)+':'+(h.ga||0)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_matches')+'</div><div style="color:var(--wh)">'+(h.p||((h.w||0)+(h.d||0)+(h.l||0)))+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_wins')+'</div><div style="color:var(--gb)">'+(h.w||0)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_draws')+'</div><div style="color:var(--gr)">'+(h.d||0)+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('ht_row_losses')+'</div><div style="color:var(--rd)">'+(h.l||0)+'</div></div>'+
+        (h.budget>0?'<div><div style="color:var(--gr)">'+t('ht_row_budget')+'</div><div style="color:var(--am)">'+fmt(h.budget)+'</div></div>':'<div></div>')+
+        '<div><div style="color:var(--gr)">'+t('ht_row_reputation')+'</div><div style="color:var(--wh)">'+(h.reputation||'?')+'</div></div>'+
+        (h.bonus>0?'<div><div style="color:var(--gr)">'+t('ht_row_bonus')+'</div><div style="color:var(--gb)">+'+fmt(h.bonus)+'</div></div>':'<div></div>')+
       '</div>'+
-      (isP?'<div style="color:var(--gb);font-size:var(--fs-dense);margin-top:4px">⬆ AWANS</div>':isR?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:4px">⬇ SPADEK</div>':'')+
+      (isP?'<div style="color:var(--gb);font-size:var(--fs-dense);margin-top:4px">'+t('ht_promotion')+'</div>':isR?'<div style="color:var(--rd);font-size:var(--fs-dense);margin-top:4px">'+t('ht_relegation')+'</div>':'')+
     '</div>';
-  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-size:var(--fs-dense);color:var(--gr);padding:6px">* dane zrekonstruowane</div>':'');
+  }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-size:var(--fs-dense);color:var(--gr);padding:6px">'+t('ht_reconstructed_note')+'</div>':'');
 }
 
 function showMatchDetail(mHistIdx){
@@ -222,16 +222,16 @@ function showMatchDetail(mHistIdx){
   const myG=isMyH?m.hg:m.ag,oppG=isMyH?m.ag:m.hg;
   const iW=myG>oppG,iL=myG<oppG;
   const resClass=iW?'win':iL?'loss':'draw';
-  const resTxt=iW?'★ WYGRANA':iL?'✕ PRZEGRANA':'— REMIS';
+  const resTxt=iW?t('ht_result_win'):iL?t('ht_result_lose'):t('ht_result_draw');
   // Szukaj cid drużyn żeby otworzyć kartę klubu
   const hClub=ALL_CLUBS.find(c=>c.n===m.hn);
   const aClub=ALL_CLUBS.find(c=>c.n===m.an);
   const hClick=hClub?'style="cursor:pointer;text-decoration:underline" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');setTimeout(()=>openClubModal('+hClub.id+'),60)"':'';
   const aClick=aClub?'style="cursor:pointer;text-decoration:underline" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');setTimeout(()=>openClubModal('+aClub.id+'),60)"':'';
   // Scoreboard
-  let html='<div class="md-ph"><div class="md-ph-title">⚽ SZCZEGÓŁY MECZU</div><button class="md-close" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\')">✕</button></div>';
+  let html='<div class="md-ph"><div class="md-ph-title">'+t('ht_match_details_title')+'</div><button class="md-close" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\')">✕</button></div>';
   html+='<div class="md-scoreboard">';
-  html+='<div class="md-round">KOLEJKA '+m.rnd+' · SEZON '+(m.season||'?')+(m._isCup?' · 🏆 PUCHAR':'')+'</div>';
+  html+='<div class="md-round">'+t('ht_round_season').replace('{rnd}',m.rnd).replace('{season}',m.season||'?')+(m._isCup?t('ht_cup_suffix'):'')+'</div>';
   html+='<div class="md-teams">';
   html+='<div class="md-team home'+(isMyH?' my':'')+'" '+hClick+'>'+m.hn+'</div>';
   html+='<div class="md-score">'+m.hg+'–'+m.ag+'</div>';
@@ -244,9 +244,9 @@ function showMatchDetail(mHistIdx){
     const hSh=m.st[0],aSh=m.st[1],hOn=m.st[2],aOn=m.st[3];
     const totSh=hSh+aSh||1,totOn=hOn+aOn||1;
     html+='<div class="md-stats">';
-    html+='<div class="md-sval home">'+hSh+'</div><div class="md-slbl">strzały</div><div class="md-sval away">'+aSh+'</div>';
+    html+='<div class="md-sval home">'+hSh+'</div><div class="md-slbl">'+t('ht_shots')+'</div><div class="md-sval away">'+aSh+'</div>';
     html+='<div class="md-sbar"><div class="md-sbar-h" style="width:'+Math.round(hSh/totSh*100)+'%"></div><div class="md-sbar-a" style="width:'+Math.round(aSh/totSh*100)+'%"></div></div>';
-    html+='<div class="md-sval home">'+hOn+'</div><div class="md-slbl">celne</div><div class="md-sval away">'+aOn+'</div>';
+    html+='<div class="md-sval home">'+hOn+'</div><div class="md-slbl">'+t('ht_shots_on_target')+'</div><div class="md-sval away">'+aOn+'</div>';
     html+='<div class="md-sbar"><div class="md-sbar-h" style="width:'+Math.round(hOn/totOn*100)+'%"></div><div class="md-sbar-a" style="width:'+Math.round(aOn/totOn*100)+'%"></div></div>';
     html+='</div>';
   }
@@ -264,16 +264,16 @@ function showMatchDetail(mHistIdx){
       evts.push({min:e.m,type:'card',cardType:e.t,cid:p?p.id:null,name:p?p.name.split(' ')[1]||p.name:'?'});
     });
     evts.sort((a,b)=>a.min-b.min);
-    html+='<div class="md-timeline"><div class="md-tl-hdr">PRZEBIEG MECZU</div>';
+    html+='<div class="md-timeline"><div class="md-tl-hdr">'+t('ht_match_timeline')+'</div>';
     evts.forEach(e=>{
       if(e.type==='goal'){
         const isMy=(isMyH&&e.isH)||(!isMyH&&!e.isH);
         const scorerLink=e.sid?'<span class="md-scorer-link" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.sid+')">'+e.scorer+'</span>':'<span class="md-scorer">'+e.scorer+'</span>';
-        const assLink=e.aid&&e.assister?'<span class="md-assist-link" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.aid+')">'+e.assister+'</span>':'<span style="color:var(--gl)">'+(e.assister||'bez asysty')+'</span>';
+        const assLink=e.aid&&e.assister?'<span class="md-assist-link" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.aid+')">'+e.assister+'</span>':'<span style="color:var(--gl)">'+(e.assister||t('ht_no_assist'))+'</span>';
         html+='<div class="md-tl-ev">';
         html+='<div class="md-tl-min">'+e.min+'\'</div>';
         html+='<div class="md-tl-icon">⚽</div>';
-        html+='<div class="md-tl-txt">'+scorerLink+'<span class="md-tag '+(isMy?'my':'opp')+'">'+(isMy?'MY':'RYWAL')+'</span>';
+        html+='<div class="md-tl-txt">'+scorerLink+'<span class="md-tag '+(isMy?'my':'opp')+'">'+(isMy?t('ht_tag_my'):t('ht_tag_rival'))+'</span>';
         html+='<div class="md-assist"><span style="font-size:10px">🅰️</span>'+assLink+'</div></div>';
         html+='</div>';
       } else {
@@ -294,7 +294,7 @@ function showMatchDetail(mHistIdx){
       return p?{id:p.id,pos:p.pos,name:p.name.split(' ')[1]||p.name,rat}:null;
     }).filter(Boolean);
     entries.sort((a,b)=>(POS_ORDER.indexOf(a.pos)-POS_ORDER.indexOf(b.pos))||b.rat-a.rat);
-    html+='<div class="md-ratings"><div class="md-rat-hdr">OCENY ZAWODNIKÓW</div><div class="md-rat-grid">';
+    html+='<div class="md-ratings"><div class="md-rat-hdr">'+t('ht_ratings_title')+'</div><div class="md-rat-grid">';
     entries.forEach(e=>{
       const cls=e.rat>=8?'am':e.rat>=7?'gb':e.rat>=6?'wh':'rd';
       html+='<div class="md-rat-card" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.id+')"><span><span class="md-rat-pos">'+e.pos+'</span><span class="md-rat-name">'+e.name+'</span></span><span class="md-rat-val '+cls+'">'+e.rat.toFixed(1)+'</span></div>';
@@ -309,12 +309,12 @@ function showSeasonTable(histIdx){
   const h=G.cHist&&G.cHist[histIdx];
   if(!h||!h.table||!h.table.length)return;
   const myId=G.myClubId;
-  let html='<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">TABELA — SEZON '+h.season+' — '+h.league+'</div>'+
+  let html='<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">'+t('ht_season_table_title').replace('{season}',h.season).replace('{league}',h.league)+'</div>'+
     '<table style="width:100%;border-collapse:collapse;font-size:var(--fs-dense)">'+
     '<thead><tr style="color:var(--gr);border-bottom:1px solid var(--gl)">'+
-      '<th style="text-align:left;padding:3px 2px">#</th><th style="text-align:left;padding:3px 2px">KLUB</th>'+
+      '<th style="text-align:left;padding:3px 2px">#</th><th style="text-align:left;padding:3px 2px">'+t('plr_hist_col_club')+'</th>'+
       '<th style="padding:3px 4px">M</th><th style="padding:3px 4px;color:var(--gb)">W</th><th style="padding:3px 4px">R</th><th style="padding:3px 4px;color:var(--rd)">P</th>'+
-      '<th style="padding:3px 4px">GF</th><th style="padding:3px 4px">GA</th><th style="padding:3px 4px;color:var(--am)">PKT</th>'+
+      '<th style="padding:3px 4px">GF</th><th style="padding:3px 4px">GA</th><th style="padding:3px 4px;color:var(--am)">'+t('tbl_col_pts')+'</th>'+
     '</tr></thead><tbody>'+
     h.table.map(r=>{
       const isMe=parseInt(r.cid)===parseInt(myId);
@@ -382,27 +382,27 @@ function renderHistRekordy(){
   const totCupFinals=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===2).length;
   function row(lbl,val,col){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)"><span style="color:var(--gr)">'+lbl+'</span><span style="color:'+(col||'var(--wh)')+'">'+val+'</span></div>';}
   el.innerHTML=
-    '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">REKORDY DRUZYNY</div>'+
-    row('Najlepsza liga',tl?tl.league:'?','var(--gb)')+
-    row('Najlepsze miejsce',bp?bp.pos+'. (S'+bp.season+')':'?','var(--am)')+
-    row('Awanse',prom,'var(--gb)')+
-    row('Spadki',rel,'var(--rd)')+
-    row('Max budzet',bb?fmt(bb.budget)+' (S'+bb.season+')':'?','var(--am)')+
-    row('Max stadion',ms+' miejsc')+
-    row('Max reputacja',mr,'var(--am)')+
-    row('Puchar Mistrzowski',totCupWins?totCupWins+'x 🥇':'—','var(--am)')+
-    row('Finalista Pucharu',totCupFinals?totCupFinals+'x 🥈':'—','var(--gr)')+
-    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">BILANS MECZOWY</div>'+
-    row('Razem meczów',totM+totCupM+(totCupM?' (liga: '+totM+' | puchar: '+totCupM+')':''))+
-    row('Wygrane',totW+cupW+(totCupM?' ('+totW+'+'+cupW+')':''),'var(--gb)')+
-    row('Remisy',totD+cupD+(totCupM?' ('+totD+'+'+cupD+')':''),'var(--gr)')+
-    row('Porażki',totL+cupL+(totCupM?' ('+totL+'+'+cupL+')':''),'var(--rd)')+
-    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY MECZOWE</div>'+
-    row('Seria wygranych',(rec.maxWinStreak||0),'var(--gb)')+
-    row('Seria bez porazki',(rec.maxUnbeatenStreak||0),'var(--gb)')+
-    row('Seria porazek',(rec.maxLoseStreak||0),'var(--rd)')+
-    row('Najwyzsza wygrana',rec.bestWin?rec.bestWin.myG+':'+rec.bestWin.oppG+' vs '+rec.bestWin.opp:'?','var(--gb)')+
-    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">REKORDY BRAMKOWE</div>'+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">'+t('ht_records_title')+'</div>'+
+    row(t('ht_best_league'),tl?tl.league:'?','var(--gb)')+
+    row(t('ht_best_position'),bp?bp.pos+'. (S'+bp.season+')':'?','var(--am)')+
+    row(t('ht_promotions'),prom,'var(--gb)')+
+    row(t('ht_relegations'),rel,'var(--rd)')+
+    row(t('ht_max_budget'),bb?fmt(bb.budget)+' (S'+bb.season+')':'?','var(--am)')+
+    row(t('ht_max_stadium'),ms+t('ht_seats_suffix'))+
+    row(t('ht_max_reputation'),mr,'var(--am)')+
+    row(t('ht_champions_cup'),totCupWins?totCupWins+'x 🥇':'—','var(--am)')+
+    row(t('ht_cup_finalist'),totCupFinals?totCupFinals+'x 🥈':'—','var(--gr)')+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">'+t('ht_match_balance')+'</div>'+
+    row(t('ht_total_matches'),totM+totCupM+(totCupM?' (liga: '+totM+' | puchar: '+totCupM+')':''))+
+    row(t('ht_row_wins'),totW+cupW+(totCupM?' ('+totW+'+'+cupW+')':''),'var(--gb)')+
+    row(t('ht_row_draws'),totD+cupD+(totCupM?' ('+totD+'+'+cupD+')':''),'var(--gr)')+
+    row(t('ht_row_losses'),totL+cupL+(totCupM?' ('+totL+'+'+cupL+')':''),'var(--rd)')+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">'+t('ht_match_records')+'</div>'+
+    row(t('ht_win_streak'),(rec.maxWinStreak||0),'var(--gb)')+
+    row(t('ht_unbeaten_streak'),(rec.maxUnbeatenStreak||0),'var(--gb)')+
+    row(t('ht_lose_streak'),(rec.maxLoseStreak||0),'var(--rd)')+
+    row(t('ht_best_win'),rec.bestWin?rec.bestWin.myG+':'+rec.bestWin.oppG+' vs '+rec.bestWin.opp:'?','var(--gb)')+
+    '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 4px">'+t('ht_goal_records')+'</div>'+
     (()=>{
       // Oblicz z cHist jako fallback jeśli records nie ma danych
       const ch=G.cHist||[];
@@ -422,10 +422,10 @@ function renderHistRekordy(){
       const sMinGf=rec.minGoalsSeason_s||minGfS;
       const sMinGa=rec.minConcededSeason_s||minGaS;
       const sMaxGa=rec.maxConcededSeason_s||maxGaS;
-      return row('Max goli w sez.',ch.length?(rMaxGf+(sMaxGf?' (S'+sMaxGf+')':'')):'?','var(--gb)')+
-        row('Min goli w sez.',ch.length?(rMinGf+(sMinGf?' (S'+sMinGf+')':'')):'?','var(--rd)')+
-        row('Min stracone w sez.',ch.length?(rMinGa+(sMinGa?' (S'+sMinGa+')':'')):'?','var(--gb)')+
-        row('Max stracone w sez.',ch.length?(rMaxGa+(sMaxGa?' (S'+sMaxGa+')':'')):'?','var(--rd)');
+      return row(t('ht_max_goals_season'),ch.length?(rMaxGf+(sMaxGf?' (S'+sMaxGf+')':'')):'?','var(--gb)')+
+        row(t('ht_min_goals_season'),ch.length?(rMinGf+(sMinGf?' (S'+sMinGf+')':'')):'?','var(--rd)')+
+        row(t('ht_min_conceded_season'),ch.length?(rMinGa+(sMinGa?' (S'+sMinGa+')':'')):'?','var(--gb)')+
+        row(t('ht_max_conceded_season'),ch.length?(rMaxGa+(sMaxGa?' (S'+sMaxGa+')':'')):'?','var(--rd)');
     })();
 }
 function renderHistZawodnicy(){
@@ -444,7 +444,7 @@ function renderHistZawodnicy(){
     if(found){
       const isRetired=!!(G.retiredPlayers&&G.retiredPlayers.some(x=>x.id===found.id));
       return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+found.id+')">'+p.name+'</span>'
-        +(isRetired?' <span style="font-size:var(--fs-meta);color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">EMERYT</span>':'');
+        +(isRetired?' <span style="font-size:var(--fs-meta);color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">'+t('ht_retired_tag')+'</span>':'');
     }
     // Naprawdę brak obiektu (wpisy bez id ze starszych wersji) — szukaj jeszcze po nazwie w players
     const byName=(G.players||[]).find(x=>x.name===p.name);
@@ -455,17 +455,17 @@ function renderHistZawodnicy(){
   }
   function top5(key,icon){
     const s=players.filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
-    if(!s.length)return '<div style="color:var(--gr);font-size:var(--fs-dense)">Brak danych</div>';
+    if(!s.length)return '<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('ht_no_data')+'</div>';
     return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
   }
   const at=G.allTimeStats||{};
   el.innerHTML=
-    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">KRÓL STRZELCÓW</div>'+top5('goals','goli')+
-    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">KRÓL ASYSTENTÓW</div>'+top5('assists','asyst')+
-    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">NAJWIĘCEJ MECZÓW</div>'+top5('matches','mecz.')+
-    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">REKORDY TRANSFEROWE</div>'+
-    (at.bestSeller?'<div style="font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">Sprzedany: </span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-size:var(--fs-dense)">Brak danych</div>')+
-    (at.bestBuyer?'<div style="font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">Kupiony: </span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_top_scorer')+'</div>'+top5('goals',t('ht_goals_suffix'))+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_top_assister')+'</div>'+top5('assists',t('ht_assists_suffix'))+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_most_matches')+'</div>'+top5('matches',t('ht_matches_suffix'))+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_transfer_records')+'</div>'+
+    (at.bestSeller?'<div style="font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">'+t('ht_sold_label')+'</span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('ht_no_data')+'</div>')+
+    (at.bestBuyer?'<div style="font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">'+t('ht_bought_label')+'</span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
 }
 function renderHistDynastia(){
   const el=document.getElementById('hist-dynastia');if(!el||!G)return;
@@ -484,14 +484,14 @@ function renderHistDynastia(){
 
   // GABLOTA TROFEOW
   let html='<div class="dyn-hero">';
-  html+='<div class="dyn-clubname">'+(G.myClub?G.myClub.n.toUpperCase():'MOJ KLUB')+'</div>';
-  html+='<div class="dyn-sub">'+totalSeasons+' sezon'+(totalSeasons===1?'':'\u00f3w')+' historii \u2022 Aktualnie: '+(LNAMES[G.myLeague||8]||t('league_fallback'))+'</div>';
+  html+='<div class="dyn-clubname">'+(G.myClub?G.myClub.n.toUpperCase():t('ht_fallback_myclub'))+'</div>';
+  html+='<div class="dyn-sub">'+t('ht_seasons_history_pl').replace('{n}',totalSeasons).replace('{suffix}',totalSeasons===1?'':'\u00f3w').replace('{league}',LNAMES[G.myLeague||8]||t('league_fallback'))+'</div>';
   html+='</div>';
   const hasAnyTrophy=lt.length>0||ctWon.length>0||ctFin.length>0;
   html+='<div style="border-bottom:2px solid var(--gl)">';
-  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">GABLOTA TROFE\u00d3W</div>';
+  html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);padding:8px 12px 5px;letter-spacing:1px;background:#0d1a0d">'+t('ht_trophy_case')+'</div>';
   if(!hasAnyTrophy){
-    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px 12px">Brak trofe\u00f3w \u2014 buduj dynasti\u0119!</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px 12px">'+t('ht_no_trophies')+'</div>';
   } else {
     if(lt.length>0){
       [1,2,3,4,5,6,7,8].forEach(function(lvl){
@@ -503,7 +503,7 @@ function renderHistDynastia(){
         won.forEach(function(){html+='<span style="font-size:22px;display:inline-block;filter:'+cup.filter+'">&#127942;</span>';});
         html+='</div>';
         html+='<div style="flex:1">';
-        html+='<div style="font-weight:700;font-size:var(--fs-h3);color:'+cup.color+';margin-bottom:3px">'+cup.label.toUpperCase()+'</div>';
+        html+='<div style="font-weight:700;font-size:var(--fs-h3);color:'+cup.color+';margin-bottom:3px">'+(LNAMES[lvl]||cup.label).toUpperCase()+'</div>';
         html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+won.map(function(t){return 'S'+t.season;}).join(' \u2022 ')+'</div>';
         html+='</div>';
         if(won.length>1)html+='<div style="font-weight:700;font-size:var(--fs-h1);color:'+cup.color+'">\u00d7'+won.length+'</div>';
@@ -517,10 +517,10 @@ function renderHistDynastia(){
       ctFin.forEach(function(){html+='<span style="font-size:22px;filter:grayscale(0.5) brightness(1.3)">&#129352;</span>';});
       html+='</div>';
       html+='<div style="flex:1">';
-      html+='<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">PUCHAR MISTRZOWSKI</div>';
+      html+='<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:3px">'+t('ht_champions_cup_title')+'</div>';
       html+='<div style="font-size:var(--fs-dense);color:var(--gr)">';
-      if(ctWon.length>0)html+='Wygrany: '+ctWon.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
-      if(ctFin.length>0)html+=(ctWon.length?' \u2022 ':'')+' Fina\u0142y: '+ctFin.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
+      if(ctWon.length>0)html+=t('ht_won_label')+ctWon.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
+      if(ctFin.length>0)html+=(ctWon.length?' \u2022 ':'')+t('ht_finals_label')+ctFin.map(function(t){return 'S'+t.season;}).join(' \u2022 ');
       html+='</div></div>';
       if(ctWon.length>1)html+='<div style="font-weight:700;font-size:var(--fs-h1);color:var(--am)">\u00d7'+ctWon.length+'</div>';
       html+='</div>';
@@ -529,10 +529,10 @@ function renderHistDynastia(){
   html+='</div>';
     // ── OŚ CZASU ──
   html+='<div class="dyn-tl">';
-  html+='<div class="dyn-tl-hdr">OŚ CZASU — SEZON PO SEZONIE</div>';
+  html+='<div class="dyn-tl-hdr">'+t('ht_timeline_header')+'</div>';
 
   if(!cHist.length){
-    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 0">Historia pojawi się po zakończeniu pierwszego sezonu.</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 0">'+t('ht_no_seasons_history')+'</div>';
   } else {
     cHist.forEach(function(h,i){
       const isLast=i===cHist.length-1;
@@ -558,15 +558,15 @@ function renderHistDynastia(){
 
       // Tekst wyniku
       let resultClass='normal', resultText='';
-      if(isTitle)         {resultClass='gold';resultText='\u2605 MISTRZOSTWO LIGI';}
-      else if(wasPromo)   {resultClass='promo';const nl=LNAMES[(next.leagueLevel||8)];resultText='\u2191 AWANS \u2192 '+(nl||'wyżej').replace(' Liga',' L.');}
-      else if(wasRel)     {resultClass='rel';const nl=LNAMES[(next.leagueLevel||8)];resultText='\u2193 SPADEK \u2192 '+(nl||'niżej').replace(' Liga',' L.');}
-      else if(pos===2)    {resultClass='normal';resultText='2. miejsce (wicemistrz)';}
-      else if(pos<=3)     {resultClass='normal';resultText=pos+'. miejsce (podium)';}
-      else                {resultClass='normal';resultText=pos+'. miejsce';}
+      if(isTitle)         {resultClass='gold';resultText=t('ht_league_title_won');}
+      else if(wasPromo)   {resultClass='promo';const nl=LNAMES[(next.leagueLevel||8)];resultText=t('ht_promoted_to').replace('{league}',(nl||t('ht_fallback_higher')).replace(' Liga',' L.'));}
+      else if(wasRel)     {resultClass='rel';const nl=LNAMES[(next.leagueLevel||8)];resultText=t('ht_relegated_to').replace('{league}',(nl||t('ht_fallback_lower')).replace(' Liga',' L.'));}
+      else if(pos===2)    {resultClass='normal';resultText=t('ht_position_runner_up');}
+      else if(pos<=3)     {resultClass='normal';resultText=t('ht_position_podium').replace('{pos}',pos);}
+      else                {resultClass='normal';resultText=t('ht_position_plain').replace('{pos}',pos);}
 
       // Detail
-      const detail='Pkt: '+(h.pts||'?')+' \u2022 '+h.gf+'–'+h.ga+(h.reputation?' \u2022 Rep: '+h.reputation:'');
+      const detail=t('ht_pts_detail').replace('{pts}',h.pts||'?').replace('{gf}',h.gf).replace('{ga}',h.ga).replace('{repPart}',h.reputation?t('ht_rep_detail').replace('{rep}',h.reputation):'');
 
       html+='<div class="dyn-item">';
       html+='<div class="dyn-dot-col">';
@@ -579,9 +579,9 @@ function renderHistDynastia(){
       html+='<div class="dyn-s-detail">'+detail+'</div>';
       if(isCup||isCupFin||isTitle){
         html+='<div class="dyn-badges">';
-        if(isCup)html+='<span class="dyn-badge cup">\uD83C\uDFC6 PUCHAR</span>';
-        if(isCupFin)html+='<span class="dyn-badge fin">\uD83E\uDD48 FINA\u0141</span>';
-        if(rec.maxWinStreak>=8&&h.season===cHist[0].season)html+='<span class="dyn-badge rec">\u26a1 SERIA '+rec.maxWinStreak+'W</span>';
+        if(isCup)html+='<span class="dyn-badge cup">'+t('ht_badge_cup')+'</span>';
+        if(isCupFin)html+='<span class="dyn-badge fin">'+t('ht_badge_final')+'</span>';
+        if(rec.maxWinStreak>=8&&h.season===cHist[0].season)html+='<span class="dyn-badge rec">'+t('ht_badge_streak').replace('{n}',rec.maxWinStreak)+'</span>';
         html+='</div>';
       }
       // Milestone'y pozaligowe tego sezonu (Sesja 2: stadion, akademia, transfery, Kronika)

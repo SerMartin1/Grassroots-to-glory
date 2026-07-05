@@ -106,7 +106,7 @@ function fillMatch(){
       const _wid2=Math.round(_cap2*_freq2/100);
       const _fc2=_freq2>=75?'var(--gb)':_freq2>=50?'var(--am)':'var(--rd)';
       attBar.style.display='block';
-      attBar.innerHTML=t('match_attendance').replace('{pct}',_freq2).replace('{n}',_wid2.toLocaleString('pl-PL')).replace('{cap}',_cap2.toLocaleString('pl-PL'));
+      attBar.innerHTML=t('match_attendance').replace('{pct}',_freq2).replace('{n}',_wid2.toLocaleString(LANG==='en'?'en-GB':'pl-PL')).replace('{cap}',_cap2.toLocaleString(LANG==='en'?'en-GB':'pl-PL'));
     }else{attBar.style.display='none';}
   }
   ['ls-poss','ls-shots','ls-on','ls-fouls'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
@@ -294,7 +294,7 @@ function fillMatch(){
               (isHome?'⭐ ':'')+homeClub.n+
             '</div>'+
             '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
-              'OVR '+homeS.total+' • Forma '+Math.round(homeS.formRaw||75)+'%'+
+              'OVR '+homeS.total+' • '+t('match_form_label')+' '+Math.round(homeS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;margin-top:4px">'+formDots(homeId)+'</div>'+
           '</div>'+
@@ -311,7 +311,7 @@ function fillMatch(){
               awayClub.n+(isHome?'':' ⭐')+
             '</div>'+
             '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
-              'OVR '+awayS.total+' • Forma '+Math.round(awayS.formRaw||75)+'%'+
+              'OVR '+awayS.total+' • '+t('match_form_label')+' '+Math.round(awayS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;justify-content:flex-end;margin-top:4px">'+formDots(awayId)+'</div>'+
           '</div>'+

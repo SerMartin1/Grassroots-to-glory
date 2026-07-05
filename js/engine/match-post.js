@@ -1,6 +1,6 @@
 let _subsLeft=3,_subOutId=null;
 function openSubs(){
-  if(_subsLeft<=0){notif('Brak zmian!','err');return;}
+  if(_subsLeft<=0){notif(t('mp_no_subs_left'),'err');return;}
   const panel=document.getElementById('m-sub-panel');if(!panel)return;
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
   // v199: info o zmęczeniu (PHY = kondycja fizyczna zawodnika)
@@ -20,7 +20,7 @@ function selectSubOut(pid){
   const anyBench=bench.length?bench:myPl().filter(x=>!x.starter&&!x.injured).sort((a,b)=>ovr(b)-ovr(a));
   const il=document.getElementById('m-sub-in-list');
   const posLabel=pOut?(POS_SHORT[pOut.pos]||pOut.pos):'';
-  if(il)il.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:4px">'+posLabel+' na '+posLabel+':</div>'+(anyBench.length?anyBench.map(x=>'<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between" onclick="confirmSub('+pid+','+x.id+')"><span style="color:var(--gb)">'+(POS_SHORT[x.pos]||x.pos)+' '+x.name+'</span><span style="color:var(--am)">OVR '+ovr(x)+'</span></div>').join(''):'<div style="color:var(--rd)">Brak zawodnikow na tej pozycji</div>');
+  if(il)il.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:4px">'+t('mp_sub_in_label').replace('{pos}',posLabel).replace('{pos}',posLabel)+'</div>'+(anyBench.length?anyBench.map(x=>'<div style="padding:5px 0;border-bottom:1px solid var(--gl);cursor:pointer;display:flex;justify-content:space-between" onclick="confirmSub('+pid+','+x.id+')"><span style="color:var(--gb)">'+(POS_SHORT[x.pos]||x.pos)+' '+x.name+'</span><span style="color:var(--am)">OVR '+ovr(x)+'</span></div>').join(''):'<div style="color:var(--rd)">'+t('mp_no_players_position')+'</div>');
   document.getElementById('m-sub-in-section').style.display='block';
 }
 function confirmSub(outId,inId){
@@ -31,8 +31,8 @@ function confirmSub(outId,inId){
   window._matchSubsOut.push(pOut.id);// v199: zapamiętaj kto zszedł
   closeSubs();
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='ZMIANA: '+pOut.name+' -> '+pIn.name+' ('+_subsLeft+'/3)';mlog.appendChild(d);}
-  notif('Zmiana: '+pOut.name+' → '+pIn.name,'ok');
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_sub_log').replace('{out}',pOut.name).replace('{in}',pIn.name).replace('{left}',_subsLeft);mlog.appendChild(d);}
+  notif(t('mp_sub_notif').replace('{out}',pOut.name).replace('{in}',pIn.name),'ok');
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
   if(_subsLeft<=0){const b=document.getElementById('btn-sub');if(b)b.style.opacity='0.3';}
 }
@@ -61,10 +61,10 @@ function _applyTactic(key,shotMod,saveMod){
   // Zatrzymaj countdown
   if(window._tacCountdown)clearInterval(window._tacCountdown);
   if(window._tacTimerId)clearTimeout(window._tacTimerId);
-  const labels={attack:'Atak totale',counter:'Kontratak',defend:'Graj na czas',press:'Pressing'};
-  notif('⚙️ Taktyka: '+(labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:'⚔️ Atak totale',counter:'🏃 Kontratak',defend:'🛡️ Graj na czas',press:'💪 Pressing'};const _tacBonus={attack:'+20% strz. / −15% GK',counter:'+25% strz. / mniej akcji',defend:'−20% akcji / +12% GK',press:'+15% akcji / −8% strz.'};if(_tn)_tn.innerHTML='<span style="font-size:var(--fs-dense);color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
+  const labels={attack:t('mp_tac_attack'),counter:t('mp_tac_counter'),defend:t('mp_tac_defend'),press:t('mp_tac_press')};
+  notif(t('mp_tac_notif').replace('{label}',labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:t('mp_tac_desc_attack'),counter:t('mp_tac_desc_counter'),defend:t('mp_tac_desc_defend'),press:t('mp_tac_desc_press')};const _tacBonus={attack:t('mp_tac_bonus_attack'),counter:t('mp_tac_bonus_counter'),defend:t('mp_tac_bonus_defend'),press:t('mp_tac_bonus_press')};if(_tn)_tn.innerHTML='<span style="font-size:var(--fs-dense);color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent='⚙️ TAKTYKA: '+(labels[key]||key)+' (od 46\')';mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_tac_log').replace('{label}',labels[key]||key);mlog.appendChild(d);}
   // Wznów mecz natychmiast po wyborze
   if(window._tacResumeNext){window._tacResumeNext();}
 }
@@ -132,10 +132,10 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
 
   el.innerHTML=
     '<div style="background:#1a3d1a;min-height:200px;padding:8px 4px;border-bottom:1px solid var(--gl)">'+
-    pitchRow(st.filter(p=>p.pos==='NAP'),'NAPASTNICY')+
-    pitchRow(st.filter(p=>p.pos==='POL'),'POMOCNICY')+
-    pitchRow(st.filter(p=>p.pos==='OBR'),'OBROŃCY')+
-    pitchRow(st.filter(p=>p.pos==='GK'),'BRAMKARZ')+
+    pitchRow(st.filter(p=>p.pos==='NAP'),t('mp_pos_forwards'))+
+    pitchRow(st.filter(p=>p.pos==='POL'),t('mp_pos_midfielders'))+
+    pitchRow(st.filter(p=>p.pos==='OBR'),t('mp_pos_defenders'))+
+    pitchRow(st.filter(p=>p.pos==='GK'),t('mp_pos_goalkeeper'))+
     '</div>';
 }
 
@@ -241,7 +241,7 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     '</tr>';
   }
 
-  const resultTxt=iW?'WYGRANA':iL?'PRZEGRANA':'REMIS';
+  const resultTxt=iW?t('mp_result_win'):iL?t('mp_result_lose'):t('mp_result_draw');
   const resultColor=iW?'var(--gb)':iL?'var(--rd)':'var(--wh)';
 
   pre.innerHTML='';
@@ -252,11 +252,11 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   const _mlog2=document.getElementById('mlog');
   if(_mlog2){
     const _summaries={
-      win:['Zasłużone zwycięstwo! Drużyna pokazała charakter.','Świetny mecz! Kontrolowaliśmy grę przez 90 minut.','Trzy punkty w kieszeni. Dobra robota chłopaki!','Kapitalny wynik! Rywal nie miał nic do powiedzenia.'],
-      win_away:['Cenna wygrana na trudnym terenie!','Kapitalna robota na wyjeździe!'],
-      win_home:['Przed własną publicznością nie mogło być inaczej!','Trzy punkty dla nas!'],
-      draw:['Punkt zdobyty, ale mogło być lepiej.','Remis po wyrównanym spotkaniu — sprawiedliwy wynik.','Stracony punkt w końcówce. Boleśnie.','Za mało bramek jak na nasze możliwości.'],
-      lose:['Rozczarowujący wynik. Musimy to przeanalizować.','Porażka boli, ale czas się podnieść.','Rywal był dziś lepszy — trzeba to przyznać.','Słaby mecz. Wiele do poprawy przed następnym spotkaniem.'],
+      win:[t('mp_sum_win_1'),t('mp_sum_win_2'),t('mp_sum_win_3'),t('mp_sum_win_4')],
+      win_away:[t('mp_sum_win_away_1'),t('mp_sum_win_away_2')],
+      win_home:[t('mp_sum_win_home_1'),t('mp_sum_win_home_2')],
+      draw:[t('mp_sum_draw_1'),t('mp_sum_draw_2'),t('mp_sum_draw_3'),t('mp_sum_draw_4')],
+      lose:[t('mp_sum_lose_1'),t('mp_sum_lose_2'),t('mp_sum_lose_3'),t('mp_sum_lose_4')],
     };
     const _isMyH2=m_hId===G.myClubId;
     const _myG=_isMyH2?hG:aG, _oppG=_isMyH2?aG:hG;
@@ -268,7 +268,7 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     // Separator
     const _sep=document.createElement('div');
     _sep.className='mlog-e summary-ev';
-    _sep.innerHTML='<span class="mlog-min2">90\'</span><span class="mlog-icon">⛳</span><span class="mlog-txt"><b>KONIEC MECZU '+hG+'-'+aG+'</b></span>';
+    _sep.innerHTML='<span class="mlog-min2">90\'</span><span class="mlog-icon">⛳</span><span class="mlog-txt"><b>'+t('mp_match_end')+' '+hG+'-'+aG+'</b></span>';
     _mlog2.appendChild(_sep);
     const _sum=document.createElement('div');
     _sum.className='mlog-e summary-ev';
@@ -289,17 +289,17 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     var _bD2=_globalMom.history?_globalMom.history.find(function(h){return h.fromAcademy;}):null;
     var _archBH=_globalMom.archetype&&ARCHETYPE_META[_globalMom.archetype]?ARCHETYPE_META[_globalMom.archetype]:null;
     var _bohatHtml='<div style="background:#0a1f0a;border:2px solid #9c27b0;padding:8px 14px;font-size:var(--fs-dense)">'+
-      '<div style="color:#ce93d8;margin-bottom:2px">🌟 BOHATER MECZU — WYCHOWANEK AKADEMII</div>'+
+      '<div style="color:#ce93d8;margin-bottom:2px">'+t('mp_hero_academy')+'</div>'+
       '<div style="color:var(--gb);font-size:11px">🎓 '+_globalMom.name+'</div>'+
-      (_bD2?'<div style="color:var(--gr);margin-top:2px">W Akademii od S'+_bD2.season+' • OVR '+_bD2.ovr+'→'+ovr(_globalMom)+'</div>':'')+
+      (_bD2?'<div style="color:var(--gr);margin-top:2px">'+t('mp_academy_since').replace('{season}',_bD2.season).replace('{ovr}',_bD2.ovr).replace('{ovr2}',ovr(_globalMom))+'</div>':'')+
       (_archBH?'<div style="color:'+_archBH.color+';margin-top:2px">'+_archBH.icon+' '+_archBH.name+'</div>':'')+
     '</div>';
     pre.innerHTML=_bohatHtml+pre.innerHTML;
   }
   // Ustal kto gra u siebie (zgodnie ze scorebarem)
   const _isMyHome=m_hId===G.myClubId;
-  const _hClubName=(ALL_CLUBS.find(c=>c.id===m_hId)||{n:'Gospodarz'}).n;
-  const _aClubName=(ALL_CLUBS.find(c=>c.id===m_aId)||{n:'Gość'}).n;
+  const _hClubName=(ALL_CLUBS.find(c=>c.id===m_hId)||{n:t('mp_fallback_home')}).n;
+  const _aClubName=(ALL_CLUBS.find(c=>c.id===m_aId)||{n:t('mp_fallback_away')}).n;
   // Lewa zakładka = gospodarz, prawa = gość (jak scorebar)
   if(_isMyHome){
     renderRatingsPitch(myTeamPls,ratings,'m-rat-home',_momId,allEvts);
@@ -497,23 +497,23 @@ function aiRenewContracts(){
 
 const AI_TYPES={
   akademia:{
-    icon:'🎓',label:'Akademia',
-    desc:'Stawia na wychowanków. Kupuje rzadko i tylko młodych. Regularnie produkuje juniorów.',
+    icon:'🎓',label:t('mp_ai_akademia_label'),
+    desc:t('mp_ai_akademia_desc'),
     buyRate:0.3,sellRate:0.4,juniors:[3,5],maxBuyAge:23,budgetMult:0.7
   },
   sprzedajacy:{
-    icon:'💸',label:'Sprzedający',
-    desc:'Kupuje tanio, rozwija i sprzedaje gwiazdy. Aktywny na rynku transferowym.',
+    icon:'💸',label:t('mp_ai_sprzedajacy_label'),
+    desc:t('mp_ai_sprzedajacy_desc'),
     buyRate:0.7,sellRate:0.8,juniors:[1,2],maxBuyAge:27,budgetMult:1.0
   },
   bogaty:{
-    icon:'💰',label:'Bogaty',
-    desc:'Kupuje najlepszych dostępnych zawodników. Rzadko sprzedaje — tylko wygasłe kontrakty.',
+    icon:'💰',label:t('mp_ai_bogaty_label'),
+    desc:t('mp_ai_bogaty_desc'),
     buyRate:0.9,sellRate:0.2,juniors:[0,0],maxBuyAge:32,budgetMult:2.0
   },
   stabilny:{
-    icon:'🛡️',label:'Stabilny',
-    desc:'Mało transferów. Uzupełnia skład tylko gdy niezbędne. Spokój ponad wszystko.',
+    icon:'🛡️',label:t('mp_ai_stabilny_label'),
+    desc:t('mp_ai_stabilny_desc'),
     buyRate:0.3,sellRate:0.25,juniors:[1,1],maxBuyAge:30,budgetMult:1.1
   }
 };
@@ -638,7 +638,7 @@ function aiTransferSeason(isWinter){
         aiMarket.push({player:p,fromClub:club,price,lvl,isStar});
         if(!p.formerClubs)p.formerClubs=[];
         if(isStar&&(lvl===G.myLeague||lvl===G.myLeague-1||lvl===G.myLeague+1)){
-          importantNews.push({msg:'[Transfery] '+club.n+' wystawiło na sprzedaż '+p.name+' ('+(POS_SHORT[p.pos]||p.pos)+' OVR '+ovr(p)+').',type:'info'});
+          importantNews.push({msg:t('mp_news_listed').replace('{club}',club.n).replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]||p.pos).replace('{ovr}',ovr(p)),type:'info'});
         }
       });
     });
@@ -693,7 +693,7 @@ function aiTransferSeason(isWinter){
       if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
       const nearMyLeague=lvl===G.myLeague||Math.abs(lvl-G.myLeague)<=1;
       if(nearMyLeague||isStar){
-        importantNews.push({msg:'[Transfery] '+p.name+' ('+(POS_SHORT[p.pos]||p.pos)+' OVR '+ovr(p)+') przeszedł z '+fromClub.n+' do '+buyer.n+'.',type:'info'});
+        importantNews.push({msg:t('mp_news_transferred').replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]||p.pos).replace('{ovr}',ovr(p)).replace('{from}',fromClub.n).replace('{to}',buyer.n),type:'info'});
       }
     } else {
       // Naprawdę nikt nie pasuje → FA

@@ -144,7 +144,7 @@ function showBriefingModal(){
   if(existing)existing.remove();
   const club=G.myClub?G.myClub.n:t('briefing_club_fallback');
   const liga=LEAGUE_NAMES[G.myLeague||8]||t('league_fallback');
-  const bud=G.budget?G.budget.toLocaleString('pl-PL')+' zł':'—';
+  const bud=G.budget?fmt(G.budget):'—';
 
   // ── STANY UKOŃCZENIA ─────────────────────────────────────────────────
   var _doneBoard=!!(G.board&&G.board.mainGoal);
@@ -262,7 +262,7 @@ function toggleTutorial(){
   const btnTut=document.getElementById('btn-tutorial-toggle');
   if(btnTut){
     const off=G.tutorialOff;
-    btnTut.textContent='📡 TUTORIAL: '+(off?t('tutorial_state_off'):t('tutorial_state_on'));
+    btnTut.textContent=t('nav_tutorial_label')+(off?t('tutorial_state_off'):t('tutorial_state_on'));
     btnTut.style.color=off?'var(--gr)':'var(--am)';
     btnTut.style.borderColor=off?'var(--gr)':'var(--am)';
   }

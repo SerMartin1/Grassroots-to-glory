@@ -74,7 +74,7 @@ function _newsItemHtml(n,dimmed){
     msg=newsClickable(n.msg||'');
   }
   const actionHtml=(!dimmed&&n.action)
-    ?'<div style="margin-top:3px"><span style="font-weight:700;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||'PRZEJDŹ')+'</span></div>'
+    ?'<div style="margin-top:3px"><span style="font-weight:700;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||t('news_action_default'))+'</span></div>'
     :'';
   const opacity=dimmed?'opacity:0.6;':'' ;
   return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a;'+opacity+'">'
@@ -94,15 +94,15 @@ var _newsTab='now';
 
 function _newsTabFilter(tab, allNews){
   // back_inj vs back_card rozróżnienie po kontekście
-  const isBackInj = n => n.type==='back' && (n.msg||'').match(/kontuzj|wraca po kontuzji/i);
-  const isBackCard = n => n.type==='back' && (n.msg||'').match(/zawieszeni|wraca po zawieszeniu/i);
+  const isBackInj = n => n.type==='back' && (n.msg||'').match(/kontuzj|wraca po kontuzji|injury|returns from injury/i);
+  const isBackCard = n => n.type==='back' && (n.msg||'').match(/zawieszeni|wraca po zawieszeniu|suspension|returns from suspension/i);
   const maps = {
     now:      n => true,
-    match:    n => ['ok','err','card'].includes(n.type) || (n.type==='info'&&(n.msg||'').match(/mecz|wynik|puchar|Remis|Wygrana|Przegrana/i)) || (n.type==='back'&&isBackCard(n)),
+    match:    n => ['ok','err','card'].includes(n.type) || (n.type==='info'&&(n.msg||'').match(/mecz|wynik|puchar|Remis|Wygrana|Przegrana|match|result|cup|Win |Loss |Draw /i)) || (n.type==='back'&&isBackCard(n)),
     health:   n => ['inj'].includes(n.type) || (n.type==='back'&&isBackInj(n)),
     transfer: n => ['budget','premium','rumour','contract'].includes(n.type),
     scout:    n => n.type==='scout'||n.type==='academy',
-    club:     n => n.type==='club' || (n.type==='info'&&(n.msg||'').match(/zarząd|sponsor|AWANS|SPADEK|liga/i)),
+    club:     n => n.type==='club' || (n.type==='info'&&(n.msg||'').match(/zarząd|sponsor|AWANS|SPADEK|liga|board|promoted|relegated|league/i)),
     train:    n => n.type==='train' || (n.type==='back'&&!isBackInj(n)&&!isBackCard(n)),
   };
   return (maps[tab]||maps.now)(allNews);
@@ -143,12 +143,12 @@ function _renderPrevList(filter){
   const prevWeeks=[...new Set(prevNews.map(n=>n.week))].sort((a,b)=>b-a);
   let html='';
   if(!prevNews.length){
-    html='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px">Brak zdarzeń w tej kategorii</div>';
+    html='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px">'+t('news_none_cat')+'</div>';
   } else {
     prevWeeks.forEach(w=>{
       const wNews=prevNews.filter(n=>n.week===w);
       html+='<div style="display:flex;align-items:center;gap:6px;padding:3px 12px;background:#0a130a;border-bottom:1px solid #0d1f0d">'
-        +'<span style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px">TYG. '+w+'</span>'
+        +'<span style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px">'+t('news_week_abbr').replace('{n}',w)+'</span>'
         +'<div style="flex:1;height:1px;background:#1a2d1a"></div>'
         +'</div>';
       wNews.forEach(n=>{html+=_newsItemHtml(n,false);});
@@ -242,26 +242,26 @@ function applyInjury(p, isMatch){
   const roll = isMatch
     ? (rand<0.70?'light':rand<0.95?'medium':'serious')
     : (rand<0.60?'light':rand<0.95?'medium':'serious');
-  if(roll==='light'){type='Lekka';weeks=r(1,2);formDrop=20;}
-  else if(roll==='medium'){type='Średnia';weeks=r(3,5);formDrop=40;phyDrop=2;}
-  else{type='Poważna';weeks=r(6,12);formDrop=0;p.form=5;phyDrop=3;}
+  if(roll==='light'){type=t('inj_type_light');weeks=r(1,2);formDrop=20;}
+  else if(roll==='medium'){type=t('inj_type_medium');weeks=r(3,5);formDrop=40;phyDrop=2;}
+  else{type=t('inj_type_severe');weeks=r(6,12);formDrop=0;p.form=5;phyDrop=3;}
   p.injured=true;
   p.injuryWeeks=weeks;
   p.injuryType=type;
   p.starter=false;
   if(formDrop>0&&!(p.traits&&p.traits.includes('twardy')))p.form=Math.max(5,p.form-formDrop);
   if(phyDrop>0)p.phy=Math.max(1,p.phy-phyDrop);
-  if(G&&p.clubId===G.myClubId){notif(p.name+' — kontuzja '+type.toLowerCase()+'! ('+weeks+' tyg.)','err');addNews(t('news_inj_player').replace('{name}',p.name).replace('{type}',type).replace('{weeks}',weeks), 'inj');}
+  if(G&&p.clubId===G.myClubId){notif(t('news_notif_injury').replace('{name}',p.name).replace('{type}',type.toLowerCase()).replace('{n}',weeks),'err');addNews(t('news_inj_player').replace('{name}',p.name).replace('{type}',type).replace('{weeks}',weeks), 'inj');}
 }
 // ── WIĘŹ Z KLUBEM ────────────────────────────────────────────────
 // Zwraca obiekt {level, name, icon, color} dla zawodnika gracza
 function getBondLevel(p){
   if(!p||!G||p.clubId!==G.myClubId)return null;
   const s=p._seasonsAtClub||0;
-  if(s>=8)return{level:4,name:'Nierozłączny',icon:'❤️',color:'#e066ff',seasons:s};
-  if(s>=5)return{level:3,name:'Filar',icon:'🔵',color:'#4db8ff',seasons:s};
-  if(s>=3)return{level:2,name:'Swój',icon:'🟡',color:'#ffc107',seasons:s};
-  return{level:1,name:'Nowy',icon:'—',color:'var(--gr)',seasons:s};
+  if(s>=8)return{level:4,name:t('bond_level_4'),icon:'❤️',color:'#e066ff',seasons:s};
+  if(s>=5)return{level:3,name:t('bond_level_3'),icon:'🔵',color:'#4db8ff',seasons:s};
+  if(s>=3)return{level:2,name:t('bond_level_2'),icon:'🟡',color:'#ffc107',seasons:s};
+  return{level:1,name:t('bond_level_1'),icon:'—',color:'var(--gr)',seasons:s};
 }
 // Bonus formy do użycia w symulacji meczu (tylko własni zawodnicy)
 function getBondFormBonus(p,isHome){
@@ -418,7 +418,7 @@ function buildInitialFA(size){
     p._poolLvl=lvl;
     p.status='freeAgent';p.isFreeAgent=true;
     // Historia od S1 jako wolny agent
-    p.history=[{season:1,clubId:0,club:'Wolny agent',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_placeholder:true}];
+    p.history=[{season:1,clubId:0,club:t('plr_free_agent'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_placeholder:true}];
     pool.push(p);
   }
   return pool;
@@ -598,7 +598,7 @@ function saveGame(slot){
 
     // ── SERIALIZE + DIAGNOSTYKA ────────────────────────────────────────
     const json=J(sd);
-    if(!json){notif('Błąd serializacji danych gry','err');return;}
+    if(!json){notif(t('save_err_serialize'),'err');return;}
     const total=KB(json);
 
     // Log rozbicia na segmenty (tylko w devtools)
@@ -663,17 +663,17 @@ function saveGame(slot){
         });
         const json3=J(sd);
         if(json3.length>4.5*1024*1024){
-          notif('Błąd: gra za duża do zapisania!','err');
+          notif(t('save_err_too_big'),'err');
           return;
         }
         try{localStorage.setItem('pa'+slot,json3);}
-        catch(e2){notif('Błąd zapisu: za duże dane','err');return;}
-        notif('Zapis OK** ('+KB(json3)+' KB — awaryjny)','info');
+        catch(e2){notif(t('save_err_no_space'),'err');return;}
+        notif(t('save_ok_emergency2').replace('{n}',KB(json3)),'info');
         return;
       }
       try{localStorage.setItem('pa'+slot,json2);}
-      catch(e2){notif('Błąd zapisu: za duże dane','err');return;}
-      notif('Zapis OK* ('+KB(json2)+' KB — awaryjny)','info');
+      catch(e2){notif(t('save_err_no_space'),'err');return;}
+      notif(t('save_ok_emergency').replace('{n}',KB(json2)),'info');
       return;
     }
 
@@ -685,12 +685,12 @@ function saveGame(slot){
       sd.fa=(G.fa||[]).slice(0,10).map(slimAI);
       sd.players=sd.players.map(p=>{if(p.clubId!==myId){const{history,...r}=p;return r;}return p;});
       const jFb=J(sd);
-      try{localStorage.setItem('pa'+slot,jFb);notif('Zapis OK* ('+KB(jFb)+' KB — awaryjny)','info');}
-      catch(e3){notif('Błąd zapisu: brak miejsca w przeglądarce','err');}
+      try{localStorage.setItem('pa'+slot,jFb);notif(t('save_ok_emergency').replace('{n}',KB(jFb)),'info');}
+      catch(e3){notif(t('save_err_browser_space'),'err');}
       return;
     }
-    notif('Zapisano ('+total+' KB)','ok');
-  }catch(e){console.error('Save error:',e);notif('Błąd zapisu: '+e.message,'err');}
+    notif(t('save_ok').replace('{n}',total),'ok');
+  }catch(e){console.error('Save error:',e);notif(t('save_err_generic').replace('{msg}',e.message),'err');}
 }
 
 function loadGame(slot){try{
@@ -703,7 +703,7 @@ function loadGame(slot){try{
     // Uszkodzony zapis - usuń i poinformuj
     console.error('Uszkodzony zapis w slocie '+slot+':',parseErr);
     localStorage.removeItem('pa'+slot);
-    notif('Zapis '+slot+' był uszkodzony i został usunięty. Rozpocznij nową grę.','err');
+    notif(t('save_corrupted').replace('{n}',slot),'err');
     return false;
   }
   G=parsed;
@@ -783,7 +783,7 @@ function loadGame(slot){try{
         p.history.push({
           season:s,
           clubId:s===G.season?p.clubId:0,
-          club:s===G.season?(_hc?_hc.n:(p.clubId===0?'Wolny agent':'?')):'Wolny agent',
+          club:s===G.season?(_hc?_hc.n:(p.clubId===0?t('plr_free_agent'):'?')):t('plr_free_agent'),
           m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,
           ovr:ovr(p),avgRat:null,
           _placeholder:!isCurr,

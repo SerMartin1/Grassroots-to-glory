@@ -140,7 +140,7 @@ function buildTC(lvlIdx){
   if(((G.stadium&&G.stadium.capacity)||0)<(def.req.stad||0)){notif(t('train_req_stad').replace('{n}',def.req.stad),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Centrum Szkoleniowe: '+def.name});
+  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_tc_built').replace('{name}',def.name)});
   G.trainingCenter.building={levelIdx:lvlIdx+1,name:def.name,weeksLeft:def.buildWeeks,totalWeeks:def.buildWeeks};
   addNews(t('news_tc_build_started').replace('{name}',def.name).replace('{n}',def.buildWeeks),'club');
   notif(t('train_tc_notif').replace('{name}',def.name).replace('{n}',def.buildWeeks),'ok');
@@ -165,7 +165,7 @@ function unlockTCProfiles(){
   if(G.budget<cost){notif(t('train_no_funds'),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Odblokowanie profili TC'});
+  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_tc_unlock')});
   G.trainingCenter.profilesLocked=false;
   notif(t('train_profiles_unlocked'),'ok');
   fillTraining();
@@ -241,7 +241,7 @@ function startTeamCamp(type){
   G.budget-=total;
   if(!G.fin.transfers)G.fin.transfers=[];
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:total,bal:G.budget,season:G.season,note:'Obóz drużynowy ('+type+'): '+myPl().length+' zawodników'});
+  G.fin.hist.push({w:G.week,inc:0,cost:total,bal:G.budget,season:G.season,note:t('stad_note_team_camp').replace('{type}',type).replace('{n}',myPl().length)});
   G.campActive=true;
   G.campWeeks=2;
   G.campType=type;
@@ -261,7 +261,7 @@ function sendIndCamp(){
   G.budget-=cost;
   if(!G.fin.transfers)G.fin.transfers=[];
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Obóz indywidualny: '+G.indCampSelected.length+' zawodnik'+(G.indCampSelected.length>1?'ów':'')});
+  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_ind_camp').replace('{n}',G.indCampSelected.length).replace('{plural}',G.indCampSelected.length>1?(LANG==='pl'?'ów':'s'):'')});
   G.indCampUsed+=G.indCampSelected.length;
   // Ask which attr to train - use the attr selector
   const selFocus=document.getElementById('ind-camp-attr-sel');
@@ -299,7 +299,7 @@ function fillProgressPanel(){
   const el=document.getElementById('tr-progress-list');if(!el)return;
   const tOpt=TRAIN_OPTS.find(o=>o.k===G.training)||TRAIN_OPTS[0];
   const focusAttrs=['tec','pas','sht','def','phy','men']; // show all attrs
-  const attrLabel={tec:'TEC',pas:'PAS',sht:'SHT',def:'OBR',phy:'FIZ',men:'MEN'};
+  const attrLabel={tec:'TEC',pas:'PAS',sht:'SHT',def:t('train_attr_def'),phy:t('train_attr_phy'),men:'MEN'};
   // Header
   const ended=G.trainFocusLock===0&&G.trainFocusJustEnded!==false;
   const statusMsg=t('train_prog_season').replace('{n}',G.season)+' <b>'+tOpt.l+'</b>'+(G.trainFocusLock>0?t('train_prog_left').replace('{n}',G.trainFocusLock):t('train_prog_done'));
@@ -328,10 +328,10 @@ function fillProgressPanel(){
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
     '<div style="font-size:var(--fs-dense);color:var(--gr);padding:8px 4px 0;line-height:1.6">'+
       '<b style="color:var(--am)">'+t('train_prog_ovr_legend')+'</b> '+t('train_prog_ovr_desc')+'<br>'+
-      'NAP: SHT×35% + TEC×35% + PHY×10% + MEN×10% + PAS×5% + OBR×5%<br>'+
-      'POL: PAS×35% + TEC×35% + MEN×10% + PHY×10% + SHT×5% + OBR×5%<br>'+
-      'OBR: OBR×35% + PHY×35% + MEN×10% + PAS×10% + TEC×5% + SHT×5%<br>'+
-      'GK:  OBR×35% + MEN×35% + PHY×10% + PAS×10% + TEC×5% + SHT×5%<br>'+
+      t('train_ovr_formula_st')+'<br>'+
+      t('train_ovr_formula_mid')+'<br>'+
+      t('train_ovr_formula_def')+'<br>'+
+      t('train_ovr_formula_gk')+'<br>'+
       '<span style="color:var(--wh)">'+t('train_prog_ovr_note')+'</span>'+
     '</div>';
 }
@@ -384,11 +384,13 @@ const STAD_MODULES={
   ]}
 };
 function getModuleLvl(key){return(G.stadium&&G.stadium.modules&&G.stadium.modules[key])||0;}
+function stadModName(key){return t('stad_mod_'+key+'_name');}
+function stadModEffect(key,lvlIdx){return t('stad_mod_'+key+'_e'+(lvlIdx+1));}
 function checkModuleReq(req){
   if(!req)return{ok:true};
   const cap=(G.stadium&&G.stadium.capacity)||200;
   const rep=(G.reputation)||0;
-  if(req.capacity&&cap<req.capacity)return{ok:false,msg:t('stad_req_capacity').replace('{n}',req.capacity.toLocaleString('pl-PL'))};
+  if(req.capacity&&cap<req.capacity)return{ok:false,msg:t('stad_req_capacity').replace('{n}',req.capacity.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))};
   if(req.rep&&rep<req.rep)return{ok:false,msg:t('stad_req_rep').replace('{n}',req.rep)};
   if(req.light&&getModuleLvl('light')<req.light)return{ok:false,msg:t('stad_req_light').replace('{n}',req.light)};
   return{ok:true};
@@ -405,7 +407,7 @@ setInterval(function(){
   const done=tw-G.stadium.building.weeksLeft;
   bar.querySelector('.stad-bar-fill').style.width=pct+'%';
   bar.querySelector('.stad-bar-left').textContent=t('stad_auto_refresh').replace('{done}',done).replace('{total}',tw);
-  bar.querySelector('.stad-bar-right').textContent=pct+'% — zostało '+G.stadium.building.weeksLeft+' tyg.';
+  bar.querySelector('.stad-bar-right').textContent=t('stad_pct_left').replace('{pct}',pct).replace('{n}',G.stadium.building.weeksLeft);
 },500);
 
 function stadTab(tab,btn){
@@ -505,7 +507,7 @@ function drawStadiumTopDown(cap,freq,modules){
   if(hasBoard){
     // Tablica wynikowa nad boiskiem
     s+=`<rect x="115" y="34" width="50" height="13" fill="#000" stroke="#ffc107" stroke-width=".8" rx="1"/>`;
-    s+=`<text x="140" y="44" font-size="9" fill="#ffc107" text-anchor="middle" letter-spacing="1">📺 TABLICA</text>`;
+    s+=`<text x="140" y="44" font-size="9" fill="#ffc107" text-anchor="middle" letter-spacing="1">${t('stad_scoreboard_label')}</text>`;
   }
 
   // Słupy oświetlenia (cztery narożniki) gdy moduł light
@@ -517,7 +519,7 @@ function drawStadiumTopDown(cap,freq,modules){
 
   // Frekwencja label
   const viewers=Math.round(cap*freq);
-  s+=`<text x="${W/2}" y="${H-2}" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString('pl-PL')} ${t('stad_viewers').replace('{n}','').trim()}</text>`;
+  s+=`<text x="${W/2}" y="${H-2}" font-size="11" fill="#4caf5077" text-anchor="middle">${viewers.toLocaleString(LANG==='en'?'en-GB':'pl-PL')} ${t('stad_viewers').replace('{n}','').trim()}</text>`;
 
   s+=`</svg>`;
   return s;
@@ -550,11 +552,11 @@ function renderStadPrzeglad(){
     '<div style="background:var(--tb);border:1px solid var(--gl);border-top:none;padding:7px 10px;margin-bottom:8px">'+
       '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:6px">'+(G.myClub&&G.myClub.n||t('stad_title'))+'</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense)">'+
-        '<div><div style="color:var(--gr)">'+t('stad_capacity')+'</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString('pl-PL')+'</div></div>'+
-        '<div><div style="color:var(--gr)">'+t('stad_max').replace('{league}',LEAGUE_NAMES[lvl])+'</div><div style="color:var(--gr)">'+maxCap.toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_capacity')+'</div><div style="color:var(--wh);font-size:var(--fs-meta)">'+cap.toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_max').replace('{league}',LEAGUE_NAMES[lvl])+'</div><div style="color:var(--gr)">'+maxCap.toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_attendance')+'</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
-        '<div><div style="color:var(--gr)">'+t('stad_fans_match')+'</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString('pl-PL')+'</div></div>'+
-        '<div><div style="color:var(--gr)">'+t('stad_ticket_price')+'</div><div style="color:var(--am)">'+tp+' zł</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_fans_match')+'</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_ticket_price')+'</div><div style="color:var(--am)">'+tp+(LANG==='pl'?' zł':'')+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_tickets_week')+'</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:var(--fs-dense)">'+t('stad_tickets_match').replace('{n}',fmt(perMatch))+'</div></div>'+
       '</div>'+
     '</div>'+
@@ -564,7 +566,7 @@ function renderStadPrzeglad(){
     '</div>'+
     (activeMods.length?
       '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+t('stad_active_modules')+'</div>'+
-      activeMods.map(([k,m])=>'<div style="font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+m.name+' L'+getModuleLvl(k)+' — '+m.levels[getModuleLvl(k)-1].effect+'</div>').join('')+
+      activeMods.map(([k,m])=>'<div style="font-size:var(--fs-dense);color:var(--gr);padding:2px 0">'+m.icon+' '+stadModName(k)+' L'+getModuleLvl(k)+' — '+stadModEffect(k,getModuleLvl(k)-1)+'</div>').join('')+
       '<div style="margin-bottom:8px"></div>':'')+
     (!inBuild?'<button onclick="stadTab(\'rozbudowa\',document.querySelectorAll(\'#p-stadium .tab-btn\')[1])" style="width:100%;background:var(--am);color:#000;border:none;font-size:var(--fs-body);padding:12px;cursor:pointer">'+t('stad_expand_btn')+'</button>':'');
 }
@@ -578,7 +580,7 @@ function renderStadRozbudowa(){
     const pct=Math.min(100,Math.round((1-(s.building.weeksLeft/_tw))*100));
     const done=_tw-s.building.weeksLeft;
     return '<div class="stad-build-bar" style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:12px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('stad_build_progress').replace('{n}',s.building.seats.toLocaleString('pl-PL'))+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:6px">'+t('stad_build_progress').replace('{n}',s.building.seats.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))+'</div>'+
       '<div style="background:#000;height:10px;border:1px solid var(--gl);margin-bottom:5px;position:relative">'+
         '<div class="stad-bar-fill" style="height:100%;background:var(--am);width:'+pct+'%;transition:width 0.3s"></div>'+
       '</div>'+
@@ -605,16 +607,16 @@ function renderStadRozbudowa(){
   const canAfford=G.budget>=cost;
   el.innerHTML=
     buildBar+
-    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+t('stad_capacity_lbl').replace('{n}',cap.toLocaleString('pl-PL')).replace('{max}',maxCap.toLocaleString('pl-PL'))+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+t('stad_capacity_lbl').replace('{n}',cap.toLocaleString(LANG==='en'?'en-GB':'pl-PL')).replace('{max}',maxCap.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))+'</div>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:7px 10px;margin-bottom:8px">'+
       '<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:8px">'+t('stad_how_many')+'</div>'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
         '<button onclick="changeStadAdd(-100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">-</button>'+
-        '<div style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">'+t('stad_places').replace('{n}',n.toLocaleString('pl-PL'))+'</div>'+
+        '<div style="flex:1;text-align:center;font-size:var(--fs-display);color:var(--am)">'+t('stad_places').replace('{n}',n.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))+'</div>'+
         '<button onclick="changeStadAdd(100)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-display);width:40px;height:40px;cursor:pointer">+</button>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">'+
-        '<div><div style="color:var(--gr)">'+t('stad_new_capacity')+'</div><div style="color:var(--wh)">'+newCap.toLocaleString('pl-PL')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_new_capacity')+'</div><div style="color:var(--wh)">'+newCap.toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_cost')+'</div><div style="color:'+(canAfford?'var(--am)':'var(--rd)')+'">'+fmt(cost)+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_build_time')+'</div><div style="color:var(--wh)">'+t('stad_weeks').replace('{n}',weeks)+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_tickets_after')+'</div><div style="color:var(--gb)">+'+fmt(newBil)+' (+'+fmt(newBil-curBil)+')</div></div>'+
@@ -640,7 +642,7 @@ function renderStadModuly(){
     const mod=STAD_MODULES[mb.key];
     const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
     buildingHtml='<div style="background:#1a1000;border:2px solid var(--am);padding:10px 12px;margin-bottom:10px">'+
-      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">'+t('stad_module_building').replace('{icon}',mod?mod.icon:'').replace('{name}',mod?mod.name:'?').replace('{lvl}',mb.lvl+1)+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">'+t('stad_module_building').replace('{icon}',mod?mod.icon:'').replace('{name}',mod?stadModName(mb.key):'?').replace('{lvl}',mb.lvl+1)+'</div>'+
       '<div style="background:#000;height:8px;border:1px solid var(--gl);margin-bottom:4px">'+
         '<div style="height:100%;background:var(--am);width:'+pct+'%"></div>'+
       '</div>'+
@@ -658,16 +660,16 @@ function renderStadModuly(){
     return '<div style="background:var(--tb);border:1px solid '+(isBuilding?'var(--am)':lvl>0?'var(--gb)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
         '<span style="font-size:var(--fs-display)">'+mod.icon+'</span>'+
-        '<div style="flex:1"><div style="font-size:var(--fs-dense);color:var(--wh)">'+mod.name+'</div>'+
+        '<div style="flex:1"><div style="font-size:var(--fs-dense);color:var(--wh)">'+stadModName(key)+'</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr)">L'+lvl+'/'+maxLvl+'</div></div>'+
         (isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">🔨 '+mb.weeksLeft+' '+t('stad_weeks').replace('{n}','').trim()+'</div>':
          lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb)">L'+lvl+'</div>':'')+
       '</div>'+
       '<div style="display:flex;margin-bottom:6px">'+prog+'</div>'+
-      (lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+mod.levels[lvl-1].effect+'</div>':'')+
+      (lvl>0?'<div style="font-size:var(--fs-dense);color:var(--gb);margin-bottom:4px">'+stadModEffect(key,lvl-1)+'</div>':'')+
       (isMax?'<div style="font-size:var(--fs-dense);color:var(--am);text-align:center">'+t('stad_module_max')+'</div>':
-       isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">'+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',next.effect)+'</div>':
-        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+t('stad_module_next').replace('{lvl}',lvl+1).replace('{effect}',next.effect).replace('{cost}',fmt(next.cost)).replace('{weeks}',next.buildWeeks||1)+'</div>'+
+       isBuilding?'<div style="font-size:var(--fs-dense);color:var(--am)">'+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',stadModEffect(key,lvl))+'</div>':
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+t('stad_module_next').replace('{lvl}',lvl+1).replace('{effect}',stadModEffect(key,lvl)).replace('{cost}',fmt(next.cost)).replace('{weeks}',next.buildWeeks||1)+'</div>'+
         (otherBuilding?'<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_module_other_build')+'</div>':
          !req.ok?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+req.msg+'</div>':
          !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('stad_no_funds').replace('{n}',fmt(next.cost-G.budget))+'</div>':
@@ -689,7 +691,7 @@ function renderStadHistoria(){
     hist.slice().reverse().map(h=>
       '<tr style="border-bottom:1px solid #0d1f0d">'+
         '<td style="padding:4px 6px;color:var(--gr)">S'+h.season+' T'+h.week+'</td>'+
-        '<td style="padding:4px 6px;color:var(--wh)">'+(h.seats?t('stad_hist_seats').replace('{n}',h.seats.toLocaleString('pl-PL')):h.module||'?')+'</td>'+
+        '<td style="padding:4px 6px;color:var(--wh)">'+(h.seats?t('stad_hist_seats').replace('{n}',h.seats.toLocaleString(LANG==='en'?'en-GB':'pl-PL')):h.module||'?')+'</td>'+
         '<td style="text-align:right;padding:4px 6px;color:var(--rd)">-'+fmt(h.cost)+'</td>'+
       '</tr>'
     ).join('')+'</tbody></table>'
@@ -727,7 +729,7 @@ function _renderStadModulyInRozb(){
     const border=isBuilding?'var(--am)':isMax?'#555':lvl>0?'var(--gb)':'var(--gl)';
 
     // Aktualny efekt (jeśli coś jest)
-    const curEffect=lvl>0?mod.levels[lvl-1].effect:'—';
+    const curEffect=lvl>0?stadModEffect(key,lvl-1):'—';
 
     // Blok statusu / akcji
     let actionHtml='';
@@ -736,7 +738,7 @@ function _renderStadModulyInRozb(){
     } else if(isBuilding){
       const pct=Math.round((1-(mb.weeksLeft/mb.totalWeeks))*100);
       actionHtml=
-        '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 '+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',next.effect)+' — '+t('stad_module_weeks_left').replace('{n}',mb.weeksLeft).replace('{total}',mb.totalWeeks)+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--am);margin-bottom:4px">🔨 '+t('stad_module_in_build').replace('{lvl}',lvl+1).replace('{effect}',stadModEffect(key,lvl))+' — '+t('stad_module_weeks_left').replace('{n}',mb.weeksLeft).replace('{total}',mb.totalWeeks)+'</div>'+
         '<div style="background:#000;height:5px;border:1px solid var(--gl)"><div style="height:100%;background:var(--am);width:'+pct+'%"></div></div>';
     } else if(otherBuilding){
       actionHtml='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('stad_module_other_build')+'</div>';
@@ -754,9 +756,9 @@ function _renderStadModulyInRozb(){
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
           '<span style="font-size:var(--fs-display);line-height:1">'+mod.icon+'</span>'+
           '<div style="flex:1">'+
-            '<div style="font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+mod.name+'</div>'+
+            '<div style="font-size:var(--fs-meta);color:var(--wh);letter-spacing:1px">'+stadModName(key)+'</div>'+
             '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-              (isMax?t('stad_module_max'):'L'+lvl+'/'+maxLvl+(next?t('stad_next_suffix').replace('{effect}',next.effect):''))+
+              (isMax?t('stad_module_max'):'L'+lvl+'/'+maxLvl+(next?t('stad_next_suffix').replace('{effect}',stadModEffect(key,lvl)):''))+
             '</div>'+
           '</div>'+
           '<div style="font-size:var(--fs-dense);text-align:right;color:'+(isMax?'var(--am)':'var(--gr)')+'">'+
@@ -782,9 +784,9 @@ function startBuild(){
   if(G.budget<cost){notif(t('train_no_funds'),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:'Rozbudowa stadionu: +'+n.toLocaleString('pl-PL')+' miejsc'});
+  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_expansion').replace('{n}',n.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))});
   s.building={seats:n,weeksLeft:weeks,totalWeeks:weeks,cost};
-  addNews(t('news_stad_build_started').replace('{n}',n.toLocaleString('pl-PL')).replace('{cost}',fmt(cost)).replace('{weeks}',weeks),'club');
+  addNews(t('news_stad_build_started').replace('{n}',n.toLocaleString(LANG==='en'?'en-GB':'pl-PL')).replace('{cost}',fmt(cost)).replace('{weeks}',weeks),'club');
   notif(t('stad_build_notif').replace('{n}',weeks),'ok');
   window._stadAdd=100;fillStadium();
 }
@@ -801,11 +803,11 @@ function buyModule(key){
   if(G.stadium.modulBuilding){notif(t('stad_mod_other'),'err');return;}
   G.budget-=next.cost;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:next.cost,bal:G.budget,season:G.season,note:mod.icon+' Moduł: '+mod.name+' L'+(lvl+1)});
+  G.fin.hist.push({w:G.week,inc:0,cost:next.cost,bal:G.budget,season:G.season,note:t('stad_note_module_bought').replace('{icon}',mod.icon).replace('{name}',stadModName(key)).replace('{n}',lvl+1)});
   const weeks=next.buildWeeks||1;
   G.stadium.modulBuilding={key,lvl,next,cost:next.cost,weeksLeft:weeks,totalWeeks:weeks};
-  addNews(t('news_stad_module_started').replace('{icon}',mod.icon).replace('{name}',mod.name).replace('{lvl}',lvl+1).replace('{weeks}',weeks).replace('{cost}',fmt(next.cost)),'club');
-  notif(t('stad_mod_notif').replace('{name}',mod.name).replace('{lvl}',lvl+1).replace('{n}',weeks),'ok');
+  addNews(t('news_stad_module_started').replace('{icon}',mod.icon).replace('{name}',stadModName(key)).replace('{lvl}',lvl+1).replace('{weeks}',weeks).replace('{cost}',fmt(next.cost)),'club');
+  notif(t('stad_mod_notif').replace('{name}',stadModName(key)).replace('{lvl}',lvl+1).replace('{n}',weeks),'ok');
   renderStadModuly();
 }
 

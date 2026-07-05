@@ -151,13 +151,13 @@ function runDevSim(){
                 const _isMyCupFinal=lEntry.cid===G.myClubId;
                 if(_isMyCupWin){
                   if(!G.trophies)G.trophies=[];
-                  G.trophies.push({type:'cup',id:'cup_winner',name:'Puchar Mistrzowski',season:seasonNum,place:1,clubId:G.myClubId});
+                  G.trophies.push({type:'cup',id:'cup_winner',name:t('ht_champions_cup'),season:seasonNum,place:1,clubId:G.myClubId});
                   if(!G.allTimeStats)G.allTimeStats={};
                   if(!G.allTimeStats.cupWins)G.allTimeStats.cupWins=0;
                   G.allTimeStats.cupWins++;
                 } else if(_isMyCupFinal){
                   if(!G.trophies)G.trophies=[];
-                  G.trophies.push({type:'cup',id:'cup_final',name:'Finalista Pucharu',season:seasonNum,place:2});
+                  G.trophies.push({type:'cup',id:'cup_final',name:t('ht_cup_finalist'),season:seasonNum,place:2});
                 }
                 devLog('🥇 Puchar S'+seasonNum+': '+wEntry.name+' '+fin.hg+':'+fin.ag+' '+lEntry.name,'#FFD700');
               }
@@ -267,15 +267,15 @@ function runDevSim(){
         if(!G.trophies)G.trophies=[];
         // Niepokonani: 0 porażek w sezonie
         if((myEntry.l||0)===0&&(myEntry.p||0)>0&&!G.trophies.find(t=>t.id==='unbeaten_season'&&t.season===seasonNum))
-          G.trophies.push({type:'special',id:'unbeaten_season',name:'Niepokonani',season:seasonNum});
+          G.trophies.push({type:'special',id:'unbeaten_season',name:t('trophy_unbeaten'),season:seasonNum});
         if(_devGf>=80&&!G.trophies.find(t=>t.id==='strzelnica'&&t.season===seasonNum))
-          G.trophies.push({type:'special',id:'strzelnica',name:'Strzelnica',season:seasonNum});
+          G.trophies.push({type:'special',id:'strzelnica',name:t('trophy_sharpshooters'),season:seasonNum});
         if(_devGa===0&&!G.trophies.find(t=>t.id==='mur_obronny'&&t.season===seasonNum))
-          G.trophies.push({type:'special',id:'mur',name:'Mur Obronny',season:seasonNum});
+          G.trophies.push({type:'special',id:'mur',name:t('trophy_defensive_wall'),season:seasonNum});
         if((G.records.maxWinStreak||0)>=10&&!G.trophies.find(t=>t.id==='seria10'&&t.season===seasonNum))
-          G.trophies.push({type:'special',id:'seria10',name:'Seria 10',season:seasonNum});
+          G.trophies.push({type:'special',id:'seria10',name:t('trophy_streak10'),season:seasonNum});
         if(G.stadium&&G.stadium.capacity>=10000&&!G.trophies.find(t=>t.id==='budowlaniec'))
-          G.trophies.push({type:'special',id:'budowlaniec',name:'Budowlaniec',season:seasonNum});
+          G.trophies.push({type:'special',id:'budowlaniec',name:t('trophy_builder'),season:seasonNum});
 
         // Zapisz lgHist dla wszystkich lig (dev)
         if(!G.lgHist)G.lgHist={};
@@ -321,12 +321,12 @@ function runDevSim(){
           var _topRatDev=_devSquad.filter(function(p){return p.seasonRatings&&p.seasonRatings.length>=5;}).sort(function(a,b){var ar=a.seasonRatings.reduce(function(s,r){return s+r;},0)/a.seasonRatings.length;var br=b.seasonRatings.reduce(function(s,r){return s+r;},0)/b.seasonRatings.length;return br-ar;})[0];
           _devSquad.forEach(function(p){
             if(!p.awards)p.awards=[];
-            if(_lgWonDev)p.awards.push({type:'league',icon:'🏆',label:'Mistrzostwo ligi',tier:'gold',season:seasonNum});
-            if(_cupWonDev)p.awards.push({type:'cup_win',icon:'🥇',label:'Puchar Mistrzowski',tier:'gold',season:seasonNum});
-            if(_cupFinDev&&!_cupWonDev)p.awards.push({type:'cup_final',icon:'🥈',label:'Finalista Pucharu',tier:'silver',season:seasonNum});
-            if(_promDev&&!_lgWonDev)p.awards.push({type:'promotion',icon:'⬆️',label:'Awans — 2. miejsce',tier:'silver',season:seasonNum});
-            if(_topScrDev&&p.id===_topScrDev.id&&(_topScrDev.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:'Top Strzelec — '+(p.st.g||0)+'G',tier:'indiv',season:seasonNum});
-            if(_topRatDev&&p.id===_topRatDev.id){var _ar=Math.round(_topRatDev.seasonRatings.reduce(function(s,r){return s+r;},0)/_topRatDev.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:'Gracz Sezonu — '+_ar,tier:'indiv',season:seasonNum});}
+            if(_lgWonDev)p.awards.push({type:'league',icon:'🏆',label:t('award_league_title'),tier:'gold',season:seasonNum});
+            if(_cupWonDev)p.awards.push({type:'cup_win',icon:'🥇',label:t('ht_champions_cup'),tier:'gold',season:seasonNum});
+            if(_cupFinDev&&!_cupWonDev)p.awards.push({type:'cup_final',icon:'🥈',label:t('ht_cup_finalist'),tier:'silver',season:seasonNum});
+            if(_promDev&&!_lgWonDev)p.awards.push({type:'promotion',icon:'⬆️',label:t('award_promotion'),tier:'silver',season:seasonNum});
+            if(_topScrDev&&p.id===_topScrDev.id&&(_topScrDev.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',p.st.g||0),tier:'indiv',season:seasonNum});
+            if(_topRatDev&&p.id===_topRatDev.id){var _ar=Math.round(_topRatDev.seasonRatings.reduce(function(s,r){return s+r;},0)/_topRatDev.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:seasonNum});}
           });
         })();
         // Nowy sezon (awanse/spadki)

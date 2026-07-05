@@ -1,7 +1,7 @@
 function kronShowModal(ev, resolvedBody){
   const modal=document.getElementById('modal-kronika');
   if(!modal)return;
-  document.getElementById('kron-category').textContent=ev.category||'WYDARZENIE';
+  document.getElementById('kron-category').textContent=ev.category||t('kron_cat_default');
   document.getElementById('kron-title').textContent=ev.title;
   document.getElementById('kron-body').innerHTML=resolvedBody||ev.body;
   const chEl=document.getElementById('kron-choices');
@@ -77,7 +77,7 @@ function kronTrigger(){
   var KRON_EVENTS=[
 
     // K-01: Gwiazda przed finałem Pucharu
-    {id:'k01_star_cup', category:'🏆 PUCHAR',
+    {id:'k01_star_cup', category:t('kron_cat_cup'),
      weight:function(){return (cupActive&&bestP&&ovr(bestP)>=65)?30:0;},
      title:t('kron_k01_title'),
      body:function(){return t('kron_k01_body').replace('{name}',bestP?bestP.name:t('kron_fallback_best_player'));},
@@ -102,7 +102,7 @@ function kronTrigger(){
        {label:t('kron_k01_c3_label'),
         effect:function(){
           if(G.budget<8000){notif(t('kron_k01_c3_notif_nobudget'),'err');return;}
-          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: iniekcja znieczulająca'});
+          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:t('kron_note_k01_star_cup')});
           if(bestP){bestP._injectPenalty=2;}
         },
         outcome:function(){
@@ -113,7 +113,7 @@ function kronTrigger(){
      ]},
 
     // K-02: Seria kontuzji — klątwa
-    {id:'k02_injury_streak', category:'🏥 ZDROWIE',
+    {id:'k02_injury_streak', category:t('kron_cat_health'),
      weight:function(){return recentInjCount>=3?35:0;},
      title:t('kron_k02_title'),
      body:function(){return t('kron_k02_body').replace('{n}',recentInjCount);},
@@ -121,7 +121,7 @@ function kronTrigger(){
        {label:t('kron_k02_c1_label'),
         effect:function(){
           if(G.budget<15000){notif(t('kron_notif_no_budget'),'err');return;}
-          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:'Kronika: fizjoterapeuta'});kron.flags._physioHired=true;kron.flags._injCount=0;
+          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:t('kron_note_k02_injury_streak')});kron.flags._physioHired=true;kron.flags._injCount=0;
         },
         outcome:function(){
           if(!kron.flags._physioHired)return t('kron_k02_c1_outcome_nobudget');
@@ -139,7 +139,7 @@ function kronTrigger(){
      ]},
 
     // K-03: Zawodnik ukrywa uraz
-    {id:'k03_hidden_injury', category:'🏥 ZDROWIE',
+    {id:'k03_hidden_injury', category:t('kron_cat_health'),
      weight:function(){
        const c=starters.filter(function(p){return (p.form||80)<55&&!p.injured;});
        return c.length>=1?25:0;
@@ -184,7 +184,7 @@ function kronTrigger(){
      ]},
 
     // S-01: Skandal — nocna impreza
-    {id:'s01_party_scandal', category:'😤 SZATNIA',
+    {id:'s01_party_scandal', category:t('kron_cat_locker'),
      weight:function(){return (G.round>3&&starters.length>=8)?20:0;},
      title:t('kron_s01_title'),
      body:function(){
@@ -198,7 +198,7 @@ function kronTrigger(){
         effect:function(){
           (kron.flags._s01pids||[]).forEach(function(id){
             const p=G.players.find(function(x){return x.id===id;});
-            if(p){p.form=Math.max(20,(p.form||80)-8);G.budget-=2000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2000,bal:G.budget,season:G.season,note:'Kronika: nocna impreza (mandat)'});}
+            if(p){p.form=Math.max(20,(p.form||80)-8);G.budget-=2000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2000,bal:G.budget,season:G.season,note:t('kron_note_s01_party_scandal')});}
           });
           G.reputation=Math.min(1000,(G.reputation||30)+5);
         },
@@ -224,7 +224,7 @@ function kronTrigger(){
      ]},
 
     // S-04: Zawodnik żąda więcej gry
-    {id:'s04_bench_protest', category:'😤 SZATNIA',
+    {id:'s04_bench_protest', category:t('kron_cat_locker'),
      weight:function(){return benchNoGame.length>0?25:0;},
      title:t('kron_s04_title'),
      body:function(){
@@ -265,7 +265,7 @@ function kronTrigger(){
      ]},
 
     // T-01: Oferta z wyższej ligi
-    {id:'t01_big_offer', category:'💰 TRANSFERY',
+    {id:'t01_big_offer', category:t('kron_cat_transfers'),
      weight:function(){return (bestP&&ovr(bestP)>=60&&(G.myLeague||8)>=3)?30:0;},
      title:t('kron_t01_title'),
      body:function(){
@@ -325,7 +325,7 @@ function kronTrigger(){
      ]},
 
     // T-04: Lokalny talent puka do drzwi
-    {id:'t04_local_talent', category:'💰 TRANSFERY',
+    {id:'t04_local_talent', category:t('kron_cat_transfers'),
      weight:function(){return (my.length<24&&G.round>2)?20:0;},
      title:t('kron_t04_title'),
      body:function(){
@@ -388,14 +388,14 @@ function kronTrigger(){
      ]},
 
     // M-01: Sponsor chce nazwy na stadionie
-    {id:'m01_stadium_sponsor', category:'🏟️ KLUB',
+    {id:'m01_stadium_sponsor', category:t('kron_cat_club'),
      weight:function(){return (G.season>=2&&(G.reputation||0)>=80&&!kron.flags._stadSponsorDone)?15:0;},
      title:t('kron_m01_title'),
      body:function(){return t('kron_m01_body');},
      choices:[
        {label:t('kron_m01_c1_label'),
         effect:function(){
-          G.budget+=50000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:50000,cost:0,bal:G.budget,season:G.season,note:'Kronika: sponsor stadionu'});G.reputation=Math.max(0,(G.reputation||30)-15);
+          G.budget+=50000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:50000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_m01_stadium_sponsor_a')});G.reputation=Math.max(0,(G.reputation||30)-15);
           kron.flags._stadSponsorDone=true;
           addNews(t('kron_m01_c1_news'),'budget');
         },
@@ -406,7 +406,7 @@ function kronTrigger(){
        {label:t('kron_m01_c3_label'),
         effect:function(){
           kron.flags._m01budgetBefore=G.budget;
-          if(Math.random()<0.70){G.budget+=30000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:30000,cost:0,bal:G.budget,season:G.season,note:'Kronika: umowa sponsorska (koszulki)'});addNews(t('kron_m01_c3_news_win'),'budget');}
+          if(Math.random()<0.70){G.budget+=30000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:30000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_m01_stadium_sponsor_b')});addNews(t('kron_m01_c3_news_win'),'budget');}
           else{addNews(t('kron_m01_c3_news_lose'),'club');}
           kron.flags._stadSponsorDone=true;
         },
@@ -417,7 +417,7 @@ function kronTrigger(){
      ]},
 
     // SP-05: Sędzia popełnił błąd
-    {id:'sp05_ref_error', category:'⚽ SPORTOWE',
+    {id:'sp05_ref_error', category:t('kron_cat_sporting'),
      weight:function(){
        const lastM=G.mHist&&G.mHist.length?G.mHist[G.mHist.length-1]:null;
        if(!lastM)return 0;
@@ -453,7 +453,7 @@ function kronTrigger(){
      ]},
 
     // SP-01: Tajemniczy skaut na treningu
-    {id:'sp01_mystery_scout', category:'⚽ SPORTOWE',
+    {id:'sp01_mystery_scout', category:t('kron_cat_sporting'),
      weight:function(){
        const w=my.filter(function(p){return p.fromAcademy&&ovr(p)>=52;});
        return w.length>=1?20:0;
@@ -495,14 +495,14 @@ function kronTrigger(){
      ]},
 
     // K-07: Nagroda — mecz towarzyski za granicą
-    {id:'sp06_friendly_abroad', category:'⚽ SPORTOWE',
+    {id:'sp06_friendly_abroad', category:t('kron_cat_sporting'),
      weight:function(){return (G.round>=8&&G.round<=20&&!kron.usedThisSeason.includes('sp06_friendly_abroad'))?10:0;},
      title:t('kron_sp06_title'),
      body:function(){return t('kron_sp06_body');},
      choices:[
        {label:t('kron_sp06_c1_label'),
         effect:function(){
-          G.budget+=10000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:10000,cost:0,bal:G.budget,season:G.season,note:'Kronika: mecz za granicą'});
+          G.budget+=10000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:10000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_sp06_friendly_abroad_a')});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           addNews(t('kron_sp06_c1_news'),'club');
         },
@@ -512,7 +512,7 @@ function kronTrigger(){
         outcome:function(){return t('kron_sp06_c2_outcome');}},
        {label:t('kron_sp06_c3_label'),
         effect:function(){
-          G.budget+=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:5000,cost:0,bal:G.budget,season:G.season,note:'Kronika: mecz za granicą (opcja B)'});
+          G.budget+=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:5000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_sp06_friendly_abroad_b')});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});
           addNews(t('kron_sp06_c3_news'),'club');
         },
@@ -522,7 +522,7 @@ function kronTrigger(){
     // ── GRUPA 1 ─────────────────────────────────────────────────────────
 
     // S-02: Bunt kapitana
-    {id:'s02_captain_dispute', category:'😤 SZATNIA',
+    {id:'s02_captain_dispute', category:t('kron_cat_locker'),
      weight:function(){
        const hist=G.mHist||[];
        if(hist.length<3)return 0;
@@ -589,7 +589,7 @@ function kronTrigger(){
      ]},
 
     // S-03: Pożegnanie legendy
-    {id:'s03_veteran_farewell', category:'😤 SZATNIA',
+    {id:'s03_veteran_farewell', category:t('kron_cat_locker'),
      weight:function(){
        const legend=myPl().find(function(p){
          return (p.age||25)>=34&&(p._seasonsAtClub||0)>=2&&!p.injured;
@@ -609,7 +609,7 @@ function kronTrigger(){
        {label:t('kron_s03_c1_label'),
         effect:function(){
           if(G.budget<5000){notif(t('kron_s03_c1_notif_nobudget'),'err');kron.flags._s03result='noBudget';return;}
-          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: galeria sław'});
+          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:t('kron_note_s03_veteran_farewell')});
           G.reputation=Math.min(1000,(G.reputation||30)+15);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
@@ -654,7 +654,7 @@ function kronTrigger(){
      ]},
 
     // S-05: Przeciek z szatni
-    {id:'s05_locker_room_leak', category:'😤 SZATNIA',
+    {id:'s05_locker_room_leak', category:t('kron_cat_locker'),
      weight:function(){
        return (G.round>5&&starters.length>=8)?18:0;
      },
@@ -669,7 +669,7 @@ function kronTrigger(){
        {label:t('kron_s05_c1_label'),
         effect:function(){
           if(G.budget<3000){notif(t('kron_notif_no_budget'),'err');kron.flags._s05result='noBudget';return;}
-          G.budget-=3000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:3000,bal:G.budget,season:G.season,note:'Kronika: odwołanie od sędziego'});
+          G.budget-=3000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:3000,bal:G.budget,season:G.season,note:t('kron_note_s05_locker_room_leak')});
           G.reputation=Math.max(0,(G.reputation||30)-5);
           const suspect=G.players.find(function(p){return p.id===kron.flags._s05suspectId;});
           if(Math.random()<0.60&&suspect){
@@ -716,7 +716,7 @@ function kronTrigger(){
     // ── GRUPA 2 ─────────────────────────────────────────────────────────
 
     // T-02: Agent żąda podwyżki
-    {id:'t02_agent_pressure', category:'💰 TRANSFERY',
+    {id:'t02_agent_pressure', category:t('kron_cat_transfers'),
      weight:function(){
        if((G.season||1)<2)return 0;
        const star=starters.find(function(p){return ovr(p)>=62;});
@@ -736,7 +736,7 @@ function kronTrigger(){
           const star=G.players.find(function(p){return p.id===kron.flags._t02starId;});
           const ask=kron.flags._t02ask||15000;
           if(G.budget<ask){notif(t('kron_t02_notif_no_budget_raise'),'err');kron.flags._t02result='noBudget';return;}
-          G.budget-=ask;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:ask,bal:G.budget,season:G.season,note:'Kronika: negocjacje sponsorskie'});
+          G.budget-=ask;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:ask,bal:G.budget,season:G.season,note:t('kron_note_t02_agent_pressure')});
           if(star){star.form=Math.min(100,(star.form||80)+5);star._loyaltyBonus=true;star.contract=Math.max(star.contract||1,3);}
           addNews(t('news_tr_signed_raise').replace('{name}',star?star.name:t('kron_fallback_player')).replace('{val}',fmtVal(ask)),'budget');
           kron.flags._t02result='paid';
@@ -778,7 +778,7 @@ function kronTrigger(){
      ]},
 
     // T-05: Okazja — wolny agent z klasą
-    {id:'t05_bargain_release', category:'💰 TRANSFERY',
+    {id:'t05_bargain_release', category:t('kron_cat_transfers'),
      weight:function(){
        if(!G.fa||!G.fa.length)return 0;
        const gem=G.fa.find(function(p){return ovr(p)>=60&&(p.age||25)<=30;});
@@ -803,7 +803,7 @@ function kronTrigger(){
           G.budget-=cost;
           fillHistoryGaps(gem);
           gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
-          gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
+          gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
           G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
           G.players.push(gem);
           if(!G.fin.transfers)G.fin.transfers=[];
@@ -826,7 +826,7 @@ function kronTrigger(){
             G.budget-=cheapCost;
             fillHistoryGaps(gem);
             gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
-            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
+            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
             G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
             G.players.push(gem);
             if(!G.fin.transfers)G.fin.transfers=[];
@@ -853,7 +853,7 @@ function kronTrigger(){
             fillHistoryGaps(gem);
             gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=2;gem._seasonsAtClub=0;
             gem.form=Math.min(100,(gem.form||80)-5);
-            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
+            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
             G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
             G.players.push(gem);
             addNews(t('news_tr_gem_trial_ok').replace('{name}',gem.name),'ok');
@@ -871,7 +871,7 @@ function kronTrigger(){
      ]},
 
     // T-06: Licytacja z rywalem
-    {id:'t06_bidding_war', category:'💰 TRANSFERY',
+    {id:'t06_bidding_war', category:t('kron_cat_transfers'),
      weight:function(){
        if(!G.rival)return 0;
        if(!G.fa||!G.fa.length)return 0;
@@ -899,7 +899,7 @@ function kronTrigger(){
           G.budget-=high;
           fillHistoryGaps(target);
           target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
-          target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
+          target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
           G.fa=G.fa.filter(function(p){return p.id!==target.id;});
           G.players.push(target);
           if(!G.fin.transfers)G.fin.transfers=[];
@@ -937,7 +937,7 @@ function kronTrigger(){
             G.budget-=cheap;
             fillHistoryGaps(target);
             target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
-            target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
+            target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
             G.fa=G.fa.filter(function(p){return p.id!==target.id;});
             G.players.push(target);
             if(!G.fin.transfers)G.fin.transfers=[];
@@ -963,7 +963,7 @@ function kronTrigger(){
     // ── PRIORYTET 1 — ŁAŃCUCHY ──────────────────────────────────────────
 
     // K-04: Gwiazda chce odejść (łańcuch z t02_agent_pressure / t01_big_offer)
-    {id:'k04_wantsout_crisis', category:'💥 KRYZYS',
+    {id:'k04_wantsout_crisis', category:t('kron_cat_crisis'),
      weight:function(){
        // Trigger: jakikolwiek zawodnik ma flagę _wantsOut=true
        const rebel=myPl().find(function(p){return p._wantsOut;});
@@ -1038,7 +1038,7 @@ function kronTrigger(){
      ]},
 
     // S-07: Impreza znowu (łańcuch z s01_party_scandal opcja C)
-    {id:'s07_scandal_repeat', category:'😤 SZATNIA',
+    {id:'s07_scandal_repeat', category:t('kron_cat_locker'),
      weight:function(){
        // Trigger: flaga _s01canRepeat ustawiona gdy gracz ignorował pierwszą imprezę
        return kron.flags._s01canRepeat?35:0;
@@ -1080,7 +1080,7 @@ function kronTrigger(){
             kron.flags._s07result='noBudget';
             return;
           }
-          G.budget-=25000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:25000,bal:G.budget,season:G.season,note:'Kronika: wykup milczenia (skandal)'});
+          G.budget-=25000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:25000,bal:G.budget,season:G.season,note:t('kron_note_s07_scandal_repeat')});
           kron.flags._s01canRepeat=false;
           addNews(t('kron_s07_c2_news'),'budget');
           kron.flags._s07result='paid';
@@ -1103,7 +1103,7 @@ function kronTrigger(){
      ]},
 
     // T-07: Lojalny zawodnik (łańcuch z t02_agent_pressure opcja A — _loyaltyBonus)
-    {id:'t07_loyalty_reward', category:'💰 TRANSFERY',
+    {id:'t07_loyalty_reward', category:t('kron_cat_transfers'),
      weight:function(){
        // Trigger: zawodnik z _loyaltyBonus=true i min 3 sezony w klubie
        const loyal=myPl().find(function(p){
@@ -1126,7 +1126,7 @@ function kronTrigger(){
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           const saving=kron.flags._t07saving||10000;
-          G.budget+=saving;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:saving,cost:0,bal:G.budget,season:G.season,note:'Kronika: oszczędność pensji (lojalny zawodnik)'});
+          G.budget+=saving;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:saving,cost:0,bal:G.budget,season:G.season,note:t('kron_note_t07_loyalty_reward_a')});
           if(loyal){
             loyal.form=Math.min(100,(loyal.form||80)+5);
             loyal._loyaltyBonus=true;// podtrzymaj flagę
@@ -1156,7 +1156,7 @@ function kronTrigger(){
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           const saving=kron.flags._t07saving||10000;
-          G.budget+=saving;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:saving,cost:0,bal:G.budget,season:G.season,note:'Kronika: oszczędność pensji (lojalny zawodnik, z chwałą)'});
+          G.budget+=saving;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:saving,cost:0,bal:G.budget,season:G.season,note:t('kron_note_t07_loyalty_reward_b')});
           G.reputation=Math.min(1000,(G.reputation||30)+8);
           if(loyal){
             loyal.form=Math.min(100,(loyal.form||80)+8);
@@ -1174,7 +1174,7 @@ function kronTrigger(){
      ]},
 
     // SP-08: Ten sam sędzia znowu (łańcuch z sp05_ref_error)
-    {id:'sp08_ref_revenge', category:'⚽ SPORTOWE',
+    {id:'sp08_ref_revenge', category:t('kron_cat_sporting'),
      weight:function(){
        // Trigger: sp05 już wystąpił w tym sezonie (jest w usedThisSeason)
        if(!kron.usedThisSeason.includes('sp05_ref_error'))return 0;
@@ -1242,7 +1242,7 @@ function kronTrigger(){
     // ── PRIORYTET 2 — KONTEKST SEZONOWY ─────────────────────────────────
 
     // X-01: Pierwsze mistrzostwo (jednorazowy event)
-    {id:'x01_first_title', category:'🏆 HISTORIA',
+    {id:'x01_first_title', category:t('kron_cat_history'),
      weight:function(){
        // Trigger: właśnie wygrałeś ligę po raz pierwszy (trophies ma dokładnie 1 ligowe)
        if(!G.trophies)return 0;
@@ -1268,7 +1268,7 @@ function kronTrigger(){
             kron.flags._x01result='noBudget';
             return;
           }
-          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:'Kronika: sala sław (pierwsze mistrzostwo)'});
+          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:t('kron_note_x01_first_title')});
           G.reputation=Math.min(1000,(G.reputation||30)+25);
           // Trwały ślad — flaga na G żeby inne eventy wiedziały
           G.flags=G.flags||{};
@@ -1309,7 +1309,7 @@ function kronTrigger(){
      ]},
 
     // X-02: Kryzys spadkowy — ultimatum zarządu
-    {id:'x02_relegation_crisis', category:'💥 KRYZYS',
+    {id:'x02_relegation_crisis', category:t('kron_cat_crisis'),
      weight:function(){
        // Trigger: round≥15, jesteśmy w strefie spadkowej (ostatnie 3 miejsca)
        if((G.round||0)<15)return 0;
@@ -1357,7 +1357,7 @@ function kronTrigger(){
             kron.flags._x02result='noBudget';
             return;
           }
-          G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:'Kronika: kryzysowy transfer (zarząd)'});
+          G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:t('kron_note_x02_relegation_crisis')});
           // Znajdź najlepszego dostępnego FA i podpisz
           if(G.fa&&G.fa.length){
             const rescue=G.fa.filter(function(p){return ovr(p)>=50;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
@@ -1365,7 +1365,7 @@ function kronTrigger(){
               fillHistoryGaps(rescue);
               rescue.clubId=G.myClubId;rescue.starter=false;rescue.status='active';
               rescue.isFreeAgent=false;rescue.contract=1;rescue._seasonsAtClub=0;
-              rescue.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(rescue),avgRat:null,_current:true});
+              rescue.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(rescue),avgRat:null,_current:true});
               G.fa=G.fa.filter(function(p){return p.id!==rescue.id;});
               G.players.push(rescue);
               addNews(t('kron_x02_c2_news').replace('{name}',rescue.name).replace('{ovr}',ovr(rescue)),'budget');
@@ -1391,7 +1391,7 @@ function kronTrigger(){
      ]},
 
     // X-03: Noc przed awansem
-    {id:'x03_promotion_eve', category:'🏆 HISTORIA',
+    {id:'x03_promotion_eve', category:t('kron_cat_history'),
      weight:function(){
        // Trigger: jesteśmy na 1. miejscu w ostatnich 3 kolejkach sezonu, liga nie jest najwyższa
        if(!G.standing||!G.standing.length)return 0;
@@ -1443,7 +1443,7 @@ function kronTrigger(){
             kron.flags._x03result='noBudget';
             return;
           }
-          G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:'Kronika: premia przed awansem'});
+          G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:t('kron_note_x03_promotion_eve_a')});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
           addNews(t('kron_x03_c2_news'),'budget');
           kron.flags._x03result='bonus';
@@ -1459,7 +1459,7 @@ function kronTrigger(){
             kron.flags._x03result='noBudget2';
             return;
           }
-          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: kara za protest (sędzia)'});
+          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:t('kron_note_x03_promotion_eve_b')});
           G.reputation=Math.min(1000,(G.reputation||30)+5);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           addNews(t('kron_x03_c3_news'),'ok');
@@ -1472,7 +1472,7 @@ function kronTrigger(){
      ]},
 
     // X-04: Rywal buduje dynastię
-    {id:'x04_dynasty_threat', category:'💥 KRYZYS',
+    {id:'x04_dynasty_threat', category:t('kron_cat_crisis'),
      weight:function(){
        // Trigger: G.rival istnieje i rywal jest znacznie silniejszy + sezon≥3
        if(!G.rival)return 0;
@@ -1551,7 +1551,7 @@ function kronTrigger(){
           fillHistoryGaps(star);
           star.clubId=G.myClubId;star.starter=false;star.status='active';
           star.isFreeAgent=false;star.contract=r(2,3);star._seasonsAtClub=0;
-          star.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'Twój klub',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(star),avgRat:null,_current:true});
+          star.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(star),avgRat:null,_current:true});
           G.fa=G.fa.filter(function(p){return p.id!==star.id;});
           G.players.push(star);
           if(!G.fin.transfers)G.fin.transfers=[];
@@ -1570,7 +1570,7 @@ function kronTrigger(){
 
     // ── PRIORYTET 3 — NOWE MECHANIKI ────────────────────────────────────
 
-    {id:'sp09_tactics_leak', category:'⚽ SPORTOWE',
+    {id:'sp09_tactics_leak', category:t('kron_cat_sporting'),
      weight:function(){
        if(!G.rival)return 0;
        if((G.round||0)<8)return 0;
@@ -1606,7 +1606,7 @@ function kronTrigger(){
        {label:t('kron_sp09_c2_label'),
         effect:function(){
           if(G.budget<5000){notif(t('kron_notif_no_budget'),'err');kron.flags._sp09result='noBudget';return;}
-          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: podwójny trening taktyczny'});
+          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:t('kron_note_sp09_tactics_leak')});
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});
           addNews(t('kron_sp09_c2_news'),'ok');
           kron.flags._sp09result='trained';
@@ -1627,7 +1627,7 @@ function kronTrigger(){
         }},
      ]},
 
-    {id:'m06_naming_rights', category:'💰 FINANSE',
+    {id:'m06_naming_rights', category:t('kron_cat_finance'),
      weight:function(){
        if((G.season||1)<3)return 0;
        if((G.reputation||0)<150)return 0;
@@ -1642,7 +1642,7 @@ function kronTrigger(){
      choices:[
        {label:t('kron_m06_c1_label'),
         effect:function(){
-          G.budget+=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:15000,cost:0,bal:G.budget,season:G.season,note:'Kronika: kontrakt sponsorski koszulki'});
+          G.budget+=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:15000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_m06_naming_rights_a')});
           kron.flags._m06sponsorActive=true;
           kron.flags._m06seasonsLeft=2;
           if((G.reputation||0)>=300){
@@ -1668,7 +1668,7 @@ function kronTrigger(){
        {label:t('kron_m06_c3_label'),
         effect:function(){
           if(Math.random()<0.60){
-            G.budget+=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:20000,cost:0,bal:G.budget,season:G.season,note:'Kronika: premia za wyniki (zarząd)'});
+            G.budget+=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:20000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_m06_naming_rights_b')});
             kron.flags._m06sponsorActive=true;
             kron.flags._m06seasonsLeft=2;
             kron.flags._m06annual=20000;
@@ -1685,7 +1685,7 @@ function kronTrigger(){
         }},
      ]},
 
-    {id:'h01_hall_of_fame', category:'😤 SZATNIA',
+    {id:'h01_hall_of_fame', category:t('kron_cat_locker'),
      weight:function(){
        const legend=myPl().find(function(p){
          return (p.age||25)>=36&&(p._seasonsAtClub||0)>=4&&ovr(p)>=60&&!p.injured;
@@ -1706,7 +1706,7 @@ function kronTrigger(){
        {label:t('kron_h01_c1_label'),
         effect:function(){
           if(G.budget<5000){notif(t('kron_notif_no_budget'),'err');kron.flags._h01result='noBudget';return;}
-          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:'Kronika: wyjazd integracyjny'});
+          G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:t('kron_note_h01_hall_of_fame_a')});
           G.reputation=Math.min(1000,(G.reputation||30)+10);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           G.flags=G.flags||{};
@@ -1722,7 +1722,7 @@ function kronTrigger(){
        {label:t('kron_h01_c2_label'),
         effect:function(){
           if(G.budget<15000){notif(t('kron_h01_c2_notif_nobudget'),'err');kron.flags._h01result='noBudget2';return;}
-          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:'Kronika: złota odprawa (legenda)'});
+          G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:t('kron_note_h01_hall_of_fame_b')});
           G.reputation=Math.min(1000,(G.reputation||30)+15);
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
           G.flags=G.flags||{};
@@ -1740,7 +1740,7 @@ function kronTrigger(){
         outcome:function(){return t('kron_h01_c3_outcome').replace('{name}',kron.flags._h01legendName);}},
      ]},
 
-    {id:'tr01_training_accident', category:'💥 KRYZYS',
+    {id:'tr01_training_accident', category:t('kron_cat_crisis'),
      weight:function(){
        if((G.round||0)<3||(G.round||0)>25)return 0;
        const noInjuries=myPl().every(function(p){return !p.injured;});
@@ -1758,7 +1758,7 @@ function kronTrigger(){
        {label:t('kron_tr01_c1_label'),
         effect:function(){
           if(G.budget<12000){notif(t('kron_notif_no_budget'),'err');kron.flags._tr01result='noBudget';return;}
-          G.budget-=12000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:12000,bal:G.budget,season:G.season,note:'Kronika: nowy sprzęt bezpieczeństwa'});
+          G.budget-=12000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:12000,bal:G.budget,season:G.season,note:t('kron_note_tr01_training_accident')});
           const victim=G.players.find(function(p){return p.id===kron.flags._tr01victimId;});
           if(victim){victim.injured=true;victim.injuredWeeks=1+Math.floor(Math.random()*2);victim.starter=false;}
           G.flags=G.flags||{};
@@ -1800,7 +1800,7 @@ function kronTrigger(){
 
     // ── PRIORYTET 4 — AKADEMIA I DC ─────────────────────────────────────
 
-    {id:'a05_prospect_burnout', category:'🎓 AKADEMIA',
+    {id:'a05_prospect_burnout', category:t('kron_cat_academy'),
      weight:function(){
        if(!G.academy||!G.academy.prospects||!G.academy.prospects.length)return 0;
        const burnout=G.academy.prospects.find(function(p){
@@ -1848,7 +1848,7 @@ function kronTrigger(){
        {label:t('kron_a05_c3_label'),
         effect:function(){
           if(G.budget<8000){notif(t('kron_notif_no_budget'),'err');kron.flags._a05result='noBudget';return;}
-          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:'Kronika: psycholog sportowy'});
+          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:t('kron_note_a05_prospect_burnout')});
           const p=G.academy.prospects[kron.flags._a05prospectIdx];
           if(p){p.potential=Math.min(99,(p.potential||75)+1);p._psychSupport=true;}
           addNews(t('kron_a05_c3_news').replace('{name}',kron.flags._a05prospectName),'ok');
@@ -1860,7 +1860,7 @@ function kronTrigger(){
         }},
      ]},
 
-    {id:'dc01_data_breach', category:'💰 FINANSE',
+    {id:'dc01_data_breach', category:t('kron_cat_finance'),
      weight:function(){
        if((G.season||1)<3)return 0;
        const hasScout=G.scout&&G.scout.level&&G.scout.level!=='free';
@@ -1877,7 +1877,7 @@ function kronTrigger(){
        {label:t('kron_dc01_c1_label'),
         effect:function(){
           if(G.budget<18000){notif(t('kron_notif_no_budget'),'err');kron.flags._dc01result='noBudget';return;}
-          G.budget-=18000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:18000,bal:G.budget,season:G.season,note:'Kronika: zabezpieczenie systemu IT'});
+          G.budget-=18000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:18000,bal:G.budget,season:G.season,note:t('kron_note_dc01_data_breach')});
           G.flags=G.flags||{};
           G.flags.dataSecure=true;
           G.flags.dataSecureSeason=G.season;

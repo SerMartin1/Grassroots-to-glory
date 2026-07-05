@@ -1,5 +1,5 @@
 function mkCard(p){const o=ovr(p);const isSt=p.starter;const susp=p.suspension&&p.suspension>0;const d=document.createElement('div');d.className='pcard2 '+(isSt?'st':'bn');if(susp||p.injured)d.style.borderLeft='4px solid var(--rd)';
-d.innerHTML='<div style="flex:1;min-width:0"><div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div><div class="pc2-row2">'+p.age+'l • <span class="pc2-ovr-green">OVR '+o+'</span></div><div class="pc2-row2"><span class="pc2-value">'+fmtVal(p.value)+'</span> • K:'+p.contract+' sez.</div></div><div style="text-align:right;font-size:var(--fs-dense);color:var(--gr);white-space:nowrap;flex-shrink:0">'+
+d.innerHTML='<div style="flex:1;min-width:0"><div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div><div class="pc2-row2">'+p.age+t('tr_age_suffix')+' • <span class="pc2-ovr-green">OVR '+o+'</span></div><div class="pc2-row2"><span class="pc2-value">'+fmtVal(p.value)+'</span> • '+t('mkcard_contract_line').replace('{n}',p.contract)+'</div></div><div style="text-align:right;font-size:var(--fs-dense);color:var(--gr);white-space:nowrap;flex-shrink:0">'+
 (p.pos==='GK'?'📅 <b style="color:var(--wh)">'+p.st.m+'</b> 🛡️ <b style="color:var(--gb)">'+(p.st.cs||0)+'</b> 🔴 <b style="color:var(--rd)">'+(p.st.ga||0)+'</b>':'📅 <b style="color:var(--wh)">'+p.st.m+'</b> ⚽ <b style="color:var(--am)">'+p.st.g+'</b> 🤝 <b style="color:var(--gb)">'+p.st.a+'</b>')+'</div>';
 d.onclick=()=>showPlayer(p);return d;}
 
@@ -30,7 +30,7 @@ function mkTacCard(p){
   // Gotowość: kolor i ikona
   const readyCol=ready>=70?'var(--gb)':ready>=50?'var(--am)':'var(--rd)';
   const readyIcon=p.injured?'🔴':susp?'🟡':fat>70?'🔴':fat>50?'🟡':fm<50?'🔴':fm<65?'🟡':'🟢';
-  const readyLbl=p.injured?('KONTUZJA '+p.injuryWeeks+'tyg'):susp?'ZAWIESZONY':fat>70?'PRZEMĘCZONY':fat>50?'ZMĘCZONY':fm<50?'SŁABA FORMA':'';
+  const readyLbl=p.injured?t('tac_status_injured_weeks').replace('{n}',p.injuryWeeks):susp?t('tac_status_suspended'):fat>70?t('tac_status_exhausted'):fat>50?t('tac_status_tired'):fm<50?t('tac_status_poor_form'):'';
   // Pasek gotowości
   const barFill=Math.max(0,Math.min(100,ready));
   const barCol=ready>=70?'var(--gb)':ready>=50?'var(--am)':'var(--rd)';
@@ -50,16 +50,16 @@ function mkTacCard(p){
         '<div>'+
           '<div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div>'+
           '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
-            (POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+o+
+            (POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • OVR '+o+
           '</div>'+
         '</div>'+
       '</div>'+
-      '<button class="btog2 '+(isSt?'add':'rem')+'" onclick="event.stopPropagation();togSt('+p.id+');fillTacSquad()">'+(isSt?'✔ SKŁAD':'+ SKŁAD')+'</button>'+
+      '<button class="btog2 '+(isSt?'add':'rem')+'" onclick="event.stopPropagation();togSt('+p.id+');fillTacSquad()">'+(isSt?t('tac_squad_badge_in'):t('tac_squad_badge_add'))+'</button>'+
     '</div>'+
     // Statystyki w jednej linii
     '<div style="display:flex;gap:10px;font-size:var(--fs-dense);margin-bottom:4px">'+
-      '<span style="color:var(--gr)">Fm: <span style="color:'+fmCol+'">'+fm+'%</span></span>'+
-      '<span style="color:var(--gr)">Zmę: <span style="color:'+fatCol+'">'+fat+'%</span></span>'+
+      '<span style="color:var(--gr)">'+t('tac_fm_label')+' <span style="color:'+fmCol+'">'+fm+'%</span></span>'+
+      '<span style="color:var(--gr)">'+t('tac_fat_label')+' <span style="color:'+fatCol+'">'+fat+'%</span></span>'+
       (readyLbl?'<span style="color:var(--rd)">'+readyLbl+'</span>':'')+
     '</div>'+
     // Pasek gotowości
@@ -73,7 +73,7 @@ function mkTacCard(p){
   d.onclick=()=>showPlayer(p);return d;
 }
 
-function togSt(id){const p=G.players.find(x=>x.id===id);if(!p)return;if(p.onCamp||p.onIndCamp){notif(p.name+' jest na obozie!','err');return;}if(p.injured){notif(p.name+' jest kontuzjowany! ('+p.injuryType+', '+p.injuryWeeks+' tyg.)','err');return;}if(p.suspension>0){notif(p.name+' jest zawieszony na '+p.suspension+' mecz(e)!','err');return;}if(p.starter){p.starter=false;}else{const lim=formationLimits();const st=myPl().filter(x=>x.starter);if(st.filter(x=>x.pos===p.pos).length>=lim[p.pos]){notif('Limit '+POS_SHORT[p.pos]+'!','err');return;}if(st.length>=11){notif('Skład pełny!','err');return;}p.starter=true;}updateHdr();}
+function togSt(id){const p=G.players.find(x=>x.id===id);if(!p)return;if(p.onCamp||p.onIndCamp){notif(t('tac_notif_on_camp').replace('{name}',p.name),'err');return;}if(p.injured){notif(t('tac_notif_injured').replace('{name}',p.name).replace('{type}',p.injuryType).replace('{n}',p.injuryWeeks),'err');return;}if(p.suspension>0){notif(t('tac_notif_suspended').replace('{name}',p.name).replace('{n}',p.suspension),'err');return;}if(p.starter){p.starter=false;}else{const lim=formationLimits();const st=myPl().filter(x=>x.starter);if(st.filter(x=>x.pos===p.pos).length>=lim[p.pos]){notif(t('tac_notif_pos_limit').replace('{pos}',POS_SHORT[p.pos]),'err');return;}if(st.length>=11){notif(t('tac_notif_squad_full'),'err');return;}p.starter=true;}updateHdr();}
 
 function fillTacSquad(){
   if(!G)return;
@@ -104,7 +104,7 @@ function fillTacSquad(){
     if(!grp.length)return;
     const stI=grp.filter(p=>p.starter).length;
     const gHdr=document.createElement('tr');
-    gHdr.innerHTML='<td colspan="5" style="padding:6px 14px 3px;font-size:var(--fs-dense);color:var(--am);background:#0d1f0d;border-bottom:1px solid var(--gl)">'+pg.label.toUpperCase()+' '+t('tac_in_squad').replace('{n}',stI).replace('{m}',lim[pg.key])+'</td>';
+    gHdr.innerHTML='<td colspan="5" style="padding:6px 14px 3px;font-size:var(--fs-dense);color:var(--am);background:#0d1f0d;border-bottom:1px solid var(--gl)">'+t('posgrp_'+pg.key.toLowerCase()).toUpperCase()+' '+t('tac_in_squad').replace('{n}',stI).replace('{m}',lim[pg.key])+'</td>';
     tbl.appendChild(gHdr);
     grp.forEach(p=>{
       const o=ovr(p);const fm=p.form||75;const fat=Math.round(p.fatigue||0);
@@ -204,7 +204,7 @@ function _traitLabel(id){return t('trait_'+id+'_name')||TRAITS[id]&&TRAITS[id].n
 function _traitDesc(id){return t('trait_'+id+'_desc')||TRAITS[id]&&TRAITS[id].desc||'';}
 function showPlayer(p){
   if(!p)return;
-  if(!p.name)p.name='Nieznany zawodnik';
+  if(!p.name)p.name=t('plr_fallback_unknown');
   window._plrId=p.id;
   const o=ovr(p);
   const isOwn=p.clubId===G.myClubId;
@@ -250,7 +250,7 @@ function showPlayer(p){
     const retiredNote=p.status==='retired'?t('plr_retired_since').replace('{n}',p.retiredSeason||'?'):'';
     const acadBadge=p.fromAcademy?' 🎓':'';
     var _arch6=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' lat'+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+_arch6.name+'</span>':'');
+    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' '+t('mkcard_age_years')+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+t('arch_'+p.archetype)+'</span>':'');
   }
   // TRAITS ICONS - ukryte (przeniesione do CHARAKTER)
   const traitsIcons=document.getElementById('plr-traits-icons');
@@ -445,23 +445,23 @@ function renderPlayerHistory(p){
       const _tM=_cst.m+(_cup.m||0), _tG=(_cst.g||0)+(_cup.g||0), _tA=(_cst.a||0)+(_cup.a||0);
       const _tCS=(_cst.cs||0)+(_cup.cs||0), _tGA=(_cst.ga||0)+(_cup.ga||0);
       if(isGK)
-        _curHtml='<thead><tr><th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td style="color:var(--gb)">'+_tCS+'</td><td style="color:var(--rd)">'+_tGA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td style="color:var(--gb)">'+_tCS+'</td><td style="color:var(--rd)">'+_tGA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       else
-        _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td>'+_tG+'</td><td>'+_tA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td>'+_tM+'</td><td>'+_tG+'</td><td>'+_tA+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       _curHtml+='<tbody>'+(_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+'</tbody>';
     } else if(_hView==='cup'){
       // Tylko puchar
       if(isGK)
-        _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#4a8a40">CS</th><th style="color:#8a3020">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:var(--gb)">'+(_cup.cs||0)+'</td><td style="color:var(--rd)">'+(_cup.ga||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#4a8a40">CS</th><th style="color:#8a3020">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:var(--gb)">'+(_cup.cs||0)+'</td><td style="color:var(--rd)">'+(_cup.ga||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
       else
-        _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#c8a800">G</th><th style="color:#c8a800">A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:#ffd700">'+(_cup.g||0)+'</td><td style="color:#ffd700">'+(_cup.a||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th style="color:#c8a800">M</th><th style="color:#c8a800">G</th><th style="color:#c8a800">A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td style="color:#ffd700">'+(_cup.m||0)+'</td><td style="color:#ffd700">'+(_cup.g||0)+'</td><td style="color:#ffd700">'+(_cup.a||0)+'</td><td style="color:var(--am)">'+(_cup.yk||0)+'</td><td style="color:var(--rd)">'+(_cup.rk||0)+'</td></tr></tbody>';
       if(_cupAvgRat)_curHtml+='<tbody><tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_cup')+'</td><td colspan="3">'+_cupAvgStr+'</td></tr></tbody>';
     } else {
       // Tylko liga
       if(isGK)
-        _curHtml='<thead><tr><th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_cst.m+'</td><td style="color:var(--gb)">'+(_cst.cs||0)+'</td><td style="color:var(--rd)">'+(_cst.ga||0)+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td>'+_cst.m+'</td><td style="color:var(--gb)">'+(_cst.cs||0)+'</td><td style="color:var(--rd)">'+(_cst.ga||0)+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       else
-        _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th></tr></thead><tbody><tr class="hi"><td>'+_cst.m+'</td><td>'+(_cst.g||0)+'</td><td>'+(_cst.a||0)+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
+        _curHtml='<thead><tr><th>M</th><th>G</th><th>A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th></tr></thead><tbody><tr class="hi"><td>'+_cst.m+'</td><td>'+(_cst.g||0)+'</td><td>'+(_cst.a||0)+'</td><td style="color:var(--am)">'+_cst.yk+'</td><td style="color:var(--rd)">'+_cst.rk+'</td></tr></tbody>';
       _curHtml+='<tbody>'+
         (_last5.length?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_label')+'</td><td colspan="3" style="font-size:var(--fs-dense)">'+_last5str+'</td></tr>':'')+
         (_avgRat?'<tr><td colspan="2" style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_hist_avg_season')+'</td><td colspan="3">'+_avgStr+'</td></tr>':'')+
@@ -508,15 +508,15 @@ function renderPlayerHistory(p){
   var thFields='';
   if(_hView==='all'){
     // WSZYSTKO: suma liga+puchar w jednych kolumnach
-    if(isGK) thFields='<th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
-    else     thFields='<th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
+    if(isGK) thFields='<th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
+    else     thFields='<th>M</th><th>G</th><th>A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
   } else if(_hView==='lg'){
-    if(isGK) thFields='<th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
-    else     thFields='<th>M</th><th>G</th><th>A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
+    if(isGK) thFields='<th>M</th><th style="color:var(--gb)">CS</th><th style="color:var(--rd)">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
+    else     thFields='<th>M</th><th>G</th><th>A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
   } else {
     // PUCHAR
-    if(isGK) thFields='<th style="color:#c8a800">M</th><th style="color:#4a8a40">CS</th><th style="color:#8a3020">SG</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
-    else     thFields='<th style="color:#c8a800">M</th><th style="color:#c8a800">G</th><th style="color:#c8a800">A</th><th style="color:var(--am)">ŻK</th><th style="color:var(--rd)">CK</th>';
+    if(isGK) thFields='<th style="color:#c8a800">M</th><th style="color:#4a8a40">CS</th><th style="color:#8a3020">'+t('plr_hist_col_ga')+'</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
+    else     thFields='<th style="color:#c8a800">M</th><th style="color:#c8a800">G</th><th style="color:#c8a800">A</th><th style="color:var(--am)">'+t('plr_hist_col_yk')+'</th><th style="color:var(--rd)">'+t('plr_hist_col_rk')+'</th>';
   }
   const header='<thead><tr><th>'+t('plr_hist_col_season')+'</th><th>'+t('plr_hist_col_club')+'</th>'+(_isMyPlayer?'<th>'+t('plr_hist_col_ovr')+'</th>':'')+thFields+'<th style="color:var(--am)">'+t('plr_hist_col_avg')+'</th></tr></thead>';
 
@@ -753,7 +753,7 @@ function _renderContractModal(p){
     '<div style="background:#1a1a00;border:1px solid var(--am);padding:8px;margin-bottom:10px">'+
       '<div style="color:var(--am);margin-bottom:4px">'+t('plr_negot_demands')+'</div>'+
       '<div style="display:flex;justify-content:space-between"><span style="color:var(--gr)">'+t('plr_negot_length')+'</span><span style="color:var(--wh)">'+t('plr_negot_min_seasons').replace('{n}',demand.minYears)+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between"><span style="color:var(--gr)">'+t('plr_negot_salary')+'</span><span style="color:var(--wh)">'+fmt(demand.minSalary)+' zł/mc</span></div>'+
+      '<div style="display:flex;justify-content:space-between"><span style="color:var(--gr)">'+t('plr_negot_salary')+'</span><span style="color:var(--wh)">'+fmt(demand.minSalary)+'/mc</span></div>'+
     '</div>'+
     (p.demands?'<div style="background:var(--tb);border:1px solid var(--gl);padding:8px;margin-bottom:8px">'+
       '<div style="color:var(--am);font-size:var(--fs-dense);margin-bottom:4px">'+t('plr_negot_demands_extra')+'</div>'+
@@ -772,7 +772,7 @@ function _renderContractModal(p){
       '<span style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_negot_salary')+'</span>'+
       '<div style="display:flex;align-items:center;gap:4px;flex:1;justify-content:center">'+
         '<button onclick="changeMCSalary(-50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-body);width:28px;height:28px;cursor:pointer">▼</button>'+
-        '<span style="font-size:var(--fs-body);color:var(--am);min-width:80px;text-align:center">'+fmt(sal)+' zł</span>'+
+        '<span style="font-size:var(--fs-body);color:var(--am);min-width:80px;text-align:center">'+fmt(sal)+'</span>'+
         '<button onclick="changeMCSalary(50)" style="background:var(--gm);border:1px solid var(--gl);color:var(--wh);font-size:var(--fs-body);width:28px;height:28px;cursor:pointer">▲</button>'+
       '</div>'+
       '<span style="color:var(--gr);font-size:var(--fs-dense)">/mc</span>'+
@@ -784,10 +784,10 @@ function _renderContractModal(p){
         '<span style="color:'+(salOk&&yearsOk?'var(--gb)':'var(--rd)')+';font-size:var(--fs-dense)">'+(salOk&&yearsOk?t('plr_negot_ok'):t('plr_negot_low'))+'</span>'+
       '</div>'+
       '<div style="display:flex;justify-content:space-between">'+
-        '<span style="color:var(--gr);font-size:var(--fs-dense)">Szansa przyjęcia</span>'+
+        '<span style="color:var(--gr);font-size:var(--fs-dense)">'+t('plr_negot_accept_chance')+'</span>'+
         '<span style="color:'+chCol+';font-size:var(--fs-dense)">'+chance+'%</span>'+
       '</div>'+
-      (sal>demand.minSalary*1.10?'<div style="color:var(--gb);font-size:var(--fs-dense);margin-top:3px">+bonus forma dla zawodnika</div>':'')+
+      (sal>demand.minSalary*1.10?'<div style="color:var(--gb);font-size:var(--fs-dense);margin-top:3px">'+t('plr_negot_form_bonus')+'</div>':'')+
     '</div>';
   const btn=document.getElementById('mc-submit-btn');
   if(btn)btn.style.background=chance===0?'#3d0000':'var(--gb)';
@@ -808,8 +808,8 @@ function changeMCSalary(delta){
 
 function doExt(){
   const p=G.players.find(x=>x.id===window._plrId);if(!p)return;
-  if(p.clubId!==G.myClubId){notif('Nie Twój zawodnik!','err');return;}
-  if(p.contractChangedSeason===G.season){notif('Już przedłużono!','err');closeModal('m-contract');return;}
+  if(p.clubId!==G.myClubId){notif(t('plr_notif_not_your_player'),'err');return;}
+  if(p.contractChangedSeason===G.season){notif(t('plr_notif_already_extended'),'err');closeModal('m-contract');return;}
   const years=(window._plrContractSel||{years:2}).years;
   const demand=window._plrDemand||playerDemand(p);
   const newSal=window._mcOfferedSalary||calcContractSalary(p,years);
@@ -817,7 +817,7 @@ function doExt(){
   const accepted=Math.random()*100<(years>=demand.minYears?chance:chance*0.5);
   closeModal('m-contract');
   if(!accepted){
-    notif(p.name+' odrzucił ofertę!','err');
+    notif(t('plr_notif_offer_rejected').replace('{name}',p.name),'err');
     addNews(t('news_tr_offer_rejected').replace('{name}',p.name),'err');
     window._plrDemand=null;return;
   }
@@ -826,9 +826,9 @@ function doExt(){
   p.contractChangedSeason=G.season;
   if(newSal>demand.minSalary*1.10){
     p.form=Math.min(99,(p.form||70)+(newSal>demand.minSalary*1.25?10:5));
-    notif(p.name+': kontrakt +'+years+' sez. (zadowolony!)','ok');
+    notif(t('plr_notif_contract_happy').replace('{name}',p.name).replace('{n}',years),'ok');
   }else{
-    notif(p.name+': kontrakt +'+years+' sez.','ok');
+    notif(t('plr_notif_contract_ext').replace('{name}',p.name).replace('{n}',years),'ok');
   }
   G.fin.salaries=myPl().reduce((s,x)=>s+x.salary,0);
   window._plrDemand=null;window._mcOfferedSalary=null;
@@ -851,24 +851,24 @@ function calcSellPrice(p, forceMarket){
 function openSellModal(id){
   const _lp=G&&G.players&&G.players.find(x=>x.id===id);
   if(_lp&&_lp.loyaltyGuarantee&&(G.season||1)<_lp.loyaltyGuarantee){
-    notif(_lp.name+' ma gwarancję lojalności do S'+_lp.loyaltyGuarantee+'!','err');
+    notif(t('plr_notif_loyalty_block').replace('{name}',_lp.name).replace('{n}',_lp.loyaltyGuarantee),'err');
     addNews(t('news_sell_loyalty_block').replace('{name}',_lp.name).replace('{n}',_lp.loyaltyGuarantee),'err');
     return;
   }
   // Blokada odsprzedaży przez 1 sezon od zakupu
   if(_lp&&_lp.boughtSeason&&(G.season||1)<=_lp.boughtSeason){
-    notif(_lp.name+' — blokada odsprzedaży do końca sezonu '+_lp.boughtSeason+'!','err');
+    notif(t('plr_notif_resale_block').replace('{name}',_lp.name).replace('{n}',_lp.boughtSeason),'err');
     addNews(t('news_sell_resale_block').replace('{name}',_lp.name).replace('{bought}',_lp.boughtSeason).replace('{next}',_lp.boughtSeason+1),'err');
     return;
   }
-  if((G.trSoldThisWindow||0)>=3){notif('Limit sprzedaży w tym oknie: 3 zawodników!','err');return;}
+  if((G.trSoldThisWindow||0)>=3){notif(t('plr_notif_sell_limit'),'err');return;}
   const p=G.players.find(x=>x.id===parseInt(id)||x.id===id);
   if(!p||p.clubId!==G.myClubId)return;
   // ── LIMIT SKŁADU: min 22 zawodników po sprzedaży ─────────────────────
   const _sqAfter=myPl().filter(x=>x.id!==p.id);
-  if(_sqAfter.length<22){notif('Nie możesz sprzedać — skład spadłby poniżej 22 zawodników!','err');return;}
+  if(_sqAfter.length<22){notif(t('plr_notif_min_squad'),'err');return;}
   // ── MIN 2 BRAMKARZY ───────────────────────────────────────────────────
-  if(p.pos==='GK'&&_sqAfter.filter(x=>x.pos==='GK').length<2){notif('Musisz mieć minimum 2 bramkarzy!','err');return;}
+  if(p.pos==='GK'&&_sqAfter.filter(x=>x.pos==='GK').length<2){notif(t('plr_notif_min_gk'),'err');return;}
   window._sellId=p.id;
   const tw=isTransferWindow();
   // Użyj zapamiętanej oferty lub wygeneruj nową (1 oferta na zawodnika)
@@ -883,7 +883,7 @@ function openSellModal(id){
         const buyerLg=G.leagues.find(l=>l.clubs.some(x=>x.id===c.id));
         return buyerLg&&buyerLg.level<=(G.myLeague||8);
       })()))||pick(ALL_CLUBS.filter(c=>c.id!==G.myClubId)));
-    G._sellOffers[p.id]={price,buyerId:buyer?buyer.id:null,buyerName:buyer?buyer.n:(_pending?_pending.clubName:'Losowy klub'),isAI:!!_pending};
+    G._sellOffers[p.id]={price,buyerId:buyer?buyer.id:null,buyerName:buyer?buyer.n:(_pending?_pending.clubName:t('plr_fallback_random_club')),isAI:!!_pending};
   }
   const offer=G._sellOffers[p.id];
   const price=offer.price;
@@ -892,23 +892,23 @@ function openSellModal(id){
   const mt=document.getElementById('ms-text');
   if(mt)mt.innerHTML=
     '<b style="color:var(--wh)">'+p.name+'</b><br>'+
-    '<span style="color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+ovr(p)+'</span><br><br>'+
+    '<span style="color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • OVR '+ovr(p)+'</span><br><br>'+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin:6px 0;font-size:var(--fs-dense)">'+
-      '<div style="color:var(--gr);margin-bottom:4px">Wartość dynamiczna: <span style="color:var(--wh)">'+fmtVal(calcValueDynamic(p))+'</span>'+
-      (p._hot?' <span style="color:var(--am)">[HOT +20%]</span>':'')+(p.injured?' <span style="color:var(--rd)">[KONTUZJA -15%]</span>':'')+'<br><span style="font-size:var(--fs-dense);color:var(--gr)">Baza: '+fmtVal(calcValue(ovr(p),p.age))+'</span></div>'+
-      '<div style="color:var(--gr);margin-bottom:4px">Okno transferowe: <span style="color:'+(tw.open?'var(--gb)':'var(--rd)')+'">'+(tw.open?'🟢 OTWARTE ('+tw.type+')':'🔴 ZAMKNIĘTE')+'</span></div>'+
-      (p.contract<=1?'<div style="color:var(--am);margin-bottom:4px">[!] Wygasajacy kontrakt: -15% ceny</div>':'')+
+      '<div style="color:var(--gr);margin-bottom:4px">'+t('plr_sell_dynamic_value')+'<span style="color:var(--wh)">'+fmtVal(calcValueDynamic(p))+'</span>'+
+      (p._hot?' <span style="color:var(--am)">'+t('plr_sell_hot_badge')+'</span>':'')+(p.injured?' <span style="color:var(--rd)">'+t('plr_sell_injured_badge')+'</span>':'')+'<br><span style="font-size:var(--fs-dense);color:var(--gr)">'+t('plr_sell_base_label')+fmtVal(calcValue(ovr(p),p.age))+'</span></div>'+
+      '<div style="color:var(--gr);margin-bottom:4px">'+t('plr_sell_window_label')+'<span style="color:'+(tw.open?'var(--gb)':'var(--rd)')+'">'+(tw.open?t('plr_sell_window_open_badge').replace('{type}',tw.type==='LETNIE'?t('window_summer'):t('window_winter')):t('plr_sell_window_closed_badge'))+'</span></div>'+
+      (p.contract<=1?'<div style="color:var(--am);margin-bottom:4px">'+t('plr_sell_expiring_contract')+'</div>':'')+
       (p.boughtSeason&&(G.season||1)===p.boughtSeason+1&&p.boughtPrice&&price>p.boughtPrice?
-        '<div style="color:var(--am);margin-bottom:4px">[!] Podatek od zysku: -25% z '+fmtVal(price-p.boughtPrice)+' = -'+fmtVal(Math.round((price-p.boughtPrice)*0.25/500)*500)+' (sprzedaz rok po zakupie)</div>':'')+
-      '<div style="color:var(--gb);font-size:var(--fs-meta);margin-top:4px">Cena oferty: <b>'+fmt(price)+'</b>'+(tw.open?' (70–100% wartości)':offer&&offer.isAI?'':' (50–75% wartości — poza oknem)')+'</div>'+
+        '<div style="color:var(--am);margin-bottom:4px">'+t('plr_sell_profit_tax').replace('{a}',fmtVal(price-p.boughtPrice)).replace('{b}',fmtVal(Math.round((price-p.boughtPrice)*0.25/500)*500))+'</div>':'')+
+      '<div style="color:var(--gb);font-size:var(--fs-meta);margin-top:4px">'+t('plr_sell_offer_price')+'<b>'+fmt(price)+'</b>'+(tw.open?t('plr_sell_in_window_pct'):offer&&offer.isAI?'':t('plr_sell_out_window_pct'))+'</div>'+
       (function(){
         const _profit=price-(p.boughtPrice||0);
         const _tax=(p.boughtSeason&&(G.season||1)===p.boughtSeason+1&&p.boughtPrice&&_profit>0)?Math.round(_profit*0.25/500)*500:0;
         const _net=price-_tax;
-        return _tax>0?'<div style="color:var(--wh);font-size:var(--fs-meta);margin-top:2px">Otrzymasz netto: <b style="color:var(--gb)">'+fmt(_net)+'</b></div>':'';
+        return _tax>0?'<div style="color:var(--wh);font-size:var(--fs-meta);margin-top:2px">'+t('plr_sell_net_receive')+'<b style="color:var(--gb)">'+fmt(_net)+'</b></div>':'';
       })()+
     '</div>'+
-    'Kupujący: <b style="color:var(--am)">'+(buyer?buyer.n:'Losowy klub')+'</b>';
+    t('plr_sell_buyer_label')+'<b style="color:var(--am)">'+(buyer?buyer.n:t('plr_fallback_random_club'))+'</b>';
   window._sellPrice=price; // z cache
   openModal('m-sell');
 }
@@ -957,7 +957,7 @@ function doSell(){
   closeModal('m-sell');
   closePanel('p-player');
   fillSquad();fillTransfers();updateHdr();
-  notif(p.name+' sprzedany za '+fmtVal(price)+'!','ok');
+  notif(t('tr_notif_sold_for').replace('{name}',p.name).replace('{val}',fmtVal(price)),'ok');
 }
 function doSellFromPanelTop(){openSellModal(window._plrId);}
 

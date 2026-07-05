@@ -8,9 +8,9 @@ function openClubModal(clubId){
     _cmClubId=clubId;
     const modal=document.getElementById('modal-club-ai');
     if(!modal)return;
-    const myClub=G.myClub||{n:'Mój Klub'};
+    const myClub=G.myClub||{n:t('cm_fallback_myclub')};
     document.getElementById('cm-title').textContent=myClub.n.toUpperCase();
-    document.getElementById('cm-subtitle').textContent='⭐ Twój klub • '+(LEAGUE_NAMES[G.myLeague]||'');
+    document.getElementById('cm-subtitle').textContent=t('cm_your_club')+' • '+(LEAGUE_NAMES[G.myLeague]||'');
     var _cmCr=document.getElementById('cm-px-crest');if(_cmCr&&typeof pxCrest==='function'){_cmCr.innerHTML='';_cmCr.appendChild(pxCrest(G.myClubId,4));}
     // Pokaż od razu zakładkę SKŁAD
     cmTab('sklad');
@@ -25,7 +25,7 @@ function openClubModal(clubId){
   // Znajdź klub
   const club=ALL_CLUBS.find(c=>c.id===clubId)||
     (G.leagues||[]).flatMap(l=>l.clubs).find(c=>c.id===clubId)||
-    {id:clubId,n:(G.standing||[]).find(s=>s.cid===clubId)?.n||'Klub'};
+    {id:clubId,n:(G.standing||[]).find(s=>s.cid===clubId)?.n||t('briefing_club_fallback')};
   // Liga i pozycja
   const lg=(G.leagues||[]).find(l=>l.clubs.some(c=>c.id===clubId));
   const lgName=lg?(LEAGUE_NAMES[lg.level]||lg.name):'';
@@ -35,7 +35,7 @@ function openClubModal(clubId){
   const def=AI_TYPES[ai.type]||AI_TYPES.stabilny;
   // Nagłówek
   document.getElementById('cm-title').textContent=club.n.toUpperCase();
-  document.getElementById('cm-subtitle').textContent=def.icon+(lgName?' • '+lgName:'')+(pos>0?' • '+pos+'. miejsce':'');
+  document.getElementById('cm-subtitle').textContent=def.icon+(lgName?' • '+lgName:'')+(pos>0?' • '+t('cm_position_label').replace('{pos}',pos):'');
   var _cmCr2=document.getElementById('cm-px-crest');if(_cmCr2&&typeof pxCrest==='function'){_cmCr2.innerHTML='';_cmCr2.appendChild(pxCrest(clubId,4));}
   // Domyślna zakładka
   cmTab('karta');
@@ -74,7 +74,7 @@ function _renderClubCard(club,ai,def,lgSt){
   const _lgForBudget=(G.leagues||[]).find(l=>l.clubs.some(c=>c.id===club.id));
   const _budgetMax=_budgetLgMax[_lgForBudget?_lgForBudget.level:8]||500000;
   const budgetPct=Math.min(100,Math.max(0,Math.round(ai.budget/_budgetMax*100)));
-  const budgetLabel=ai.budget>0?fmtVal(ai.budget):'brak środków';
+  const budgetLabel=ai.budget>0?fmtVal(ai.budget):t('cm_no_funds');
   // Reputacja: skala 0-100 (max dla ligi 1 = ~100, liga 8 = ~30)
   const repPct=Math.min(100,ai.reputation||0);
   function bar(pct,col){
@@ -102,7 +102,7 @@ function _renderClubCard(club,ai,def,lgSt){
     const nameHtml=livePl
       ? '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+livePl.id+')">'+tr.name+'</span>'
       : tr.playerId
-        ? '<span style="color:var(--gr);cursor:pointer;text-decoration:underline" title="Zawodnik zakończył karierę" onclick="showById('+tr.playerId+')">'+tr.name+'</span>'
+        ? '<span style="color:var(--gr);cursor:pointer;text-decoration:underline" title="'+t('cm_player_retired_title')+'" onclick="showById('+tr.playerId+')">'+tr.name+'</span>'
         : '<span style="color:var(--wh)">'+tr.name+'</span>';
     const ageStr=livePl?(livePl.age+'l'):(tr.age?tr.age+'l':'—');
     // Klikalny link do klubu źródłowego/docelowego
@@ -135,10 +135,10 @@ function _renderClubCard(club,ai,def,lgSt){
     '</div>'+
     // ── STATYSTYKI (skrócone) ──
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:10px">'+
-      (function(){const _tac=G.clubTactics&&G.clubTactics[club.id];return _tac?row2('Formacja',_tac.formation):'';})()+
-      (avgOvr?row2('Śr. OVR składu',avgOvr):'')+
-      row2('Zawodnicy',squad.length)+
-      (star?row2('Gwiazda','⭐ '+star.name+' ('+(POS_SHORT[star.pos]||star.pos)+')'):'')+
+      (function(){const _tac=G.clubTactics&&G.clubTactics[club.id];return _tac?row2(t('cm_row_formation'),_tac.formation):'';})()+
+      (avgOvr?row2(t('cm_row_avg_ovr'),avgOvr):'')+
+      row2(t('cm_row_players'),squad.length)+
+      (star?row2(t('cm_row_star'),'⭐ '+star.name+' ('+(POS_SHORT[star.pos]||star.pos)+')'):'')+
     '</div>'+
     // ── TRANSFERY ──
     (()=>{
@@ -146,7 +146,7 @@ function _renderClubCard(club,ai,def,lgSt){
       const sMin=seasons.length?Math.min(...seasons):null;
       const sMax=seasons.length?Math.max(...seasons):null;
       const range=sMin&&sMax?(sMin===sMax?' • S'+sMin:' • S'+sMin+'–S'+sMax):'';
-      return '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:1px;margin-bottom:6px">OSTATNIE TRANSFERY<span style="color:var(--gr)">'+range+'</span></div>';
+      return '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:1px;margin-bottom:6px">'+t('cm_recent_transfers')+'<span style="color:var(--gr)">'+range+'</span></div>';
     })()+
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px">'+logHtml+'</div>';
 }
@@ -154,17 +154,17 @@ function _renderClubCard(club,ai,def,lgSt){
 function _renderClubSquad(clubId){
   const el=document.getElementById('cm-pane-sklad');if(!el||!G)return;
   const squad=G.players.filter(p=>p.clubId===clubId).sort((a,b)=>posOrd(a.pos)-posOrd(b.pos)||ovr(b)-ovr(a));
-  if(!squad.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px">Brak zawodników</div>';return;}
+  if(!squad.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:12px">'+t('tr_no_players')+'</div>';return;}
   const starId=squad.reduce((b,p)=>ovr(p)>ovr(b)?p:b,squad[0]).id;
   const club=ALL_CLUBS.find(c=>c.id===clubId)||{n:'?'};
   let html=
     '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0d2b0d;border-bottom:2px solid var(--gb);cursor:pointer" onclick="openClubModal('+clubId+')">'+
       '<div style="font-size:var(--fs-meta);color:var(--am)">⬅ '+club.n+'</div>'+
-      '<div style="font-size:var(--fs-dense);color:var(--gr)">• '+squad.length+' zawodników</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr)">• '+t('cm_players_count').replace('{n}',squad.length)+'</div>'+
     '</div>';
   POS_GROUPS.forEach(pg=>{
     const grp=squad.filter(p=>p.pos===pg.key);if(!grp.length)return;
-    html+='<div style="font-size:var(--fs-dense);color:var(--gb);background:#0d1f0d;padding:6px 12px;border-left:3px solid var(--gb);letter-spacing:2px">'+pg.short+' — '+pg.label+'</div>';
+    html+='<div style="font-size:var(--fs-dense);color:var(--gb);background:#0d1f0d;padding:6px 12px;border-left:3px solid var(--gb);letter-spacing:2px">'+pg.short+' — '+t('posgrp_'+pg.key.toLowerCase())+'</div>';
     grp.forEach(p=>{
       const isStar=p.id===starId;
       html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #0d1f0d;'+(isStar?'background:#0d2b0d;':'')+'cursor:pointer" onclick="window._playerReturnTo=\'club-squad\';window._playerReturnClubId='+clubId+';closeClubModal();setTimeout(function(){showById('+p.id+');},80);">'+
@@ -174,7 +174,7 @@ function _renderClubSquad(clubId){
           '<div style="font-size:var(--fs-meta);color:'+(isStar?'var(--am)':'var(--wh)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
             (isStar?'⭐ ':'')+p.name+
           '</div>'+
-          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+p.age+' lat</div>'+
+          '<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('cm_age_years').replace('{n}',p.age)+'</div>'+
         '</div>'+
       '</div>';
     });
@@ -250,14 +250,14 @@ function _renderClubHistory(clubId){
 
   var statsHtml=
     '<div style="display:flex;gap:5px;margin-bottom:6px">'+
-      statBox('NAJLEPSZA\nPOZYCJA',bestPos?bestPos+'.':'—','var(--gb)')+
-      statBox('NAJGORSZA\nPOZYCJA',worstPos?worstPos+'.':'—','var(--gr)')+
-      statBox('TYTUŁY\nLIGOWE',leagueTitles,'var(--am)')+
+      statBox(t('cm_stat_best_pos'),bestPos?bestPos+'.':'—','var(--gb)')+
+      statBox(t('cm_stat_worst_pos'),worstPos?worstPos+'.':'—','var(--gr)')+
+      statBox(t('cm_stat_league_titles'),leagueTitles,'var(--am)')+
     '</div>'+
     '<div style="display:flex;gap:5px;margin-bottom:4px">'+
-      statBox('PUCHARY',cupWins,'#e040fb')+
-      statBox('AWANSE',promotions,'var(--gb)')+
-      statBox('SPADKI',relegations,'var(--rd)')+
+      statBox(t('cm_stat_cups'),cupWins,'#e040fb')+
+      statBox(t('cm_stat_promotions'),promotions,'var(--gb)')+
+      statBox(t('cm_stat_relegations'),relegations,'var(--rd)')+
     '</div>';
 
   // ── 1. Wykres OVR w czasie ──────────────────────────────────────────
@@ -284,7 +284,7 @@ function _renderClubHistory(clubId){
       svgO+='<text x="'+cx+'" y="'+(cy-5)+'" fill="#a5d6a7" font-size="9" text-anchor="middle">'+e.ovr+'</text>';
       svgO+='<text x="'+cx+'" y="'+(H-3)+'" fill="#3a5a3a" font-size="7" text-anchor="middle">S'+e.season+'</text>';
     });
-    ovrHtml=secHead('📈','OVR SKŁADU W CZASIE','var(--gb)')+
+    ovrHtml=secHead('📈',t('cm_chart_ovr_time'),'var(--gb)')+
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
         '<svg width="'+W+'" height="'+H+'" style="display:block;min-width:'+W+'px">'+svgO+'</svg>'+
       '</div>';
@@ -314,9 +314,9 @@ function _renderClubHistory(clubId){
       svgP+='<text x="'+(Math.round(x)+barWp/2)+'" y="'+(y-2)+'" fill="#ccc" font-size="9" text-anchor="middle">'+(e.pts||0)+'</text>';
       svgP+='<text x="'+(Math.round(x)+barWp/2)+'" y="'+(Hp-4)+'" fill="#3a5a3a" font-size="7" text-anchor="middle">S'+e.season+'</text>';
     });
-    ptsHtml=secHead('🏅','PUNKTY PER SEZON','var(--am)')+
+    ptsHtml=secHead('🏅',t('cm_chart_pts_season'),'var(--am)')+
       '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
-        '<span style="color:#ffd700">■</span> Mistrz &nbsp;<span style="color:#4caf50">■</span> Podium &nbsp;<span style="color:#1565c0">■</span> Pozostałe'+
+        '<span style="color:#ffd700">■</span> '+t('cm_legend_champion')+' &nbsp;<span style="color:#4caf50">■</span> '+t('cm_legend_podium')+' &nbsp;<span style="color:#1565c0">■</span> '+t('cm_legend_other')+
       '</div>'+
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
         '<svg width="'+Wp+'" height="'+Hp+'" style="display:block;min-width:'+Wp+'px">'+svgP+'</svg>'+
@@ -354,9 +354,9 @@ function _renderClubHistory(clubId){
         svgT+='<rect x="'+(Math.round(x)+Math.round(barWt*0.5))+'" y="'+midY+'" width="'+Math.round(barWt*0.45)+'" height="'+hEarned+'" fill="#4caf50" opacity="0.85"/>';
         svgT+='<text x="'+(Math.round(x)+barWt/2)+'" y="'+(Ht-4)+'" fill="#3a5a3a" font-size="7" text-anchor="middle">S'+s+'</text>';
       });
-      tfrHtml=secHead('💸','TRANSFERY PER SEZON','#e040fb')+
+      tfrHtml=secHead('💸',t('cm_chart_transfers_season'),'#e040fb')+
         '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
-          '<span style="color:#f44336">■</span> Wydatki &nbsp;<span style="color:#4caf50">■</span> Przychody'+
+          '<span style="color:#f44336">■</span> '+t('cm_legend_spent')+' &nbsp;<span style="color:#4caf50">■</span> '+t('cm_legend_earned')+
         '</div>'+
         '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
           '<svg width="'+Wt+'" height="'+Ht+'" style="display:block;min-width:'+Wt+'px">'+svgT+'</svg>'+
@@ -398,7 +398,7 @@ function _renderClubHistory(clubId){
   });
   clubLegends.sort(function(a,b){return b.score-a.score;});
   var trueLegends=clubLegends.filter(function(p){return p.score>=LEG_THRESHOLD;});
-  legendsHtml=secHead('⭐','LEGENDY KLUBU','var(--am)');
+  legendsHtml=secHead('⭐',t('cm_club_legends'),'var(--am)');
   if(trueLegends.length){
     legendsHtml+='<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px">'+
       trueLegends.slice(0,5).map(function(p,idx){
@@ -406,26 +406,26 @@ function _renderClubHistory(clubId){
         return '<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #0d1f0d">'+
           '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
             '<span style="font-size:var(--fs-meta);color:var(--am);cursor:pointer" onclick="showById('+p.id+')">'+medal+p.name+' ⭐</span>'+
-            '<span style="font-size:var(--fs-meta);color:var(--am)">'+p.score+' pkt</span>'+
+            '<span style="font-size:var(--fs-meta);color:var(--am)">'+t('dc_klub_pts_suffix').replace('{n}',p.score)+'</span>'+
           '</div>'+
         '</div>';
       }).join('')+
       '</div>';
   } else {
-    legendsHtml+='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;color:var(--gr);font-size:var(--fs-meta)">Żaden zawodnik nie osiągnął jeszcze statusu legendy.</div>';
+    legendsHtml+='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;color:var(--gr);font-size:var(--fs-meta)">'+t('cm_no_legends')+'</div>';
   }
 
   // ── Trofea ──────────────────────────────────────────────────────────
   var trophyHtml='';
   if(allTrophies.length){
-    trophyHtml=secHead('🏆','TROFEA','var(--am)')+
+    trophyHtml=secHead('🏆',t('cm_trophies'),'var(--am)')+
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 10px;margin-bottom:4px;display:flex;flex-wrap:wrap;gap:6px">'+
-      allTrophies.map(function(t){
-        var icon=t.type==='cup'?'🥇':'👑';
-        var label=t.type==='cup'?'Puchar':'Mistrz';
+      allTrophies.map(function(tr){
+        var icon=tr.type==='cup'?'🥇':'👑';
+        var label=tr.type==='cup'?t('cm_trophy_cup'):t('cm_legend_champion');
         return '<div style="font-size:var(--fs-dense);background:#0d2b0d;border:1px solid var(--gb);padding:4px 8px;text-align:center">'+
           '<div>'+icon+' '+label+'</div>'+
-          '<div style="color:var(--gr);font-size:var(--fs-dense)">S'+t.season+'</div>'+
+          '<div style="color:var(--gr);font-size:var(--fs-dense)">S'+tr.season+'</div>'+
         '</div>';
       }).join('')+
       '</div>';
@@ -435,10 +435,10 @@ function _renderClubHistory(clubId){
   var tableHtml='';
   if(entries.length){
     var rows=entries.slice().reverse().slice(0,10);
-    tableHtml=secHead('📋','OSTATNIE SEZONY','var(--gb)')+
+    tableHtml=secHead('📋',t('cm_recent_seasons'),'var(--gb)')+
       '<div style="background:var(--tb);border:1px solid var(--gl)">'+
       '<div style="display:grid;grid-template-columns:32px 28px 1fr 36px 36px 36px;font-size:var(--fs-dense);color:var(--gr);padding:4px 8px;border-bottom:1px solid var(--gl)">'+
-        '<span>SEZ</span><span>POZ</span><span>LIGA</span><span style="text-align:center">M</span><span style="text-align:center">G</span><span style="text-align:center">PKT</span>'+
+        '<span>'+t('cm_th_season')+'</span><span>'+t('dc_kadra_col_pos')+'</span><span>'+t('plr_hist_league')+'</span><span style="text-align:center">M</span><span style="text-align:center">G</span><span style="text-align:center">'+t('tbl_col_pts')+'</span>'+
       '</div>'+
       rows.map(function(e){
         var posCol=e.pos===1?'var(--am)':e.pos<=3?'var(--gb)':e.pos>=e.total-1?'var(--rd)':'var(--wh)';
@@ -483,18 +483,18 @@ function openClubSquad(clubId){
   const pos=lgSt.findIndex(s=>s.cid==clubId)+1;
   if(lgName&&pos>0){
     infoBar.style.display='block';
-    infoBar.innerHTML='<span style="color:var(--gb)">'+lgName+'</span> &nbsp;•&nbsp; <span style="color:var(--am)">'+pos+'. miejsce</span>';
+    infoBar.innerHTML='<span style="color:var(--gb)">'+lgName+'</span> &nbsp;•&nbsp; <span style="color:var(--am)">'+t('cm_position_label').replace('{pos}',pos)+'</span>';
   } else {
     infoBar.style.display='none';
   }
   const players=G.players.filter(p=>p.clubId==clubId).sort((a,b)=>posOrd(a.pos)-posOrd(b.pos));
-  document.getElementById('cs-count').textContent=players.length+' zawodników';
+  document.getElementById('cs-count').textContent=t('cm_players_count').replace('{n}',players.length);
   const con=document.getElementById('cs-all');
   con.innerHTML='';
   POS_GROUPS.forEach(pg=>{
     const grp=players.filter(p=>p.pos===pg.key);if(!grp.length)return;
     const hdr=document.createElement('div');hdr.className='sq-pos-hdr2';
-    hdr.innerHTML='<span style="font-size:var(--fs-dense)">'+pg.short+' — '+pg.label+'</span>';
+    hdr.innerHTML='<span style="font-size:var(--fs-dense)">'+pg.short+' — '+t('posgrp_'+pg.key.toLowerCase())+'</span>';
     con.appendChild(hdr);
     grp.forEach(p=>{
       const d=document.createElement('div');
@@ -502,7 +502,7 @@ function openClubSquad(clubId){
       const o=ovr(p);
       d.innerHTML='<div style="flex:1;min-width:0">'+
         '<div class="pc2-name-text">'+p.name+'</div>'+
-        '<div class="pc2-row2">'+p.age+' lat • <span class="pc2-ovr-green">OVR '+o+'</span></div>'+
+        '<div class="pc2-row2">'+t('cm_age_years').replace('{n}',p.age)+' • <span class="pc2-ovr-green">OVR '+o+'</span></div>'+
         '</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr);white-space:nowrap">'+
           (p.pos==='GK'?'📅 '+p.st.m+' 🛡️ '+(p.st.cs||0):'📅 '+p.st.m+' ⚽ '+p.st.g+' 🤝 '+p.st.a)+
