@@ -489,7 +489,7 @@ function mySt(){return myPl().filter(p=>p.starter);}
 function formationLimits(){const fp=G.formation.split('-').map(Number);return{GK:1,OBR:fp[0]||4,POL:fp[1]||4,NAP:fp[2]||2};}
 function tStr(cid){const st=G.players.filter(p=>p.clubId===cid&&p.starter);return st.length?Math.round(st.reduce((s,p)=>s+ovr(p),0)/st.length):30;}
 
-function saveGame(slot){
+function saveGame(slot,silent){
   if(!G)return;
   try{
     const replacer=(key,val)=>typeof val==='function'?undefined:val;
@@ -598,7 +598,7 @@ function saveGame(slot){
 
     // ── SERIALIZE + DIAGNOSTYKA ────────────────────────────────────────
     const json=J(sd);
-    if(!json){notif(t('save_err_serialize'),'err');return;}
+    if(!json){if(!silent)notif(t('save_err_serialize'),'err');return;}
     const total=KB(json);
 
     // Log rozbicia na segmenty (tylko w devtools)
@@ -663,17 +663,17 @@ function saveGame(slot){
         });
         const json3=J(sd);
         if(json3.length>4.5*1024*1024){
-          notif(t('save_err_too_big'),'err');
+          if(!silent)notif(t('save_err_too_big'),'err');
           return;
         }
         try{localStorage.setItem('pa'+slot,json3);}
-        catch(e2){notif(t('save_err_no_space'),'err');return;}
-        notif(t('save_ok_emergency2').replace('{n}',KB(json3)),'info');
+        catch(e2){if(!silent)notif(t('save_err_no_space'),'err');return;}
+        if(!silent)notif(t('save_ok_emergency2').replace('{n}',KB(json3)),'info');
         return;
       }
       try{localStorage.setItem('pa'+slot,json2);}
-      catch(e2){notif(t('save_err_no_space'),'err');return;}
-      notif(t('save_ok_emergency').replace('{n}',KB(json2)),'info');
+      catch(e2){if(!silent)notif(t('save_err_no_space'),'err');return;}
+      if(!silent)notif(t('save_ok_emergency').replace('{n}',KB(json2)),'info');
       return;
     }
 
@@ -685,12 +685,12 @@ function saveGame(slot){
       sd.fa=(G.fa||[]).slice(0,10).map(slimAI);
       sd.players=sd.players.map(p=>{if(p.clubId!==myId){const{history,...r}=p;return r;}return p;});
       const jFb=J(sd);
-      try{localStorage.setItem('pa'+slot,jFb);notif(t('save_ok_emergency').replace('{n}',KB(jFb)),'info');}
-      catch(e3){notif(t('save_err_browser_space'),'err');}
+      try{localStorage.setItem('pa'+slot,jFb);if(!silent)notif(t('save_ok_emergency').replace('{n}',KB(jFb)),'info');}
+      catch(e3){if(!silent)notif(t('save_err_browser_space'),'err');}
       return;
     }
-    notif(t('save_ok').replace('{n}',total),'ok');
-  }catch(e){console.error('Save error:',e);notif(t('save_err_generic').replace('{msg}',e.message),'err');}
+    if(!silent)notif(t('save_ok').replace('{n}',total),'ok');
+  }catch(e){console.error('Save error:',e);if(!silent)notif(t('save_err_generic').replace('{msg}',e.message),'err');}
 }
 
 function loadGame(slot){try{

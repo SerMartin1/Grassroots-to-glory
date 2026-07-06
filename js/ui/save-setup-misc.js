@@ -37,6 +37,33 @@ function resumeGame(){
   updateHdr();
 }
 
+// Wznowienie blokady meczu po restarcie aplikacji (kill/relaunch w trakcie
+// analizy przedmeczowej lub trwania meczu) — zapis 'lock' jest jednorazowym
+// biletem: odczytany i skasowany przy pierwszym starcie, niezależnie od wyniku.
+function tryResumeMatchLock(){
+  var raw;
+  try{raw=localStorage.getItem('palock');}catch(_){raw=null;}
+  if(!raw)return false;
+  var parsed;
+  try{parsed=JSON.parse(raw);}catch(_){parsed=null;}
+  var wasLocked=!!(parsed&&parsed._matchLockActive);
+  var phase=parsed&&parsed._matchLockPhase;
+  if(!wasLocked){try{localStorage.removeItem('palock');}catch(_){}return false;}
+  var ok=loadGame('lock');
+  try{localStorage.removeItem('palock');}catch(_){}
+  if(!ok||!G||!nextMatch()){_releaseMatchLock();return false;}
+  go('v-game');updateHdr();
+  openPanel('p-match');
+  if(phase==='live'){
+    matchInProgress=false;// świeży load — animacja sprzed restartu i tak nie istnieje
+    setMatchSpeed(0);
+    simMatch();
+  } else {
+    _engageMatchLock('prematch');
+  }
+  return true;
+}
+
 function goSetup(){
   if(G){
     // Pokaż własny modal zamiast confirm()

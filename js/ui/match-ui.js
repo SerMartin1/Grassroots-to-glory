@@ -2,7 +2,7 @@ function fillMatch(){
   if(!G)return;
   // Don't reset if match is in progress
   const lastM=G.schedule.find(m=>m.rnd===G.round-1&&(m.h===G.myClubId||m.a===G.myClubId));
-  if(matchInProgress&&(!lastM||lastM&&lastM.done))matchInProgress=false;
+  if(matchInProgress&&!G._cupMatchActive&&(!lastM||lastM&&lastM.done))matchInProgress=false;
   if(matchInProgress)return;
   // Blokuj auto-refresh tylko gdy nowa kolejka jeszcze nie wystartowała
   if(G._matchJustFinished){
@@ -43,13 +43,13 @@ function fillMatch(){
     const mi=document.getElementById('m-minute');if(mi)mi.textContent="0'";
     const mls=document.getElementById('m-live-score');if(mls)mls.textContent='0 - 0';
     document.getElementById('m-attendance-bar')&&(document.getElementById('m-attendance-bar').style.display='none');
-    const hn=document.getElementById('m-home-name');if(hn){hn.textContent=_hClub.n+(_isHome?' ⭐':'');hn.style.cursor='default';}
-    const an=document.getElementById('m-away-name');if(an){an.textContent=(_isHome?'':' ⭐')+_aClub.n;an.style.cursor='default';}
+    const hn=document.getElementById('m-home-name');if(hn){hn.textContent=_hClub.n+(_isHome?' ⭐':'');hn.style.cursor='default';hn.onclick=null;}
+    const an=document.getElementById('m-away-name');if(an){an.textContent=(_isHome?'':' ⭐')+_aClub.n;an.style.cursor='default';an.onclick=null;}
     const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_cup_info').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);
     const _cupBanner=document.getElementById('m-cup-banner');
     if(_cupBanner){_cupBanner.style.display='block';_cupBanner.textContent=t('match_cup_banner').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);}
     const bb4=document.getElementById('btn-match-back');if(bb4)bb4.style.display='none';
-    const ln2=document.getElementById('m-lock-note');if(ln2)ln2.style.display='block';
+    const ln2=document.getElementById('m-lock-note');if(ln2){ln2.textContent=t('match_lock_note');ln2.style.cssText='display:block;background:#1a1300;border-top:2px solid var(--am);color:var(--am);padding:6px 14px;font-size:var(--fs-dense);text-align:center';}
     const btn=document.getElementById('btn-sim');
     if(btn){btn.style.display='block';btn.textContent=t('match_play_cup_btn');btn.disabled=false;btn.style.opacity='1';}
     const pre=document.getElementById('m-prematch');if(pre)pre.style.display='none';
@@ -120,8 +120,8 @@ function fillMatch(){
   }
   const isHome=m.h===G.myClubId;
   const hc=ALL_CLUBS.find(c=>c.id===m.h),ac=ALL_CLUBS.find(c=>c.id===m.a);
-  const hn=document.getElementById('m-home-name');if(hn){hn.textContent=hc.n+(isHome?' ⭐':'');hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.classList.add('open');};}else openClubModal(m.h);}}
-  const an=document.getElementById('m-away-name');if(an){an.textContent=(isHome?'':' ⭐')+ac.n;an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();const sqp=document.getElementById('p-squad');if(sqp){sqp.classList.add('open');};}else openClubModal(m.a);}}
+  const hn=document.getElementById('m-home-name');if(hn){hn.textContent=hc.n+(isHome?' ⭐':'');hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.h);}}
+  const an=document.getElementById('m-away-name');if(an){an.textContent=(isHome?'':' ⭐')+ac.n;an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.a);}}
   const ls2=document.getElementById('m-live-score');if(ls2)ls2.textContent='0 - 0';
   const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_round').replace('{n}',m.rnd)+(isHome?(' '+t('match_home_label')):(' '+t('match_away_label')));
   // ── PUCHAR: banner jeśli to mecz pucharowy ────────────────────────────
@@ -156,7 +156,7 @@ function fillMatch(){
   } else {
     _fixBaner.style.display='none';
   }
-  const lockNote=document.getElementById('m-lock-note');if(lockNote)lockNote.style.display='block';
+  const lockNote=document.getElementById('m-lock-note');if(lockNote){lockNote.textContent=t('match_lock_note');lockNote.style.cssText='display:block;background:#1a1300;border-top:2px solid var(--am);color:var(--am);padding:6px 14px;font-size:var(--fs-dense);text-align:center';}
 
   // Pre-match analysis
   // PRZED meczem: pokaż prematch, ukryj relację i tabs
@@ -414,12 +414,10 @@ function fillMatch(){
         '</div>'+
       '</div>'+
 
-      // ── PRZYCISKI TAKTYKA + SKŁAD ────────────────────────────────
+      // ── PRZYCISK TAKTYKA ──────────────────────────────────────────
       '<div style="display:flex;gap:6px;padding:7px 12px 8px">'+
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" '+
           'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
-        '<button onclick="fillPanel(\'p-squad\');openPanel(\'p-squad\');" '+
-          'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_squad_link')+'</button>'+
       '</div>';
   }
 }

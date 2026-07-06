@@ -1,4 +1,51 @@
+// ── BLOKADA MECZU ────────────────────────────────────────────────────────
+// Od wejścia w analizę przedmeczową (tryOpenMatch) aż do zakończenia meczu
+// (patrz match-engine.js) gracz nie może opuścić procesu meczowego żadną
+// ścieżką nawigacji (dashboard, modal klubu, Wstecz przeglądarki/Androida).
+// Faza 'prematch': dozwolony dostęp do taktyki/składu/wolnych agentów, ale
+// ich zamknięcie zawsze wraca do p-match. Faza 'live': żadna nawigacja poza
+// samym p-match nie jest dozwolona.
+function isMatchLockActive(){return !!(G&&G._matchLockActive);}
+function _matchLockAllowedPanel(id){
+  if(!isMatchLockActive())return true;
+  if(id==='p-match')return true;
+  if(G._matchLockPhase==='prematch'&&(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'))return true;
+  return false;
+}
+function _returnToMatchLock(){
+  // Gdy mecz faktycznie trwa, NIE wolno wołać openPanel/fillMatch — fillMatch
+  // ma heurystykę czyszczącą "zawieszone" matchInProgress, która przy ponownym
+  // wywołaniu w trakcie prawdziwej symulacji fałszywie zerowała flagę i
+  // pozwalała uruchomić drugą, równoległą symulację tego samego meczu.
+  if(matchInProgress){
+    closeAllPanels('p-match');
+    const el=document.getElementById('p-match');if(el)el.classList.add('open');
+  } else {
+    openPanel('p-match');
+  }
+}
+function _engageMatchLock(phase){
+  if(!G)return;
+  G._matchLockActive=true;G._matchLockPhase=phase;
+  try{history.pushState({matchLock:true},'',location.href);}catch(_){}
+}
+function _releaseMatchLock(){
+  if(G){G._matchLockActive=false;G._matchLockPhase=null;}
+  try{localStorage.removeItem('palock');}catch(_){}
+}
+window.addEventListener('popstate',function(){
+  if(isMatchLockActive()){
+    try{history.pushState({matchLock:true},'',location.href);}catch(_){}
+    _returnToMatchLock();
+  }
+});
+
 function go(vid){
+  if(isMatchLockActive()&&vid!=='v-game'){
+    notif(t('match_lock_blocked_notif'),'err');
+    _returnToMatchLock();
+    return;
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
   const el=document.getElementById(vid);if(el)el.classList.add('show');
   // Pokaż/ukryj WRÓĆ DO GRY w menu
@@ -56,6 +103,11 @@ function closeAllPanels(exceptId){
   });
 }
 function openPanel(id){
+  if(!_matchLockAllowedPanel(id)){
+    notif(t('match_lock_blocked_notif'),'err');
+    if(id!=='p-match')_returnToMatchLock();
+    return;
+  }
   closeAllPanels(id); // wymusza tylko 1 aktywny panel naraz (naprawa nakładania się ekranów)
   fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');
 }
@@ -81,8 +133,12 @@ function closePanel(id){
       }
     }
   }
-  if(id==='p-tactics'||id==='p-squad'){
-    const pm=document.getElementById('p-match');if(pm&&pm.classList.contains('open')&&!matchInProgress)fillMatch();
+  if(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'){
+    if(isMatchLockActive()){
+      _returnToMatchLock();
+    } else {
+      const pm=document.getElementById('p-match');if(pm&&pm.classList.contains('open')&&!matchInProgress)fillMatch();
+    }
   }
   if(id==='p-match'){
     const _ph=document.getElementById('p-history');
@@ -264,6 +320,8 @@ function tryOpenMatch(){
     notif(t('nav_notif_auto_filled').replace('{names}',autoFixed.join(', ')),'ok');
   }
   openPanel('p-match');
+  _engageMatchLock('prematch');
+  saveGame('lock',true);
 }
 
 function autoFillSquadFromBench(){

@@ -3,6 +3,11 @@ let _cmClubId=null;
 function openClubModal(clubId){
   clubId=Number(clubId)||clubId;
   if(!G)return;
+  if(isMatchLockActive()&&G._matchLockPhase!=='prematch'){
+    notif(t('match_lock_blocked_notif'),'err');
+    _returnToMatchLock();
+    return;
+  }
   // Jeśli to nasz klub — otwórz modal z zakładką SKŁAD (działa wewnątrz panelu ligi)
   if(clubId===G.myClubId){
     _cmClubId=clubId;

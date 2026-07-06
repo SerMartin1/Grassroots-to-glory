@@ -634,6 +634,8 @@ const T = {
     match_squad_link:      '👥 SKŁAD ↗',
     match_tactics_link:    '📋 TAKTYKA ↗',
     match_start_label:     'START MECZU',
+    match_lock_note:          '🔒 Trwa proces meczowy — nie można go opuścić do zakończenia spotkania.',
+    match_lock_blocked_notif: 'Nie możesz opuścić meczu, dopóki się nie zakończy.',
     // ── Faza 4a: Tabela ligowa ──
     tbl_no_data:           'Brak danych',
     tbl_pos_label:          'Poz. {n}/{total}',
@@ -3177,6 +3179,8 @@ const T = {
     match_squad_link:      '👥 SQUAD ↗',
     match_tactics_link:    '📋 TACTICS ↗',
     match_start_label:     'MATCH START',
+    match_lock_note:          '🔒 Match in progress — you cannot leave until it ends.',
+    match_lock_blocked_notif: 'You cannot leave the match until it ends.',
     // ── Faza 4a: Tabela ligowa ──
     tbl_no_data:           'No data',
     tbl_pos_label:          'Pos. {n}/{total}',
@@ -5345,9 +5349,9 @@ function getClubsPool() {
 // Kliknięcie splash screena — przy pierwszym uruchomieniu pokazuje lang picker
 function onSplashTap() {
   if (!localStorage.getItem('gtg_lang')) {
-    showLangPicker(function() { go('v-menu'); _syncLangButtons(); applyLang(); });
+    showLangPicker(function() { if(!tryResumeMatchLock())go('v-menu'); _syncLangButtons(); applyLang(); });
   } else {
-    go('v-menu');
+    if(!tryResumeMatchLock())go('v-menu');
     _syncLangButtons();
     applyLang();
   }
