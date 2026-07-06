@@ -593,7 +593,7 @@ function renderAnalitykaContent(){
   const acadsSprzedani=paired.filter(t=>t.isAcad).length;
   // Bilans per sezon
   const seasons=[...new Set([...buys.map(b=>b.season),...sells.map(s=>s.season)])].sort();
-  function fv(v){if(!v&&v!==0)return'—';if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return Math.round(v/1000)+'K';return v+'';}
+  function fv(v){if(!v&&v!==0)return'—';const n=v*curRate();if(v>=1000000)return(n/1000000).toFixed(1)+'M '+curSym();if(v>=1000)return Math.round(n/1000)+'K '+curSym();return Math.round(n)+' '+curSym();}
 
   if(_analSubTab==='rankingi'){
     if(!paired.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:16px 0;text-align:center">'+t('tr_anal_no_completed')+'</div>';return;}
@@ -613,7 +613,7 @@ function renderAnalitykaContent(){
         '</div>'+
         '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+(t.isAcad?' 🌱':'')+'</span>'+
-          '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+(LANG==='pl'?' zł':'')+'</span>'+
+          '<span style="color:'+(profit>=0?'var(--gb)':'var(--rd)')+'">'+(profit>=0?'+':'')+fv(profit)+'</span>'+
         '</div>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+
           (t.buyPrice===0?t('tr_anal_free'):fv(t.buyPrice))+' → '+fv(t.sellPrice)+
@@ -631,7 +631,7 @@ function renderAnalitykaContent(){
         '</div>'+
         '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
           '<span style="color:var(--gr)">'+(t.pos||'—')+' • S'+t.buySeason+'→S'+t.sellSeason+'</span>'+
-          '<span style="color:var(--rd)">'+fv(profit)+(LANG==='pl'?' zł':'')+'</span>'+
+          '<span style="color:var(--rd)">'+fv(profit)+'</span>'+
         '</div>'+
       '</div>';
     }).join('');
@@ -665,7 +665,7 @@ function renderAnalitykaContent(){
     let h='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);margin:0 0 8px;letter-spacing:1px">'+t('tr_anal_key_metrics')+'</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
       [
-        {icon:'💰',lbl:t('tr_anal_net_balance'),val:(totalNet>=0?'+':'')+fv(totalNet)+(LANG==='pl'?' zł':''),col:totalNet>=0?'var(--gb)':'var(--rd)'},
+        {icon:'💰',lbl:t('tr_anal_net_balance'),val:(totalNet>=0?'+':'')+fv(totalNet),col:totalNet>=0?'var(--gb)':'var(--rd)'},
         {icon:'📊',lbl:t('tr_anal_avg_profit'),val:(avgProfit>=0?'+':'')+fv(avgProfit),col:avgProfit>=0?'var(--gb)':'var(--rd)'},
         {icon:'🎂',lbl:t('tr_anal_avg_buy_age'),val:avgBuyAge+t('tr_years_suffix'),col:'var(--am)'},
         {icon:'🌱',lbl:t('tr_anal_academy_grads'),val:acadsSprzedani+t('tr_anal_sold_suffix'),col:'var(--gb)'},
@@ -722,7 +722,7 @@ function renderAnalitykaContent(){
       '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--am);margin-bottom:6px">'+t('tr_anal_director_title')+'</div>'+
       '<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.6">'+
         (paired.length===0?t('tr_anal_director_none'):
-          totalNet>0?t('tr_anal_director_positive').replace('{val}',fv(totalNet)+(LANG==='pl'?' zł':'')):
+          totalNet>0?t('tr_anal_director_positive').replace('{val}',fv(totalNet)):
           t('tr_anal_director_negative'))+
       '</div>'+
     '</div>';

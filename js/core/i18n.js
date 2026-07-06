@@ -51,6 +51,7 @@ const T = {
     setup_club_change: '✏️ ZMIEŃ',
     setup_ovr_label:   'SIŁA SKŁADU',
     setup_budget_label:'Budżet:',
+    setup_currency_label:'WALUTA WYŚWIETLANIA',
     setup_league_label:'Liga:',
     setup_league_val:  'VII Liga',
     setup_reroll:      '🎲 PRZE-LOSUJ KLUB ({n})',
@@ -708,6 +709,8 @@ const T = {
     tbl_col_gf:            'GF',
     tbl_col_ga:            'GA',
     tbl_col_gd:            'RG',
+    tbl_legend_zone_up:    'strefa awansu',
+    tbl_legend_zone_down:  'strefa spadkowa',
     tbl_full_table:        '▼ PEŁNA TABELA',
     tbl_top_scorers:       'TOP STRZELCY',
     tbl_top_assists:       'TOP ASYSTENCI',
@@ -1698,7 +1701,7 @@ const T = {
     dc_sec_stadium_cap:       'POJEMNOŚĆ STADIONU',
     dc_chart_stadium_cap:     'STADION [os.] · SEZON PO SEZONIE',
     dc_sec_budget:            'BUDŻET KOŃCOWY',
-    dc_chart_budget:          'BUDŻET [zł] · SEZON PO SEZONIE',
+    dc_chart_budget:          'BUDŻET · SEZON PO SEZONIE',
     dc_sec_academy_lvl:       'POZIOM AKADEMII',
     dc_chart_academy_lvl:     'AKADEMIA · POZIOM PER SEZON',
     dc_leg_candidates_title:  'KANDYDACI NA LEGENDĘ — POSTĘP',
@@ -2518,6 +2521,7 @@ const T = {
     stad_mod_vip_e2:          '+3 000 zł/tyg',
     stad_mod_vip_e3:          '+10 000 zł/tyg',
     stad_mod_vip_e4:          '+35 000 zł/tyg',
+    stad_per_week_suffix:     '/tyg',
     stad_mod_gastro_e1:       'Bilety +8%',
     stad_mod_gastro_e2:       'Bilety +20%',
     stad_mod_gastro_e3:       'Bilety +40%',
@@ -2596,6 +2600,7 @@ const T = {
     setup_club_change: '✏️ RENAME',
     setup_ovr_label:   'SQUAD STRENGTH',
     setup_budget_label:'Budget:',
+    setup_currency_label:'DISPLAY CURRENCY',
     setup_league_label:'League:',
     setup_league_val:  'League 7',
     setup_reroll:      '🎲 REROLL CLUB ({n})',
@@ -3253,6 +3258,8 @@ const T = {
     tbl_col_gf:            'GF',
     tbl_col_ga:            'GA',
     tbl_col_gd:            'GD',
+    tbl_legend_zone_up:    'promotion zone',
+    tbl_legend_zone_down:  'relegation zone',
     tbl_full_table:        '▼ FULL TABLE',
     tbl_top_scorers:       'TOP SCORERS',
     tbl_top_assists:       'TOP ASSISTS',
@@ -5063,6 +5070,7 @@ const T = {
     stad_mod_vip_e2:          '+3,000/wk',
     stad_mod_vip_e3:          '+10,000/wk',
     stad_mod_vip_e4:          '+35,000/wk',
+    stad_per_week_suffix:     '/wk',
     stad_mod_gastro_e1:       'Tickets +8%',
     stad_mod_gastro_e2:       'Tickets +20%',
     stad_mod_gastro_e3:       'Tickets +40%',
@@ -5162,6 +5170,7 @@ function applyLang() {
   _setTxt('setup-club-change', 'setup_club_change');
   _setTxt('setup-ovr-label',   'setup_ovr_label');
   _setTxt('setup-budget-label','setup_budget_label');
+  _setTxt('setup-currency-label','setup_currency_label');
   _setTxt('setup-league-label','setup_league_label');
   _setTxt('setup-league-val',  'setup_league_val');
   _setTxt('setup-reroll-hint', 'setup_reroll_hint');
@@ -5189,24 +5198,29 @@ function applyLang() {
   // ── Faza 2: Nagłówek gry — odświeżamy jeśli gra aktywna ──
   if(typeof G !== 'undefined' && G && G.myClub) {
     updateHdr();
-    // ── Faza 3: Odśwież otwarte panele ──
-    if(document.getElementById('p-squad')&&document.getElementById('p-squad').classList.contains('open'))fillSquad();
-    if(document.getElementById('p-transfers')&&document.getElementById('p-transfers').classList.contains('open'))fillTransfers();
-    if(document.getElementById('p-training')&&document.getElementById('p-training').classList.contains('open'))fillTraining();
-    // ── Faza 4a: Mecz, Tabela, Puchar ──
-    if(document.getElementById('p-match')&&document.getElementById('p-match').classList.contains('open'))fillMatch();
-    if(document.getElementById('p-tactics')&&document.getElementById('p-tactics').classList.contains('open')){fillTactics();fillTacSquad();}
-    if(document.getElementById('p-table')&&document.getElementById('p-table').classList.contains('open'))fillTable();
-    if(document.getElementById('p-cup')&&document.getElementById('p-cup').classList.contains('open'))fillCup();
-    // ── Sesja 1: FA + karta zawodnika ──
-    if(document.getElementById('p-freeagents')&&document.getElementById('p-freeagents').classList.contains('open')){const _crisis=checkSquadCrisis&&checkSquadCrisis();if(_crisis)openFACrisis(_crisis);}
-    if(document.getElementById('p-player')&&document.getElementById('p-player').classList.contains('open')&&window._plrId){const _pp=G&&G.players&&G.players.find(x=>x.id===window._plrId);if(_pp)showPlayer(_pp);}
-    // Tytuł panelu squad
-    _setTxt('squad-panel-title','squad_title');
-    _setTxt('squad-back-btn','modal_back');
-    // Newsy — zakładki re-renderujemy
-    if(typeof renderNews==='function')renderNews();
+    _refreshOpenPanels();
   }
+}
+
+// Odśwież aktualnie otwarte panele (używane po zmianie języka LUB waluty wyświetlania)
+function _refreshOpenPanels() {
+  if(!(typeof G !== 'undefined' && G && G.myClub)) return;
+  if(document.getElementById('p-squad')&&document.getElementById('p-squad').classList.contains('open'))fillSquad();
+  if(document.getElementById('p-transfers')&&document.getElementById('p-transfers').classList.contains('open'))fillTransfers();
+  if(document.getElementById('p-training')&&document.getElementById('p-training').classList.contains('open'))fillTraining();
+  // ── Faza 4a: Mecz, Tabela, Puchar ──
+  if(document.getElementById('p-match')&&document.getElementById('p-match').classList.contains('open'))fillMatch();
+  if(document.getElementById('p-tactics')&&document.getElementById('p-tactics').classList.contains('open')){fillTactics();fillTacSquad();}
+  if(document.getElementById('p-table')&&document.getElementById('p-table').classList.contains('open'))fillTable();
+  if(document.getElementById('p-cup')&&document.getElementById('p-cup').classList.contains('open'))fillCup();
+  // ── Sesja 1: FA + karta zawodnika ──
+  if(document.getElementById('p-freeagents')&&document.getElementById('p-freeagents').classList.contains('open')){const _crisis=checkSquadCrisis&&checkSquadCrisis();if(_crisis)openFACrisis(_crisis);}
+  if(document.getElementById('p-player')&&document.getElementById('p-player').classList.contains('open')&&window._plrId){const _pp=G&&G.players&&G.players.find(x=>x.id===window._plrId);if(_pp)showPlayer(_pp);}
+  // Tytuł panelu squad
+  _setTxt('squad-panel-title','squad_title');
+  _setTxt('squad-back-btn','modal_back');
+  // Newsy — zakładki re-renderujemy
+  if(typeof renderNews==='function')renderNews();
 }
 
 function _setTxt(id, key) {
@@ -5349,10 +5363,11 @@ function getClubsPool() {
 // Kliknięcie splash screena — przy pierwszym uruchomieniu pokazuje lang picker
 function onSplashTap() {
   if (!localStorage.getItem('gtg_lang')) {
-    showLangPicker(function() { if(!tryResumeMatchLock())go('v-menu'); _syncLangButtons(); applyLang(); });
+    showLangPicker(function() { if(!tryResumeMatchLock())go('v-menu'); _syncLangButtons(); _syncCurrencyButtons(); applyLang(); });
   } else {
     if(!tryResumeMatchLock())go('v-menu');
     _syncLangButtons();
+    _syncCurrencyButtons();
     applyLang();
   }
 }

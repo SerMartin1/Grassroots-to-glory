@@ -362,27 +362,14 @@ function runDevSim(){
 }
 
 function devSimMyMatch(m,isCup){
-  // v202: ten sam Poisson co simOthers — cap OVR do max ligi
-  const isMyH=m.h===G.myClubId;
-  function tS(cid){
-    const st=G.players.filter(p=>p.clubId===cid&&p.starter);
-    const avgOvr=st.length?st.reduce((s,p)=>s+ovr(p),0)/st.length:25;
-    const fm=st.length?st.reduce((s,p)=>s+p.form,0)/st.length:70;
-    return{total:avgOvr,form:0.85+fm/666};
-  }
-  const hSt=tS(m.h),aSt=tS(m.a);
-  // Cap OVR do max tej ligi — zapobiega 100+ golom gracza
-  const _lgOvrDev={1:[58,72,82,92],2:[45,58,70,82],3:[38,52,62,74],4:[32,45,55,67],5:[27,40,50,62],6:[22,33,44,56],7:[15,26,36,48],8:[8,20,28,42]};
-  const _lgMaxDev=(_lgOvrDev[G.myLeague||8]||_lgOvrDev[8])[3];
-  const hOvrC=Math.min(hSt.total,_lgMaxDev);
-  const aOvrC=Math.min(aSt.total,_lgMaxDev);
-  // Niezależny Poisson per drużyna (identyczny z simOthers)
-  const hLam=0.35+(hOvrC/100)*1.40*(isMyH?1.07:1.0);
-  const aLam=0.35+(aOvrC/100)*1.40*(isMyH?1.0:1.07);
-  const _t=10;
-  let hG=0,aG=0;
-  for(let i=0;i<_t;i++){if(Math.random()<Math.min(0.92,hLam/_t))hG++;}
-  for(let i=0;i<_t;i++){if(Math.random()<Math.min(0.92,aLam/_t))aG++;}
+  // v215: ten sam rdzeń symulacji co simMatch() na żywo (siła drużyn, taktyka, nastawienie, cechy,
+  // home advantage) — bez UI/animacji. Zastępuje dawny osobny wzór OVR+Poisson (patrz Krok 5 diagnozy).
+  m_hId=m.h;m_aId=m.a;
+  const {ratings,isMyH,finalizeSecondHalf}=_buildMatchPhases(m);
+  // Brak UI wyboru w 46' — gracz dostaje neutralny shift (jak "pomiń" na żywo), AI już zdecydowało w _buildMatchPhases
+  if(!window._tacticalShift.used)window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
+  finalizeSecondHalf();
+  const hG=fHG,aG=fAG;
   m.done=true;m.hg=hG;m.ag=aG;
   if(!isCup){
   updStand(m.h,m.a,hG,aG);
@@ -418,51 +405,38 @@ function devSimMyMatch(m,isCup){
     G.records.maxLoseStreak=Math.max(G.records.maxLoseStreak,G.loseStreak);
   }else{G.winStreak=0;G.loseStreak=0;G.records.unbeatenStreak=(G.records.unbeatenStreak||0)+1;G.records.maxUnbeatenStreak=Math.max(G.records.maxUnbeatenStreak,G.records.unbeatenStreak);}
   }
-  // allTimeStats — mecze i losowe gole dla zawodników
+  // v215: oceny — ten sam wzór (position-weighted, wg realnych statystyk meczu) co mecz na żywo,
+  // zamiast osobnego losowego przybliżenia. Aktualizuje seasonRatings dla obu drużyn.
+  calcFinalRatings(ratings,iW,iL,hG,aG,isCup);
+  // allTimeStats / cupSt — realni strzelcy i asystenci z allEvts (nie losowo, jak dawniej)
   if(!G.allTimeStats)G.allTimeStats={players:{},bestSeller:null,bestBuyer:null};
   const myPlayers=G.players.filter(p=>p.clubId===G.myClubId&&p.starter);
-  const myG3=isMyH?hG:aG;
   const oppG3=isMyH?aG:hG;
-  // Rozdziel gole losowo między atakujących i pomocników
-  const scorers=myPlayers.filter(p=>p.pos==='NAP'||p.pos==='POL');
   myPlayers.forEach(p=>{
     if(!G.allTimeStats.players[p.id])G.allTimeStats.players[p.id]={id:p.id,name:p.name,goals:0,assists:0,matches:0};
     if(!isCup){G.allTimeStats.players[p.id].matches++;G.allTimeStats.players[p.id].name=p.name;}
     if(!isCup){p.st.m++;if(!p.trainMatches)p.trainMatches=0;p.trainMatches++;}
-    // Śledzenie cupSt
     if(isCup){
       if(!p.cupSt)p.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};
       p.cupSt.m++;
-    }
-    // Losowa ocena meczowa dla dev sim (baza z OVR + wynik)
-    const avgStr2=myPlayers.reduce((s,pl)=>s+playerStr(pl),0)/Math.max(1,myPlayers.length);
-    const strRatio2=playerStr(p)/Math.max(1,avgStr2);
-    let devRat=Math.min(8.5,Math.max(4.0,strRatio2*6.5));
-    if(iW)devRat+=0.2;else if(iL)devRat-=0.2;
-    devRat+=((Math.random()-0.5)*1.0);
-    devRat=Math.max(3.0,Math.min(10.0,Math.round(devRat*10)/10));
-    if(!p.seasonRatings)p.seasonRatings=[];
-    p.seasonRatings.push(devRat);
-    p.lastMatchRating=devRat;
-    if(isCup){if(!p.cupSt.ratings)p.cupSt.ratings=[];p.cupSt.ratings.push(devRat);}
-    // GK cupSt cs/ga
-    if(isCup&&p.pos==='GK'){
-      if(!p.cupSt.ga)p.cupSt.ga=0;if(!p.cupSt.cs)p.cupSt.cs=0;
-      p.cupSt.ga+=oppG3;if(oppG3===0)p.cupSt.cs++;
+      if(p.pos==='GK'){
+        if(!p.cupSt.ga)p.cupSt.ga=0;if(!p.cupSt.cs)p.cupSt.cs=0;
+        p.cupSt.ga+=oppG3;if(oppG3===0)p.cupSt.cs++;
+      }
     }
   });
-  // Losowo przydziel gole i asysty
-  for(let i=0;i<myG3;i++){
-    const sc=scorers.length?scorers[Math.floor(Math.random()*scorers.length)]:myPlayers[0];
-    const as=myPlayers.filter(p=>p!==sc)[Math.floor(Math.random()*(myPlayers.length-1))];
-    if(isCup){
-      if(sc){if(!sc.cupSt)sc.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};if(!sc.cupSt.g)sc.cupSt.g=0;sc.cupSt.g++;}
-      if(as&&Math.random()<0.7){if(!as.cupSt)as.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};if(!as.cupSt.a)as.cupSt.a=0;as.cupSt.a++;}
-    } else {
-    if(sc&&G.allTimeStats.players[sc.id])G.allTimeStats.players[sc.id].goals++;
-    if(as&&G.allTimeStats.players[as.id]&&Math.random()<0.7)G.allTimeStats.players[as.id].assists++;
+  allEvts.filter(e=>e.type==='goal').forEach(e=>{
+    const sc=G.players.find(x=>x.id===e.sid);
+    if(sc&&sc.clubId===G.myClubId){
+      if(isCup){if(!sc.cupSt)sc.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};if(!sc.cupSt.g)sc.cupSt.g=0;sc.cupSt.g++;}
+      else if(G.allTimeStats.players[sc.id])G.allTimeStats.players[sc.id].goals++;
     }
-  }
+    const as=e.assisterId?G.players.find(x=>x.id===e.assisterId):null;
+    if(as&&as.clubId===G.myClubId){
+      if(isCup){if(!as.cupSt)as.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};if(!as.cupSt.a)as.cupSt.a=0;as.cupSt.a++;}
+      else if(G.allTimeStats.players[as.id])G.allTimeStats.players[as.id].assists++;
+    }
+  });
 }
 
 // Pokaż/ukryj przycisk DEV na podstawie flagi

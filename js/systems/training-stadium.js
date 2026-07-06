@@ -385,7 +385,13 @@ const STAD_MODULES={
 };
 function getModuleLvl(key){return(G.stadium&&G.stadium.modules&&G.stadium.modules[key])||0;}
 function stadModName(key){return t('stad_mod_'+key+'_name');}
-function stadModEffect(key,lvlIdx){return t('stad_mod_'+key+'_e'+(lvlIdx+1));}
+function stadModEffect(key,lvlIdx){
+  if(key==='vip'){
+    const lvlDef=STAD_MODULES.vip.levels[lvlIdx];
+    return lvlDef?'+'+fmt(lvlDef.vipWeekly)+t('stad_per_week_suffix'):'';
+  }
+  return t('stad_mod_'+key+'_e'+(lvlIdx+1));
+}
 function checkModuleReq(req){
   if(!req)return{ok:true};
   const cap=(G.stadium&&G.stadium.capacity)||200;
@@ -556,7 +562,7 @@ function renderStadPrzeglad(){
         '<div><div style="color:var(--gr)">'+t('stad_max').replace('{league}',LEAGUE_NAMES[lvl])+'</div><div style="color:var(--gr)">'+maxCap.toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_attendance')+'</div><div style="color:var(--gb)">'+(G.frequency||50)+'%</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_fans_match')+'</div><div style="color:var(--wh)">~'+Math.round(cap*freq).toLocaleString(LANG==='en'?'en-GB':'pl-PL')+'</div></div>'+
-        '<div><div style="color:var(--gr)">'+t('stad_ticket_price')+'</div><div style="color:var(--am)">'+tp+(LANG==='pl'?' zł':'')+'</div></div>'+
+        '<div><div style="color:var(--gr)">'+t('stad_ticket_price')+'</div><div style="color:var(--am)">'+fmt(tp)+'</div></div>'+
         '<div><div style="color:var(--gr)">'+t('stad_tickets_week')+'</div><div style="color:var(--gb)">+'+fmt(perWeek)+'</div><div style="color:var(--gr);font-size:var(--fs-dense)">'+t('stad_tickets_match').replace('{n}',fmt(perMatch))+'</div></div>'+
       '</div>'+
     '</div>'+

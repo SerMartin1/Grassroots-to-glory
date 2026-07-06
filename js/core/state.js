@@ -1,8 +1,14 @@
 function r(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
-function fmt(v){return (v||0).toLocaleString('pl-PL')+" zł";}
+// Waluta bazowa gry to EUR (rate 1). USD/PLN są przeliczane wyłącznie na potrzeby wyświetlania.
+const CURRENCY_RATES={USD:1.09,EUR:1,PLN:4.3};
+const CURRENCY_SYMBOLS={USD:'$',EUR:'€',PLN:'zł'};
+let CURRENT_CURRENCY='EUR';
+function curRate(){return CURRENCY_RATES[CURRENT_CURRENCY]||1;}
+function curSym(){return CURRENCY_SYMBOLS[CURRENT_CURRENCY]||'€';}
+function fmt(v){const n=Math.round((v||0)*curRate());const s=n.toLocaleString('pl-PL');return CURRENT_CURRENCY==='USD'?curSym()+s:s+' '+curSym();}
 function posOrd(p){return{GK:0,OBR:1,POL:2,NAP:3}[p]||4;}
-function fmtVal(v){if(v>=1000000){const m=v/1000000;return(m>=10?Math.round(m):m.toFixed(1).replace(/\.0$/,''))+' mln';}if(v>=1000)return Math.round(v/1000)+'k';return v+' zł';}
+function fmtVal(v){const n=(v||0)*curRate();if(n>=1000000){const m=n/1000000;return(m>=10?Math.round(m):m.toFixed(1).replace(/\.0$/,''))+' mln '+curSym();}if(n>=1000)return Math.round(n/1000)+'k '+curSym();return Math.round(n)+' '+curSym();}
 // ── OŚ CZASU KLUBU — milestone'y pozaligowe (Sesja 2) ─────────────────
 function pushTimeline(type,icon,label,opts){
   if(!G)return;

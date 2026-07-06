@@ -478,7 +478,18 @@ const name=found?found.name:t('week_fallback_no_candidates');
   // ── PAMIĘĆ KIBICÓW — niezależny, rzadki trigger ─────────────────────
   if(G.week>=4&&!G.seasonEnded){fanMemoryTrigger();}
   // Akademia — koszt uwzględniony w bloku fin.hist powyżej
-  if(G.round>30&&!G.seasonEnded){G.seasonEnded=true;calcSeasonValuations();updateHdr();notif(t('week_notif_season_end').replace('{n}',G.season),'ok');
+  finalizeSeasonEnd();
+}
+
+// ── PUCHAR: zakończenie sezonu ligowego jest wstrzymywane, dopóki gracz ma
+// nierozegrany finał Pucharu Mistrzowskiego (ten wypada w tygodniu 33, już poza
+// harmonogramem ligi — patrz match-ui.js::nextMatch, które w takiej sytuacji samo
+// aktywuje czekający mecz pucharowy). Bez tej blokady advWeek() kończyłby sezon
+// (G.seasonEnded=true) zanim gracz zdążyłby w ogóle zagrać finał.
+function finalizeSeasonEnd(){
+  if(!G||G.round<=30||G.seasonEnded)return;
+  if(G.cup&&G.cup.active&&G.cup.pendingMyMatch)return; // czeka na rozegranie finału
+  G.seasonEnded=true;calcSeasonValuations();updateHdr();notif(t('week_notif_season_end').replace('{n}',G.season),'ok');
   // Zapisz historię sezonu dla WSZYSTKICH zawodników — musi być TU, przed startNewSeason które resetuje p.st
   const _allForHistory=[...G.players,...(G.fa||[])];
   // Uzupełnij luki — każdy zawodnik powinien mieć wpis dla każdego sezonu od S1 do bieżącego
@@ -638,7 +649,6 @@ const name=found?found.name:t('week_fallback_no_candidates');
       });
     });
   }
-}
 }
 
 // ══════════════════════════════════════════════════════════════════════════

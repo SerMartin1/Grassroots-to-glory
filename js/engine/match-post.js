@@ -346,22 +346,9 @@ function simOthers(){
       // Upewnij się że AI ma wybrany skład
       if(m.h!==G.myClubId)aiSelectSquad(m.h);
       if(m.a!==G.myClubId)aiSelectSquad(m.a);
-      // Symuluj i aktualizuj standing odpowiedniej ligi
-      const hSq=G.players.filter(p=>p.clubId===m.h&&p.starter);
-      const aSq=G.players.filter(p=>p.clubId===m.a&&p.starter);
-      const hOvr=hSq.length?hSq.reduce((s,p)=>s+ovr(p),0)/hSq.length:25;
-      const aOvr=aSq.length?aSq.reduce((s,p)=>s+ovr(p),0)/aSq.length:25;
-      // v202: niezależny Poisson — lambda ograniczona do max OVR ligi (naprawa anomalii 100+ goli)
-      const _lgOvr={1:[58,72,82,92],2:[45,58,70,82],3:[38,52,62,74],4:[32,45,55,67],5:[27,40,50,62],6:[22,33,44,56],7:[15,26,36,48],8:[8,20,28,42]};
-      const _lgMaxOvr=(_lgOvr[lvlNum]||_lgOvr[8])[3];// max OVR tej ligi
-      const _hOvrCapped=Math.min(hOvr,_lgMaxOvr);// zabezpieczenie przed bugiem OVR
-      const _aOvrCapped=Math.min(aOvr,_lgMaxOvr);
-      const hLam=0.35+(_hOvrCapped/100)*1.40*1.07;
-      const aLam=0.35+(_aOvrCapped/100)*1.40;
-      const _pgTrials=10;
-      let hG2=0,aG2=0;
-      for(let _t=0;_t<_pgTrials;_t++){if(Math.random()<Math.min(0.92,hLam/_pgTrials))hG2++;}
-      for(let _t=0;_t<_pgTrials;_t++){if(Math.random()<Math.min(0.92,aLam/_pgTrials))aG2++;}
+      // v216: rdzeń "lite" — ta sama baza siły (playerStr/cechy/forma) + taktyka + home advantage co mecz gracza
+      const _liteRes=_buildMatchLite(m);
+      const hG2=_liteRes.hG,aG2=_liteRes.aG;
       m.done=true;m.hg=hG2;m.ag=aG2;
       // Update standing for this league (liga gracza = G.standing)
       const _lvl=parseInt(lvlNum);const _myLvl=parseInt(G.myLeague||8);const st=_lvl===_myLvl?G.standing:(G.allStandings&&G.allStandings[_lvl]?G.allStandings[_lvl]:null);

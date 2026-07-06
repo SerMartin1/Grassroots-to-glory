@@ -431,7 +431,19 @@ function nextMatch(){
     if(!G._cupFakeMatch.done)return G._cupFakeMatch;
   }
   if(G._cupFakeMatch&&!G._cupFakeMatch.done)return G._cupFakeMatch;
-  return G.schedule.find(m=>m.rnd===G.round&&!m.done&&(m.h===G.myClubId||m.a===G.myClubId));
+  const _lgMatch=G.schedule.find(m=>m.rnd===G.round&&!m.done&&(m.h===G.myClubId||m.a===G.myClubId));
+  if(_lgMatch)return _lgMatch;
+  // Brak meczu ligowego w tej kolejce (np. finał pucharu w tygodniu poza harmonogramem ligi,
+  // bo sezon ligowy już się skończył) — jeśli czeka mecz pucharowy gracza, aktywuj go teraz
+  // zamiast zgłaszać brak meczu (patrz też week-progress.js::finalizeSeasonEnd).
+  if(G.cup&&G.cup.pendingMyMatch&&!G._cupMatchActive){
+    const _pm=G.cup.pendingMyMatch;
+    const _pIsH=G.cup.pendingIsMyH;
+    const _oppEnt=_pIsH?_pm.a:_pm.h;
+    G._cupMatchActive={match:_pm,rIdx:G.cup.pendingRound,isMyH:_pIsH,oppCid:_oppEnt.cid};
+    return nextMatch();
+  }
+  return undefined;
 }
 
 function updateSpeedLabel(){

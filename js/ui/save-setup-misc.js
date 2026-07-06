@@ -75,8 +75,37 @@ function goSetup(){
 function _startNewGameFlow(){
   const tmpLeagues=initLeagues();window._setupLeagues=tmpLeagues;
   _rerollsLeft=3;
+  CURRENT_CURRENCY='EUR';
+  _syncCurrencyButtons();
   go('v-setup');
   setTimeout(()=>drawRandomClub(),50);
+}
+
+// Przełącznik waluty wyświetlania — niezależny od wyboru języka.
+// Dostępny na ekranie tworzenia kariery ORAZ w menu głównym (także w trakcie aktywnej gry).
+function setCurrency(cur){
+  if(!CURRENCY_RATES[cur])return;
+  CURRENT_CURRENCY=cur;
+  if(G)G.currency=cur;
+  _syncCurrencyButtons();
+  const budEl=document.getElementById('setup-budget');
+  if(budEl)budEl.textContent=fmt(LEAGUE_BUDGET[8]||12000);
+  if(G){
+    updateHdr();
+    _refreshOpenPanels();
+  }
+}
+function _syncCurrencyButtons(){
+  ['USD','EUR','PLN'].forEach(c=>{
+    ['cur-btn-','cur-menu-btn-'].forEach(prefix=>{
+      const b=document.getElementById(prefix+c.toLowerCase());
+      if(!b)return;
+      const on=CURRENT_CURRENCY===c;
+      b.style.borderWidth=on?'2px':'1px';
+      b.style.borderColor=on?'var(--am)':'var(--gr)';
+      b.style.color=on?'var(--am)':'var(--gr)';
+    });
+  });
 }
 
 function drawRandomClub(){

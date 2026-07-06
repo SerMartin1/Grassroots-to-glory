@@ -647,9 +647,20 @@ function fillLeaguesOverview(){
     paneTabela.id='lgpane'+lvl+'_tabela';
     const top3=st.slice(0,3);
     const showMy=myPos>3?st[myPos-1]:null;
-    const rowHtmlLg=(s,idx,isMy)=>{const gd=(s.gf||0)-(s.ga||0);return '<tr style="border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00':'')+';cursor:pointer" onclick="openClubModal('+s.cid+')">'+
+    // Strefy awansu/spadku — zgodnie z regułą z week-progress.js (top 2 awansują poza ligą I, dolne 2 spadają poza ligą VIII)
+    const rowHtmlLg=(s,idx,isMy)=>{
+      const gd=(s.gf||0)-(s.ga||0);
+      const isUp=lvl>1&&idx<2;
+      const isDown=lvl<8&&idx>=n-2;
+      const zebra=idx%2===1;
+      let rowBg='';
+      if(isMy)rowBg='background:#1a2a00;outline:1px solid var(--am);outline-offset:-1px;';
+      else if(isUp)rowBg='background:rgba(76,175,80,'+(zebra?'0.17':'0.12')+');';
+      else if(isDown)rowBg='background:rgba(244,67,54,'+(zebra?'0.15':'0.10')+');';
+      else if(zebra)rowBg='background:#0e230e;';
+      return '<tr style="border-bottom:1px solid #0d1f0d;'+rowBg+'cursor:pointer" onclick="openClubModal('+s.cid+')">'+
       '<td style="padding:4px 6px;color:var(--gr)">'+(idx+1)+'</td>'+
-      '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
+      '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+(isMy?';font-weight:700':'')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
       '<td style="text-align:right;color:var(--gr)">'+(s.p||s.m||0)+'</td>'+
       '<td style="text-align:right;color:var(--gb);font-weight:bold">'+(s.pts||0)+'</td>'+
       '<td style="text-align:right;color:var(--gb)">'+(s.w||0)+'</td>'+
@@ -659,7 +670,11 @@ function fillLeaguesOverview(){
       '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
       '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
     '</tr>';};
-    let tblHtml='<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-size:var(--fs-dense);border-collapse:collapse">'+
+    const legendParts=[];
+    if(lvl>1)legendParts.push('<span><span style="display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:5px;vertical-align:middle;background:var(--gb)"></span>'+t('tbl_legend_zone_up')+'</span>');
+    if(lvl<8)legendParts.push('<span><span style="display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:5px;vertical-align:middle;background:var(--rd)"></span>'+t('tbl_legend_zone_down')+'</span>');
+    const legendHtml=legendParts.length?'<div style="display:flex;gap:14px;padding:6px 10px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid var(--gl);background:#0a1a0a">'+legendParts.join('')+'</div>':'';
+    let tblHtml=legendHtml+'<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-size:var(--fs-dense);border-collapse:collapse">'+
       '<thead><tr>'+
         '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_num')+'</th>'+
         '<th style="color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_club')+'</th>'+
@@ -1191,9 +1206,20 @@ function toggleFullTable(lvl){
   const btn=document.getElementById('btnfull'+lvl);
   if(!tbody||!btn)return;
   const isExpanded=btn.dataset.expanded==='1';
-  const rowHtml=(s,i,isMy)=>{const gd=(s.gf||0)-(s.ga||0);return '<tr style="border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00':'')+';cursor:pointer" onclick="openClubModal('+s.cid+')">'+
+  const n=st.length;
+  const rowHtml=(s,i,isMy)=>{
+    const gd=(s.gf||0)-(s.ga||0);
+    const isUp=lvl>1&&i<2;
+    const isDown=lvl<8&&i>=n-2;
+    const zebra=i%2===1;
+    let rowBg='';
+    if(isMy)rowBg='background:#1a2a00;outline:1px solid var(--am);outline-offset:-1px;';
+    else if(isUp)rowBg='background:rgba(76,175,80,'+(zebra?'0.17':'0.12')+');';
+    else if(isDown)rowBg='background:rgba(244,67,54,'+(zebra?'0.15':'0.10')+');';
+    else if(zebra)rowBg='background:#0e230e;';
+    return '<tr style="border-bottom:1px solid #0d1f0d;'+rowBg+'cursor:pointer" onclick="openClubModal('+s.cid+')">'+
     '<td style="padding:4px 6px;color:var(--gr)">'+(i+1)+'</td>'+
-    '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
+    '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+(isMy?';font-weight:700':'')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
     '<td style="text-align:right;color:var(--gr)">'+(s.p||s.m||0)+'</td>'+
     '<td style="text-align:right;color:var(--gb);font-weight:bold">'+(s.pts||0)+'</td>'+
     '<td style="text-align:right;color:var(--gb)">'+(s.w||0)+'</td>'+

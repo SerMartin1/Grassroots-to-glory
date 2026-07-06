@@ -263,7 +263,7 @@ function getBondLevel(p){
   if(s>=3)return{level:2,name:t('bond_level_2'),icon:'🟡',color:'#ffc107',seasons:s};
   return{level:1,name:t('bond_level_1'),icon:'—',color:'var(--gr)',seasons:s};
 }
-// Bonus formy do użycia w symulacji meczu (tylko własni zawodnicy)
+// Bonus formy do użycia w symulacji meczu — działa dla zawodników dowolnego klubu (większy u siebie)
 function getBondFormBonus(p,isHome){
   const b=getBondLevel(p);
   if(!b)return 0;
@@ -297,13 +297,19 @@ function assignAITactics(){
   const formations=['4-4-2','4-3-3','3-5-2','5-3-2','3-4-3','4-5-1'];
   const styles=['Defensywny','Zrównoważony','Ofensywny'];
   const tempos=['Wolne','Normalne','Szybkie'];
+  const pressings=['Niski','Normalny','Wysoki'];
+  const lines=['Niska','Normalna','Wysoka'];
+  const instructions=['Posiadanie','Długie piłki','Bezpośrednia','Kontry'];
   if(!G.clubTactics)G.clubTactics={};
   ALL_CLUBS.forEach(c=>{
     if(c.id===G.myClubId)return; // skip player's club
     G.clubTactics[c.id]={
       formation:pick(formations),
       style:pick(styles),
-      tempo:pick(tempos)
+      tempo:pick(tempos),
+      pressing:pick(pressings),
+      line:pick(lines),
+      instruction:pick(instructions)
     };
   });
 }
@@ -452,6 +458,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
   const budget=LEAGUE_BUDGET[myLeagueLevel]||12000;
   const sponsors=LEAGUE_SPONSORS[myLeagueLevel]||200;
   G={mgrName,myClubId:parseInt(clubId),myClub:ALL_CLUBS.find(c=>c.id===clubId)||leagues.flatMap(l=>l.clubs).find(c=>c.id===clubId),
+    currency:CURRENT_CURRENCY,
     season:1,week:1,round:1,budget,players,fa,
     leagues,myLeague:myLeagueLevel,
     standing:allStandings[myLeagueLevel],
@@ -470,10 +477,11 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     kronika:{cooldown:0,usedThisSeason:[],flags:{}},
     timeline:[],fanMemory:{cooldown:0,recalled:[]}};
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
-  genWeeklyMarket();assignAITactics();assignJerseyNumbers();
+  genWeeklyMarket();assignJerseyNumbers();
   myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};if(!p.value||p.value===0)p.value=calcValue(ovr(p),p.age);});
   G.players.forEach(p=>{const curOvr=ovr(p);if(!p.potential||p.potential<=curOvr){const _lg=leagues.find(l=>l.clubs.some(c=>c.id===p.clubId));p.potential=calcPotential(p,_lg?_lg.level:8);}});
   ALL_CLUBS=leagues.flatMap(l=>l.clubs);
+  assignAITactics();// v213: po ustawieniu pełnego ALL_CLUBS — wcześniej pokrywało tylko ligę gracza
   CLUBS_B=[...getLeagueClubs(leagues,myLeagueLevel)];
   leagues.flatMap(l=>l.clubs).filter(c=>c.id!==clubId).forEach(c=>aiSelectSquad(c.id));
   // ── INICJALIZUJ AI DLA WSZYSTKICH KLUBÓW ─────────────────
@@ -707,6 +715,8 @@ function loadGame(slot){try{
     return false;
   }
   G=parsed;
+  if(!G.currency)G.currency='EUR';
+  CURRENT_CURRENCY=G.currency;
   if(G.myClubId)G.myClubId=parseInt(G.myClubId);
   if(G.board){
     genBoardGoals(); // regeneruj opcje z funkcjami

@@ -14,11 +14,7 @@ function dcRender(name){
 }
 
 /* ── helpers ── */
-function fmtVal(v){
-  if(v>=1000000) return (v/1000000).toFixed(2).replace('.',',')+' mln';
-  if(v>=1000) return Math.round(v/1000)+'k';
-  return String(v);
-}
+// fmtVal() scentralizowana w core/state.js (usunięty duplikat z inną precyzją/separatorem — patrz ARCHITECTURE.md)
 function dcBars(el,data,color,h){
   if(!el)return;
   el.innerHTML='';
@@ -143,7 +139,7 @@ function dcRenderWzrost(){
 
   const w3=document.createElement('div');w3.className='dc-chart';el.appendChild(w3);
   const l3=document.createElement('div');l3.className='dc-chart-lbl';
-  l3.textContent=t('dc_chart_budget');w3.appendChild(l3);
+  l3.textContent=t('dc_chart_budget')+' ['+curSym()+']';w3.appendChild(l3);
   const b3=document.createElement('div');b3.className='dc-bars';b3.style.height='72px';w3.appendChild(b3);
   const budgetData=allData.map(d=>({
     s: d.season,

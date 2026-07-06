@@ -26,6 +26,15 @@
     <button id="lang-btn-en" onclick="setLang('en')"
       style="font-weight:700;font-size:var(--fs-micro);padding:5px 9px;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">🇬🇧 EN</button>
   </div>
+  <!-- Przełącznik waluty wyświetlania — pod przełącznikiem języka, niezależny od niego -->
+  <div style="position:absolute;top:44px;right:12px;display:flex;gap:6px;align-items:center;z-index:10">
+    <button id="cur-menu-btn-usd" onclick="setCurrency('USD')"
+      style="font-weight:700;font-size:var(--fs-micro);padding:5px 9px;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">$ USD</button>
+    <button id="cur-menu-btn-eur" onclick="setCurrency('EUR')"
+      style="font-weight:700;font-size:var(--fs-micro);padding:5px 9px;background:var(--tb);cursor:pointer;letter-spacing:1px;border:2px solid var(--am);color:var(--am)">€ EUR</button>
+    <button id="cur-menu-btn-pln" onclick="setCurrency('PLN')"
+      style="font-weight:700;font-size:var(--fs-micro);padding:5px 9px;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">zł PLN</button>
+  </div>
   <div class="menu-logo">
     <span class="splash-ball" style="animation:none">⚽</span>
     <div class="mt">GRASSROOTS<br>TO GLORY</div>
@@ -150,6 +159,19 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">
         <div><span id="setup-budget-label" style="color:var(--gr)">Budżet:</span> <span id="setup-budget" style="color:var(--wh)">—</span></div>
         <div><span id="setup-league-label" style="color:var(--gr)">Liga:</span> <span id="setup-league-val" style="color:var(--wh)">VII Liga</span></div>
+      </div>
+
+      <!-- Przełącznik waluty wyświetlania -->
+      <div style="margin-bottom:4px">
+        <div id="setup-currency-label" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">WALUTA WYŚWIETLANIA</div>
+        <div style="display:flex;gap:6px">
+          <button id="cur-btn-usd" onclick="setCurrency('USD')"
+            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">$ USD</button>
+          <button id="cur-btn-eur" onclick="setCurrency('EUR')"
+            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:2px solid var(--am);color:var(--am)">€ EUR</button>
+          <button id="cur-btn-pln" onclick="setCurrency('PLN')"
+            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">zł PLN</button>
+        </div>
       </div>
 
       <!-- Prze-losuj -->
