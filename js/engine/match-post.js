@@ -267,11 +267,11 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     const _sumTxt=_pool[Math.floor(Math.random()*_pool.length)];
     // Separator
     const _sep=document.createElement('div');
-    _sep.className='mlog-e summary-ev';
+    _sep.className='mlog-e mlog-full summary-ev';
     _sep.innerHTML='<span class="mlog-min2">90\'</span><span class="mlog-icon">⛳</span><span class="mlog-txt"><b>'+t('mp_match_end')+' '+hG+'-'+aG+'</b></span>';
     _mlog2.appendChild(_sep);
     const _sum=document.createElement('div');
-    _sum.className='mlog-e summary-ev';
+    _sum.className='mlog-e mlog-full summary-ev';
     _sum.innerHTML='<span class="mlog-min2"></span><span class="mlog-icon">💬</span><span class="mlog-txt">'+_sumTxt+'</span>';
     _mlog2.appendChild(_sum);
   }

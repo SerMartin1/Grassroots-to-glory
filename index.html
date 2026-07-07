@@ -470,26 +470,17 @@
           <!-- Momentum — Propozycja 2+4: strefy kolorów + igła + etykieta dynamiczna -->
           <div id="ls-momentum-row">
             <!-- Wiersz: wartości + etykieta MOMENTUM -->
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-dense);margin-bottom:2px">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-dense);margin-bottom:3px">
               <span id="ls-mom-h" style="color:var(--gb);min-width:28px">+0.0</span>
               <span style="color:var(--gr);font-size:var(--fs-dense);letter-spacing:1px"><span data-i18n="match_momentum">MOMENTUM</span> <span onclick="document.getElementById('mom-modal').style.display='flex'" style="color:var(--am);cursor:pointer;border:1px solid var(--am);padding:0 3px;font-size:var(--fs-dense);line-height:1.2">?</span></span>
               <span id="ls-mom-a" style="color:var(--rd);min-width:28px;text-align:right">+0.0</span>
             </div>
-            <!-- Pasek z trzema strefami kolorów -->
-            <div style="height:7px;position:relative;display:flex;border:1px solid #1a1a1a;overflow:hidden;border-radius:1px">
-              <!-- Strefa lewa: rywal dominuje (czerwona) -->
-              <div style="flex:1;background:linear-gradient(90deg,#3d0000,#1a0000)"></div>
-              <!-- Strefa środkowa: neutralna (ciemnoszara) -->
-              <div style="flex:1;background:#111"></div>
-              <!-- Strefa prawa: mój klub dominuje (zielona) -->
-              <div style="flex:1;background:linear-gradient(90deg,#0a1f0a,#1a4d1a)"></div>
-              <!-- Igła (przesuwa się od 5% do 95%) -->
-              <div id="ls-mom-needle" style="position:absolute;top:0;width:3px;height:100%;left:50%;transform:translateX(-50%);transition:left 0.5s;background:var(--am);box-shadow:0 0 5px var(--am)"></div>
-            </div>
-            <!-- Etykiety stref -->
-            <div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-top:1px;color:#444">
-              <span data-i18n="match_momentum_rival">&#x25C4; RYWAL</span>
-              <span data-i18n="match_momentum_mine">MÓJ KLUB &#x25BA;</span>
+            <!-- Pasek terytorium boiska: piłka (dawna igła) przesuwa się tam, gdzie toczy się gra -->
+            <div class="pitch">
+              <div class="pitch-goal l"></div><div class="pitch-goal r"></div>
+              <span class="pitch-zone-lbl l" data-i18n="match_momentum_rival">&#x25C4; RYWAL</span>
+              <span class="pitch-zone-lbl r" data-i18n="match_momentum_mine">MÓJ KLUB &#x25BA;</span>
+              <div id="ls-mom-needle" class="pitch-ball" style="left:50%;background:var(--am);box-shadow:0 0 5px var(--am)"></div>
             </div>
             <!-- Etykieta dynamiczna (Propozycja 2) -->
             <div id="ls-mom-label" style="font-size:var(--fs-dense);text-align:center;margin-top:3px;color:var(--gr);min-height:13px" data-i18n="match_momentum_even">⇔ Wyrównana walka</div>

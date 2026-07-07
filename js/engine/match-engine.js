@@ -621,7 +621,7 @@ function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();notif(t('m
 ['ls-shots-row','ls-on-row','ls-fouls-row'].forEach(function(rid){var _rr=_s0(rid);if(_rr)_rr.style.display='none';});window._momentum={true:0,false:0};const _mRow=_s0('ls-momentum-row');if(_mRow)_mRow.style.display='block';if(_s0('ls-mom-h')){_s0('ls-mom-h').textContent='+0.0';_s0('ls-mom-h').style.color='var(--gr)';}if(_s0('ls-mom-a')){_s0('ls-mom-a').textContent='+0.0';_s0('ls-mom-a').style.color='var(--gr)';}if(_s0('ls-mom-label')){_s0('ls-mom-label').textContent=t('match_momentum_even');_s0('ls-mom-label').style.color='var(--gr)';}const _nReset=_s0('ls-mom-needle');if(_nReset){_nReset.style.left='50%';_nReset.style.background='var(--am)';_nReset.style.boxShadow='0 0 5px var(--am)';}const _ecReset=_s0('ls-events-chips');if(_ecReset)_ecReset.innerHTML='';const _tbReset=_s0('ls-tactic-box');if(_tbReset)_tbReset.style.display='none';const _tnReset=_s0('ls-tactic-name');if(_tnReset)_tnReset.textContent='—';window._matchSubsOut=[];window._matchInjured=[];// v199: śledzenie zmian i kontuzji
 const mlog=document.getElementById('mlog');if(mlog){mlog.innerHTML='';
   const _startD=document.createElement('div');
-  _startD.className='mlog-e narr-my';
+  _startD.className='mlog-e mlog-full narr-my';
   _startD.innerHTML='<span class="mlog-min2">1&#x27;</span><span class="mlog-icon">&#9654;</span><span class="mlog-txt">'+t('match_start_label')+'</span>';
   mlog.appendChild(_startD);
 }_subsLeft=3;const bsub=document.getElementById('btn-sub');if(bsub)bsub.style.opacity='1';
@@ -1028,6 +1028,7 @@ const ev=allEvts[idx2++];
         // v199: momupdate to cichy event — tylko aktualizuje igłę, nie wchodzi do logu
         if(ev.type==='momupdate'){setTimeout(next,matchSpeed===0?1:50);return;}
         let cls='mlog-e ';
+        let sideCls='mlog-full';// v: dwutorowa oś czasu — RYWAL=lewa kolumna, TY=prawa; wiersze bez jednoznacznej strony (gole, systemowe) zostają na pełną szerokość
         let icon='▶'; let txt=ev.text||'';
         if(ev.type==='goal'){
           cls+=isMy?'goal-my':'goal-opp';
@@ -1042,16 +1043,22 @@ const ev=allEvts[idx2++];
           const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">'+t('match_sp_corner')+'</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">'+t('match_sp_freekick')+'</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">'+t('match_sp_penalty')+'</span>':'';
           txt='<b>'+t('match_goal_label')+' '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">'+t('match_academy_debut_badge').replace('{season}',_acadDebH3.season).replace('{a}',_acadDebH3.ovr).replace('{b}',ovr(scorerP))+'</div>':'');
         } else if(ev.type==='shot'){
+          sideCls=isMy?'mlog-mine':'mlog-opp';
           cls+=isMy?'shot-my':'shot-opp'; icon=isMy?'→':'←';
         } else if(ev.type==='narration'){
+          sideCls=isMy?'mlog-mine':'mlog-opp';
           cls+=isMy?'narr-my':'narr-opp'; icon=isMy?'●':'●';
         } else if(ev.type==='corner'||ev.type==='freekick'){
+          sideCls=isMy?'mlog-mine':'mlog-opp';
           cls+=isMy?'setpiece-my':'setpiece-opp'; icon='🚩';
         } else if(ev.type==='penalty_saved'){
+          sideCls=isMy?'mlog-opp':'mlog-mine';
           cls+=isMy?'setpiece-opp':'setpiece-my'; icon='🧤';
         } else if(ev.type==='yellow'){
+          sideCls=ev.isMy?'mlog-mine':'mlog-opp';
           cls+='card-ev'; icon='🟡';
         } else if(ev.type==='red'||ev.type==='red2y'){
+          sideCls=ev.isMy?'mlog-mine':'mlog-opp';
           cls+='card-red'; icon='🔴';
         } else if(ev.type==='tacticalChoice'&&!window._tacticalShift.used&&matchSpeed>0){
           cls+='narr-my'; icon='⚙️';
@@ -1097,8 +1104,10 @@ const ev=allEvts[idx2++];
             },1000);
           },50);
         }
-        d.className=cls;
-        d.innerHTML='<span class="mlog-min2">'+ev.min+'\'</span><span class="mlog-icon">'+icon+'</span><span class="mlog-txt">'+txt+'</span>';
+        d.className=cls+' '+sideCls;
+        d.innerHTML=sideCls==='mlog-full'
+          ? '<span class="mlog-min2">'+ev.min+'\'</span><span class="mlog-icon">'+icon+'</span><span class="mlog-txt">'+txt+'</span>'
+          : '<span class="mlog-min2">'+ev.min+'\'</span><span class="mlog-side"><span class="mlog-icon">'+icon+'</span><span class="mlog-txt">'+txt+'</span></span>';
         lg.appendChild(d);
         lg.scrollTop=lg.scrollHeight;// v199: scroll do najnowszego wpisu
         // v199: chipsy na prawej karcie — dodaj TERAZ (sync z logiem)

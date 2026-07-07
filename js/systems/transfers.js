@@ -469,7 +469,7 @@ function renderBuyTab(){
       '</div></div>';
   }
   const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
-    t('tr_window_closed_prefix')+'<span style="color:var(--wh)">'+tw.next+'</span>'+(tw.eta?t('tr_window_closed_eta').replace('{n}',tw.eta):'')+
+    t('tr_window_closed_prefix')+'<span style="color:var(--wh)">'+windowNextLabel(tw)+'</span>'+(tw.eta?t('tr_window_closed_eta').replace('{n}',tw.eta):'')+
     t('tr_window_closed_suffix')+'</div>':'';
   el.innerHTML=_closedBanner+_filterBar+'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?t('tr_bought_count').replace('{n}','<span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'</span>'):t('tr_browsing_locked'))+'</div>'+
     _sh(t('tr_badge_for_sale'),_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
@@ -1356,7 +1356,7 @@ function fillTransfers(){
     if(tw.open){
       wb.innerHTML='<span style="color:var(--gb)">'+t('tr_window_open').replace('{type}',tw.type==='LETNIE'?t('window_summer'):t('window_winter'))+'</span> • '+t('tr_window_left').replace('{n}',tw.weeksLeft);
     } else {
-      wb.innerHTML='<span style="color:var(--rd)">'+t('tr_window_closed')+'</span>'+(tw.eta?' • '+t('tr_window_eta').replace('{n}',tw.eta):' • '+tw.next);
+      wb.innerHTML='<span style="color:var(--rd)">'+t('tr_window_closed')+'</span>'+(tw.eta?' • '+t('tr_window_eta').replace('{n}',tw.eta):' • '+windowNextLabel(tw));
     }
   }
   // Render active tab

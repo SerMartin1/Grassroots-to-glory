@@ -662,29 +662,30 @@ function fillLeaguesOverview(){
       '<td style="padding:4px 6px;color:var(--gr)">'+(idx+1)+'</td>'+
       '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+(isMy?';font-weight:700':'')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
       '<td style="text-align:right;color:var(--gr)">'+(s.p||s.m||0)+'</td>'+
-      '<td style="text-align:right;color:var(--gb);font-weight:bold">'+(s.pts||0)+'</td>'+
+      '<td style="text-align:right;color:var(--am);font-weight:bold">'+(s.pts||0)+'</td>'+
       '<td style="text-align:right;color:var(--gb)">'+(s.w||0)+'</td>'+
-      '<td style="text-align:right;color:var(--gr)">'+(s.d||0)+'</td>'+
+      '<td style="text-align:right;color:var(--wh)">'+(s.d||0)+'</td>'+
       '<td style="text-align:right;color:var(--rd)">'+(s.l||0)+'</td>'+
-      '<td style="text-align:right;color:var(--gr)">'+(s.gf||0)+'</td>'+
-      '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
+      '<td style="text-align:right;color:#8fd88f">'+(s.gf||0)+'</td>'+
+      '<td style="text-align:right;color:#f0968c">'+(s.ga||0)+'</td>'+
       '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
     '</tr>';};
     const legendParts=[];
     if(lvl>1)legendParts.push('<span><span style="display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:5px;vertical-align:middle;background:var(--gb)"></span>'+t('tbl_legend_zone_up')+'</span>');
     if(lvl<8)legendParts.push('<span><span style="display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:5px;vertical-align:middle;background:var(--rd)"></span>'+t('tbl_legend_zone_down')+'</span>');
     const legendHtml=legendParts.length?'<div style="display:flex;gap:14px;padding:6px 10px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid var(--gl);background:#0a1a0a">'+legendParts.join('')+'</div>':'';
-    let tblHtml=legendHtml+'<div style="overflow-x:auto;max-width:100%"><table style="width:100%;font-size:var(--fs-dense);border-collapse:collapse">'+
+    let tblHtml=legendHtml+'<div style="overflow-x:auto;max-width:100%"><table style="width:100%;table-layout:fixed;font-size:var(--fs-dense);border-collapse:collapse">'+
+      '<colgroup><col style="width:22px"><col><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"></colgroup>'+
       '<thead><tr>'+
         '<th style="padding:4px 6px;color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_num')+'</th>'+
         '<th style="color:var(--gr);text-align:left;font-size:var(--fs-dense)">'+t('tbl_col_club')+'</th>'+
         '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_m')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_pts')+'</th>'+
+        '<th style="color:var(--am);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_pts')+'</th>'+
         '<th style="color:var(--gb);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_w')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_d')+'</th>'+
+        '<th style="color:var(--wh);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_d')+'</th>'+
         '<th style="color:var(--rd);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_l')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_gf')+'</th>'+
-        '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_ga')+'</th>'+
+        '<th style="color:#8fd88f;text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_gf')+'</th>'+
+        '<th style="color:#f0968c;text-align:right;font-size:var(--fs-dense)">'+t('tbl_col_ga')+'</th>'+
         '<th style="color:var(--gr);text-align:right;font-size:var(--fs-dense);padding-right:6px">'+t('tbl_col_gd')+'</th>'+
       '</tr></thead><tbody id="tbody'+lvl+'">'+
       top3.map((s,i)=>rowHtmlLg(s,i,s.cid===G.myClubId)).join('')+
@@ -1221,12 +1222,12 @@ function toggleFullTable(lvl){
     '<td style="padding:4px 6px;color:var(--gr)">'+(i+1)+'</td>'+
     '<td style="color:'+(isMy?'var(--am)':'var(--wh)')+(isMy?';font-weight:700':'')+';vertical-align:middle"><span class="lg-crest-slot" data-cid="'+s.cid+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+s.n+'</td>'+
     '<td style="text-align:right;color:var(--gr)">'+(s.p||s.m||0)+'</td>'+
-    '<td style="text-align:right;color:var(--gb);font-weight:bold">'+(s.pts||0)+'</td>'+
+    '<td style="text-align:right;color:var(--am);font-weight:bold">'+(s.pts||0)+'</td>'+
     '<td style="text-align:right;color:var(--gb)">'+(s.w||0)+'</td>'+
-    '<td style="text-align:right;color:var(--gr)">'+(s.d||0)+'</td>'+
+    '<td style="text-align:right;color:var(--wh)">'+(s.d||0)+'</td>'+
     '<td style="text-align:right;color:var(--rd)">'+(s.l||0)+'</td>'+
-    '<td style="text-align:right;color:var(--gr)">'+(s.gf||0)+'</td>'+
-    '<td style="text-align:right;color:var(--gr)">'+(s.ga||0)+'</td>'+
+    '<td style="text-align:right;color:#8fd88f">'+(s.gf||0)+'</td>'+
+    '<td style="text-align:right;color:#f0968c">'+(s.ga||0)+'</td>'+
     '<td style="text-align:right;padding-right:6px;color:'+(gd>=0?'var(--gb)':'var(--rd)')+'">'+(gd>0?'+':'')+gd+'</td>'+
   '</tr>';};
   function _injectCrests(container){if(typeof pxCrest==='function'){container.querySelectorAll('.lg-crest-slot').forEach(function(sl){if(!sl.firstChild){var cid=parseInt(sl.dataset.cid)||0;sl.appendChild(pxCrest(cid,1));}});}}
@@ -1286,7 +1287,11 @@ function isTransferWindow(){
   // Okno zimowe: tydzień po kolejce 15 (round=16)
   if(G.round===16||G.round===17)return{open:true,type:'ZIMOWE',weeksLeft:18-G.round};
   // Oblicz następne okno
-  if(G.round<16)return{open:false,next:'zimowe',eta:16-G.round};
-  return{open:false,next:'letnie (nowy sezon)',eta:null};
+  if(G.round<16)return{open:false,next:'ZIMOWE',eta:16-G.round};
+  return{open:false,next:'LETNIE',eta:null,newSeason:true};
+}
+function windowNextLabel(tw){
+  const label=tw.next==='LETNIE'?t('window_summer'):t('window_winter');
+  return tw.newSeason?label+' '+t('tr_window_next_season_suffix'):label;
 }
 // DEMAND system

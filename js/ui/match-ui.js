@@ -320,12 +320,21 @@ function fillMatch(){
 
       // ── POPRAWKA 3: Badge strip — miejsce + bonus dom ───────────
       '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:5px 12px;border-bottom:1px solid var(--gl);background:#080f08">'+
+        (isHome?
         '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_you_pos').replace('{pos}',_myPos)+
         '</div>'+
         '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
           t('match_rival_pos').replace('{pos}',_oppPos)+
+        '</div>'
+        :
+        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+          t('match_rival_pos').replace('{pos}',_oppPos)+
         '</div>'+
+        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
+          t('match_you_pos').replace('{pos}',_myPos)+
+        '</div>'
+        )+
         (isHome?'<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
       '</div>'+
 
@@ -381,18 +390,17 @@ function fillMatch(){
       '</div>'+
 
       // ── POPRAWKA 5: Szanse — pasek aktualizuje się z mood ───────
+      // Segmenty paska są podpisane wprost (WYGRANA/REMIS/PRZEG.), więc
+      // kolor jednoznacznie odpowiada wynikowi z perspektywy gracza —
+      // nie trzeba go kojarzyć z gwiazdką przy nazwie klubu w nagłówku.
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
         '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
-        '<div style="display:flex;height:8px;border-radius:1px;overflow:hidden;margin-bottom:4px">'+
-          '<div style="flex:'+myWin+';background:var(--gb)"></div>'+
-          '<div style="flex:'+draw+';background:var(--gl)"></div>'+
-          '<div style="flex:'+oppWin+';background:var(--rd)"></div>'+
+        '<div style="display:flex;height:20px;border-radius:1px;overflow:hidden;margin-bottom:4px">'+
+          '<div style="flex:'+myWin+';background:var(--gb);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:#000">'+t('match_chance_win').replace('{n}',myWin)+'</div>'+
+          '<div style="flex:'+draw+';background:var(--gl);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:var(--wh)">'+t('match_chance_draw').replace('{n}',draw)+'</div>'+
+          '<div style="flex:'+oppWin+';background:var(--rd);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:#fff">'+t('match_chance_loss').replace('{n}',oppWin)+'</div>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense)">'+
-          '<span style="color:var(--gb)">'+t('match_chance_win').replace('{n}',myWin)+'</span>'+
-          '<span style="color:var(--gr)">'+t('match_chance_draw').replace('{n}',draw)+'</span>'+
-          '<span style="color:var(--rd)">'+t('match_chance_loss').replace('{n}',oppWin)+'</span>'+
-        '</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gb)">'+(isHome?homeClub.n:awayClub.n)+' '+t('match_odds_you_suffix')+'</div>'+
       '</div>'+
 
       // ── NASTAWIENIE ──────────────────────────────────────────────
