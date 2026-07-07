@@ -387,6 +387,16 @@ function simOthers(){
           p.seasonRatings.push(aiRat);
           p.lastMatchRating=aiRat;
         });
+        // v218: Lider/Zimna krew/Nerwowy — te same bonusy formy co w simMatch() (patrz punkt 5b),
+        // teraz też dla klubów AI. Pewny siebie (seria zwycięstw) zostaje pominięty — kluby AI nie
+        // mają dziś licznika winStreak (osobna decyzja, punkt 5c).
+        if(won){
+          if(teamPls.some(p=>p.starter&&p.traits&&p.traits.includes('lider')))
+            teamPls.forEach(p=>{p.form=Math.min(99,p.form+2);});
+        } else if(lost){
+          teamPls.filter(p=>p.starter&&p.traits&&p.traits.includes('zimna_krew')).forEach(p=>{p.form=Math.min(99,p.form+2);});
+          teamPls.filter(p=>p.starter&&p.traits&&p.traits.includes('nerwowy')).forEach(p=>{p.form=Math.max(5,p.form-2);});
+        }
       });
       matchEvts2.forEach(e=>{const sc=G.players.find(x=>x.id===e.scorerId);if(sc){if(!sc.st.g)sc.st.g=0;sc.st.g++;}const as=e.assistId?G.players.find(x=>x.id===e.assistId):null;if(as){if(!as.st.a)as.st.a=0;as.st.a++;}});
     });

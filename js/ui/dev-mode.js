@@ -440,3 +440,121 @@ function devSimMyMatch(m,isCup){
 }
 
 // Pokaż/ukryj przycisk DEV na podstawie flagi
+
+// ══════════════════════════════════════════════════════════════
+// NARZĘDZIE DIAGNOSTYCZNE (v219) — próbkowanie statystyk meczowych (gole/strzały/
+// celne/kartki) w dużej próbce, osobno per liga i ścieżka silnika. CZYSTO POMIAROWE:
+// nie zapisuje nic do G.mHist/standing/budżetu/formy/kontuzji, nie zmienia stanu
+// zapisu (poza tymczasowym, przywracanym na końcu G._matchMood/G.myLeague oraz
+// .starter flagami klubów AI — te i tak są nadpisywane przy każdym prawdziwym meczu).
+// Chronione przez DEV_MODE. Uruchom z konsoli: runDiagStatsSample()
+//
+// Trzy ścieżki na ligę:
+//  (a) _buildMatchLite — realna produkcyjna ścieżka simOthers() (tylko gole, ten
+//      silnik strukturalnie nie ma pojęcia strzału/celności/faulu)
+//  (b) _buildMatchPhases na losowych parach AI-AI (bez G.myClubId) — czy pełny
+//      silnik jest spójny między ligami niezależnie od tego, czy gra klub gracza
+//  (c) _buildMatchPhases z G.myClubId po jednej stronie (50/50 dom/wyjazd),
+//      tylko liga G.myLeague — realne "mecz gracza"
+//
+// Uwaga (nie naprawiane tu, tylko udokumentowane): wykrywanie derby w
+// _buildMatchPhases zawsze czyta G.standing (liga gracza), więc dla lig innych
+// niż G.myLeague w ścieżce (b) może dawać fałszywe rozpoznanie derby — stały,
+// ale nie kierunkowy (nie faworyzuje jednej ligi względem innych), szum.
+// ══════════════════════════════════════════════════════════════
+function _diagStatsFor(vals){
+  const n=vals.length;
+  if(!n)return{n:0,avg:0,min:0,max:0,sd:0};
+  const avg=vals.reduce((s,v)=>s+v,0)/n;
+  const variance=vals.reduce((s,v)=>s+(v-avg)*(v-avg),0)/n;
+  return{n,avg:Math.round(avg*100)/100,min:Math.min(...vals),max:Math.max(...vals),sd:Math.round(Math.sqrt(variance)*100)/100};
+}
+function _diagPickTwo(clubs){
+  if(clubs.length<2)return null;
+  const i=Math.floor(Math.random()*clubs.length);
+  let j=Math.floor(Math.random()*clubs.length);
+  while(j===i)j=Math.floor(Math.random()*clubs.length);
+  return[clubs[i],clubs[j]];
+}
+function runDiagStatsSample(nPerLeague){
+  if(!DEV_MODE){console.warn('runDiagStatsSample: wymaga DEV_MODE=true');return;}
+  if(!G){console.warn('runDiagStatsSample: brak wczytanej gry');return;}
+  nPerLeague=nPerLeague||300;
+  const _t0=Date.now();
+  const _origMood=G._matchMood, _origMyLeague=G.myLeague;
+  G._matchMood='balans'; // neutralizuj nastawienie gracza na czas próbkowania (reproducibility)
+  const perLeague={};
+  G.leagues.forEach(lg=>{
+    const level=lg.level;
+    G.myLeague=level; // v219: _atkCap w _buildMatchPhases czyta G.myLeague — bez tego mecze spoza ligi gracza miałyby zły sufit atk/def
+    const clubs=lg.clubs.filter(c=>c.id!==G.myClubId);
+    // (a) realna ścieżka AI-AI
+    const aGH=[],aGA=[],aGT=[];
+    for(let i=0;i<nPerLeague;i++){
+      const pair=_diagPickTwo(clubs);if(!pair)break;
+      aiSelectSquad(pair[0].id);aiSelectSquad(pair[1].id);
+      const res=_buildMatchLite({h:pair[0].id,a:pair[1].id});
+      aGH.push(res.hG);aGA.push(res.aG);aGT.push(res.hG+res.aG);
+    }
+    // (b) pełny silnik na losowych parach AI-AI
+    const bGH=[],bGA=[],bGT=[],bSH=[],bSA=[],bOH=[],bOA=[],bFH=[],bFA=[];
+    for(let i=0;i<nPerLeague;i++){
+      const pair=_diagPickTwo(clubs);if(!pair)break;
+      aiSelectSquad(pair[0].id);aiSelectSquad(pair[1].id);
+      const {finalizeSecondHalf}=_buildMatchPhases({h:pair[0].id,a:pair[1].id,rnd:0});
+      if(!window._tacticalShift.used)window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
+      finalizeSecondHalf();
+      bGH.push(fHG);bGA.push(fAG);bGT.push(fHG+fAG);
+      bSH.push(liveStats.hShots||0);bSA.push(liveStats.aShots||0);
+      bOH.push(liveStats.hOn||0);bOA.push(liveStats.aOn||0);
+      bFH.push(liveStats.hFouls||0);bFA.push(liveStats.aFouls||0);
+    }
+    perLeague[level]={
+      league:lg.name,
+      lite:{goalsH:_diagStatsFor(aGH),goalsA:_diagStatsFor(aGA),goalsTot:_diagStatsFor(aGT),n:aGT.length},
+      fullAiAi:{
+        goalsH:_diagStatsFor(bGH),goalsA:_diagStatsFor(bGA),goalsTot:_diagStatsFor(bGT),
+        shotsH:_diagStatsFor(bSH),shotsA:_diagStatsFor(bSA),
+        onH:_diagStatsFor(bOH),onA:_diagStatsFor(bOA),
+        foulsH:_diagStatsFor(bFH),foulsA:_diagStatsFor(bFA),
+        n:bGT.length
+      }
+    };
+  });
+  G.myLeague=_origMyLeague; // przywróć PRZED ścieżką (c), która musi znać prawdziwą ligę gracza
+  // (c) mecz gracza — tylko liga G.myLeague, 50/50 dom/wyjazd
+  const myLg=G.leagues.find(l=>l.level===G.myLeague);
+  const myClubs=myLg?myLg.clubs.filter(c=>c.id!==G.myClubId):[];
+  const cGMy=[],cGOpp=[],cGT=[],cSMy=[],cSOpp=[],cOMy=[],cOOpp=[],cFMy=[],cFOpp=[];
+  for(let i=0;i<nPerLeague;i++){
+    if(!myClubs.length)break;
+    const opp=myClubs[Math.floor(Math.random()*myClubs.length)];
+    const myHome=i%2===0;
+    aiSelectSquad(opp.id);
+    const m=myHome?{h:G.myClubId,a:opp.id,rnd:0}:{h:opp.id,a:G.myClubId,rnd:0};
+    const {finalizeSecondHalf}=_buildMatchPhases(m);
+    if(!window._tacticalShift.used)window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
+    finalizeSecondHalf();
+    const myG=myHome?fHG:fAG,oppG=myHome?fAG:fHG;
+    cGMy.push(myG);cGOpp.push(oppG);cGT.push(myG+oppG);
+    cSMy.push(myHome?(liveStats.hShots||0):(liveStats.aShots||0));
+    cSOpp.push(myHome?(liveStats.aShots||0):(liveStats.hShots||0));
+    cOMy.push(myHome?(liveStats.hOn||0):(liveStats.aOn||0));
+    cOOpp.push(myHome?(liveStats.aOn||0):(liveStats.hOn||0));
+    cFMy.push(myHome?(liveStats.hFouls||0):(liveStats.aFouls||0));
+    cFOpp.push(myHome?(liveStats.aFouls||0):(liveStats.hFouls||0));
+  }
+  const player={
+    league:myLg?myLg.name:'?',level:G.myLeague,
+    goalsMy:_diagStatsFor(cGMy),goalsOpp:_diagStatsFor(cGOpp),goalsTot:_diagStatsFor(cGT),
+    shotsMy:_diagStatsFor(cSMy),shotsOpp:_diagStatsFor(cSOpp),
+    onMy:_diagStatsFor(cOMy),onOpp:_diagStatsFor(cOOpp),
+    foulsMy:_diagStatsFor(cFMy),foulsOpp:_diagStatsFor(cFOpp),
+    n:cGT.length
+  };
+  G._matchMood=_origMood; // przywróć realne nastawienie gracza
+  window._diagStats={perLeague,player,generatedAt:new Date().toISOString(),nPerLeague};
+  console.log('=== DIAGNOSTYKA STATYSTYK MECZOWYCH (n='+nPerLeague+'/liga/ścieżka) — '+((Date.now()-_t0)/1000).toFixed(1)+'s ===');
+  console.log('Pełne dane: window._diagStats');
+  return window._diagStats;
+}

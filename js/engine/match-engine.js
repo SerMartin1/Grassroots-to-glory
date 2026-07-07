@@ -90,9 +90,16 @@ function _buildMatchLite(m){
   _applyTacticsToStrength(hSt,aSt,hMods,aMods);
   const hRatio=hSt.atk/(hSt.atk+aSt.def+1);
   const aRatio=aSt.atk/(aSt.atk+hSt.def+1);
-  // Home advantage — zawsze realny gospodarz m.h, tak samo jak w pełnej symulacji
-  const hLam=Math.max(0.15,hRatio*2.1)*hSt.form*1.07;
-  const aLam=Math.max(0.15,aRatio*2.1)*aSt.form;
+  // Home advantage — zawsze realny gospodarz m.h, tak samo jak w pełnej symulacji.
+  // v217: amplituda open-play i mnożnik 1.373 skalibrowane Monte Carlo tak, by łączna
+  // liczba goli/mecz (~2.75-2.8) i stosunek gospodarz/gość (~1.37x) zgadzały się
+  // z _buildMatchPhases (bldEvs+saveChance intercept 0.325) — patrz diagnoza asymetrii goli.
+  // v218: _spLam = odpowiednik śr. wkładu bldSetPieces (rożne+wolne+karne) z pełnego silnika —
+  // bez bonusu za własne boisko, tak jak w bldSetPieces. Amplituda open-play obniżona z 2.35 do
+  // 2.03, żeby po doliczeniu _spLam łączna liczba goli została na tym samym ~2.76/mecz.
+  const _spLam=0.19;
+  const hLam=Math.max(0.15,hRatio*2.03)*hSt.form*1.373+_spLam;
+  const aLam=Math.max(0.15,aRatio*2.03)*aSt.form+_spLam;
   const _t=10;
   let hG=0,aG=0;
   for(let i=0;i<_t;i++){if(Math.random()<Math.min(0.92,hLam/_t))hG++;}
@@ -179,6 +186,10 @@ function _buildMatchPhases(m){
   hA=Math.max(3,Math.round(hA*(1-aMods.pressMod.oppAct)));
   hA=Math.max(3,Math.round(hA*(1+midDiff)));
   aA=Math.max(3,Math.round(aA*(1-midDiff)));
+  // v219: cap po wszystkich mnożnikach (tempo/styl/hs/mood/pressing/midDiff) — bez tego skumulowane
+  // bonusy potrafiły wygenerować >30 akcji jednej stronie i nierealistyczne 20+ strzałów w meczu
+  hA=Math.min(32,hA);
+  aA=Math.min(32,aA);
 
   // Zmęczenie PHY — faza 3 (61-90')
   const myStarters=G.players.filter(p=>p.clubId===G.myClubId&&p.starter);
@@ -187,18 +198,32 @@ function _buildMatchPhases(m){
   // v198: avgPhy obu drużyn (AI zawodnicy używają OVR jako proxy)
   const oppStarters=G.players.filter(p=>p.clubId===(isMyH?m.a:m.h)&&p.starter);
   const avgPhyOpp=oppStarters.length?oppStarters.reduce((s,p)=>s+(p.phy||50),0)/oppStarters.length:50;
+  const staminaFactorOpp=0.90+(avgPhyOpp/500); // v218: to samo co staminaFactor, ale dla realnego rywala (był na sztywno 1.0)
   // _fatigueSavePenalty(min, avgPhyDef): im niższy PHY obrony i im później, tym mniej broni GK
   function _fatigueSavePenalty(min,phyAvg){
     if(min<65)return 0;
     const tired=Math.max(0,(100-phyAvg)/100); // 0=superkondycja,1=bez kondycji
     return tired*(min-65)/25*0.10; // max -10% saveChance przy PHY=0 w 90'
   }
+  // v218: Więź z Klubem w meczu — działa dla OBU stron na bazie _seasonsAtClub (już liczone dla
+  // wszystkich klubów, patrz match-post.js aiTransferSeason). getBondLevel()/getBondFormBonus()
+  // (news-bootstrap.js) zostają nietknięte — używane też w UI karty zawodnika i w transferach,
+  // celowo tylko dla mojego klubu (patrz tactics-playercard.js "tylko własni").
+  function _matchBondFormBonus(p,isHome){
+    const s=(p&&p._seasonsAtClub)||0;
+    let level=1;
+    if(s>=8)level=4; else if(s>=5)level=3; else if(s>=3)level=2;
+    if(level===4)return isHome?3:1;
+    if(level===3)return isHome?2:0;
+    if(level===2)return isHome?1:0;
+    return 0;
+  }
 
   // Podziel akcje na 3 fazy
   const h1=Math.round(hA*0.30), h2=Math.round(hA*0.35), h3=Math.max(2,hA-h1-h2);
   const a1=Math.round(aA*0.30), a2=Math.round(aA*0.35), a3=Math.max(2,aA-a1-a2);
-  const h3f=Math.round(h3*(isMyH?staminaFactor:1.0));
-  const a3f=Math.round(a3*(isMyH?1.0:staminaFactor));
+  const h3f=Math.round(h3*(isMyH?staminaFactor:staminaFactorOpp));
+  const a3f=Math.round(a3*(isMyH?staminaFactorOpp:staminaFactor));
 
   // v214: taktyczny shift w 46' — gracz wybiera ręcznie (UI), AI dobiera automatycznie wg wyniku po 2. fazie.
   // Definicje współdzielone z przyciskami wyboru gracza (patrz _tBtns niżej).
@@ -236,7 +261,11 @@ const _tMod=_timeMod(min);   // czas: końcówka meczu bardziej dynamiczna
 const _myTacSh=window._tacticalShift||{shotMod:1.0,saveMod:1.0};
 const _aiTacSh=window._aiTacticalShift||{shotMod:1.0,saveMod:1.0};
 const _shooterTacSh=(isH===isMyH)?_myTacSh:_aiTacSh;
-const baseShot=((atk/(atk+def+1))*0.58+0.14+_ovrDiffBoost+_mBoost)*scMod*_tMod*(_shooterTacSh.shotMod||1.0)*(_derbyFactor||1.0);
+// v219: clamp na CAŁOŚCI (nie tylko bazie) — bez tego scMod*_tMod*shotMod*derbyFactor potrafiły
+// przebić 100% szansy na strzał z każdej akcji
+// v221: intercept 0.14→0.11 — mniej, ale celniejszych strzałów (razem z accuracyChance/saveChance
+// niżej), żeby podnieść %celne bez zmiany łącznej liczby goli — patrz analiza celności per liga
+const baseShot=Math.max(0.10,Math.min(0.75,((atk/(atk+def+1))*0.58+0.11+_ovrDiffBoost+_mBoost)*scMod*_tMod*(_shooterTacSh.shotMod||1.0)*(_derbyFactor||1.0)));
 if(Math.random()>baseShot){
   // Akcja zakończona obroną — losowy obrońca dostaje clearance
   const defTeam=G.players.filter(p=>p.clubId===(isH?m.a:m.h)&&(p.pos==='OBR'||p.pos==='GK')&&p.starter);
@@ -267,12 +296,19 @@ const gkPlayer=G.players.find(p=>p.clubId===(isH?m.a:m.h)&&p.pos==='GK'&&p.start
 const gkDef=gkPlayer?gkPlayer.def:gk;
 // Faza 1: Celność strzału
 const homeBonus=isH?1.10:0.93;// v196: wzmocniona przewaga domowa (10%→18% asymetria)
-// v212: Więź z Klubem — bonus formy, większy u siebie (realny gospodarz, nie klub gracza)
-const _bondFB=getBondFormBonus(sc2,isH);
+// v212/v218: Więź z Klubem — bonus formy, większy u siebie (realny gospodarz, nie klub gracza),
+// działa symetrycznie dla obu stron (_matchBondFormBonus, nie getBondFormBonus — patrz notatka wyżej)
+const _bondFB=_matchBondFormBonus(sc2,isH);
 const _bondShtMod=_bondFB>0?1+((_bondFB*2)/100):1.0;
 // v198: hot streak napastnika daje bonus do celności (+5% za serię ≥3, +12% za ≥5)
 const _streakB=(sc2&&sc2.goalStreak>=5)?1.12:(sc2&&sc2.goalStreak>=3)?1.05:1.0;
-const accuracyChance=Math.max(0.38,Math.min(0.55,(shtAttr/100)*0.36+0.19))*counterMod*homeBonus*_streakB*_bondShtMod;// v208: więcej celnych (3-4/mecz) żeby obrony były widoczne
+// v219: clamp na CAŁOŚCI (nie tylko bazie) — counterMod (do 2.0 dla Defensywny+Kontry) i inne mnożniki
+// potrafiły przebić 100% celności, patrz diagnoza niespójności między meczami
+// v220: intercept 0.19→0.14 — rekalibracja pod realne losowe pary (nie idealne równe drużyny),
+// razem ze saveChance niżej, na podstawie runDiagStatsSample() — patrz diagnoza "full" vs "lite"
+// v221: intercept 0.14→0.17 — podniesienie %celne (razem z niższym baseShot wyżej i wyższym
+// saveChance niżej, żeby łączna liczba goli została nietknięta) — patrz analiza celności per liga
+const accuracyChance=Math.max(0.30,Math.min(0.65,((shtAttr/100)*0.36+0.17)*counterMod*homeBonus*_streakB*_bondShtMod));// v208: więcej celnych (3-4/mecz) żeby obrony były widoczne
 // Faza 2: Obrona bramkarza — floor niższy przy amatorach (więcej bramek L3-L8), sufit wyższy przy elicie (więcej remisów L1-L2)
 const saveChanceMod=isH?0.97:1.03;// v196: mniejsza asymetria GK → mniej wygranych gości
 const _relStr=Math.min(1.4,gkDef/Math.max(10,shtAttr));
@@ -287,7 +323,15 @@ const _fatPen=_fatigueSavePenalty(min,_defPhyAvg);
 const _defenderTacSh=(isH===isMyH)?_aiTacSh:_myTacSh;
 const _tacSaveMod=_defenderTacSh.saveMod||1.0;
 const _derbySaveMod=(_derbyFactor||1.0)>1.0?0.97:1.0;// derby: GK troszkę gorzej broni
-const saveChance=(Math.max(_scFloor,Math.min(_scCeil,_relStr*0.35+0.28))*saveChanceMod-_fatPen)*_tacSaveMod*_derbySaveMod;
+// v219: clamp na CAŁOŚCI (nie tylko bazie) — saveChanceMod/_tacSaveMod/_derbySaveMod mnożone poza
+// oryginalnym clampem potrafiły zejść poniżej/wyjść powyżej sensownego zakresu
+// v220: intercept 0.28→0.38 — rekalibracja średniej goli (nie tylko ogona rozkładu) na
+// podstawie runDiagStatsSample(): "full" silnik na losowych parach dawał +25-70% goli
+// więcej niż "lite" (simOthers) we wszystkich 8 ligach — rozłożone na 2 dźwignie
+// (razem z accuracyChance wyżej), żeby nie zdusić konwersji do nierealistycznych wartości
+// v221: intercept 0.38→0.42 — kompensuje podniesione accuracyChance/obniżone baseShot wyżej,
+// żeby łączna liczba goli została nietknięta mimo wyższej celności
+const saveChance=Math.max(0.40,Math.min(0.95,(Math.max(_scFloor,Math.min(_scCeil,_relStr*0.35+0.42))*saveChanceMod-_fatPen)*_tacSaveMod*_derbySaveMod));
 const isAccurate=Math.random()<accuracyChance;
 if(isAccurate){if(isH)liveStats.hOn++;else liveStats.aOn++;if(ratings[sc2.id])ratings[sc2.id].accurateShots=(ratings[sc2.id].accurateShots||0)+1;}
 if(isAccurate&&(Math.random()>(saveChance))){if(ratings[sc2.id]){ratings[sc2.id].goals++;ratings[sc2.id].rating+=1.5;}
