@@ -10,9 +10,18 @@ function _matchLockAllowedPanel(id){
   if(!isMatchLockActive())return true;
   if(id==='p-match')return true;
   if(G._matchLockPhase==='prematch'&&(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'))return true;
+  // v228: faza 'summary' (ekran podsumowania meczu) — dozwolone tylko dojście do karty
+  // zawodnika (klik na MVP), nic innego.
+  if(G._matchLockPhase==='summary'&&id==='p-player')return true;
   return false;
 }
 function _returnToMatchLock(){
+  // v228: faza 'summary' — gracz ogląda ekran podsumowania meczu (osobny .view, nie panel).
+  // Próba wyjścia (wstecz) tylko ponownie pokazuje ten sam widok, nic nie przelicza.
+  if(G&&G._matchLockPhase==='summary'){
+    go('v-match-summary');
+    return;
+  }
   // Gdy mecz faktycznie trwa, NIE wolno wołać openPanel/fillMatch — fillMatch
   // ma heurystykę czyszczącą "zawieszone" matchInProgress, która przy ponownym
   // wywołaniu w trakcie prawdziwej symulacji fałszywie zerowała flagę i
@@ -41,7 +50,9 @@ window.addEventListener('popstate',function(){
 });
 
 function go(vid){
-  if(isMatchLockActive()&&vid!=='v-game'){
+  // v228: ekran podsumowania meczu jest dozwolonym celem nawigacji nawet gdy blokada
+  // meczu jest aktywna (faza 'summary') — to on ją zaraz zwolni przyciskiem DALEJ.
+  if(isMatchLockActive()&&vid!=='v-game'&&vid!=='v-match-summary'){
     notif(t('match_lock_blocked_notif'),'err');
     _returnToMatchLock();
     return;
@@ -102,35 +113,91 @@ function closeAllPanels(exceptId){
     if(el.id!==exceptId) el.classList.remove('open');
   });
 }
+// v226: panele znikają/pojawiają się tym samym transform:translateX(100%) ("ukryty" = zjechany
+// w prawo poza ekran). Gdy DWA panele animują się naraz (zamiana panel→panel, a nie
+// dashboard→panel), przez cały czas trwania animacji lewa część ekranu nie jest pokryta przez
+// ŻADEN z nich (matematycznie: stary panel odsłania lewą stronę w miarę zjeżdżania w prawo,
+// nowy panel JESZCZE nie dojechał z prawej) — widać przez nią ekran główny pod spodem. Jedyne
+// solidne rozwiązanie to wyłączenie animacji na czas takiej podmiany (natychmiastowa zamiana),
+// zamiast próby synchronizowania dwóch niezależnych animacji CSS.
+function _panelNoAnim(el){
+  if(!el)return;
+  el.style.transition='none';
+  void el.offsetHeight; // wymusza reflow, żeby transition:none zdążyło zadziałać przed zmianą klasy
+}
+function _panelRestoreAnim(el){
+  if(!el)return;
+  requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.transition='';});});
+}
 function openPanel(id){
   if(!_matchLockAllowedPanel(id)){
     notif(t('match_lock_blocked_notif'),'err');
     if(id!=='p-match')_returnToMatchLock();
     return;
   }
+  const _fromEl=document.querySelector('.panel.open');
+  const _swapping=!!(_fromEl&&_fromEl.id!==id);
+  if(_swapping)_panelNoAnim(_fromEl);
   closeAllPanels(id); // wymusza tylko 1 aktywny panel naraz (naprawa nakładania się ekranów)
-  fillPanel(id);const el=document.getElementById(id);if(el)el.classList.add('open');
+  fillPanel(id);const el=document.getElementById(id);
+  if(el){
+    if(_swapping){
+      _panelNoAnim(el);el.classList.add('open');
+      _panelRestoreAnim(_fromEl);_panelRestoreAnim(el);
+    } else el.classList.add('open');
+  }
 }
 function closePanel(id){
   const el=document.getElementById(id);
   if(el){
-    el.classList.remove('open');
     if(id==='p-player'){
       el.style.zIndex='';
-      // Wróć do modalu podsumowania jeśli tam byliśmy
-      if(window._mssPlayerReturn){
-        window._mssPlayerReturn=false;
-        const mss=document.getElementById('modal-season-summary');
-        if(mss)mss.style.display='flex';
+      // v226: zamknięcie karty i pokazanie panelu/modalu powrotu MUSI iść bez animacji CSS.
+      // Karta i panel powrotu używają tego samego transform:translateX(100%) jako stanu
+      // "ukryty" — gdyby oba animowały się naraz (karta zjeżdża w prawo, panel wjeżdża z
+      // prawej), przez cały czas trwania (0.2s) żaden z nich nie pokrywałby lewej części
+      // ekranu i widać by było przez nią ekran główny pod spodem. Dlatego cała zamiana
+      // (zdjęcie .open z karty + dodanie .open do celu) idzie z transition:none — patrz
+      // _panelNoAnim/_panelRestoreAnim (ta sama logika co w openPanel()).
+      _panelNoAnim(el);
+      el.classList.remove('open');
+      const _ret=window._playerReturnTo;
+      window._playerReturnTo=null;
+      if(_ret&&_ret.modalId==='md-overlay'&&_ret.extra){
+        showMatchDetail(_ret.extra.idx);
+      } else if(_ret&&_ret.modalId==='modal-season-summary'){
+        const mss=document.getElementById('modal-season-summary');if(mss)mss.style.display='flex';
+      } else if(_ret&&_ret.modalId==='modal-club-ai'&&_ret.extra){
+        openClubModal(_ret.extra.clubId);
+        if(_ret.extra.tab)cmTab(_ret.extra.tab);
+      } else if(_ret&&_ret.panelId==='p-match'){
+        // v225: TYLKO przywróć widoczność panelu meczu — NIGDY openPanel('p-match')/fillMatch().
+        // Treść p-match zostaje cała nietknięta w DOM-ie, gdy karta zawodnika się otwiera
+        // (closeAllPanels tylko chowa panel przez klasę .open, nic nie czyści) — więc wystarczy
+        // pokazać go z powrotem. fillMatch() przelicza WSZYSTKO na nowo z nextMatch()/G.round i
+        // potrafiła "przeskoczyć" do analizy przedmeczowej KOLEJNEGO meczu zamiast pokazać to, co
+        // gracz właśnie oglądał (relację/oceny bieżącego). To samo podejście jest już bezpieczne
+        // w trakcie żywej symulacji (patrz stary kod _returnToMatchLock — ten sam wzorzec).
+        closeAllPanels('p-match');
+        const pm=document.getElementById('p-match');
+        if(pm){_panelNoAnim(pm);pm.classList.add('open');_panelRestoreAnim(pm);}
+      } else if(_ret&&_ret.panelId&&_matchLockAllowedPanel(_ret.panelId)){
+        // v226: NIE openPanel() tutaj — .open karty już zdjęte linijkę wyżej, więc openPanel()
+        // nie "zobaczyłby" żadnego otwartego panelu do zsynchronizowania i wyłączenia animacji
+        // dla drugiej strony zamiany. Robimy to jawnie tym samym mechanizmem co openPanel().
+        closeAllPanels(_ret.panelId);
+        fillPanel(_ret.panelId);
+        const tgt=document.getElementById(_ret.panelId);
+        if(tgt){_panelNoAnim(tgt);tgt.classList.add('open');_panelRestoreAnim(tgt);}
+      } else if(_ret&&_ret.viewId){
+        // v228: powrót z karty zawodnika (klik MVP) na ekran podsumowania meczu — to osobny
+        // .view, nie panel; go() go po prostu ponownie pokazuje (był cały czas pod spodem,
+        // panele nie są zagnieżdżone w .view, więc nic tu nie trzeba animować/przeliczać).
+        go(_ret.viewId);
       }
-      // Wróć do składu klubu jeśli stamtąd przyszliśmy
-      if(window._playerReturnTo==='club-squad'&&window._playerReturnClubId){
-        var _retCid=window._playerReturnClubId;
-        window._playerReturnTo=null;window._playerReturnClubId=null;
-        setTimeout(function(){openClubModal(_retCid);setTimeout(function(){cmTab('sklad');},50);},60);
-      } else {
-        window._playerReturnTo=null;window._playerReturnClubId=null;
-      }
+      _panelRestoreAnim(el);
+    } else {
+      el.classList.remove('open');
     }
   }
   if(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'){
@@ -156,7 +223,7 @@ function openModal(id){const el=document.getElementById(id);if(el)el.classList.a
 function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('open');}
 function notif(msg,type){const el=document.getElementById('notif-el');if(!el)return;el.textContent=msg;el.className='notif show '+(type||'');setTimeout(()=>el.classList.remove('show'),2500);}
 
-function matchTab(tab,btn){document.querySelectorAll('#p-match .sq-tab2-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['m-relacja','m-oceny'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});const el=document.getElementById('m-'+tab);if(el)el.classList.add('on');const spb=document.getElementById('m-speed-btns');if(spb)spb.style.display=(tab==='relacja')?'block':'none';}
+function matchTab(tab,btn){document.querySelectorAll('#p-match .sq-tab2-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['m-relacja','m-oceny'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});const el=document.getElementById('m-'+tab);if(el)el.classList.add('on');const spb=document.getElementById('m-speed-btns');if(spb)spb.style.display=(tab==='relacja')?'block':'none';if(tab==='relacja'&&typeof _sizeMlog==='function')_sizeMlog();}
 
 function trTab(tab,btn){document.querySelectorAll('#p-transfers .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#p-transfers .tab-pane').forEach(p=>p.classList.remove('on'));const el=document.getElementById('tr-'+tab);if(el)el.classList.add('on');}
 
@@ -616,7 +683,7 @@ function renderSquadStats(){
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
       '<td style="padding:5px 8px;color:var(--gr)">'+(p.jerseyNum||'—')+'</td>'+
       '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
-      '<td style="padding:5px 4px;color:var(--wh);vertical-align:middle"><span class="sq-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
+      '<td style="padding:5px 4px;color:var(--wh);vertical-align:middle"><span class="sq-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;padding-right:8px;color:var(--gr)">'+(p.age||'—')+'</td>'+
       '<td style="text-align:right;padding-right:10px;color:'+oc+'">'+o+'</td>'+
       '<td style="text-align:right;padding-right:10px;color:'+fc+'">'+fm+'%</td>'+
@@ -637,7 +704,7 @@ function renderSquadStats(){
   ];
   const footer=null;
   el.innerHTML=_filterBar('stats')+_sqTbl(headers,rows,footer);
-  if(typeof pxFace==='function'){el.querySelectorAll('.sq-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),1));}});}
+  if(typeof pxFace==='function'){el.querySelectorAll('.sq-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),1,parseInt(sl.dataset.age)||undefined));}});}
 }
 function renderSquadHealth(){
   const el=document.getElementById('squad-zdrowie');if(!el||!G)return;

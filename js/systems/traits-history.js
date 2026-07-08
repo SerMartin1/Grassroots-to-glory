@@ -217,6 +217,9 @@ function renderHistSezony(){
 
 function showMatchDetail(mHistIdx){
   const m=G.mHist&&G.mHist[mHistIdx];if(!m)return;
+  // v223: zapamiętane dla _captureReturnPoint() w tactics-playercard.js — pozwala karcie
+  // zawodnika wrócić do WŁAŚCIWEGO meczu po zamknięciu (jeden mechanizm powrotu)
+  window._curMatchDetailIdx=mHistIdx;
   const myName=G.myClub.n;
   const isMyH=m.isMyH!=null?m.isMyH:(m.hn===myName);
   const myG=isMyH?m.hg:m.ag,oppG=isMyH?m.ag:m.hg;
@@ -226,8 +229,11 @@ function showMatchDetail(mHistIdx){
   // Szukaj cid drużyn żeby otworzyć kartę klubu
   const hClub=ALL_CLUBS.find(c=>c.n===m.hn);
   const aClub=ALL_CLUBS.find(c=>c.n===m.an);
-  const hClick=hClub?'style="cursor:pointer;text-decoration:underline" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');setTimeout(()=>openClubModal('+hClub.id+'),60)"':'';
-  const aClick=aClub?'style="cursor:pointer;text-decoration:underline" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');setTimeout(()=>openClubModal('+aClub.id+'),60)"':'';
+  // v224: powrót do overlayu meczu po zamknięciu modalu klubu — patrz window._clubModalReturn,
+  // odczytywane w closeClubModal() (club-modal.js). Ten sam wzorzec co _playerReturnTo dla karty
+  // zawodnika, tylko dla zamknięcia modalu klubu.
+  const hClick=hClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:{idx:'+mHistIdx+'}};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+hClub.id+')"':'';
+  const aClick=aClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:{idx:'+mHistIdx+'}};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+aClub.id+')"':'';
   // Scoreboard
   let html='<div class="md-ph"><div class="md-ph-title">'+t('ht_match_details_title')+'</div><button class="md-close" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\')">✕</button></div>';
   html+='<div class="md-scoreboard">';
@@ -268,8 +274,8 @@ function showMatchDetail(mHistIdx){
     evts.forEach(e=>{
       if(e.type==='goal'){
         const isMy=(isMyH&&e.isH)||(!isMyH&&!e.isH);
-        const scorerLink=e.sid?'<span class="md-scorer-link" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.sid+')">'+e.scorer+'</span>':'<span class="md-scorer">'+e.scorer+'</span>';
-        const assLink=e.aid&&e.assister?'<span class="md-assist-link" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.aid+')">'+e.assister+'</span>':'<span style="color:var(--gl)">'+(e.assister||t('ht_no_assist'))+'</span>';
+        const scorerLink=e.sid?'<span class="md-scorer-link" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.sid+')">'+e.scorer+'</span>':'<span class="md-scorer">'+e.scorer+'</span>';
+        const assLink=e.aid&&e.assister?'<span class="md-assist-link" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.aid+')">'+e.assister+'</span>':'<span style="color:var(--gl)">'+(e.assister||t('ht_no_assist'))+'</span>';
         html+='<div class="md-tl-ev">';
         html+='<div class="md-tl-min">'+e.min+'\'</div>';
         html+='<div class="md-tl-icon">⚽</div>';
@@ -279,7 +285,7 @@ function showMatchDetail(mHistIdx){
       } else {
         const icon=e.cardType==='y'?'🟨':'🟥';
         const cls=e.cardType==='y'?'md-card-y':'md-card-r';
-        const cardLink=e.cid?'<span class="'+cls+'" style="cursor:pointer;text-decoration:underline" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.cid+')">'+e.name+'</span>':'<span class="'+cls+'">'+e.name+'</span>';
+        const cardLink=e.cid?'<span class="'+cls+'" style="cursor:pointer;text-decoration:underline" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.cid+')">'+e.name+'</span>':'<span class="'+cls+'">'+e.name+'</span>';
         html+='<div class="md-tl-ev"><div class="md-tl-min">'+e.min+'\'</div><div class="md-tl-icon">'+icon+'</div><div class="md-tl-txt">'+cardLink+'</div></div>';
       }
     });
@@ -297,7 +303,7 @@ function showMatchDetail(mHistIdx){
     html+='<div class="md-ratings"><div class="md-rat-hdr">'+t('ht_ratings_title')+'</div><div class="md-rat-grid">';
     entries.forEach(e=>{
       const cls=e.rat>=8?'am':e.rat>=7?'gb':e.rat>=6?'wh':'rd';
-      html+='<div class="md-rat-card" onclick="window._matchDetailReturn='+mHistIdx+';document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.id+')"><span><span class="md-rat-pos">'+e.pos+'</span><span class="md-rat-name">'+e.name+'</span></span><span class="md-rat-val '+cls+'">'+e.rat.toFixed(1)+'</span></div>';
+      html+='<div class="md-rat-card" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.id+')"><span><span class="md-rat-pos">'+e.pos+'</span><span class="md-rat-name">'+e.name+'</span></span><span class="md-rat-val '+cls+'">'+e.rat.toFixed(1)+'</span></div>';
     });
     html+='</div></div>';
   }

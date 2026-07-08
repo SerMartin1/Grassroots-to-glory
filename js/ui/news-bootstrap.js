@@ -4,26 +4,21 @@ function showById(id){
   var _allP=[...G.players,...(G.retiredPlayers||[]),...(G.fa||[])];
   var p=_allP.find(function(x){return x.id===pid2;});
   if(!p)return;
-  // Sprawdź czy wchodzimy z modalu podsumowania
-  var mss=document.getElementById('modal-season-summary');
-  if(mss&&mss.style.display==='flex'){
-    mss.style.display='none';
-    window._mssPlayerReturn=true;
-  } else {
-    window._mssPlayerReturn=false;
-  }
-  // Jeśli modal klubu jest otwarty — zapamiętaj powrót do niego
-  var cmAi=document.getElementById('modal-club-ai');
-  if(cmAi&&cmAi.style.display==='flex'&&_cmClubId){
-    window._playerReturnToClub=_cmClubId;
-    closeClubModal();
-  } else {
-    window._playerReturnToClub=null;
-  }
   closeModal('m-contract');
+  // v223: showPlayer() sam zapamiętuje punkt powrotu (_captureReturnPoint w tactics-playercard.js)
+  // — musi się to zdarzyć PRZED zamknięciem modali niżej, żeby jeszcze je "zobaczył" jako otwarte.
   showPlayer(p);
-  var pp=document.getElementById('p-player');
-  // zIndex panelu usunięty - wyłączność panelu pilnuje MutationObserver
+  // Modale zamykamy PO otwarciu karty (ten sam wzorzec co showPlayerFromClubModal — bez mrugania)
+  var mss=document.getElementById('modal-season-summary');
+  if(mss&&mss.style.display==='flex')mss.style.display='none';
+  var cmAi=document.getElementById('modal-club-ai');
+  if(cmAi&&cmAi.style.display==='flex'){
+    // v224: to zamknięcie klubu jest tylko efektem ubocznym otwarcia karty zawodnika (powrót do
+    // klubu już pilnuje _playerReturnTo) — nie licz go jako "prawdziwe" zamknięcie modalu klubu,
+    // inaczej closeClubModal() błędnie odpali powrót do overlayu meczu (window._clubModalReturn).
+    window._clubModalReturn=null;
+    closeClubModal();
+  }
 }
 function newsAction(el){
   const panel=el.dataset&&el.dataset.panel;

@@ -43,8 +43,8 @@ function fillMatch(){
     const mi=document.getElementById('m-minute');if(mi)mi.textContent="0'";
     const mls=document.getElementById('m-live-score');if(mls)mls.textContent='0 - 0';
     document.getElementById('m-attendance-bar')&&(document.getElementById('m-attendance-bar').style.display='none');
-    const hn=document.getElementById('m-home-name');if(hn){hn.textContent=_hClub.n+(_isHome?' ⭐':'');hn.style.cursor='default';hn.onclick=null;}
-    const an=document.getElementById('m-away-name');if(an){an.textContent=(_isHome?'':' ⭐')+_aClub.n;an.style.cursor='default';an.onclick=null;}
+    const hn=document.getElementById('m-home-name');if(hn){hn.innerHTML=_teamChip(_hClub.n+(_isHome?' ⭐':''),_isHome);hn.style.cursor='default';hn.onclick=null;}
+    const an=document.getElementById('m-away-name');if(an){an.innerHTML=_teamChip((_isHome?'':' ⭐')+_aClub.n,!_isHome);an.style.cursor='default';an.onclick=null;}
     const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_cup_info').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);
     const _cupBanner=document.getElementById('m-cup-banner');
     if(_cupBanner){_cupBanner.style.display='block';_cupBanner.textContent=t('match_cup_banner').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);}
@@ -96,7 +96,7 @@ function fillMatch(){
   const pr=document.getElementById('m-progress');if(pr)pr.style.width='0%';
   const mi=document.getElementById('m-minute');if(mi)mi.textContent="0'";
   const mls=document.getElementById('m-live-score');if(mls)mls.textContent='0 - 0';
-  // Frekwencja kibiców pod paskiem
+  // Frekwencja kibiców pod paskiem — 🎟️ + wizualny pasek
   const attBar=document.getElementById('m-attendance-bar');
   if(attBar){
     const _m2=nextMatch();
@@ -106,9 +106,15 @@ function fillMatch(){
       const _wid2=Math.round(_cap2*_freq2/100);
       const _fc2=_freq2>=75?'var(--gb)':_freq2>=50?'var(--am)':'var(--rd)';
       attBar.style.display='block';
-      attBar.innerHTML=t('match_attendance').replace('{pct}',_freq2).replace('{n}',_wid2.toLocaleString(LANG==='en'?'en-GB':'pl-PL')).replace('{cap}',_cap2.toLocaleString(LANG==='en'?'en-GB':'pl-PL'));
+      attBar.innerHTML='🎟️ '+t('match_attendance').replace('{pct}',_freq2).replace('{n}',_wid2.toLocaleString(LANG==='en'?'en-GB':'pl-PL')).replace('{cap}',_cap2.toLocaleString(LANG==='en'?'en-GB':'pl-PL'))+
+        '<div style="height:4px;background:#1a1a1a;border:1px solid var(--gl);margin-top:3px;max-width:140px"><div style="height:100%;width:'+_freq2+'%;background:'+_fc2+'"></div></div>';
     }else{attBar.style.display='none';}
   }
+  // Reset akordeonu statystyk + baneru ocen końcowych
+  const _acc0=document.getElementById('m-stats-acc');if(_acc0)_acc0.classList.remove('open');
+  const _accSum0=document.getElementById('acc-summary');if(_accSum0)_accSum0.textContent=t('match_possession');
+  const _fb0=document.getElementById('m-final-banner');if(_fb0)_fb0.style.display='none';
+  ['ls-yellow-row'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   ['ls-poss','ls-shots','ls-on','ls-fouls'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
   const btn=document.getElementById('btn-sim');
   const pre=document.getElementById('m-prematch');
@@ -119,9 +125,12 @@ function fillMatch(){
     const bb4=document.getElementById('btn-match-back');if(bb4){bb4.style.display='block';bb4.style.background='';bb4.style.color='';bb4.textContent=t('modal_back');}const ln2=document.getElementById('m-lock-note');if(ln2)ln2.style.display='none';if(btn)btn.style.display='none';if(pre)pre.style.display='none';return;
   }
   const isHome=m.h===G.myClubId;
+  if(typeof _setBoiskoSideLabels==='function')_setBoiskoSideLabels(isHome);
   const hc=ALL_CLUBS.find(c=>c.id===m.h),ac=ALL_CLUBS.find(c=>c.id===m.a);
-  const hn=document.getElementById('m-home-name');if(hn){hn.textContent=hc.n+(isHome?' ⭐':'');hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.h);}}
-  const an=document.getElementById('m-away-name');if(an){an.textContent=(isHome?'':' ⭐')+ac.n;an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.a);}}
+  // v222: nazwa drużyny jako "chip" w tych samych barwach co pasek jej akcji w relacji
+  // (--am-bar/--gb-bar) — wyraźne powiązanie kolorystyczne góra↔relacja, nie tylko kolor tekstu
+  const hn=document.getElementById('m-home-name');if(hn){hn.innerHTML=_teamChip(hc.n+(isHome?' ⭐':''),isHome);hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.h);}}
+  const an=document.getElementById('m-away-name');if(an){an.innerHTML=_teamChip((isHome?'':' ⭐')+ac.n,!isHome);an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.a);}}
   const ls2=document.getElementById('m-live-score');if(ls2)ls2.textContent='0 - 0';
   const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_round').replace('{n}',m.rnd)+(isHome?(' '+t('match_home_label')):(' '+t('match_away_label')));
   // ── PUCHAR: banner jeśli to mecz pucharowy ────────────────────────────
@@ -297,6 +306,10 @@ function fillMatch(){
               'OVR '+homeS.total+' • '+t('match_form_label')+' '+Math.round(homeS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;margin-top:4px">'+formDots(homeId)+'</div>'+
+            // v228: pozycja w tabeli TEJ konkretnej drużyny — pod jej własną kolumną, nie w osobnym pasku
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:3px">'+
+              (isHome?t('match_you_pos').replace('{pos}',_myPos):t('match_rival_pos').replace('{pos}',_oppPos))+
+            '</div>'+
           '</div>'+
           // Środek VS
           '<div style="text-align:center">'+
@@ -314,28 +327,11 @@ function fillMatch(){
               'OVR '+awayS.total+' • '+t('match_form_label')+' '+Math.round(awayS.formRaw||75)+'%'+
             '</div>'+
             '<div style="display:flex;gap:3px;justify-content:flex-end;margin-top:4px">'+formDots(awayId)+'</div>'+
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:3px">'+
+              (isHome?t('match_rival_pos').replace('{pos}',_oppPos):t('match_you_pos').replace('{pos}',_myPos))+
+            '</div>'+
           '</div>'+
         '</div>'+
-      '</div>'+
-
-      // ── POPRAWKA 3: Badge strip — miejsce + bonus dom ───────────
-      '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:5px 12px;border-bottom:1px solid var(--gl);background:#080f08">'+
-        (isHome?
-        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
-          t('match_you_pos').replace('{pos}',_myPos)+
-        '</div>'+
-        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
-          t('match_rival_pos').replace('{pos}',_oppPos)+
-        '</div>'
-        :
-        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
-          t('match_rival_pos').replace('{pos}',_oppPos)+
-        '</div>'+
-        '<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gl);color:var(--gr)">'+
-          t('match_you_pos').replace('{pos}',_myPos)+
-        '</div>'
-        )+
-        (isHome?'<div style="font-weight:700;font-size:var(--fs-micro);padding:2px 5px;border:1px solid var(--gb);color:var(--gb)">'+t('match_home_bonus')+'</div>':'')+
       '</div>'+
 
       // ── POPRAWKA 4: Dwie oddzielne karty TY | RYWAL ─────────────
@@ -455,13 +451,11 @@ function nextMatch(){
 }
 
 function updateSpeedLabel(){
-  const el=document.getElementById('m-speed-label');if(!el)return;
-  if(matchSpeed<=0){el.textContent=t('match_speed_result');return;}
-  const totalSec=Math.round(matchSpeed*20/1000);
-  const mins=Math.floor(totalSec/60),secs=totalSec%60;
-  const timeStr=mins>0?mins+':'+(secs<10?'0':'')+secs:secs+'s';
-  const label=matchSpeed>=3000?t('match_speed_slow'):matchSpeed>=1500?t('match_speed_normal'):matchSpeed>=500?t('match_speed_fast'):t('match_speed_express');
-  el.textContent=label+' '+timeStr;
+  // v220: pasek sterowania pokazuje mnożnik (x1/x2/x4/x10) zamiast opisowej etykiety —
+  // te same progi matchSpeed co dawniej (3000/1500/500), tylko inny zapis wyniku.
+  const el=document.getElementById('m-speed-mult');if(!el)return;
+  if(matchSpeed<=0){el.textContent='⚡';return;}
+  el.textContent=matchSpeed>=3000?'x1':matchSpeed>=1500?'x2':matchSpeed>=500?'x4':'x10';
 }
 function changeSpeed(delta){
   // delta > 0 = faster (reduce delay), delta < 0 = slower (increase delay)
@@ -469,7 +463,139 @@ function changeSpeed(delta){
   updateSpeedLabel();
 }
 function setMatchSpeed(ms){
+  if(!matchInProgress)return;// v220: pasek sterowania zostaje widoczny po meczu — WYNIK nie może już nic zrobić
   if(ms===0)autoSubs(); // auto-zmiany przy WYNIK
   matchSpeed=ms;
   updateSpeedLabel();
+}
+
+// v222: nazwa drużyny u góry jako "chip" w tych samych barwach co jej pasek akcji w relacji
+// (--am-bar/--gb-bar z style.css) — wyraźne powiązanie kolorystyczne góra↔relacja
+function _teamChip(name,isMine){
+  const bg=isMine?'var(--am-bar)':'var(--gb-bar)';
+  const fg=isMine?'var(--am-bar-tx)':'var(--gb-bar-tx)';
+  return '<span style="background:'+bg+';color:'+fg+';padding:2px 7px;border-radius:2px;display:inline-block">'+name+'</span>';
+}
+
+// v220: rozciąga relację (#mlog) na pozostałą wysokość ekranu pod paskiem sterowania/akordeonem
+function _sizeMlog(){
+  const lg=document.getElementById('mlog');if(!lg)return;
+  const pb=lg.closest('.panel-body');if(!pb)return;
+  const avail=pb.getBoundingClientRect().bottom-lg.getBoundingClientRect().top;
+  lg.style.height=Math.max(160,Math.round(avail))+'px';
+}
+
+// v220: odświeża akordeon (żółte kartki) i zakładkę BOISKO na żywo — wołane z upUI() w match-engine.js
+// co każde zdarzenie. Nie liczy wyniku meczu — tylko czyta liveStats/allEvts/ratings i renderuje
+// istniejącymi funkcjami (renderRatingsPitch z match-post.js), tak jak robi to postMatch() po meczu.
+function _refreshLiveBoisko(min){
+  _sizeMlog();
+  if(!G||!matchInProgress||!window._liveRatings)return;
+  const isMyH=!!window._liveIsMyH;
+  const evsSoFar=(typeof allEvts!=='undefined'?allEvts:[]).filter(e=>e.min<=min);
+  const _s=id=>document.getElementById(id);
+  // Skrót posiadania w nagłówku akordeonu
+  const _accSum=_s('acc-summary');
+  if(_accSum&&typeof liveStats!=='undefined'){
+    const hAct=liveStats.hAct||0,aAct=liveStats.aAct||0;
+    if(hAct+aAct>0){
+      const rawPoss=hAct/(hAct+aAct+1);
+      const hp=Math.max(25,Math.min(75,Math.round(rawPoss*100)));
+      _accSum.textContent=t('match_possession')+' '+hp+'% / '+(100-hp)+'%';
+    }
+  }
+  // Żółte/czerwone kartki dotychczas (podział gospodarz/gość, jak reszta akordeonu)
+  let hY=0,aY=0;
+  evsSoFar.forEach(e=>{
+    if(e.type==='yellow'||e.type==='red'||e.type==='red2y'){
+      if(e.isMy===isMyH)hY++;else aY++;
+    }
+  });
+  if(hY+aY>0){const _yr=_s('ls-yellow-row');if(_yr)_yr.style.display='flex';}
+  if(_s('ls-yellow-h'))_s('ls-yellow-h').textContent=hY;
+  if(_s('ls-yellow-a'))_s('ls-yellow-a').textContent=aY;
+  if(_s('ls-yellow-bar-h'))_s('ls-yellow-bar-h').style.flex=hY||1;
+  if(_s('ls-yellow-bar-a'))_s('ls-yellow-bar-a').style.flex=aY||1;
+  // BOISKO na żywo — te same karty co po meczu (renderRatingsPitch), tylko z ocenami "w toku"
+  if(typeof m_hId==='undefined'||typeof m_aId==='undefined')return;
+  const _myId=G.myClubId,_oppId=m_hId===_myId?m_aId:m_hId;
+  const _myPls=G.players.filter(p=>p.clubId===_myId&&window._liveRatings[p.id]!==undefined);
+  const _oppPls=G.players.filter(p=>p.clubId===_oppId&&window._liveRatings[p.id]!==undefined);
+  const _allLive=[..._myPls,..._oppPls];
+  const _liveMom=_allLive.reduce((best,p)=>(!best||window._liveRatings[p.id].rating>window._liveRatings[best.id].rating)?p:best,null);
+  const _liveMomId=_liveMom?_liveMom.id:null;
+  if(isMyH){
+    renderRatingsPitch(_myPls,window._liveRatings,'m-rat-home',_liveMomId,evsSoFar);
+    renderRatingsPitch(_oppPls,window._liveRatings,'m-rat-away',_liveMomId,evsSoFar);
+  } else {
+    renderRatingsPitch(_oppPls,window._liveRatings,'m-rat-home',_liveMomId,evsSoFar);
+    renderRatingsPitch(_myPls,window._liveRatings,'m-rat-away',_liveMomId,evsSoFar);
+  }
+}
+
+// v228: EKRAN PODSUMOWANIA MECZU — przycisk "WRÓĆ" w nagłówku panelu meczu (#btn-match-back)
+// po zakończeniu meczu zamiast od razu zamykać panel (closePanel('p-match')) otwiera ten ekran.
+// window._lastMatchSummary jest ustawiane przez postMatch() (match-post.js) — obecność tego
+// obiektu to sygnał "mecz właśnie się skończył, jeszcze nie kliknięto DALEJ".
+function matchBackBtnClick(){
+  if(window._lastMatchSummary){openMatchSummary();return;}
+  closePanel('p-match');
+}
+function openMatchSummary(){
+  const s=window._lastMatchSummary;if(!s)return;
+  const _s=id=>document.getElementById(id);
+  const myNameEl=_s('ms-my-name'),oppNameEl=_s('ms-opp-name');
+  if(myNameEl)myNameEl.innerHTML=_teamChip(s.myClubName,true);
+  if(oppNameEl)oppNameEl.innerHTML=_teamChip(s.oppClubName,false);
+  const scoreEl=_s('ms-score');if(scoreEl)scoreEl.textContent=s.myGoals+' - '+s.oppGoals;
+  const resTxt=s.iW?t('mp_result_win'):s.iL?t('mp_result_lose'):t('mp_result_draw');
+  const resCol=s.iW?'var(--gb)':s.iL?'var(--rd)':'var(--wh)';
+  const rl=_s('ms-result-label');if(rl){rl.textContent=resTxt;rl.style.color=resCol;}
+
+  const commentEl=_s('ms-comment');if(commentEl)commentEl.textContent='💬 '+s.comment;
+
+  const myLbl=_s('ms-scorers-my-label'),oppLbl=_s('ms-scorers-opp-label');
+  if(myLbl)myLbl.textContent='⚽ '+s.myClubName;
+  if(oppLbl)oppLbl.textContent='⚽ '+s.oppClubName;
+  function _scorersHtml(list){
+    if(!list||!list.length)return '<div style="font-size:var(--fs-meta);color:var(--gr)">—</div>';
+    return list.map(function(g){
+      // v229: nazwisko strzelca klikalne — otwiera kartę zawodnika (jak MVP), powrót na ten
+      // ekran już obsługuje _captureReturnPoint() (rozpoznaje v-match-summary jako .view).
+      const nameHtml=g.id?'<span style="cursor:pointer;text-decoration:underline" onclick="showById('+g.id+')">'+g.name+'</span>':g.name;
+      return '<div style="display:flex;justify-content:space-between;font-size:var(--fs-meta);padding:3px 0;border-bottom:1px solid #0d1f0d">'+
+        '<span style="color:var(--am);font-weight:700;width:30px;flex-shrink:0">'+g.min+'\'</span>'+nameHtml+'</div>';
+    }).join('');
+  }
+  const myScEl=_s('ms-scorers-my'),oppScEl=_s('ms-scorers-opp');
+  if(myScEl)myScEl.innerHTML=_scorersHtml(s.myScorers);
+  if(oppScEl)oppScEl.innerHTML=_scorersHtml(s.oppScorers);
+
+  function _deltaHtml(v,suffix){
+    const sign=v>0?'▲ +':v<0?'▼ ':'— ';
+    const col=v>0?'var(--gb)':v<0?'var(--rd)':'var(--gr)';
+    return '<span style="color:'+col+'">'+sign+v+(suffix||'')+'</span>';
+  }
+  const repEl=_s('ms-rep-delta'),freqEl=_s('ms-freq-delta');
+  if(repEl)repEl.innerHTML=_deltaHtml(s.repDelta||0,'');
+  if(freqEl)freqEl.innerHTML=_deltaHtml(s.freqDelta||0,'%');
+
+  const faceEl=_s('ms-mvp-face'),kitEl=_s('ms-mvp-kit'),nameEl=_s('ms-mvp-name'),
+    metaEl=_s('ms-mvp-meta'),ratEl=_s('ms-mvp-rating'),statsEl=_s('ms-mvp-stats');
+  if(s.mvp){
+    if(faceEl){faceEl.innerHTML='';if(typeof pxFace==='function')faceEl.appendChild(pxFace(s.mvp.id,5,s.mvp.age));}
+    if(kitEl){kitEl.innerHTML='';if(typeof pxKit==='function'&&s.mvp.clubId>0)kitEl.appendChild(pxKit(s.mvp.clubId,s.mvp.jerseyNum||0,3));}
+    if(nameEl){nameEl.textContent=s.mvp.name;nameEl.onclick=function(){showById(s.mvp.id);};}
+    if(metaEl)metaEl.textContent=(POS_SHORT[s.mvp.pos]||s.mvp.pos)+' · '+s.mvp.clubName;
+    if(ratEl)ratEl.textContent=s.mvp.rating.toFixed(1);
+    if(statsEl)statsEl.textContent=s.mvp.goals+' '+t('ms_goals_label')+' · '+s.mvp.assists+' '+t('ms_assists_label');
+  }
+
+  closePanel('p-match');
+  go('v-match-summary');
+}
+function continueFromMatchSummary(){
+  window._lastMatchSummary=null;
+  _releaseMatchLock();
+  go('v-game');
 }

@@ -220,6 +220,58 @@
   </div>
 </div>
 
+<!-- EKRAN PODSUMOWANIA MECZU (v228) — osobny .view, pokazywany po kliknięciu "ZAKOŃCZ MECZ" -->
+<div id="v-match-summary" class="view">
+  <div style="background:#000;border-bottom:2px solid var(--gb);padding:16px 14px 14px;text-align:center">
+    <div class="ph-title" style="font-size:var(--fs-h1)" data-i18n="ms_title">MECZ ZAKOŃCZONY</div>
+    <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:10px">
+      <span id="ms-my-name" style="font-size:var(--fs-meta)">—</span>
+      <span id="ms-score" style="font-size:22px;color:var(--am);letter-spacing:4px">0 - 0</span>
+      <span id="ms-opp-name" style="font-size:var(--fs-meta)">—</span>
+    </div>
+    <div id="ms-result-label" style="font-size:var(--fs-h3);font-weight:700;margin-top:6px;letter-spacing:.5px">—</div>
+  </div>
+
+  <div style="padding:12px 14px;border-bottom:1px solid var(--gl);background:#080f08">
+    <div id="ms-comment" style="font-size:var(--fs-body);color:var(--wh);line-height:1.5">💬 —</div>
+  </div>
+
+  <div style="display:flex;padding:14px;gap:14px;border-bottom:1px solid var(--gl)">
+    <div style="flex:1">
+      <div id="ms-scorers-my-label" style="font-size:var(--fs-h3);font-weight:700;color:var(--gr);letter-spacing:.6px;margin-bottom:6px;text-transform:uppercase">⚽ —</div>
+      <div id="ms-scorers-my"></div>
+    </div>
+    <div style="flex:1">
+      <div id="ms-scorers-opp-label" style="font-size:var(--fs-h3);font-weight:700;color:var(--gr);letter-spacing:.6px;margin-bottom:6px;text-transform:uppercase">⚽ —</div>
+      <div id="ms-scorers-opp"></div>
+    </div>
+  </div>
+
+  <div style="padding:14px;display:flex;gap:10px;border-bottom:1px solid var(--gl)">
+    <div style="flex:1;border:1px solid var(--gl);padding:8px;text-align:center">
+      <div style="font-size:var(--fs-micro);color:var(--gr)" data-i18n="ms_rep_label">REPUTACJA KLUBU</div>
+      <div id="ms-rep-delta" style="font-weight:700;font-size:var(--fs-h1);margin-top:4px">—</div>
+    </div>
+    <div style="flex:1;border:1px solid var(--gl);padding:8px;text-align:center">
+      <div style="font-size:var(--fs-micro);color:var(--gr)" data-i18n="ms_freq_label">FREKWENCJA KIBICÓW</div>
+      <div id="ms-freq-delta" style="font-weight:700;font-size:var(--fs-h1);margin-top:4px">—</div>
+    </div>
+  </div>
+
+  <div style="padding:16px 14px;text-align:center;border-bottom:1px solid var(--gl)">
+    <div style="font-size:var(--fs-h3);font-weight:700;color:var(--gr);letter-spacing:.6px;margin-bottom:6px;text-transform:uppercase" data-i18n="ms_mvp_section">⭐ MVP MECZU</div>
+    <div id="ms-mvp-face" style="line-height:0;display:flex;justify-content:center;margin-top:8px"></div>
+    <div id="ms-mvp-kit" style="line-height:0;display:flex;justify-content:center;margin-bottom:6px"></div>
+    <div id="ms-mvp-name" style="font-size:var(--fs-h1);color:var(--wh);font-weight:700;cursor:pointer;text-decoration:underline">—</div>
+    <div id="ms-mvp-meta" style="font-size:var(--fs-meta);color:var(--gr);margin-top:2px">—</div>
+    <div id="ms-mvp-rating" style="font-size:var(--fs-display);color:var(--am);font-weight:700;margin-top:4px">—</div>
+    <div id="ms-mvp-stats" style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">—</div>
+  </div>
+
+  <div style="padding:14px 14px 16px">
+    <button class="btn-sim" onclick="continueFromMatchSummary()" data-i18n="ms_continue_btn">▶ DALEJ</button>
+  </div>
+</div>
 
 <!-- SAVE MODAL -->
 <div class="modal" id="m-save">
@@ -390,7 +442,7 @@
 </div>
 
 <div id="p-match" class="panel">
-  <div class="ph"><div class="ph-title" data-i18n="match_title">⚽ MECZ</div><button id="btn-match-back" class="btn-back" onclick="closePanel('p-match')" data-i18n="modal_back">◀ WRÓĆ</button></div>
+  <div class="ph"><div class="ph-title" data-i18n="match_title">⚽ MECZ</div><button id="btn-match-back" class="btn-back" onclick="matchBackBtnClick()" data-i18n="modal_back">◀ WRÓĆ</button></div>
   <div class="panel-body" style="padding:0">
     <div id="m-scorebar" style="background:#000;padding:10px 14px;border-bottom:2px solid var(--gb)">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -409,96 +461,13 @@
       <div id="m-attendance-bar" style="display:none;padding:4px 14px 3px;font-size:var(--fs-dense);color:var(--gr);border-top:1px solid var(--gm)"></div>
       <div id="m-cup-banner" style="display:none;padding:5px 14px;background:#1a1a00;border-top:2px solid var(--am);font-weight:700;font-size:var(--fs-h3);color:var(--am);text-align:center;letter-spacing:1px"></div>
     </div>
-    <!-- WARIANT B: siatka 2 kart (lewa=stats, prawa=momentum+taktyka+zdarzenia) -->
-    <div id="m-live-stats" style="display:none;border-bottom:1px solid var(--gl)">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--gl)">
-
-        <!-- KARTA LEWA: posiadanie + strzały + celne + faule -->
-        <div style="background:#0d1f0d;padding:7px 8px">
-          <!-- Posiadanie -->
-          <div id="ls-poss-row" style="margin-bottom:5px;display:none">
-            <div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:2px">
-              <span id="ls-poss-h" style="color:var(--gb)">50%</span>
-              <span style="color:var(--gr);font-size:var(--fs-dense)" data-i18n="match_possession">POSIAD.</span>
-              <span id="ls-poss-a" style="color:var(--rd)">50%</span>
-            </div>
-            <div style="display:flex;height:5px;gap:1px">
-              <div id="ls-poss-bar-h" style="background:var(--gb);flex:50;transition:flex 0.5s"></div>
-              <div id="ls-poss-bar-a" style="background:var(--rd);flex:50;transition:flex 0.5s"></div>
-            </div>
-          </div>
-          <!-- Strzały -->
-          <div id="ls-shots-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense);margin-bottom:3px">
-            <span id="ls-shots-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
-            <div style="flex:1">
-              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_shots">STRZAŁY</div>
-              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
-                <div id="ls-shots-bar-h" style="background:var(--gb);opacity:0.7;flex:1;transition:flex 0.5s"></div>
-                <div id="ls-shots-bar-a" style="background:var(--rd);opacity:0.7;flex:1;transition:flex 0.5s"></div>
-              </div>
-            </div>
-            <span id="ls-shots-a" style="color:var(--rd);min-width:14px">0</span>
-          </div>
-          <!-- Celne -->
-          <div id="ls-on-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense);margin-bottom:3px">
-            <span id="ls-on-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
-            <div style="flex:1">
-              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_on_target">CELNE</div>
-              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
-                <div id="ls-on-bar-h" style="background:var(--gb);flex:1;transition:flex 0.5s"></div>
-                <div id="ls-on-bar-a" style="background:var(--rd);flex:1;transition:flex 0.5s"></div>
-              </div>
-            </div>
-            <span id="ls-on-a" style="color:var(--rd);min-width:14px">0</span>
-          </div>
-          <!-- Faule -->
-          <div id="ls-fouls-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense)">
-            <span id="ls-fouls-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
-            <div style="flex:1">
-              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_fouls">FAULE</div>
-              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
-                <div id="ls-fouls-bar-h" style="background:var(--am);opacity:0.6;flex:1;transition:flex 0.5s"></div>
-                <div id="ls-fouls-bar-a" style="background:var(--am);opacity:0.6;flex:1;transition:flex 0.5s"></div>
-              </div>
-            </div>
-            <span id="ls-fouls-a" style="color:var(--rd);min-width:14px">0</span>
-          </div>
-        </div>
-
-        <!-- KARTA PRAWA: momentum + taktyka + chipsy zdarzeń -->
-        <div style="background:#0a1a0a;padding:7px 8px;display:flex;flex-direction:column;gap:5px">
-          <!-- Momentum — Propozycja 2+4: strefy kolorów + igła + etykieta dynamiczna -->
-          <div id="ls-momentum-row">
-            <!-- Wiersz: wartości + etykieta MOMENTUM -->
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-dense);margin-bottom:3px">
-              <span id="ls-mom-h" style="color:var(--gb);min-width:28px">+0.0</span>
-              <span style="color:var(--gr);font-size:var(--fs-dense);letter-spacing:1px"><span data-i18n="match_momentum">MOMENTUM</span> <span onclick="document.getElementById('mom-modal').style.display='flex'" style="color:var(--am);cursor:pointer;border:1px solid var(--am);padding:0 3px;font-size:var(--fs-dense);line-height:1.2">?</span></span>
-              <span id="ls-mom-a" style="color:var(--rd);min-width:28px;text-align:right">+0.0</span>
-            </div>
-            <!-- Pasek terytorium boiska: piłka (dawna igła) przesuwa się tam, gdzie toczy się gra -->
-            <div class="pitch">
-              <div class="pitch-goal l"></div><div class="pitch-goal r"></div>
-              <span class="pitch-zone-lbl l" data-i18n="match_momentum_rival">&#x25C4; RYWAL</span>
-              <span class="pitch-zone-lbl r" data-i18n="match_momentum_mine">MÓJ KLUB &#x25BA;</span>
-              <div id="ls-mom-needle" class="pitch-ball" style="left:50%;background:var(--am);box-shadow:0 0 5px var(--am)"></div>
-            </div>
-            <!-- Etykieta dynamiczna (Propozycja 2) -->
-            <div id="ls-mom-label" style="font-size:var(--fs-dense);text-align:center;margin-top:3px;color:var(--gr);min-height:13px" data-i18n="match_momentum_even">⇔ Wyrównana walka</div>
-          </div>
-          <!-- Aktywna taktyka -->
-          <div id="ls-tactic-box" style="background:#001a00;border:1px solid var(--gl);padding:3px 5px;font-size:var(--fs-dense);display:none">
-            <div style="color:var(--gr);font-size:var(--fs-dense)" data-i18n="match_tactic_label">TAKTYKA</div>
-            <div id="ls-tactic-name" style="color:var(--gb)">—</div>
-          </div>
-          <!-- Chipsy zdarzeń -->
-          <div>
-            <div style="color:var(--gr);font-size:var(--fs-dense);margin-bottom:2px" data-i18n="match_events_label">ZDARZENIA</div>
-            <div id="ls-events-chips" style="display:flex;flex-wrap:wrap;gap:2px;min-height:14px"></div>
-          </div>
-        </div>
-
-      </div>
+    <!-- Zakładki RELACJA/BOISKO — od razu pod kibicami, ta sama pozycja w trakcie i po meczu -->
+    <div class="sq-tabs2" id="m-tabs" style="display:none">
+      <button class="sq-tab2-btn on" onclick="matchTab('relacja',this)" data-i18n="match_tab_report">RELACJA</button>
+      <button class="sq-tab2-btn" onclick="matchTab('oceny',this)" data-i18n="match_tab_ratings">OCENY</button>
     </div>
+    <!-- RELACJA — pusta (treść jest w #mlog wewnątrz m-speed-btns, który zostaje widoczny po meczu) -->
+    <div id="m-relacja" class="sq-tab-pane2 on" style="display:none"></div>
     <div id="m-lock-note" style="display:none"></div>
     <div id="m-prematch" style="display:none"></div>
     <button id="cup-tac-btn" onclick="fillPanel('p-tactics');openPanel('p-tactics');document.getElementById('p-tactics').style.zIndex='300';" style="display:none;margin:0 14px 6px;width:calc(100% - 28px);background:var(--gm);color:var(--am);border:1px solid var(--gb);font-size:var(--fs-body);padding:8px;cursor:pointer" data-i18n="match_setup_btn">⚙ USTAW SKŁAD / TAKTYKĘ</button>
@@ -515,30 +484,90 @@
         <button onclick="closeSubs()" style="margin-top:12px;width:100%;background:var(--gm);border:1px solid var(--gl);color:var(--gr);font-size:var(--fs-meta);padding:6px;cursor:pointer" data-i18n="match_sub_cancel">✕ ANULUJ</button>
       </div>
     </div>
-    <!-- WARIANT B: poziomy pasek przycisków nad relacją -->
+    <!-- Pasek sterowania meczem: wolniej/szybciej/wynik/zmiany (Wariant 1) -->
     <div id="m-speed-btns" style="display:none;border-top:1px solid var(--gl)">
-      <!-- Pasek poziomy -->
-      <div style="display:flex;align-items:stretch;border-bottom:1px solid var(--gl)">
-        <button onclick="changeSpeed(-500)" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gb);font-size:var(--fs-display);padding:7px 4px;cursor:pointer;text-align:center">&#x1F422;</button>
-        <div style="flex:2;display:flex;align-items:center;justify-content:center;background:var(--tb);border-right:1px solid var(--gl)">
-          <span id="m-speed-label" style="font-size:var(--fs-dense);color:var(--wh)" data-i18n="match_speed_slow">WOLNO</span>
+      <div class="cb1-row4">
+        <button onclick="changeSpeed(-500)"><span class="ic">⏪</span><span data-i18n="match_slower_btn">WOLNIEJ</span></button>
+        <div class="cb1-mult" id="m-speed-mult">x1</div>
+        <button onclick="changeSpeed(500)"><span class="ic">⏩</span><span data-i18n="match_faster_btn">SZYBCIEJ</span></button>
+        <button class="amber" onclick="setMatchSpeed(0)"><span class="ic">🎯</span><span data-i18n="match_speed_result">WYNIK</span></button>
+        <button class="green" id="btn-sub" onclick="openSubs()"><span class="ic">🔄</span><span data-i18n="match_btn_sub2">ZMIANA</span></button>
+      </div>
+      <!-- Aktywna taktyka (wybór po przerwie) — widok momentum/chipsów usunięty, logika zostaje w silniku -->
+      <div id="ls-tactic-box" style="background:#001a00;border:1px solid var(--gl);padding:5px 8px;margin:8px 14px 0;font-size:var(--fs-dense);display:none">
+        <div style="color:var(--gr);font-size:var(--fs-dense)" data-i18n="match_tactic_label">TAKTYKA</div>
+        <div id="ls-tactic-name" style="color:var(--gb)">—</div>
+      </div>
+      <!-- Akordeon statystyk — zwinięty domyślnie, skrót posiadania w nagłówku -->
+      <div class="acc" id="m-stats-acc">
+        <div class="acc-hd" onclick="this.parentElement.classList.toggle('open');if(typeof _sizeMlog==='function')_sizeMlog();">
+          <span class="sum" id="acc-summary" data-i18n="match_possession">POSIAD.</span>
+          <span class="car">▾</span>
         </div>
-        <button onclick="changeSpeed(500)" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--am);font-size:var(--fs-display);padding:7px 4px;cursor:pointer;text-align:center">&#x26A1;</button>
-        <button onclick="setMatchSpeed(0)" style="flex:1;background:#1a1000;border:none;border-right:1px solid var(--gl);color:var(--am);font-size:var(--fs-dense);padding:7px 6px;cursor:pointer;white-space:nowrap">&#x1F3AF; <span data-i18n="match_speed_result">WYNIK</span></button>
-        <button id="btn-sub" onclick="openSubs()" style="flex:1;background:var(--gm);border:none;color:var(--gb);font-size:var(--fs-dense);padding:7px 6px;cursor:pointer;white-space:nowrap">&#x1F504; <span data-i18n="match_btn_sub2">ZMIANA</span></button>
+        <div class="acc-body">
+          <div id="ls-poss-row" style="margin-bottom:5px;display:none">
+            <div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:2px">
+              <span id="ls-poss-h" style="color:var(--gb)">50%</span>
+              <span style="color:var(--gr);font-size:var(--fs-dense)" data-i18n="match_possession">POSIAD.</span>
+              <span id="ls-poss-a" style="color:var(--rd)">50%</span>
+            </div>
+            <div style="display:flex;height:5px;gap:1px">
+              <div id="ls-poss-bar-h" style="background:var(--gb);flex:50;transition:flex 0.5s"></div>
+              <div id="ls-poss-bar-a" style="background:var(--rd);flex:50;transition:flex 0.5s"></div>
+            </div>
+          </div>
+          <div id="ls-shots-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense);margin-bottom:3px">
+            <span id="ls-shots-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
+            <div style="flex:1">
+              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_shots">STRZAŁY</div>
+              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
+                <div id="ls-shots-bar-h" style="background:var(--gb);opacity:0.7;flex:1;transition:flex 0.5s"></div>
+                <div id="ls-shots-bar-a" style="background:var(--rd);opacity:0.7;flex:1;transition:flex 0.5s"></div>
+              </div>
+            </div>
+            <span id="ls-shots-a" style="color:var(--rd);min-width:14px">0</span>
+          </div>
+          <div id="ls-on-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense);margin-bottom:3px">
+            <span id="ls-on-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
+            <div style="flex:1">
+              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_on_target">CELNE</div>
+              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
+                <div id="ls-on-bar-h" style="background:var(--gb);flex:1;transition:flex 0.5s"></div>
+                <div id="ls-on-bar-a" style="background:var(--rd);flex:1;transition:flex 0.5s"></div>
+              </div>
+            </div>
+            <span id="ls-on-a" style="color:var(--rd);min-width:14px">0</span>
+          </div>
+          <div id="ls-fouls-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense);margin-bottom:3px">
+            <span id="ls-fouls-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
+            <div style="flex:1">
+              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_fouls">FAULE</div>
+              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
+                <div id="ls-fouls-bar-h" style="background:var(--am);opacity:0.6;flex:1;transition:flex 0.5s"></div>
+                <div id="ls-fouls-bar-a" style="background:var(--am);opacity:0.6;flex:1;transition:flex 0.5s"></div>
+              </div>
+            </div>
+            <span id="ls-fouls-a" style="color:var(--rd);min-width:14px">0</span>
+          </div>
+          <div id="ls-yellow-row" style="display:none;align-items:center;gap:4px;font-size:var(--fs-dense)">
+            <span id="ls-yellow-h" style="color:var(--gb);min-width:14px;text-align:right">0</span>
+            <div style="flex:1">
+              <div style="color:var(--gr);font-size:var(--fs-dense);text-align:center;line-height:1" data-i18n="match_yellow_cards_label">ŻÓŁTE KARTKI</div>
+              <div style="display:flex;height:3px;gap:1px;overflow:hidden;margin-top:1px">
+                <div id="ls-yellow-bar-h" style="background:#e6c000;opacity:0.7;flex:1;transition:flex 0.5s"></div>
+                <div id="ls-yellow-bar-a" style="background:#e6c000;opacity:0.4;flex:1;transition:flex 0.5s"></div>
+              </div>
+            </div>
+            <span id="ls-yellow-a" style="color:var(--rd);min-width:14px">0</span>
+          </div>
+        </div>
       </div>
       <!-- Log relacji pod spodem -->
       <div class="mlog" id="mlog" style="padding:4px 8px;height:200px;overflow-y:auto"></div>
     </div>
-    <!-- Zakładki po meczu (ukryte przed i w trakcie) -->
-    <div class="sq-tabs2" id="m-tabs" style="display:none">
-      <button class="sq-tab2-btn on" onclick="matchTab('relacja',this)" data-i18n="match_tab_report">RELACJA</button>
-      <button class="sq-tab2-btn" onclick="matchTab('oceny',this)" data-i18n="match_tab_ratings">OCENY</button>
-    </div>
-    <!-- RELACJA — pusta (log jest w #mlog wewnątrz m-speed-btns, który zostaje widoczny po meczu) -->
-    <div id="m-relacja" class="sq-tab-pane2 on" style="display:none"></div>
-    <!-- OCENY — tylko po meczu -->
+    <!-- BOISKO — oceny na żywo w trakcie meczu, oceny końcowe po jego zakończeniu -->
     <div id="m-oceny" class="sq-tab-pane2">
+      <div id="m-final-banner" class="finalbanner" style="display:none" data-i18n="match_final_ratings_banner">★ OCENY KOŃCOWE ★</div>
       <div class="sq-tabs2" id="m-oceny-tabs">
         <button class="sq-tab2-btn on" id="m-rat-btn-home" onclick="ratTab('home',this)" data-i18n="match_rat_home">GOSPODARZ</button>
         <button class="sq-tab2-btn" id="m-rat-btn-away" onclick="ratTab('away',this)" data-i18n="match_rat_away">GOŚĆ</button>
@@ -786,7 +815,7 @@
 <!-- PLAYER PANEL -->
 <div id="p-player" class="panel" style="font-size:var(--fs-meta)">
   <div class="ph" style="justify-content:flex-end">
-    <button class="btn-back" data-i18n="plr_back_btn" onclick="closePanel('p-player');if(window._matchDetailReturn!=null){var _idx=window._matchDetailReturn;window._matchDetailReturn=null;setTimeout(function(){showMatchDetail(_idx);},220);}else if(window._playerReturnToClub){var _rc=window._playerReturnToClub;window._playerReturnToClub=null;setTimeout(function(){openClubModal(_rc);},220);}">◀ WRÓĆ</button>
+    <button class="btn-back" data-i18n="plr_back_btn" onclick="closePanel('p-player')">◀ WRÓĆ</button>
   </div>
   <div class="panel-body" style="padding:0">
 

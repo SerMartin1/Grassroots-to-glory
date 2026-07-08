@@ -3,45 +3,111 @@
 (function(){
   function _mlb(seed){var s=seed;return function(){s|=0;s=s+0x6D2B79F5|0;var t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
   function _rng(seed){var r=_mlb(seed*1327+9371);for(var i=0;i<5;i++)r();return r;}
-  var SKIN=['#FDBCB4','#E8A882','#C68642','#8D5524','#5C3317','#FFCBA4'];
+  var SKIN=['#FDBCB4','#E8A882','#C68642','#8D5524','#5C3317','#FFCBA4','#3C2414','#F1C27D'];
   var HAIR=['#1a1a1a','#2c1810','#8B4513','#FFD700','#C0C0C0','#8B0000','#FF8C00','#4a4a4a'];
   var EYES=['#1a1a6e','#228B22','#8B4513','#1a1a1a','#4169E1','#808080'];
   var CCLUB=[['#CC0000','#ffffff'],['#003399','#ffffff'],['#006400','#ffffff'],['#8B0000','#FFD700'],['#000080','#ffffff'],['#FF6600','#000000'],['#660066','#ffffff'],['#003366','#FFD700'],['#CC0000','#000000'],['#006633','#ffffff'],['#1a1a1a','#ffffff'],['#990000','#0000CC'],['#003300','#FFD700'],['#CC3300','#003399'],['#660000','#FFD700'],['#336600','#ffffff'],['#003333','#FFD700'],['#660033','#ffffff'],['#330066','#FFD700'],['#333300','#ffffff']];
 
   function _px(ctx,x,y,col,sc){ctx.fillStyle=col;ctx.fillRect(x*sc,y*sc,sc,sc);}
+  function _shade(hex,amt){var n=parseInt(hex.slice(1),16);var rr=Math.max(0,Math.min(255,(n>>16)+amt));var gg=Math.max(0,Math.min(255,((n>>8)&255)+amt));var bb=Math.max(0,Math.min(255,(n&255)+amt));return '#'+((1<<24)+(rr<<16)+(gg<<8)+bb).toString(16).slice(1);}
+  function _wpick(r,w){var sum=0;for(var i=0;i<w.length;i++)sum+=w[i];var tt=r()*sum,acc=0;for(var j=0;j<w.length;j++){acc+=w[j];if(tt<acc)return j;}return w.length-1;}
 
-  function drawFace(ctx,seed,sc){
+  // Warstwy twarzy: kategoria->liczba wariantow, wagi mlody/mid/weteran(32+) dla cech zwiazanych z wiekiem
+  var W_FACE=[40,30,30];       // ksztalt: owalna, kwadratowa, waska
+  var W_BROW=[30,45,25];       // brwi: cienkie, normalne, krzaczaste
+  var W_NOSE=[30,45,25];       // nos: maly, sredni, szeroki
+  var W_MOUTH=[30,45,25];      // usta: waskie, srednie, szerokie (zawsze symetryczne/neutralne)
+  var W_ACC=[84,10,6];         // dodatki: brak, okulary, blizna
+  var W_HAIR_STYLE={young:[4,16,16,16,16,16,4,12],mid:[6,15,15,15,14,14,9,12],vet:[14,10,9,9,7,7,26,8]};
+  var W_HAIR_COLOR={young:[18,18,16,12,4,10,12,10],mid:[16,16,16,10,8,8,10,16],vet:[8,8,8,4,32,4,4,32]};
+  var W_BEARD={young:[60,14,18,8],mid:[50,15,20,15],vet:[28,14,26,32]};
+
+  var _faceCache={};
+  // Cechy sa losowane raz per (seed,age) i cache'owane; sc tylko skaluje rysunek, nigdy nie wplywa na dobor cech
+  function _faceTraits(seed,age){
+    var key=seed+'_'+(age==null?'x':age);
+    if(_faceCache[key])return _faceCache[key];
     var r=_rng(seed);
+    var br=age==null?'mid':(age<23?'young':(age<32?'mid':'vet'));
+    var tr={
+      faceShape:_wpick(r,W_FACE),
+      skin:Math.floor(r()*SKIN.length),
+      hairStyle:_wpick(r,W_HAIR_STYLE[br]),
+      hairColor:_wpick(r,W_HAIR_COLOR[br]),
+      eyebrow:_wpick(r,W_BROW),
+      eyeColor:Math.floor(r()*EYES.length),
+      eyeShape:Math.floor(r()*2),
+      nose:_wpick(r,W_NOSE),
+      mouth:_wpick(r,W_MOUTH),
+      facialHair:_wpick(r,W_BEARD[br]),
+      beardColor:HAIR[Math.floor(r()*HAIR.length)],
+      accessory:_wpick(r,W_ACC),
+      wrinkle:br==='vet'&&r()<0.4
+    };
+    _faceCache[key]=tr;
+    return tr;
+  }
+
+  function drawFace(ctx,seed,sc,age){
+    var tr=_faceTraits(seed,age);
     ctx.canvas.width=12*sc;ctx.canvas.height=14*sc;
     ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    var skin=SKIN[Math.floor(r()*SKIN.length)];
-    var hair=HAIR[Math.floor(r()*HAIR.length)];
-    var eye=EYES[Math.floor(r()*EYES.length)];
-    var beardRoll=r();
-    var beardCol=HAIR[Math.floor(r()*HAIR.length)];
-    var hStyle=Math.floor(r()*4);
-    var mood=Math.floor(r()*3);
-    // head fill
-    for(var hy=2;hy<=9;hy++)for(var hx=2;hx<=9;hx++)_px(ctx,hx,hy,skin,sc);
-    _px(ctx,2,2,skin,sc);_px(ctx,9,2,skin,sc);
-    for(var nx=3;nx<=8;nx++){_px(ctx,nx,1,skin,sc);}
-    for(var nx2=3;nx2<=8;nx2++){_px(ctx,nx2,10,skin,sc);}
-    _px(ctx,4,11,skin,sc);_px(ctx,5,11,skin,sc);_px(ctx,6,11,skin,sc);_px(ctx,7,11,skin,sc);
-    // hair
-    if(hStyle===0){for(var hx2=3;hx2<=8;hx2++)_px(ctx,hx2,1,hair,sc);for(var hx3=2;hx3<=9;hx3++)_px(ctx,hx3,2,hair,sc);}
-    else if(hStyle===1){for(var hx4=3;hx4<=8;hx4++){_px(ctx,hx4,0,hair,sc);_px(ctx,hx4,1,hair,sc);}for(var hx5=2;hx5<=9;hx5++)_px(ctx,hx5,2,hair,sc);_px(ctx,2,3,hair,sc);_px(ctx,9,3,hair,sc);}
-    else if(hStyle===2){for(var hx6=3;hx6<=8;hx6++){_px(ctx,hx6,0,hair,sc);_px(ctx,hx6,1,hair,sc);}for(var hx7=2;hx7<=9;hx7++)_px(ctx,hx7,2,hair,sc);for(var hy2=3;hy2<=8;hy2++){_px(ctx,2,hy2,hair,sc);_px(ctx,9,hy2,hair,sc);}}
-    // eyes
-    _px(ctx,3,5,eye,sc);_px(ctx,4,5,'#000',sc);
-    _px(ctx,7,5,eye,sc);_px(ctx,8,5,'#000',sc);
-    // nose
-    _px(ctx,5,7,'#b06050',sc);_px(ctx,6,7,'#b06050',sc);
-    // mouth
-    if(mood===0){_px(ctx,4,8,'#8B0000',sc);_px(ctx,5,8,'#cc3333',sc);_px(ctx,6,8,'#cc3333',sc);_px(ctx,7,8,'#8B0000',sc);}
-    else if(mood===1){for(var mx=4;mx<=7;mx++)_px(ctx,mx,8,'#8B0000',sc);}
-    else{_px(ctx,3,8,'#8B0000',sc);for(var mx2=4;mx2<=7;mx2++)_px(ctx,mx2,8,'#cc3333',sc);_px(ctx,8,8,'#8B0000',sc);}
-    // beard
-    if(beardRoll>0.6){for(var bx=3;bx<=8;bx++){_px(ctx,bx,9,beardCol,sc);_px(ctx,bx,10,beardCol,sc);}for(var bx2=4;bx2<=7;bx2++)_px(ctx,bx2,11,beardCol,sc);}
+    var skin=SKIN[tr.skin],hair=HAIR[tr.hairColor],eye=EYES[tr.eyeColor];
+    // ksztalt twarzy
+    if(tr.faceShape===1){
+      for(var hy=2;hy<=9;hy++)for(var hx=2;hx<=9;hx++)_px(ctx,hx,hy,skin,sc);
+      _px(ctx,2,2,skin,sc);_px(ctx,9,2,skin,sc);
+      for(var nx=3;nx<=8;nx++)_px(ctx,nx,1,skin,sc);
+      for(var nx2=2;nx2<=9;nx2++)_px(ctx,nx2,10,skin,sc);
+      for(var nx3=3;nx3<=8;nx3++)_px(ctx,nx3,11,skin,sc);
+    }else if(tr.faceShape===2){
+      for(var hy2=2;hy2<=5;hy2++)for(var hx2=2;hx2<=9;hx2++)_px(ctx,hx2,hy2,skin,sc);
+      for(var hy3=6;hy3<=9;hy3++)for(var hx3=3;hx3<=8;hx3++)_px(ctx,hx3,hy3,skin,sc);
+      _px(ctx,2,2,skin,sc);_px(ctx,9,2,skin,sc);
+      for(var nx4=3;nx4<=8;nx4++)_px(ctx,nx4,1,skin,sc);
+      for(var nx5=4;nx5<=7;nx5++)_px(ctx,nx5,10,skin,sc);
+      _px(ctx,5,11,skin,sc);_px(ctx,6,11,skin,sc);
+    }else{
+      for(var hy4=2;hy4<=9;hy4++)for(var hx4=2;hx4<=9;hx4++)_px(ctx,hx4,hy4,skin,sc);
+      _px(ctx,2,2,skin,sc);_px(ctx,9,2,skin,sc);
+      for(var nx6=3;nx6<=8;nx6++)_px(ctx,nx6,1,skin,sc);
+      for(var nx7=3;nx7<=8;nx7++)_px(ctx,nx7,10,skin,sc);
+      _px(ctx,4,11,skin,sc);_px(ctx,5,11,skin,sc);_px(ctx,6,11,skin,sc);_px(ctx,7,11,skin,sc);
+    }
+    // fryzura (0=lysy: brak warstwy)
+    if(tr.hairStyle===1){for(var a1=3;a1<=8;a1++)_px(ctx,a1,1,hair,sc);for(var a2=2;a2<=9;a2++)_px(ctx,a2,2,hair,sc);}
+    else if(tr.hairStyle===2){for(var a3=3;a3<=8;a3++){_px(ctx,a3,0,hair,sc);_px(ctx,a3,1,hair,sc);}for(var a4=2;a4<=9;a4++)_px(ctx,a4,2,hair,sc);_px(ctx,2,3,hair,sc);_px(ctx,9,3,hair,sc);}
+    else if(tr.hairStyle===3){for(var a5=3;a5<=8;a5++){_px(ctx,a5,0,hair,sc);_px(ctx,a5,1,hair,sc);}for(var a6=2;a6<=9;a6++)_px(ctx,a6,2,hair,sc);for(var a7=3;a7<=8;a7++){_px(ctx,2,a7,hair,sc);_px(ctx,9,a7,hair,sc);}}
+    else if(tr.hairStyle===4){for(var a8=3;a8<=8;a8++)if(a8%2===0)_px(ctx,a8,0,hair,sc);for(var a9=2;a9<=9;a9++)if(a9%2===1)_px(ctx,a9,1,hair,sc);for(var a10=2;a10<=9;a10++)_px(ctx,a10,2,hair,sc);}
+    else if(tr.hairStyle===5){for(var a11=2;a11<=9;a11++)_px(ctx,a11,2,hair,sc);}
+    else if(tr.hairStyle===6){_px(ctx,2,2,hair,sc);_px(ctx,3,2,hair,sc);_px(ctx,8,2,hair,sc);_px(ctx,9,2,hair,sc);_px(ctx,2,3,hair,sc);_px(ctx,9,3,hair,sc);}
+    else if(tr.hairStyle===7){for(var a12=4;a12<=7;a12++)_px(ctx,a12,0,hair,sc);for(var a13=3;a13<=8;a13++)_px(ctx,a13,1,hair,sc);for(var a14=2;a14<=9;a14++)_px(ctx,a14,2,hair,sc);}
+    // brwi
+    var browCol=_shade(hair,-10);
+    if(tr.eyebrow===0){_px(ctx,4,4,browCol,sc);_px(ctx,7,4,browCol,sc);}
+    else if(tr.eyebrow===1){_px(ctx,3,4,browCol,sc);_px(ctx,4,4,browCol,sc);_px(ctx,7,4,browCol,sc);_px(ctx,8,4,browCol,sc);}
+    else{_px(ctx,2,4,browCol,sc);_px(ctx,3,4,browCol,sc);_px(ctx,4,4,browCol,sc);_px(ctx,7,4,browCol,sc);_px(ctx,8,4,browCol,sc);_px(ctx,9,4,browCol,sc);_px(ctx,3,3,browCol,sc);_px(ctx,8,3,browCol,sc);}
+    // oczy
+    if(tr.eyeShape===1){var eyeS=_shade(eye,-30);_px(ctx,3,5,eyeS,sc);_px(ctx,4,5,eyeS,sc);_px(ctx,7,5,eyeS,sc);_px(ctx,8,5,eyeS,sc);}
+    else{_px(ctx,3,5,eye,sc);_px(ctx,4,5,'#000',sc);_px(ctx,7,5,eye,sc);_px(ctx,8,5,'#000',sc);}
+    // nos (kolor pochodny od karnacji, nie stala barwa)
+    var noseCol=_shade(skin,-40);
+    if(tr.nose===0){_px(ctx,5,7,noseCol,sc);}
+    else if(tr.nose===2){_px(ctx,4,7,noseCol,sc);_px(ctx,5,7,noseCol,sc);_px(ctx,6,7,noseCol,sc);_px(ctx,7,7,noseCol,sc);}
+    else{_px(ctx,5,7,noseCol,sc);_px(ctx,6,7,noseCol,sc);}
+    // usta - zawsze symetryczne/neutralne, rozne tylko szerokoscia (bez usmiechu/grymasu)
+    if(tr.mouth===0){_px(ctx,5,8,'#8B0000',sc);_px(ctx,6,8,'#8B0000',sc);}
+    else if(tr.mouth===2){_px(ctx,3,8,'#8B0000',sc);_px(ctx,4,8,'#cc3333',sc);_px(ctx,5,8,'#cc3333',sc);_px(ctx,6,8,'#cc3333',sc);_px(ctx,7,8,'#cc3333',sc);_px(ctx,8,8,'#8B0000',sc);}
+    else{_px(ctx,4,8,'#8B0000',sc);_px(ctx,5,8,'#cc3333',sc);_px(ctx,6,8,'#cc3333',sc);_px(ctx,7,8,'#8B0000',sc);}
+    // zarost (0=brak)
+    if(tr.facialHair===1){_px(ctx,4,8,tr.beardColor,sc);_px(ctx,7,8,tr.beardColor,sc);}
+    else if(tr.facialHair===2){for(var s1=3;s1<=8;s1++)_px(ctx,s1,9,tr.beardColor,sc);}
+    else if(tr.facialHair===3){for(var s2=3;s2<=8;s2++){_px(ctx,s2,9,tr.beardColor,sc);_px(ctx,s2,10,tr.beardColor,sc);}for(var s3=4;s3<=7;s3++)_px(ctx,s3,11,tr.beardColor,sc);}
+    // zmarszczki (tylko weterani, losowe)
+    if(tr.wrinkle){var wc=_shade(skin,-25);_px(ctx,3,6,wc,sc);_px(ctx,8,6,wc,sc);}
+    // dodatki (0=brak)
+    if(tr.accessory===1){_px(ctx,2,5,'#222',sc);_px(ctx,9,5,'#222',sc);_px(ctx,5,6,'#222',sc);_px(ctx,6,6,'#222',sc);}
+    else if(tr.accessory===2){_px(ctx,8,6,'#e8a0a0',sc);}
   }
 
   function _clubColors(clubId){
@@ -102,10 +168,10 @@
   }
 
   // Public API
-  window.pxFace=function(seed,sc){
+  window.pxFace=function(seed,sc,age){
     var cv=document.createElement('canvas');
     cv.style.imageRendering='pixelated';
-    drawFace(cv.getContext('2d'),seed,sc||3);
+    drawFace(cv.getContext('2d'),seed,sc||3,age);
     return cv;
   };
   window.pxCrest=function(clubId,sc){

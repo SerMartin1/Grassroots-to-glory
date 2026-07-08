@@ -54,6 +54,14 @@ function closeClubModal(){
   const modal=document.getElementById('modal-club-ai');
   if(modal){modal.style.display='none';modal.style.zIndex='900';}
   _cmClubId=null;
+  // v224: powrót do overlayu szczegółów meczu, jeśli stamtąd przyszliśmy (patrz traits-history.js)
+  if(window._clubModalReturn&&window._clubModalReturn.modalId==='md-overlay'){
+    const _idx=window._clubModalReturn.extra.idx;
+    window._clubModalReturn=null;
+    showMatchDetail(_idx);
+  } else {
+    window._clubModalReturn=null;
+  }
 }
 
 function cmTab(tab){
@@ -172,8 +180,8 @@ function _renderClubSquad(clubId){
     html+='<div style="font-size:var(--fs-dense);color:var(--gb);background:#0d1f0d;padding:6px 12px;border-left:3px solid var(--gb);letter-spacing:2px">'+pg.short+' — '+t('posgrp_'+pg.key.toLowerCase())+'</div>';
     grp.forEach(p=>{
       const isStar=p.id===starId;
-      html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #0d1f0d;'+(isStar?'background:#0d2b0d;':'')+'cursor:pointer" onclick="window._playerReturnTo=\'club-squad\';window._playerReturnClubId='+clubId+';closeClubModal();setTimeout(function(){showById('+p.id+');},80);">'+
-        '<span class="cms-face-slot" data-pid="'+p.id+'" style="display:inline-block;line-height:0;flex-shrink:0"></span>'+
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #0d1f0d;'+(isStar?'background:#0d2b0d;':'')+'cursor:pointer" onclick="showById('+p.id+');">'+
+        '<span class="cms-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="display:inline-block;line-height:0;flex-shrink:0"></span>'+
         '<div style="font-size:var(--fs-dense);color:var(--gr);width:28px;flex-shrink:0">'+(POS_SHORT[p.pos]||p.pos)+'</div>'+
         '<div style="flex:1;min-width:0">'+
           '<div style="font-size:var(--fs-meta);color:'+(isStar?'var(--am)':'var(--wh)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
@@ -185,7 +193,7 @@ function _renderClubSquad(clubId){
     });
   });
   el.innerHTML=html;
-  if(typeof pxFace==='function'){el.querySelectorAll('.cms-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),2));}});}
+  if(typeof pxFace==='function'){el.querySelectorAll('.cms-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),2,parseInt(sl.dataset.age)||undefined));}});}
 }
 
 function _renderClubHistory(clubId){

@@ -1,5 +1,6 @@
 let _subsLeft=3,_subOutId=null;
 function openSubs(){
+  if(!matchInProgress){notif(t('mp_match_over_no_subs'),'err');return;}
   if(_subsLeft<=0){notif(t('mp_no_subs_left'),'err');return;}
   const panel=document.getElementById('m-sub-panel');if(!panel)return;
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
@@ -31,7 +32,7 @@ function confirmSub(outId,inId){
   window._matchSubsOut.push(pOut.id);// v199: zapamiętaj kto zszedł
   closeSubs();
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_sub_log').replace('{out}',pOut.name).replace('{in}',pIn.name).replace('{left}',_subsLeft);mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_sub_log').replace('{out}',pOut.name).replace('{in}',pIn.name).replace('{left}',_subsLeft);mlog.prepend(d);}
   notif(t('mp_sub_notif').replace('{out}',pOut.name).replace('{in}',pIn.name),'ok');
   document.getElementById('m-subs-left').textContent='('+_subsLeft+'/3)';
   if(_subsLeft<=0){const b=document.getElementById('btn-sub');if(b)b.style.opacity='0.3';}
@@ -64,7 +65,7 @@ function _applyTactic(key,shotMod,saveMod){
   const labels={attack:t('mp_tac_attack'),counter:t('mp_tac_counter'),defend:t('mp_tac_defend'),press:t('mp_tac_press')};
   notif(t('mp_tac_notif').replace('{label}',labels[key]||key),'ok');const _tb2=document.getElementById('ls-tactic-box');const _tn=document.getElementById('ls-tactic-name');if(_tb2)_tb2.style.display='block';const _tacDescs={attack:t('mp_tac_desc_attack'),counter:t('mp_tac_desc_counter'),defend:t('mp_tac_desc_defend'),press:t('mp_tac_desc_press')};const _tacBonus={attack:t('mp_tac_bonus_attack'),counter:t('mp_tac_bonus_counter'),defend:t('mp_tac_bonus_defend'),press:t('mp_tac_bonus_press')};if(_tn)_tn.innerHTML='<span style="font-size:var(--fs-dense);color:var(--gb)">'+(_tacDescs[key]||key)+'</span><br><span style="font-size:var(--fs-dense);color:var(--gr)">'+(_tacBonus[key]||'')+'</span>';
   const mlog=document.getElementById('mlog');
-  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_tac_log').replace('{label}',labels[key]||key);mlog.appendChild(d);}
+  if(mlog){const d=document.createElement('div');d.style.cssText='padding:3px 14px;font-size:var(--fs-meta);color:var(--am);border-bottom:1px solid #0d1f0d';d.textContent=t('mp_tac_log').replace('{label}',labels[key]||key);mlog.prepend(d);}
   // Wznów mecz natychmiast po wyborze
   if(window._tacResumeNext){window._tacResumeNext();}
 }
@@ -87,14 +88,22 @@ function ratTab(side,btn){
   ['m-rat-home','m-rat-away'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
   const e=document.getElementById('m-rat-'+side);if(e)e.classList.add('on');
 }
+// v220: etykiety zakładki BOISKO — zawsze MOJA DRUŻYNA / RYWAL (AI), niezależnie od tego kto gra u siebie
+function _setBoiskoSideLabels(isMyHome){
+  const _btn1=document.getElementById('m-rat-btn-home');
+  const _btn2=document.getElementById('m-rat-btn-away');
+  const _txtMe=t('match_side_mine'),_txtRv=t('match_side_rival');
+  if(_btn1)_btn1.textContent=isMyHome?_txtMe:_txtRv;
+  if(_btn2)_btn2.textContent=isMyHome?_txtRv:_txtMe;
+}
 
 function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvts){
   const el=document.getElementById(containerId);
   if(!el)return;
   // v199: pokaż wszystkich którzy grali — ratings[] zawiera tylko tych którzy startowali
   const st=players.filter(p=>ratings&&ratings[p.id]!==undefined).sort((a,b)=>posOrd(a.pos)-posOrd(b.pos));
-  const starCol=r=>r>=9?'var(--am)':r>=8?'var(--gb)':r>=7?'var(--wh)':'var(--rd)';
-  const stars=r=>r>=9?' ★★★':r>=8?' ★★':r>=7?' ★':'';
+  // v220: prosta 3-progowa skala koloru oceny (zielony ≥7 / bursztyn 6–6.9 / czerwony <6)
+  const starCol=r=>r>=7?'var(--gb)':r>=6?'var(--am)':'var(--rd)';
 
   // MOM tej drużyny
   // MOM globalny — przekazany z zewnątrz
@@ -109,6 +118,8 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
         const isMom=globalMomId&&p.id===globalMomId;
         const ratDisp=rat?rat.toFixed(1)+(isMom?' ⭐':''):'—';
         const goalBalls=r&&r.goals>0?'<span style="font-size:var(--fs-dense);display:block;line-height:1">'+'⚽'.repeat(Math.min(r.goals,4))+'</span>':'';
+        const assistIcon=r&&r.assists>0?'<span style="font-size:var(--fs-dense);display:block;line-height:1">'+'🅰️'.repeat(Math.min(r.assists,4))+'</span>':'';
+        const mvpTag=isMom?'<span class="fs-micro" style="display:block;color:var(--am);letter-spacing:.06em;line-height:1.3">'+t('match_mvp_tag')+'</span>':'';
         // v199: ikony zdarzeń — kartki z allEvts, zmiany/kontuzje z window
         var _evI='';
         if(matchEvts){
@@ -124,13 +135,28 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
         return '<div class="pp" style="cursor:pointer;'+(isMom?'border-color:var(--am);':'')+'" onclick="showById('+p.id+')">'+
           '<span class="pp-name">'+(p.name?p.name.split(' ').pop().substring(0,8):p.last||'?')+'</span>'+
           goalBalls+
+          assistIcon+
           _evBlock+
           '<span class="pp-rat" style="color:'+col+'">'+ratDisp+'</span>'+
+          mvpTag+
         '</div>';
       }).join('')+'</div>';
   }
 
-  el.innerHTML=
+  // v220: pasek "TAKTYKA NA MECZ" tej drużyny — te same dane co widok przedmeczowy w fillMatch()
+  var _tacHtml='';
+  if(st.length){
+    var _clubId=st[0].clubId;
+    var _isMineTac=_clubId===G.myClubId;
+    var _tac=_isMineTac?{formation:G.formation,style:G.style||'Zrównoważony'}:((G.clubTactics&&G.clubTactics[_clubId])||{formation:'4-4-2',style:'Zrównoważony'});
+    var _tacIcon={'Defensywny':'🛡','Zrównoważony':'⚖️','Ofensywny':'⚔️'}[_tac.style]||'⚖️';
+    _tacHtml='<div class="tacinfo '+(_isMineTac?'me':'rv')+'">'+
+      '<span class="tlab">'+t('match_tactic_on_match')+'</span>'+
+      '<span class="tval">'+_tac.formation+' · '+_styleLabel(_tac.style)+' '+_tacIcon+'</span>'+
+    '</div>';
+  }
+
+  el.innerHTML=_tacHtml+
     '<div style="background:#1a3d1a;min-height:200px;padding:8px 4px;border-bottom:1px solid var(--gl)">'+
     pitchRow(st.filter(p=>p.pos==='NAP'),t('mp_pos_forwards'))+
     pitchRow(st.filter(p=>p.pos==='POL'),t('mp_pos_midfielders'))+
@@ -204,6 +230,11 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   const aPoss=100-hPoss;
   // Home always left, away always right
   const isMyHome=m_hId===G.myClubId;
+  // v220: baner "OCENY KOŃCOWE" nad boiskiem (zakładka BOISKO — na żywo go nie ma)
+  const _fbEl=document.getElementById('m-final-banner');if(_fbEl)_fbEl.style.display='block';
+  // v222: po meczu widok zostaje na RELACJI (patrz v220), ale akordeon statystyk rozwija się sam
+  const _accEnd=document.getElementById('m-stats-acc');if(_accEnd)_accEnd.classList.add('open');
+  if(typeof _sizeMlog==='function')_sizeMlog();
 
   // Goal scorers
   const myGoalScorers={}, oppGoalScorers={};
@@ -249,14 +280,18 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
 
   const tbl=document.getElementById('m-stat-table');if(tbl)tbl.innerHTML='';
   // Komentarz podsumowujący
+  // v228: _sumTxtForSummaryScreen — ten sam wylosowany tekst trafia też na ekran podsumowania
+  // meczu (patrz window._lastMatchSummary niżej) — losujemy go RAZ, tutaj, żeby ekran i relacja
+  // zawsze pokazywały identyczny komentarz zamiast dwóch osobnych losowań.
+  let _sumTxtForSummaryScreen='';
   const _mlog2=document.getElementById('mlog');
   if(_mlog2){
     const _summaries={
-      win:[t('mp_sum_win_1'),t('mp_sum_win_2'),t('mp_sum_win_3'),t('mp_sum_win_4')],
-      win_away:[t('mp_sum_win_away_1'),t('mp_sum_win_away_2')],
-      win_home:[t('mp_sum_win_home_1'),t('mp_sum_win_home_2')],
-      draw:[t('mp_sum_draw_1'),t('mp_sum_draw_2'),t('mp_sum_draw_3'),t('mp_sum_draw_4')],
-      lose:[t('mp_sum_lose_1'),t('mp_sum_lose_2'),t('mp_sum_lose_3'),t('mp_sum_lose_4')],
+      win:_t10('mp_sum_win'),
+      win_away:_t10('mp_sum_win_away'),
+      win_home:_t10('mp_sum_win_home'),
+      draw:_t10('mp_sum_draw'),
+      lose:_t10('mp_sum_lose'),
     };
     const _isMyH2=m_hId===G.myClubId;
     const _myG=_isMyH2?hG:aG, _oppG=_isMyH2?aG:hG;
@@ -265,15 +300,18 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     else if(_myG<_oppG) _pool=_summaries.lose;
     else _pool=_summaries.draw;
     const _sumTxt=_pool[Math.floor(Math.random()*_pool.length)];
-    // Separator
-    const _sep=document.createElement('div');
-    _sep.className='mlog-e mlog-full summary-ev';
-    _sep.innerHTML='<span class="mlog-min2">90\'</span><span class="mlog-icon">⛳</span><span class="mlog-txt"><b>'+t('mp_match_end')+' '+hG+'-'+aG+'</b></span>';
-    _mlog2.appendChild(_sep);
+    _sumTxtForSummaryScreen=_sumTxt;
+    // v220: relacja najnowsze na górze — komentarz najpierw (trafia niżej), potem separator
+    // "koniec meczu" (trafia na sam wierzch, bo prepend odwraca kolejność wstawiania)
     const _sum=document.createElement('div');
     _sum.className='mlog-e mlog-full summary-ev';
     _sum.innerHTML='<span class="mlog-min2"></span><span class="mlog-icon">💬</span><span class="mlog-txt">'+_sumTxt+'</span>';
-    _mlog2.appendChild(_sum);
+    _mlog2.prepend(_sum);
+    const _sep=document.createElement('div');
+    _sep.className='mlog-e mlog-full summary-ev';
+    _sep.innerHTML='<span class="mlog-min2">90\'</span><span class="mlog-icon">⛳</span><span class="mlog-txt"><b>'+pick(_t10('mp_match_end'))+' '+hG+'-'+aG+'</b></span>';
+    _mlog2.prepend(_sep);
+    _mlog2.scrollTop=0;
   }
   // Boisko z ocenami — obie drużyny
   // v199: użyj ratings[p.id] żeby pokazać WSZYSTKICH którzy grali (zmiennicy, czerwone kartki też)
@@ -284,6 +322,36 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   const _allMatch=G.players.filter(p=>(p.clubId===G.myClubId||p.clubId===oppId)&&ratings[p.id]!==undefined);
   const _globalMom=_allMatch.reduce((best,p)=>(!best||ratings[p.id].rating>ratings[best.id].rating)?p:best,null);
   const _momId=_globalMom?_globalMom.id:null;
+  // v228: dane do ekranu podsumowania meczu (ui/match-ui.js::openMatchSummary()) — reużywa
+  // dokładnie tych samych zmiennych, które ta funkcja już policzyła wyżej (ratings/_globalMom/
+  // _sumTxtForSummaryScreen/hc/ac), plus deltę reputacji/frekwencji zapisaną w match-engine.js
+  // tuż przed wywołaniem postMatch(). Zero nowego losowania, zero nowego liczenia MVP/ocen.
+  (function(){
+    const _myIsH=m_hId===G.myClubId;
+    const _myGoals=_myIsH?hG:aG,_oppGoals=_myIsH?aG:hG;
+    function _goalsFor(clubId){
+      return (allEvts||[]).filter(function(e){return e.type==='goal';}).filter(function(e){
+        const p=G.players.find(function(x){return x.id===e.sid;});
+        return p&&p.clubId===clubId;
+      }).map(function(e){return {min:e.min,name:e.scorer,id:e.sid};}).sort(function(a,b){return a.min-b.min;});
+    }
+    const _mvpR=_momId?ratings[_momId]:null;
+    window._lastMatchSummary={
+      myClubName:G.myClub?G.myClub.n:'',
+      oppClubName:(_myIsH?ac:hc).n,
+      myGoals:_myGoals,oppGoals:_oppGoals,iW:iW,iL:iL,
+      comment:_sumTxtForSummaryScreen,
+      myScorers:_goalsFor(G.myClubId),
+      oppScorers:_goalsFor(oppId),
+      mvp:_globalMom?{
+        id:_globalMom.id,name:_globalMom.name,pos:_globalMom.pos,age:_globalMom.age,
+        clubId:_globalMom.clubId,clubName:(_globalMom.clubId===G.myClubId?G.myClub.n:(_myIsH?ac:hc).n),
+        jerseyNum:_globalMom.jerseyNum||0,
+        rating:_mvpR?_mvpR.rating:6,goals:_mvpR?(_mvpR.goals||0):0,assists:_mvpR?(_mvpR.assists||0):0
+      }:null,
+      repDelta:window._matchRepDelta||0,freqDelta:window._matchFreqDelta||0
+    };
+  })();
   // Bohater Meczu — wychowanek (po deklaracji _globalMom)
   if(_globalMom&&_globalMom.fromAcademy&&_globalMom.clubId===G.myClubId){
     var _bD2=_globalMom.history?_globalMom.history.find(function(h){return h.fromAcademy;}):null;
@@ -298,8 +366,6 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   }
   // Ustal kto gra u siebie (zgodnie ze scorebarem)
   const _isMyHome=m_hId===G.myClubId;
-  const _hClubName=(ALL_CLUBS.find(c=>c.id===m_hId)||{n:t('mp_fallback_home')}).n;
-  const _aClubName=(ALL_CLUBS.find(c=>c.id===m_aId)||{n:t('mp_fallback_away')}).n;
   // Lewa zakładka = gospodarz, prawa = gość (jak scorebar)
   if(_isMyHome){
     renderRatingsPitch(myTeamPls,ratings,'m-rat-home',_momId,allEvts);
@@ -308,11 +374,10 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     renderRatingsPitch(oppTeamPls,ratings,'m-rat-home',_momId,allEvts);
     renderRatingsPitch(myTeamPls,ratings,'m-rat-away',_momId,allEvts);
   }
-  // Etykiety zakładek = nazwy klubów
+  // Etykiety zakładek = MOJA DRUŻYNA / RYWAL (AI), niezależnie od tego kto gra u siebie
+  _setBoiskoSideLabels(_isMyHome);
   const _btn1=document.getElementById('m-rat-btn-home');
   const _btn2=document.getElementById('m-rat-btn-away');
-  if(_btn1)_btn1.textContent=_hClubName;
-  if(_btn2)_btn2.textContent=_aClubName;
   // Aktywna zakładka = moja drużyna
   const _myBtn=_isMyHome?_btn1:_btn2;
   const _oppBtn=_isMyHome?_btn2:_btn1;

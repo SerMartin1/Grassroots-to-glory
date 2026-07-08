@@ -1,3 +1,24 @@
+// v221: pomocnicza funkcja do puli 10 wariantów komentarza (klucze i18n "prefix_1".."prefix_10")
+// — używana razem z istniejącym pick() (core/state.js) zamiast pisać tablicę ręcznie za każdym razem.
+function _t10(prefix){return [1,2,3,4,5,6,7,8,9,10].map(function(i){return t(prefix+'_'+i);});}
+// v227: pick() z puli 10 wariantów danej kategorii (prefix i18n), ale bez powtarzania tekstu,
+// który padł NIEDAWNO w tej samej kategorii w tym samym meczu — np. "miss"/"narracja" mogą
+// wystąpić kilkadziesiąt razy w jednym meczu, więc pilnujemy TYLKO ostatnich (10-1) użyć danej
+// kategorii (przesuwne okno), zamiast permanentnie blokować całą pulę — inaczej pula i tak by się
+// szybko wyczerpała i wróciłybyśmy do powtórek. To gwarantuje, że te same 10 wariantów nie może
+// się powtórzyć „zaraz obok" (np. w tej samej minucie), a jednocześnie tekst naturalnie wraca do
+// puli po kilku innych wariantach. Historia per-kategoria resetowana na start KAŻDEGO meczu
+// (patrz window._matchTextHistory w _buildMatchPhases()).
+function _pickVar(prefix){
+  const pool=_t10(prefix);
+  if(!window._matchTextHistory)window._matchTextHistory={};
+  const hist=window._matchTextHistory[prefix]||(window._matchTextHistory[prefix]=[]);
+  const fresh=pool.filter(function(x){return hist.indexOf(x)===-1;});
+  const chosen=pick(fresh.length?fresh:pool);
+  hist.push(chosen);
+  if(hist.length>=pool.length)hist.shift();// nie blokuj na stałe — trzymaj tylko ostatnie użycia
+  return chosen;
+}
 // v216: siła drużyny (playerStr — więc cechy i forma wliczone), taktyka klubu i jej modyfikatory —
 // funkcje współdzielone przez pełną symulację zdarzeniową (_buildMatchPhases, mecz gracza) i
 // odchudzony rdzeń dla masowych meczów AI-AI (_buildMatchLite, simOthers() w match-post.js).
@@ -111,6 +132,7 @@ function _buildMatchLite(m){
 // Współdzielony przez simMatch() (mecz gracza na żywo) i devSimMyMatch() (dev-mode, bez animacji).
 function _buildMatchPhases(m){
   liveStats={hShots:0,aShots:0,hOn:0,aOn:0,hFouls:0,aFouls:0,hAct:0,aAct:0};
+  window._matchTextHistory={};// v227: historia tekstów per-kategoria resetowana na start KAŻDEGO meczu
   const ratings={};G.players.filter(p=>(p.clubId===m.h||p.clubId===m.a)&&p.starter).forEach(p=>{ratings[p.id]={goals:0,assists:0,shots:0,accurateShots:0,saves:0,clearances:0,keyPasses:0,cards:0,rating:6.0};});
   const hSt=tS(m.h),aSt=tS(m.a);
 
@@ -231,18 +253,19 @@ function _buildMatchPhases(m){
   window._tacticalShift=window._tacticalShift||{actMod:1.0,shotMod:1.0,saveMod:1.0,used:false};
   window._tacticalShiftUsed=false;
 const hSc=G.players.filter(p=>p.clubId===m.h&&p.starter&&p.pos!=='GK'),aSc=G.players.filter(p=>p.clubId===m.a&&p.starter&&p.pos!=='GK');
-function bldEvs(act,atk,def,gk,sc,isH,phase){const evts=[],mins=[];
-  const _narr_e=[t('match_narr_early_1'),t('match_narr_early_2'),t('match_narr_early_3'),t('match_narr_early_4')];
-  const _narr_m=[t('match_narr_mid_1'),t('match_narr_mid_2'),t('match_narr_mid_3'),t('match_narr_mid_4')];
-  const _narr_l=[t('match_narr_late_1'),t('match_narr_late_2'),t('match_narr_late_3'),t('match_narr_late_4')];
-  const _np=phase==='early'?_narr_e:phase==='late'?_narr_l:_narr_m;
+function bldEvs(act,atk,def,gk,sc,isH,phase,minMin){const evts=[],mins=[];
+  // v222: 10 wariantów narracji (było 4) — reużywa _t10() z i18n zamiast ręcznej tablicy _1.._4
+  const _npPrefix=phase==='early'?'match_narr_early':phase==='late'?'match_narr_late':'match_narr_mid';
   const _nn=Math.floor(act/4);
   for(let _ni=0;_ni<_nn;_ni++){
     const _nm=phase==='early'?r(5,28):phase==='mid'?r(32,58):r(62,88);
-    evts.push({min:_nm,type:'narration',text:pick(_np),isH});
+    evts.push({min:_nm,type:'narration',text:_pickVar(_npPrefix),isH});
   }// FIX 3: More actions in 2nd half - distribute 40% in 1-45, 60% in 46-90
+  // v222: minMin — gdy podany i >45 (faza 3, dobudowana po przerwie), zdarzenia dostają wyłącznie
+  // minuty z drugiej połowy; bez tego mogły trafić np. 20', mimo że mecz jest już po przerwie —
+  // stąd zgłoszony błąd "45' a zaraz potem 39'" w relacji (chronologia po dogenerowaniu fazy 3).
 for(let i=0;i<act;i++){
-  const min=Math.random()<0.4?r(1,45):r(46,90);
+  const min=(minMin&&minMin>45)?r(minMin,90):(Math.random()<0.4?r(1,45):r(46,90));
   mins.push(min);
 }
 mins.sort((a,b)=>a-b);
@@ -361,7 +384,7 @@ evts.push({min,type:'goal',sid:sc2.id,isH,scorer:sc2.last,scorerName:sc2.name||s
       if(ratings[kpPick.id])ratings[kpPick.id].keyPasses=(ratings[kpPick.id].keyPasses||0)+1;
     }
   }
-  const _stxt=isAccurate?t('match_shot_saved').replace('{scorer}',sc2.last).replace('{gk}',gkPlayer?gkPlayer.last:'GK'):(sc2.last+' - '+[t('match_miss_1'),t('match_miss_2'),t('match_miss_3'),t('match_miss_4')][Math.floor(Math.random()*4)]);
+  const _stxt=isAccurate?_pickVar('match_shot_saved').replace('{scorer}',sc2.last).replace(/\{gk\}/g,gkPlayer?gkPlayer.last:'GK'):(sc2.last+' - '+_pickVar('match_miss'));
   evts.push({min,type:'shot',text:_stxt,isH,pid:sc2.id,onTarget:isAccurate});
 }});return evts;}
 function bldSetPieces(sc, isH){
@@ -394,7 +417,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
     } else {
       // Część chybionych cornerów trafia w ręce bramkarza (celny ale obroniony)
       if(Math.random()<0.35){if(isH)liveStats.hOn++;else liveStats.aOn++;if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;}
-      evts.push({min,type:'corner',text:t('match_corner_text').replace('{taker}',crnTaker.last).replace('{result}',Math.random()<0.5?t('match_corner_header_saved'):t('match_corner_out')),isH});
+      evts.push({min,type:'corner',text:_pickVar('match_corner_text').replace('{taker}',crnTaker.last).replace('{result}',Math.random()<0.5?_pickVar('match_corner_header_saved'):_pickVar('match_corner_out')),isH});
     }
   }
 
@@ -416,7 +439,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
     } else {
       // Część wolnych trafia w bramkarza (celny obroniony) zamiast w mur/obok
       if(Math.random()<0.40){if(isH)liveStats.hOn++;else liveStats.aOn++;if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;}
-      evts.push({min,type:'freekick',text:t('match_freekick_text').replace('{taker}',fkTaker.last).replace('{dist}',dist).replace('{result}',Math.random()<0.5?t('match_freekick_wall'):t('match_freekick_saved')),isH});
+      evts.push({min,type:'freekick',text:_pickVar('match_freekick_text').replace('{taker}',fkTaker.last).replace('{dist}',dist).replace('{result}',Math.random()<0.5?_pickVar('match_freekick_wall'):_pickVar('match_freekick_saved')),isH});
     }
   }
 
@@ -435,7 +458,7 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
 if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false]};
     } else {
       if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;
-      evts.push({min,type:'penalty_saved',text:t('match_penalty_saved').replace('{taker}',fkTaker.last).replace('{gk}',oppGK?oppGK.last:''),isH});
+      evts.push({min,type:'penalty_saved',text:_pickVar('match_penalty_saved').replace('{taker}',fkTaker.last).replace(/\{gk\}/g,oppGK?oppGK.last:''),isH});
     }
   }
   return evts;
@@ -453,15 +476,15 @@ function bldCards(pls){
       if(isPH)liveStats.hFouls++;else liveStats.aFouls++;
       yellows[p.id]=(yellows[p.id]||0)+1;
       if(ratings[p.id])ratings[p.id].cards=(ratings[p.id].cards||0)+1;
-      evts.push({min:r(5,85),type:'yellow',text:t('match_yellow_card').replace('{name}',p.last),sid:p.id,isMy});
+      evts.push({min:r(5,85),type:'yellow',text:_pickVar('match_yellow_card').replace('{name}',p.last),sid:p.id,isMy});
       // 2nd yellow = red card
       if(yellows[p.id]>=2){
-        evts.push({min:r(86,89),type:'red2y',text:t('match_red_card_2y').replace('{name}',p.last),sid:p.id,isMy});
+        evts.push({min:r(86,89),type:'red2y',text:_pickVar('match_red_card_2y').replace('{name}',p.last),sid:p.id,isMy});
       }
     }
     // Direct red card chance
     if(Math.random()<0.007){
-      evts.push({min:r(10,85),type:'red',text:t('match_red_card').replace('{name}',p.last),sid:p.id,isMy:p.clubId===G.myClubId});
+      evts.push({min:r(10,85),type:'red',text:_pickVar('match_red_card').replace('{name}',p.last),sid:p.id,isMy:p.clubId===G.myClubId});
     }
   });
   return evts;
@@ -490,23 +513,14 @@ const _momEvts=[];// zdarzenia narracyjne generowane przez momentum
 function _applyMomentum(isScorer,evtMin){
   _momentum[isScorer]=Math.min(10,_momentum[isScorer]+2.5);
   _momentum[!isScorer]=Math.max(-10,_momentum[!isScorer]-1.5);
-  // v199: jednorazowy onboarding przy pierwszej zmianie momentum
-  if(!G.momentumTutorialSeen){
-    G.momentumTutorialSeen=true;
-    setTimeout(function(){
-      notif(t('match_momentum_tutorial'),'info');
-    },800);
-  }
   // Narracja gdy momentum wysoki (>6)
   if(_momentum[isScorer]>=6){
-    const _mTxt=[t('match_mom_high_1'),t('match_mom_high_2'),t('match_mom_high_3')];
     _momEvts.push({min:Math.min(89,(evtMin||1)+2),type:'narration',
-      text:_mTxt[Math.floor(Math.random()*_mTxt.length)],isH:isScorer});
+      text:_pickVar('match_mom_high'),isH:isScorer});
   }
   if(_momentum[!isScorer]<=-6){
-    const _dTxt=[t('match_mom_low_1'),t('match_mom_low_2')];
     _momEvts.push({min:Math.min(89,(evtMin||1)+3),type:'narration',
-      text:_dTxt[Math.floor(Math.random()*_dTxt.length)],isH:!isScorer});
+      text:_pickVar('match_mom_low'),isH:!isScorer});
   }
 }
 function _momBoost(isH){ return _momentum[isH]*0.008; } // max ±8% na baseShot
@@ -567,8 +581,8 @@ window._aiTacticalShift={...TACTICAL_SHIFT_DEFS[_aiShiftKey],key:_aiShiftKey,use
 let _ph3Built=false;
 function _finalizeSecondHalf(){
   if(_ph3Built)return;_ph3Built=true;
-  const ph3H=bldEvs(h3fAdj,hSt.atk,aSt.def,aSt.gkOvr,hSc,true,'late');
-  const ph3A=bldEvs(a3fAdj,aSt.atk,hSt.def,hSt.gkOvr,aSc,false,'late');
+  const ph3H=bldEvs(h3fAdj,hSt.atk,aSt.def,aSt.gkOvr,hSc,true,'late',46);
+  const ph3A=bldEvs(a3fAdj,aSt.atk,hSt.def,hSt.gkOvr,aSc,false,'late',46);
   allEvts=[...allEvts,...ph3H,...ph3A].sort((a,b)=>a.min-b.min);
   let hG3=0,aG3=0;allEvts.forEach(e=>{if(e.type==='goal'){if(e.isH)hG3++;else aG3++;}});
   fHG=hG3;fAG=aG3;
@@ -577,11 +591,11 @@ function _finalizeSecondHalf(){
 const specialEvts=[];
 // Narracja
 if(_isDerby)specialEvts.push({min:r(5,15),type:'narration',
-  text:t('match_derby_text'),isH:isMyH});
-if(_redH)specialEvts.push({min:r(62,75),type:'narration',text:t('match_down_home'),isH:true});
-if(_redA)specialEvts.push({min:r(62,75),type:'narration',text:t('match_down_away'),isH:false});
+  text:_pickVar('match_derby_text'),isH:isMyH});
+if(_redH)specialEvts.push({min:r(62,75),type:'narration',text:_pickVar('match_down_home'),isH:true});
+if(_redA)specialEvts.push({min:r(62,75),type:'narration',text:_pickVar('match_down_away'),isH:false});
 // Zmęczenie w 3. fazie — komunikat
-if(avgPhy<45&&isMyH)specialEvts.push({min:r(65,80),type:'narration',text:t('match_fatigue_text'),isH:false});
+if(avgPhy<45&&isMyH)specialEvts.push({min:r(65,80),type:'narration',text:_pickVar('match_fatigue_text'),isH:false});
 // v198: TAKTYCZNA DECYZJA W POŁOWIE — event w 46. minucie
 window._tacticalShift={actMod:1.0,shotMod:1.0,saveMod:1.0,used:false};
 specialEvts.push({min:46,type:'tacticalChoice',isH:isMyH,
@@ -589,23 +603,23 @@ specialEvts.push({min:46,type:'tacticalChoice',isH:isMyH,
 // Kontra gdy któraś z drużyn ma Instrukcję=Kontry (własna, nie tylko gracza)
 if(hTac.instruction==='Kontry'&&Math.random()<0.3){
   const cScorer=hSc.length?hSc[Math.floor(Math.random()*hSc.length)]:null;
-  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:t('match_counter_text').replace('{name}',cScorer.last),isH:true});
+  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:_pickVar('match_counter_text').replace('{name}',cScorer.last),isH:true});
 }
 if(aTac.instruction==='Kontry'&&Math.random()<0.3){
   const cScorer=aSc.length?aSc[Math.floor(Math.random()*aSc.length)]:null;
-  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:t('match_counter_text').replace('{name}',cScorer.last),isH:false});
+  if(cScorer)specialEvts.push({min:r(55,85),type:'narration',text:_pickVar('match_counter_text').replace('{name}',cScorer.last),isH:false});
 }
 // Pressing — dodatkowe faule (u drużyny, która faktycznie ma Wysoki pressing)
-if(hTac.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:t('match_press_text'),isH:true});
-if(aTac.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:t('match_press_text'),isH:false});
+if(hTac.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:_pickVar('match_press_text'),isH:true});
+if(aTac.pressing==='Wysoki'&&Math.random()<0.4)specialEvts.push({min:r(20,70),type:'narration',text:_pickVar('match_press_text'),isH:false});
 // Linia wysoka — spalony (u drużyny, która faktycznie ma Wysoką linię)
 if(hMods.lineMod.offsideRisk>0&&Math.random()<hMods.lineMod.offsideRisk){
   const offsAtt=hSc.length?hSc[Math.floor(Math.random()*hSc.length)]:null;
-  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:t('match_offside_text').replace('{name}',offsAtt.last),isH:true});
+  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:_pickVar('match_offside_text').replace('{name}',offsAtt.last),isH:true});
 }
 if(aMods.lineMod.offsideRisk>0&&Math.random()<aMods.lineMod.offsideRisk){
   const offsAtt=aSc.length?aSc[Math.floor(Math.random()*aSc.length)]:null;
-  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:t('match_offside_text').replace('{name}',offsAtt.last),isH:false});
+  if(offsAtt)specialEvts.push({min:r(25,65),type:'narration',text:_pickVar('match_offside_text').replace('{name}',offsAtt.last),isH:false});
 }
 const spH=bldSetPieces(hSc,true);const spA=bldSetPieces(aSc,false);
 // v214: faza 3 (ph3H/ph3A) dochodzi później przez _finalizeSecondHalf(), po rozstrzygnięciu zmiany taktycznej w 46'
@@ -618,20 +632,25 @@ function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();notif(t('m
   // Ukryj przycisk taktyki pucharowej gdy mecz startuje
   var _ctb=document.getElementById('cup-tac-btn');if(_ctb)_ctb.style.display='none';
   const btn=document.getElementById('btn-sim');btn.disabled=true;matchInProgress=true;_engageMatchLock('live');saveGame('lock',true);document.getElementById('m-lock-note')&&(document.getElementById('m-lock-note').style.display='none');btn.style.display='none';btn.textContent=t('match_in_progress');const _mls3=document.getElementById('m-live-stats');if(_mls3)_mls3.style.display='block';const _s0=id=>document.getElementById(id);if(_s0('ls-poss-h')){_s0('ls-poss-h').textContent='50%';_s0('ls-poss-a').textContent='50%';}if(_s0('ls-poss-bar-h')){_s0('ls-poss-bar-h').style.flex='50';_s0('ls-poss-bar-a').style.flex='50';}if(_s0('ls-shots-h')){_s0('ls-shots-h').textContent='0';_s0('ls-shots-a').textContent='0';}if(_s0('ls-on-h')){_s0('ls-on-h').textContent='0';_s0('ls-on-a').textContent='0';}if(_s0('ls-fouls-h')){_s0('ls-fouls-h').textContent='0';_s0('ls-fouls-a').textContent='0';}// Ukryj wiersze statystyk — pojawią się przy pierwszej akcji
-['ls-shots-row','ls-on-row','ls-fouls-row'].forEach(function(rid){var _rr=_s0(rid);if(_rr)_rr.style.display='none';});window._momentum={true:0,false:0};const _mRow=_s0('ls-momentum-row');if(_mRow)_mRow.style.display='block';if(_s0('ls-mom-h')){_s0('ls-mom-h').textContent='+0.0';_s0('ls-mom-h').style.color='var(--gr)';}if(_s0('ls-mom-a')){_s0('ls-mom-a').textContent='+0.0';_s0('ls-mom-a').style.color='var(--gr)';}if(_s0('ls-mom-label')){_s0('ls-mom-label').textContent=t('match_momentum_even');_s0('ls-mom-label').style.color='var(--gr)';}const _nReset=_s0('ls-mom-needle');if(_nReset){_nReset.style.left='50%';_nReset.style.background='var(--am)';_nReset.style.boxShadow='0 0 5px var(--am)';}const _ecReset=_s0('ls-events-chips');if(_ecReset)_ecReset.innerHTML='';const _tbReset=_s0('ls-tactic-box');if(_tbReset)_tbReset.style.display='none';const _tnReset=_s0('ls-tactic-name');if(_tnReset)_tnReset.textContent='—';window._matchSubsOut=[];window._matchInjured=[];// v199: śledzenie zmian i kontuzji
+// v227: usunięty martwy zapis starego widżetu momentum (ls-momentum-row/ls-mom-h/ls-mom-a/
+// ls-mom-label/ls-mom-needle/ls-events-chips) — te elementy nie istnieją już w index.html
+// (usunięte przy przebudowie widoku meczu), więc to były bezużyteczne odwołania co mecz.
+// window._momentum (DANE momentum, nie widżet) zostaje — nadal napędza narrację/kolory.
+['ls-shots-row','ls-on-row','ls-fouls-row'].forEach(function(rid){var _rr=_s0(rid);if(_rr)_rr.style.display='none';});window._momentum={true:0,false:0};const _tbReset=_s0('ls-tactic-box');if(_tbReset)_tbReset.style.display='none';const _tnReset=_s0('ls-tactic-name');if(_tnReset)_tnReset.textContent='—';window._matchSubsOut=[];window._matchInjured=[];// v199: śledzenie zmian i kontuzji
 const mlog=document.getElementById('mlog');if(mlog){mlog.innerHTML='';
   const _startD=document.createElement('div');
-  _startD.className='mlog-e mlog-full narr-my';
-  _startD.innerHTML='<span class="mlog-min2">1&#x27;</span><span class="mlog-icon">&#9654;</span><span class="mlog-txt">'+t('match_start_label')+'</span>';
+  _startD.className='mlog-e mlog-full summary-ev';
+  _startD.innerHTML='<span class="mlog-min2">1&#x27;</span><span class="mlog-icon">&#9654;</span><span class="mlog-txt">'+_pickVar('match_start_label')+'</span>';
   mlog.appendChild(_startD);
 }_subsLeft=3;const bsub=document.getElementById('btn-sub');if(bsub)bsub.style.opacity='1';
   // W TRAKCIE: ukryj prematch i tabs, pokaż tylko relację
   const _pre2=document.getElementById('m-prematch');if(_pre2)_pre2.style.display='none';
   // Przywróć górny scorebar
   const _scbar2=document.getElementById('m-scorebar');if(_scbar2)_scbar2.style.display='block';
-  const _tabs2=document.getElementById('m-tabs');if(_tabs2)_tabs2.style.display='none';
+  // v220: zakładki RELACJA/BOISKO widoczne już w trakcie meczu (BOISKO pokazuje oceny na żywo)
+  const _tabs2=document.getElementById('m-tabs');if(_tabs2)_tabs2.style.display='flex';
   const _rel2=document.getElementById('m-relacja');if(_rel2){_rel2.classList.remove('on');_rel2.style.display='none';}
-  const _oce2=document.getElementById('m-oceny');if(_oce2)_oce2.classList.remove('on');const mls2=document.getElementById('m-live-stats');if(mls2)mls2.style.display='block';const spb=document.getElementById('m-speed-btns');if(spb)spb.style.display='block';matchSpeed=3000;updateSpeedLabel();
+  const _oce2=document.getElementById('m-oceny');if(_oce2)_oce2.classList.remove('on');const mls2=document.getElementById('m-live-stats');if(mls2)mls2.style.display='block';const spb=document.getElementById('m-speed-btns');if(spb)spb.style.display='block';matchSpeed=3000;updateSpeedLabel();if(typeof _sizeMlog==='function')_sizeMlog();
 // Upewnij się że przeciwnik ma wybrany skład
 const _oppId2=m.h===G.myClubId?m.a:m.h;aiSelectSquad(_oppId2);
 const hc=ALL_CLUBS.find(c=>c.id===m.h),ac=ALL_CLUBS.find(c=>c.id===m.a);m_hId=m.h;m_aId=m.a;
@@ -710,10 +729,14 @@ function upUI(min,hG,aG){
   if(_s('ls-shots'))_s('ls-shots').textContent=(liveStats.hShots||0)+' - '+(liveStats.aShots||0);
   if(_s('ls-on'))_s('ls-on').textContent=(liveStats.hOn||0)+' - '+(liveStats.aOn||0);
   if(_s('ls-fouls'))_s('ls-fouls').textContent=(liveStats.hFouls||0)+' - '+(liveStats.aFouls||0);
+  // v220: odśwież akordeon statystyk + boisko z ocenami na żywo (ui/match-ui.js)
+  if(typeof _refreshLiveBoisko==='function')_refreshLiveBoisko(min);
 }
 const VIVID=['Strata pi\u0142ki.','Przechwycone podanie!','Gro\u017ane do\u015brodkowanie!','Obro\u0144ca wybija pi\u0142k\u0119.','Szybki kontratak!','Zmiana rytmu gry.','Dobra obrona!','Kr\u00f3tka kombinacja.'];
 const _mb=_buildMatchPhases(m);
 const {ratings,hSt,aSt,isMyH,hA,aA,finalizeSecondHalf:_finalizeSecondHalf,TACTICAL_SHIFT_DEFS}=_mb;
+// v220: ujawnij oceny na żywo — zakładka BOISKO w trakcie meczu (ui/match-ui.js) czyta je stąd
+window._liveRatings=ratings;window._liveIsMyH=isMyH;
 const lg=document.getElementById('mlog');let idx2=0;hG=0;aG=0;
 // Reset liveStats — były wypełniane podczas bldEvs, teraz zerujemy
 // i będą inkrementowane sukcesywnie w pętli next() przez bldEvs snapshoty
@@ -879,6 +902,8 @@ myPl().filter(p=>p.starter&&!p.injured).forEach(p=>{
   if(_isAcadDebut)pushTimeline('academy_debut','🎓',t('tl_academy_debut').replace('{name}',p.name),{pid:p.id,sentiment:'pos',weight:20});
 });
 if(!G.reputation)G.reputation=10;if(!G.frequency)G.frequency=40;
+// v228: snapshot PRZED zmianą — do wyświetlenia delty na ekranie podsumowania meczu
+const _repBefore0=G.reputation,_freqBefore0=G.frequency;
 // winStreak/loseStreak już zaktualizowane wyżej - tylko frekwencja i reputacja
 if(iW){G.frequency=Math.min(100,G.frequency+5);G.reputation=Math.min(1000,G.reputation+1);
   // Lider: forma drużyny +2
@@ -893,7 +918,10 @@ else if(iL){G.frequency=Math.max(10,G.frequency-3);if(G.loseStreak>=3)G.frequenc
   // Nerwowy: dodatkowy spadek
   myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('nerwowy')).forEach(p=>{p.form=Math.max(5,p.form-2);});
 }
-else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams after match
+else{G.frequency=Math.min(100,G.frequency+1);}
+// v228: delta reputacji/frekwencji z TEGO meczu — czyta ekran podsumowania (postMatch() w match-post.js)
+window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequency-_freqBefore0;
+// Form update for BOTH teams after match
   const hWon2=fHG>fAG,aWon2=fAG>fHG;
   G.players.filter(p=>p.clubId===m.h&&p.starter).forEach(p=>{
     if(hWon2)p.form=Math.min(100,p.form+1);else if(aWon2)p.form=Math.max(30,p.form-1);
@@ -919,8 +947,7 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
     G._cupMatchActive={match:_pm,rIdx:_prIdx,isMyH:_pIsH,oppCid:_oppEnt.cid};
     upUI(90,fHG,fAG);btn.style.display='block';btn.textContent=t('match_finished_btn');btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;
     const mtabsEnd=document.getElementById('m-tabs');if(mtabsEnd)mtabsEnd.style.display='flex';// v199: log zostaje w #mlog wewnątrz m-speed-btns — zostaje widoczny po meczu
-    const ocenyBtn=document.querySelector('#m-tabs .sq-tab2-btn:nth-child(2)');
-    if(ocenyBtn)matchTab('oceny',ocenyBtn);
+    // v220: po meczu widok zostaje na RELACJI — nie przełączamy automatycznie na BOISKO
     // Po chwili — otwórz mecz pucharowy (gracz może ustawić skład przez przycisk w panelu meczu)
     setTimeout(()=>{
       notif(t('match_cup_next_notif').replace('{opp}',_oppC.n),'ok');
@@ -976,11 +1003,8 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
     // trzeba domknąć sezon od razu — kolejny advWeek() może się już nie zdarzyć.
     finalizeSeasonEnd();
   }
-  // PO MECZU: pokaż zakładki RELACJA + OCENY, przełącz na OCENY
+  // PO MECZU: pokaż zakładki RELACJA + BOISKO — v220: zostajemy na RELACJI, bez auto-przełączania
   const mtabsEnd=document.getElementById('m-tabs');if(mtabsEnd)mtabsEnd.style.display='flex';// v199: log zostaje w #mlog wewnątrz m-speed-btns — zostaje widoczny po meczu
-  const ocenyBtn=document.querySelector('#m-tabs .sq-tab2-btn:nth-child(2)');
-  if(ocenyBtn)matchTab('oceny',ocenyBtn);
-  // Upewnij się że relacja pozostaje widoczna przy przełączeniu na zakładkę
   // Zapisz gole/asysty z meczu i oznacz gorących zawodników
   myPl().forEach(function(p){
     const rat=ratings&&ratings[p.id];
@@ -1003,7 +1027,11 @@ else{G.frequency=Math.min(100,G.frequency+1);}// Form update for BOTH teams afte
       // poza oknem — cichy wzrost wartości, bez newsa
     }
   });
-  const _relEnd=document.getElementById('m-relacja');if(_relEnd&&!_relEnd.classList.contains('on')){}const bb2=document.getElementById('btn-match-back');if(bb2){bb2.style.display='block';bb2.style.background='var(--gb)';bb2.style.color='#000';bb2.textContent=t('modal_back');}_releaseMatchLock();updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
+  const _relEnd=document.getElementById('m-relacja');if(_relEnd&&!_relEnd.classList.contains('on')){}const bb2=document.getElementById('btn-match-back');if(bb2){bb2.style.display='block';bb2.style.background='var(--gb)';bb2.style.color='#000';bb2.textContent=t('match_end_btn');}
+  // v228: blokada wyjścia z meczu zostaje aktywna przez ekran podsumowania — zwalniana dopiero
+  // przyciskiem "DALEJ" na tym ekranie (continueFromMatchSummary() w match-ui.js), nie tutaj.
+  _engageMatchLock('summary');
+  updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
 const ev=allEvts[idx2++];
       // Inkrementuj liveStats sukcesywnie dla każdego zdarzenia
       const _isH=ev.isH;
@@ -1037,11 +1065,15 @@ const ev=allEvts[idx2++];
           const _acadScorer=scorerP&&scorerP.fromAcademy;const _acadDebH3=_acadScorer&&scorerP.history?scorerP.history.find(function(h){return h.fromAcademy;}):null;const scorerSpan=scorerP?'<span style="cursor:pointer;text-decoration:underline;color:'+(isMy?'var(--gb)':'var(--rd)')+'" onclick="event.stopPropagation();showById('+ev.sid+')">'+ev.scorer+(_acadScorer?' <span style="color:#9c27b0">🎓</span>':'')+'</span>':ev.scorer;
           let assistStr='';
           if(ev.assister){
+            // v221: dopisek asysty sformalizowany do klucza i18n match_assist_suffix
+            // (dawniej literał "(as. ...)" na sztywno, tylko PL) — {name} zastępujemy linkiem do gracza
             const assP=ev.assisterId?G.players.find(x=>x.id===ev.assisterId):null;
-            assistStr=assP?' <span style="color:var(--gr)">(as. <span style="cursor:pointer;text-decoration:underline;color:var(--wh)" onclick="event.stopPropagation();showById('+assP.id+')">'+ev.assister+'</span>)</span>':' <span style="color:var(--gr)">(as. '+ev.assister+')</span>';
+            const _assLinked=assP?'<span style="cursor:pointer;text-decoration:underline;color:var(--wh)" onclick="event.stopPropagation();showById('+assP.id+')">'+ev.assister+'</span>':ev.assister;
+            const _assParts=t('match_assist_suffix').split('{name}');
+            assistStr=' <span style="color:var(--gr)">'+_assParts[0]+_assLinked+(_assParts[1]||'')+'</span>';
           }
           const spLabel=ev.setpiece==='corner'?' <span style="color:var(--gr)">'+t('match_sp_corner')+'</span>':ev.setpiece==='freekick'?' <span style="color:var(--gr)">'+t('match_sp_freekick')+'</span>':ev.setpiece==='penalty'?' <span style="color:var(--gr)">'+t('match_sp_penalty')+'</span>':'';
-          txt='<b>'+t('match_goal_label')+' '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">'+t('match_academy_debut_badge').replace('{season}',_acadDebH3.season).replace('{a}',_acadDebH3.ovr).replace('{b}',ovr(scorerP))+'</div>':'');
+          txt='<b>'+_pickVar('match_goal_label')+' '+hG+'-'+aG+'</b> '+scorerSpan+assistStr+spLabel+(_acadScorer&&isMy&&_acadDebH3?'<div style="font-size:var(--fs-dense);color:#9c27b0;margin-top:2px">'+t('match_academy_debut_badge').replace('{season}',_acadDebH3.season).replace('{a}',_acadDebH3.ovr).replace('{b}',ovr(scorerP))+'</div>':'');
         } else if(ev.type==='shot'){
           sideCls=isMy?'mlog-mine':'mlog-opp';
           cls+=isMy?'shot-my':'shot-opp'; icon=isMy?'→':'←';
@@ -1097,7 +1129,7 @@ const ev=allEvts[idx2++];
                 if(!window._tacticalShift.used){
                   window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
                   const mlog2=document.getElementById('mlog');
-                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent=t('match_halftime_over');mlog2.appendChild(_d2);}
+                  if(mlog2){const _d2=document.createElement('div');_d2.style.cssText='padding:3px 14px;font-size:var(--fs-dense);color:var(--gr);border-bottom:1px solid #0d1f0d';_d2.textContent=t('match_halftime_over');mlog2.prepend(_d2);}
                 }
                 window._tacResumeNext&&window._tacResumeNext();
               }
@@ -1108,8 +1140,9 @@ const ev=allEvts[idx2++];
         d.innerHTML=sideCls==='mlog-full'
           ? '<span class="mlog-min2">'+ev.min+'\'</span><span class="mlog-icon">'+icon+'</span><span class="mlog-txt">'+txt+'</span>'
           : '<span class="mlog-min2">'+ev.min+'\'</span><span class="mlog-side"><span class="mlog-icon">'+icon+'</span><span class="mlog-txt">'+txt+'</span></span>';
-        lg.appendChild(d);
-        lg.scrollTop=lg.scrollHeight;// v199: scroll do najnowszego wpisu
+        // v220: relacja najnowsze na górze — dokładamy na początek, nie na koniec
+        lg.prepend(d);
+        lg.scrollTop=0;
         // v199: chipsy na prawej karcie — dodaj TERAZ (sync z logiem)
         if(ev.type==='goal'){
           _addEventChip(ev.isH===isMyH,'⚽',ev.min);// v199: isMyH=czy mój klub jest gospodarzem

@@ -447,7 +447,7 @@ function renderBuyTab(){
       '</div>'+
       '<div style="flex:1">'+
         '<div style="display:flex;align-items:center;gap:6px">'+
-          '<span class="tr-face-slot" data-pid="'+p.id+'" style="display:inline-block;vertical-align:middle;line-height:0;flex-shrink:0"></span>'+
+          '<span class="tr-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="display:inline-block;vertical-align:middle;line-height:0;flex-shrink:0"></span>'+
           '<div class="tname">'+p.name+'</div>'+
           (_isObs?'<span style="font-size:var(--fs-dense);color:var(--gb)">'+t('tr_watched_badge')+'</span>':'') +
           (_isWatching?'<span style="font-size:var(--fs-dense);color:var(--am)">'+t('tr_watching_badge')+'</span>':'')+
@@ -486,7 +486,7 @@ function renderBuyTab(){
         '<div style="margin-top:3px">'+t('tr_legend_demands')+'</div>'+
       '</div>'+
     '</div>';
-  if(typeof pxFace==='function'){el.querySelectorAll('.tr-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),2));}});}
+  if(typeof pxFace==='function'){el.querySelectorAll('.tr-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),2,parseInt(sl.dataset.age)||undefined));}});}
 }
 function renderSellTab(){
   const el=document.getElementById('tr-sprzedaj');if(!el||!G)return;

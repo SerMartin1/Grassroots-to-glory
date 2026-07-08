@@ -104,7 +104,7 @@ function renderWorldTransfers(){
     const shortFrom=(tr.fromClub||'?').substring(0,9);
     const shortTo=(tr.toClub||'?').substring(0,9);
     const clickAttr=tr.playerId?`onclick="showById(${tr.playerId})" style="cursor:pointer;text-align:center"`:'style="text-align:center"';
-    const faceSlot=tr.playerId?`<span class="wt-face-slot" data-pid="${tr.playerId}" style="display:inline-block;vertical-align:middle;line-height:0;margin-right:4px"></span>`:'';
+    const faceSlot=tr.playerId?`<span class="wt-face-slot" data-pid="${tr.playerId}" data-age="${tr.age||''}" style="display:inline-block;vertical-align:middle;line-height:0;margin-right:4px"></span>`:'';
     h+=`<div ${clickAttr}>
       <div style="${F}color:${c};margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:3px">${faceSlot}#${rank} ${shortName}</div>
       <div style="${Fs}color:${c}99;margin-bottom:3px">${shortFrom}→${shortTo}</div>
@@ -127,7 +127,7 @@ function renderWorldTransfers(){
     const _tC=tr.toClub||'?';const shortTo=_tC.length>10?_tC.substring(0,10)+'…':_tC;
     const clickAttr=tr.playerId?`onclick="showById(${tr.playerId})" style="cursor:pointer"`:'';
     const myBadge=isMine?`<span style="${Fs}color:#000;background:${tr.type==='buy'?'var(--rd)':'var(--gb)'};padding:0 4px;margin-left:4px">${tr.type==='buy'?t('world_badge_buy'):t('world_badge_sell')}</span>`:'';
-    const faceSlotRow=tr.playerId?`<span class="wt-face-slot" data-pid="${tr.playerId}" style="display:inline-block;vertical-align:middle;line-height:0;margin-right:6px;flex-shrink:0"></span>`:'';
+    const faceSlotRow=tr.playerId?`<span class="wt-face-slot" data-pid="${tr.playerId}" data-age="${tr.age||''}" style="display:inline-block;vertical-align:middle;line-height:0;margin-right:6px;flex-shrink:0"></span>`:'';
     h+=`<div ${clickAttr} style="display:flex;align-items:center;border-bottom:1px solid #0d1f0d;padding:5px 0;${isMine?'border-left:2px solid '+leftColor+';padding-left:5px;background:rgba(255,193,7,0.03)':''}">
       <div style="${F}color:var(--gr);min-width:30px;text-align:right;margin-right:8px;flex-shrink:0">#${rank}</div>
       ${faceSlotRow}
@@ -140,7 +140,7 @@ function renderWorldTransfers(){
   });
   h+=`</div>`;
   el.innerHTML=h;
-  if(typeof pxFace==='function'){el.querySelectorAll('.wt-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),1));}});}
+  if(typeof pxFace==='function'){el.querySelectorAll('.wt-face-slot').forEach(function(sl){if(!sl.firstChild){sl.appendChild(pxFace(parseInt(sl.dataset.pid),1,parseInt(sl.dataset.age)||undefined));}});}
 }
 
 function renderWorldClubs(sortBy){

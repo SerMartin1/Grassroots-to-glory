@@ -190,8 +190,9 @@ wpłynie na wszystkie systemy ekonomiczne jednocześnie
   *produktem* jest grafika, nie interfejs.
 
 **Nie odpowiada za:**
-- logikę gry, dane zawodników/klubów (przyjmuje tylko `seed`/`clubId` z zewnątrz), osadzanie
-  canvasu w konkretnym panelu (robi to wołający kod w `ui/`).
+- logikę gry, dane zawodników/klubów (przyjmuje tylko `seed`/`clubId`/opcjonalnie `age` z
+  zewnątrz — nigdy nie czyta `G` bezpośrednio), osadzanie canvasu w konkretnym panelu (robi to
+  wołający kod w `ui/`).
 
 **Można bezpiecznie edytować:**
 ✔ palety kolorów, wzory generowania (`kStyle`, `pat`, `sym`), rozmiar siatki pikseli
@@ -199,6 +200,28 @@ wpłynie na wszystkie systemy ekonomiczne jednocześnie
 **Zmiany wymagające innych modułów:**
 ⚠ brak istotnych — moduł czysto funkcyjny, wywoływany przez `ui/` (np. karty zawodnika, herby
 w tabeli ligowej)
+
+**`pxFace(seed, sc, age)` — warstwy twarzy i jak dodać nowy wariant:**
+Twarz to 12×14 „pikseli” złożonych z kategorii: `faceShape`(3), `skin`(8), `hairStyle`(8, w tym
+łysy=0), `hairColor`(8), `eyebrow`(3), `eyeColor`(6), `eyeShape`(2), `nose`(3), `mouth`(3, zawsze
+symetryczne/neutralne — bez uśmiechu/grymasu), `facialHair`(4), `accessory`(3: brak/okulary/
+blizna). Każda cecha jest losowana raz przez `_faceTraits(seed, age)` i cache'owana pod kluczem
+`seed_age` (sam `sc` nigdy nie wpływa na dobór cech, tylko na skalę rysunku). `age` jest
+opcjonalny — jego brak (istniejące wywołania z 2 argumentami) daje rozkład wag `mid` (bez biasu).
+Tabele wag `W_HAIR_STYLE/W_HAIR_COLOR/W_BEARD` mają warianty `young/mid/vet` (próg wieku w
+`_faceTraits`: <23 / 23-31 / ≥32) — tak łysina, siwizna i zarost stają się częstsze u weteranów.
+Pól `nationality`/`archetype` nie ma dziś w obiekcie zawodnika (`mkPlayer` w `core/state.js` ma
+tylko `age`), więc karnacja/fryzura nie są nimi ważone — dodanie takiego biasu wymagałoby
+najpierw dodania pola w `core/state.js` (osobna decyzja, poza tym plikiem).
+
+Aby dodać nowy wariant w istniejącej kategorii (np. 9. fryzurę): (1) dopisz wagę do każdego z
+`W_HAIR_STYLE.young/mid/vet` (kolejność = indeks), (2) dodaj gałąź `else if(tr.hairStyle===8){...}`
+w `drawFace` rysującą nowy układ pikseli tym samym `_px(ctx,x,y,col,sc)`. Aby dodać całkiem nową
+kategorię: dopisz pole do obiektu `tr` w `_faceTraits` (roluj przez `_wpick` lub
+`Math.floor(r()*N)`), potem narysuj je w `drawFace` w wybranym, dotąd wolnym rzędzie siatki
+(rzędy 0-1 zajęte przez fryzury, 2 głowa, 4 brwi, 5 oczy, 6 częściowo wolny — nos/okulary/blizna/
+zmarszczki go współdzielą, 7 nos, 8 usta/wąsy, 9-11 broda/szczęka). Nowe kombinacje zawsze
+sprawdzaj w `face-harness.html` (siatka 50-100 twarzy) pod kątem nachodzących warstw.
 
 ---
 
@@ -273,8 +296,11 @@ przedsezonowej. Do wyjaśnienia/uporządkowania przy najbliższej okazji pracy n
   `setPress`/`setTem`/`setInstr` (ustawienia stylu/formacji/linii/pressingu/tempa), `fillPitch`,
   `fillTacSquad`, `mkTacCard`, `autoSelectSquad` (auto-dobór składu, wołany też z `dev-mode.js`),
   `_styleLabel`,
-- **kartę zawodnika**: `showPlayer`, `showPlayerFromClubModal` (wejście z modala klubu —
-  ustawia powrót do `club-squad` przez `window._playerReturnTo`), `mkCard`, `plrTab`,
+- **kartę zawodnika**: `showPlayer`, `_captureReturnPoint` (v223 — jeden, ogólny mechanizm
+  powrotu: przy każdym otwarciu karty automatycznie zapamiętuje w `window._playerReturnTo`
+  aktualnie otwarty panel LUB modal — `modal-club-ai`/`modal-season-summary`/`md-overlay` —
+  wraz z minimalnym kontekstem potrzebnym do odtworzenia; odczytywane w `closePanel('p-player')`
+  w `navigation-squad.js`; zastąpił 4 wcześniejsze, częściowo martwe flagi), `mkCard`, `plrTab`,
   `renderPlayerHistory`, `renderPlayerAwards`, `showAwardDetail`, `toggleTraitDesc`,
   `_traitLabel`, `_traitDesc` (warstwa wyświetlania cech — zgodnie z zasadą, że `TRAITS`
   strukturalnie zostaje nietknięte),
@@ -299,6 +325,10 @@ kontraktu
 ⚠ **znany dług techniczny**: w tym pliku istnieją po dwie definicje `setLine()` i
 `setInstr()` (druga nadpisuje pierwszą) — do sprawdzenia, czy pierwsza wersja jest w pełni
 martwa, czy różni się czymś istotnym
+⚠ **znany dług techniczny (v223)**: `showPlayerFromClubModal()` i `mkCard()` są zdefiniowane,
+ale nigdzie w projekcie nie są już wołane (zweryfikowane grepem) — prawdopodobnie zastąpione
+przez `showById()`/`showPlayer()` bezpośrednio. Zostawione bez zmian (nieużywany kod, zero
+ryzyka), do ewentualnego uprzątnięcia przy najbliższej pracy nad tym plikiem.
 
 ---
 
@@ -495,13 +525,14 @@ pierwszą przy najbliższej pracy nad tym plikiem, żeby uniknąć pomyłki przy
   `closeClubModal`, zakładki (`cmTab`), kartę klubu z herbem (`_renderClubCard`, woła
   `pxCrest()`/`pxFace()` z `pixelart.js`), historię klubu (`_renderClubHistory`), podgląd
   składu (`_renderClubSquad`, `openClubSquad`),
-- przejście z podglądu składu klubu do karty konkretnego zawodnika i **zapamiętanie ścieżki
-  powrotu** przez `window._playerReturnTo` / `window._playerReturnClubId` (żeby `closeClubModal`
-  + `showById()` w `news-bootstrap.js` mogły wrócić do właściwego miejsca).
+- przejście z podglądu składu klubu (i innych list w tym pliku) do karty konkretnego
+  zawodnika przez `showById()` — punkt powrotu do modalu klubu zapisuje się automatycznie
+  (patrz `_captureReturnPoint()` w `tactics-playercard.js`, sekcja 7), ten plik nie musi już
+  nic zapisywać ręcznie.
 
 **Nie odpowiada za:**
 - logikę AI klubu, generowanie/liczenie statystyk (czyta gotowe dane z `G`/`data.js`), samą
-  kartę zawodnika (`showPlayerFromClubModal` w `tactics-playercard.js` przejmuje dalej).
+  kartę zawodnika (`showPlayer()`/`showById()` przejmują dalej).
 
 **Można bezpiecznie edytować:**
 ✔ layout modala, dobór prezentowanych statystyk/zakładek
@@ -919,12 +950,16 @@ ui/save-setup-misc.js (startGame)
   → ui/navigation-squad.js (go, updateHdr)
 ```
 
-### Karta zawodnika — wejścia z różnych miejsc
+### Karta zawodnika — wejścia z różnych miejsc (v223: jeden mechanizm powrotu)
 ```
-ui/club-modal.js (_renderClubSquad)
-  → zapisuje window._playerReturnTo / window._playerReturnClubId
-  → ui/news-bootstrap.js (showById)
-      → ui/tactics-playercard.js (showPlayer / showPlayerFromClubModal)
+~20 miejsc w całym projekcie (skład, transfery, taktyka, modal klubu, Centrum Danych,
+Kronika/historia, podsumowanie sezonu, szczegóły meczu, akademia, ranking treningowy...)
+  → ui/news-bootstrap.js (showById) — LUB bezpośrednio showPlayer(p)
+      → ui/tactics-playercard.js (showPlayer)
+          → _captureReturnPoint() — zapisuje window._playerReturnTo (panel LUB modal + kontekst),
+            tylko przy pierwszym otwarciu (nie przy odświeżeniu już otwartej karty)
+  ← ui/navigation-squad.js (closePanel('p-player')) czyta window._playerReturnTo
+    i przywraca dokładnie ten panel/modal, z którego przyszedł gracz
 ```
 
 ### Panel "Zarząd" (logika ↔ render rozdzielone między pliki)

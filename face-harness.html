@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>GtG — podgląd generatora twarzy (pxFace)</title>
+<style>
+  :root{
+    --gd:#0a1f0a; --gm:#1a3d1a; --gl:#2d6b2d; --gb:#4caf50;
+    --am:#ffc107; --ad:#e6a800; --wh:#e8f5e9; --gr:#a3b0a3; --tb:#122412;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--gd);color:var(--wh);font-family:'Courier New',monospace;margin:0;padding:16px;}
+  h1{color:var(--am);font-size:18px;margin:0 0 4px;}
+  p.note{color:var(--gr);font-size:12px;max-width:900px;line-height:1.5;}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 18px;padding:10px;background:var(--tb);border:1px solid var(--gl);border-radius:4px;}
+  .bar label{font-size:12px;color:var(--gr);display:flex;align-items:center;gap:4px;}
+  .bar input[type=number]{width:70px;background:var(--gd);color:var(--wh);border:1px solid var(--gl);padding:3px 5px;}
+  button{background:var(--gm);color:var(--am);border:1px solid var(--gl);padding:6px 12px;cursor:pointer;font-size:12px;font-weight:bold;border-radius:3px;}
+  button:hover{background:var(--gl);}
+  button.active{background:var(--am);color:var(--tb);border-color:var(--ad);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px;}
+  .cell{background:var(--tb);border:1px solid var(--gl);border-radius:4px;padding:6px;text-align:center;}
+  .cell canvas{image-rendering:pixelated;display:block;margin:0 auto 4px;}
+  .cell .meta{font-size:10px;color:var(--gr);}
+  .legend{margin-top:18px;font-size:12px;color:var(--gr);max-width:900px;line-height:1.6;}
+  .legend b{color:var(--wh);}
+  .stats{font-size:12px;color:var(--gr);margin-bottom:10px;}
+</style>
+</head>
+<body>
+  <h1>Podgląd generatora twarzy zawodników — pxFace</h1>
+  <p class="note">
+    Siatka wygenerowanych twarzy do szybkiej oceny różnorodności i kolizji warstw (np. broda/wąsy nachodzące na kąciki ust,
+    mostek okularów krzyżujący się z szerokim nosem, zbyt rzadkie piksele przy "zakolach"). Twarze są w 100% deterministyczne:
+    ten sam seed + wiek zawsze dają tę samą twarz (cache w <code>pixelart.js</code>). Zmiana liczby/wieku generuje nową próbkę seedów.
+  </p>
+
+  <div class="bar">
+    <label>Liczba twarzy:
+      <input type="number" id="cnt" value="96" min="8" max="300" step="8">
+    </label>
+    <label>Seed startowy:
+      <input type="number" id="seedStart" value="1" min="1" max="999999">
+    </label>
+    <label>Skala (px):
+      <input type="number" id="scale" value="6" min="2" max="12">
+    </label>
+    <span style="width:1px;height:20px;background:var(--gl)"></span>
+    <button data-age="mixed" class="agebtn active">Wiek: mieszany (losowy)</button>
+    <button data-age="young" class="agebtn">Młodzi (18-22)</button>
+    <button data-age="mid" class="agebtn">Środek (23-31)</button>
+    <button data-age="vet" class="agebtn">Weterani (32-38)</button>
+    <span style="width:1px;height:20px;background:var(--gl)"></span>
+    <button id="regen">↻ Nowa próbka (inny zakres seedów)</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="legend">
+    <p><b>Znane miejsca do wizualnej weryfikacji (świadome uproszczenia siatki 12×14):</b></p>
+    <ul>
+      <li>Okulary (rząd 5-6) mogą nachodzić na mostek szerokiego nosa (rząd 6) — oba rysują tam piksel, wygrywa ten rysowany później.</li>
+      <li>Wąsy (kategoria zarostu, wariant 1) nadpisują skrajne piksele ust (kąciki) zamiast dodawać osobną warstwę nad ustami.</li>
+      <li>Blizna (dodatek) i zmarszczki (weterani) dzielą tę samą kolumnę (x=8, rząd 6) — przy zbiegu okoliczności jedna nadpisuje drugą.</li>
+      <li>Fryzura "zakola" (styl 6) jest celowo bardzo rzadka (kilka pikseli) — sprawdź czytelność w najmniejszej skali (sc=1, jak na liście kadry).</li>
+    </ul>
+  </div>
+
+<script src="js/engine/pixelart.js"></script>
+<script>
+(function(){
+  var gridEl=document.getElementById('grid');
+  var statsEl=document.getElementById('stats');
+  var cntEl=document.getElementById('cnt');
+  var seedEl=document.getElementById('seedStart');
+  var scaleEl=document.getElementById('scale');
+  var ageMode='mixed';
+
+  function ageForMode(mode, i){
+    if(mode==='young') return 18+(i%5);
+    if(mode==='mid') return 23+(i%9);
+    if(mode==='vet') return 32+(i%7);
+    // mixed: spread across full range deterministically from index
+    return 17+(i*7)%22;
+  }
+
+  function render(){
+    var cnt=Math.max(8,Math.min(300,parseInt(cntEl.value,10)||96));
+    var seedStart=parseInt(seedEl.value,10)||1;
+    var sc=Math.max(2,Math.min(12,parseInt(scaleEl.value,10)||6));
+    gridEl.innerHTML='';
+    var t0=performance.now();
+    for(var i=0;i<cnt;i++){
+      var seed=seedStart+i;
+      var age=ageForMode(ageMode,i);
+      var cell=document.createElement('div');
+      cell.className='cell';
+      var cv=pxFace(seed,sc,age);
+      cell.appendChild(cv);
+      var meta=document.createElement('div');
+      meta.className='meta';
+      meta.textContent='#'+seed+' · '+age+' lat';
+      cell.appendChild(meta);
+      gridEl.appendChild(cell);
+    }
+    var t1=performance.now();
+    statsEl.textContent=cnt+' twarzy wygenerowanych w '+(t1-t0).toFixed(1)+' ms (tryb wieku: '+ageMode+').';
+  }
+
+  document.querySelectorAll('.agebtn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.agebtn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      ageMode=btn.dataset.age;
+      render();
+    });
+  });
+  document.getElementById('regen').addEventListener('click',function(){
+    seedEl.value=1+Math.floor(Math.random()*50000);
+    render();
+  });
+  cntEl.addEventListener('change',render);
+  seedEl.addEventListener('change',render);
+  scaleEl.addEventListener('change',render);
+
+  render();
+})();
+</script>
+</body>
+</html>

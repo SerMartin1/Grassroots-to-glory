@@ -202,8 +202,47 @@ function showPlayerFromClubModal(pid){
 }
 function _traitLabel(id){return t('trait_'+id+'_name')||TRAITS[id]&&TRAITS[id].name||id;}
 function _traitDesc(id){return t('trait_'+id+'_desc')||TRAITS[id]&&TRAITS[id].desc||'';}
+// v223: jeden, ogólny mechanizm powrotu z karty zawodnika — zastępuje 4 osobne flagi
+// (_playerReturnTo/'club-squad', _mssPlayerReturn, _playerReturnToClub, _matchDetailReturn).
+// Wywoływane automatycznie z showPlayer() — pojedyncze miejsce w kodzie, żadne z ~20 miejsc
+// otwierających kartę zawodnika nie musi już samo pamiętać o zapisaniu punktu powrotu.
+function _captureReturnPoint(){
+  const mdOv=document.getElementById('md-overlay');
+  if(mdOv&&mdOv.classList.contains('open')&&window._curMatchDetailIdx!=null){
+    return{modalId:'md-overlay',extra:{idx:window._curMatchDetailIdx}};
+  }
+  const mss=document.getElementById('modal-season-summary');
+  if(mss&&mss.style.display==='flex'){
+    return{modalId:'modal-season-summary'};
+  }
+  const cmAi=document.getElementById('modal-club-ai');
+  if(cmAi&&cmAi.style.display==='flex'&&typeof _cmClubId!=='undefined'&&_cmClubId){
+    let _tab='karta';
+    ['karta','sklad','historia'].forEach(function(tb){
+      const pane=document.getElementById('cm-pane-'+tb);
+      if(pane&&pane.style.display==='block')_tab=tb;
+    });
+    return{modalId:'modal-club-ai',extra:{clubId:_cmClubId,tab:_tab}};
+  }
+  const openPanelEl=document.querySelector('.panel.open');
+  if(openPanelEl&&openPanelEl.id!=='p-player'){
+    return{panelId:openPanelEl.id};
+  }
+  // v228: klik na MVP na ekranie podsumowania meczu — to osobny .view, nie panel/modal
+  const msView=document.getElementById('v-match-summary');
+  if(msView&&msView.classList.contains('show')){
+    return{viewId:'v-match-summary'};
+  }
+  return null;
+}
 function showPlayer(p){
   if(!p)return;
+  // v223: zapamiętaj skąd wchodzimy — tylko przy pierwszym otwarciu, nie przy odświeżeniu
+  // już otwartej karty (np. po zmianie języka w applyLang(), patrz core/i18n.js)
+  const _pEl0=document.getElementById('p-player');
+  if(!(_pEl0&&_pEl0.classList.contains('open'))){
+    window._playerReturnTo=_captureReturnPoint();
+  }
   if(!p.name)p.name=t('plr_fallback_unknown');
   window._plrId=p.id;
   const o=ovr(p);
@@ -217,7 +256,7 @@ function showPlayer(p){
   var _pxFaceEl=document.getElementById('plr-px-face');
   if(_pxFaceEl&&typeof pxFace==='function'){
     _pxFaceEl.innerHTML='';
-    var _fcv=pxFace(p.id,4);
+    var _fcv=pxFace(p.id,4,p.age);
     _fcv.title='ID: '+p.id;
     _pxFaceEl.appendChild(_fcv);
   }

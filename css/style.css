@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{--gd:#0a1f0a;--gm:#1a3d1a;--gl:#2d6b2d;--gb:#4caf50;--am:#ffc107;--ad:#e6a800;--rd:#f44336;--wh:#e8f5e9;--gr:#a3b0a3;--tb:#122412;
+/* Pełne, stonowane paski relacji meczu (Wariant 1): bursztyn=moja akcja, zieleń=akcja rywala */
+--am-bar:#5c3e00;--am-bar-goal:#7a5200;--am-bar-tx:#ffe9c2;
+--gb-bar:#173d20;--gb-bar-goal:#1f5c2c;--gb-bar-tx:#cdeed6;
 /* ── SYSTEM TYPOGRAFICZNY (WARIANT C — HYBRYDA PREMIUM) ── */
 /* Press Start 2P — WYŁĄCZNIE tytuł gry / logo (splash, menu) */
 --fs-hero:20px;   /* tytuł gry / splash */
@@ -246,6 +249,30 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .pp-name{font-size:var(--fs-dense);display:block;white-space:nowrap;overflow:hidden;max-width:58px;}
 .pp-ovr{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);color:var(--am);display:block;font-weight:bold;}
 .pp-rat{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);display:block;text-align:center;margin-top:1px;}
+/* ── Wariant 1: pasek sterowania meczem (wolniej/szybciej/wynik/zmiany) ── */
+.cb1-row4{display:flex;}
+.cb1-row4 button{flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-micro);padding:8px 2px;cursor:pointer;letter-spacing:.02em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.cb1-row4 button .ic{font-size:var(--fs-display);line-height:1;}
+.cb1-row4 button:last-child{border-right:none;}
+.cb1-row4 button.amber{color:var(--am);}
+.cb1-row4 button.green{color:var(--gb);}
+.cb1-mult{flex:0 0 34px;display:flex;align-items:center;justify-content:center;background:var(--tb);border-right:1px solid var(--gl);color:var(--am);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h3);}
+/* ── Wariant 1: akordeon statystyk (zwinięty domyślnie) ── */
+.acc{border-bottom:1px solid var(--gl);}
+.acc-hd{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;cursor:pointer;background:#0d1f0d;font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);color:var(--gr);}
+.acc-hd .car{color:var(--gr);transition:transform .15s;font-size:var(--fs-micro);}
+.acc.open .acc-hd .car{transform:rotate(180deg);}
+.acc-body{display:none;padding:6px 14px 12px;}
+.acc.open .acc-body{display:block;}
+/* ── BOISKO: pasek taktyki na mecz + baner ocen końcowych ── */
+.tacinfo{margin:8px 14px 0;padding:7px 10px;background:var(--tb);border:1px solid var(--gl);border-left:3px solid var(--gl);display:flex;align-items:center;justify-content:space-between;font-size:var(--fs-dense);}
+.tacinfo.me{border-left-color:var(--am);}
+.tacinfo.rv{border-left-color:var(--gb);}
+.tacinfo .tlab{color:var(--gr);letter-spacing:.06em;font-size:var(--fs-micro);}
+.tacinfo .tval{font-weight:700;}
+.tacinfo.me .tval{color:var(--am);}
+.tacinfo.rv .tval{color:var(--gb);}
+.finalbanner{margin:10px 14px 0;padding:8px;text-align:center;background:linear-gradient(180deg,#241a00,#0d1f0d);border:1px solid var(--am);color:var(--am);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h3);letter-spacing:.1em;}
 .plr2-hero{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:start;padding:12px;background:linear-gradient(135deg,#0d1f0d,#1a3d1a);border-bottom:2px solid var(--gb);}
 .plr2-hero-left{display:flex;flex-direction:column;align-items:center;gap:4px;}
 .plr2-photo-placeholder{width:64px;height:64px;background:#0d1f0d;border:1px solid var(--gl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -289,33 +316,24 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .sc-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;color:var(--am);text-shadow:2px 2px 0 #7a5c00;}
 .sc-info{font-size:var(--fs-body);color:var(--gr);}
 .mlog{display:flex;flex-direction:column;gap:3px;}
-/* Dwutorowa oś czasu: RYWAL=lewa kolumna, TY=prawa kolumna, minuta zawsze na środku; mlog-full = wiersz systemowy/gol na całą szerokość */
-.mlog-e{display:grid;grid-template-columns:1fr 30px 1fr;align-items:center;gap:2px;padding:5px 0;border-bottom:1px solid #0d1f0d;font-family:'JetBrains Mono',monospace;font-size:var(--fs-meta);animation:ein 0.3s ease;}
-.mlog-e .mlog-min2{grid-column:2;text-align:center;}
-.mlog-e .mlog-side{display:flex;align-items:center;gap:4px;min-width:0;}
-.mlog-e.mlog-opp .mlog-side{grid-column:1;justify-content:flex-end;text-align:right;}
-.mlog-e.mlog-mine .mlog-side{grid-column:3;justify-content:flex-start;text-align:left;}
-.mlog-e.mlog-full{display:flex;gap:8px;}
-.mlog-e.mlog-full.goal-my,.mlog-e.mlog-full.goal-opp{padding:8px 6px;font-size:var(--fs-body);}
-/* RELACJA — system kolorów: zielony=mój, czerwony=rywal, amber=neutral */
-.mlog-e.goal-my{background:#071f07;border-left:3px solid var(--gb);}
-.mlog-e.goal-my .mlog-txt{color:var(--gb);font-weight:bold;}
-.mlog-e.goal-opp{background:#1f0707;border-left:3px solid var(--rd);}
-.mlog-e.goal-opp .mlog-txt{color:var(--rd);font-weight:bold;}
-.mlog-e.shot-my .mlog-txt{color:#3d8c3d;}
-.mlog-e.shot-opp .mlog-txt{color:#8c3d3d;}
-.mlog-e.narr-my{border-left:2px solid #2d5c2d;}
-.mlog-e.narr-my .mlog-txt{color:#4a7a4a;}
-.mlog-e.narr-opp{border-left:2px solid #5c2d2d;}
-.mlog-e.narr-opp .mlog-txt{color:#7a4a4a;}
-.mlog-e.setpiece-my{border-left:2px solid #3d6b3d;}
-.mlog-e.setpiece-my .mlog-txt{color:#5fba5f;}
-.mlog-e.setpiece-opp{border-left:2px solid #5c3d3d;}
-.mlog-e.setpiece-opp .mlog-txt{color:#aa6060;}
-.mlog-e.card-ev .mlog-txt{color:var(--am);}
-.mlog-e.card-red .mlog-txt{color:var(--rd);}
+/* Wariant 1 — jedna kolumna, wiersz pod wierszem. System kolorów: bursztyn=moja akcja,
+   zieleń=akcja rywala, kolor pokrywa CAŁY wiersz zdarzenia (nie tylko tekst/obwódkę) — jedno
+   rozróżnienie dla wszystkich typów zdarzeń w relacji, nie tylko goli. Neutralne/systemowe
+   zdarzenia (start/koniec meczu, podsumowanie) zostają w --gr/--am, bez przypisania do drużyny. */
+.mlog-e{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-bottom:1px solid #04140a;font-family:'JetBrains Mono',monospace;font-size:var(--fs-meta);animation:ein 0.3s ease;}
+.mlog-e .mlog-side{display:flex;align-items:center;gap:4px;flex:1;min-width:0;}
+.mlog-e.mlog-mine{background:var(--am-bar);}
+.mlog-e.mlog-mine .mlog-txt{color:var(--am-bar-tx);}
+.mlog-e.mlog-opp{background:var(--gb-bar);}
+.mlog-e.mlog-opp .mlog-txt{color:var(--gb-bar-tx);}
+.mlog-e.goal-my{background:var(--am-bar-goal);border-left:3px solid var(--am);padding:9px 10px;font-size:var(--fs-body);}
+.mlog-e.goal-my .mlog-txt{color:var(--am-bar-tx);font-weight:bold;}
+.mlog-e.goal-opp{background:var(--gb-bar-goal);border-left:3px solid var(--gb);padding:9px 10px;font-size:var(--fs-body);}
+.mlog-e.goal-opp .mlog-txt{color:var(--gb-bar-tx);font-weight:bold;}
 .mlog-e.summary-ev{background:#1a1a00;border-left:3px solid var(--am);}
 .mlog-e.summary-ev .mlog-txt{color:var(--am);}
+/* Prompt taktyczny po przerwie (wybór gracza) — pełna szerokość, własne kolory w treści */
+.mlog-e.mlog-full.narr-my{border-left:3px solid var(--am);background:#1a1500;}
 .mlog-min2{color:var(--gr);min-width:26px;flex-shrink:0;}
 .mlog-icon{min-width:16px;flex-shrink:0;}
 .mlog-txt{flex:1;}
