@@ -345,6 +345,7 @@ function startNewSeason(){
   G.players.forEach(p=>{
     p.st={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0};
     p.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};
+    p.seasonMomCount=0;
   });
   G._budgetSeasonStart=G.budget;G.seasonEnded=false;
   G.season++;G.week=1;G.round=1;
@@ -419,7 +420,11 @@ function startNewSeason(){
   aiSeasonalRefresh();
   // ── KONTRAKTY: dekrementuj i obsłuż wygasłe na końcu sezonu ────────
   // Moi zawodnicy: kontrakt -1, wygasłe odchodzą
-  myPl().forEach(p=>{if(p.contract>0)p.contract--;});
+  // v230: age++ dla mojego klubu — aiRenewContracts() (match-post.js) robi to samo,
+  // ale tylko dla AI (p.clubId!==G.myClubId), więc zawodnicy gracza nigdy się nie starzeli.
+  // Kolejność zgodna z AI: loteria emerytalna wyżej w tej funkcji liczy się jeszcze na
+  // starym wieku, dokładnie tak jak dziś dla zawodników AI w aiRenewContracts().
+  myPl().forEach(p=>{if(p.contract>0)p.contract--;p.age++;});
   const _myExpired=myPl().filter(p=>p.contract<=0&&!(p.traits&&p.traits.includes('lojalny')));
   _myExpired.forEach(p=>{
     const targetClub=pick(ALL_CLUBS.filter(c=>c.id!==G.myClubId));

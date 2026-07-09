@@ -1945,8 +1945,19 @@ function kronTrigger(){
   // ── Rozwiąż dynamiczne body ─────────────────────────────────────────
   const resolvedBody=typeof chosen.body==='function'?chosen.body():chosen.body;
 
-  // ── Pokaż modal ─────────────────────────────────────────────────────
-  setTimeout(function(){kronShowModal(chosen,resolvedBody);},600);
+  // v230: modal NIE pokazuje się od razu — advWeek() (a więc kronTrigger()) odpala się
+  // w momencie końca meczu, zanim gracz zobaczy relację/podsumowanie. Zamiast wyskakiwać
+  // na ekranie meczu, event czeka jako window._pendingKronEvent (wzorzec identyczny jak
+  // window._lastMatchSummary) i pokazuje się przez flushPendingKronEvent() — wywoływane
+  // z continueFromMatchSummary() (match-ui.js) po realnym wyjściu z ekranu meczu, albo
+  // od razu w tygodniach bez meczu (match-engine.js::simMatch(), gdzie nie ma czego opuszczać).
+  window._pendingKronEvent={chosen:chosen,resolvedBody:resolvedBody};
+}
+
+function flushPendingKronEvent(){
+  const pe=window._pendingKronEvent;if(!pe)return;
+  window._pendingKronEvent=null;
+  setTimeout(function(){kronShowModal(pe.chosen,pe.resolvedBody);},600);
 }
 
 // ── Odliczanie bench weeks co turę ──────────────────────────────────────

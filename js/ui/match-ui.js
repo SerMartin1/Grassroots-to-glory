@@ -597,5 +597,22 @@ function openMatchSummary(){
 function continueFromMatchSummary(){
   window._lastMatchSummary=null;
   _releaseMatchLock();
+  // v230: dublet liga+puchar — po podsumowaniu meczu ligowego (zamiast od razu wracać
+  // do v-game) aktywuj analizę przedmeczową pucharu, przeniesione z dawnego
+  // setTimeout(800) w match-engine.js. Kronika NIE flushuje się tutaj — gracz jeszcze
+  // nie opuszcza realnie ekranu meczu, tylko przechodzi do jego drugiej połowy.
+  const _pct=window._pendingCupTransition;
+  if(_pct){
+    window._pendingCupTransition=null;
+    notif(t('match_cup_next_notif').replace('{opp}',_pct.oppName),'ok');
+    matchInProgress=false;
+    fillMatch();
+    openPanel('p-match');
+    _engageMatchLock('prematch');
+    saveGame('lock',true);
+    return;
+  }
   go('v-game');
+  // v230: dopiero teraz gracz realnie opuszcza ekran meczu — patrz kronika.js::kronTrigger()
+  if(typeof flushPendingKronEvent==='function')flushPendingKronEvent();
 }

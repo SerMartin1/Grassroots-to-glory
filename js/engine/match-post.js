@@ -165,41 +165,88 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
     '</div>';
 }
 
+// v231: malejące przychody krańcowe — kolejne wystąpienia tej samej akcji w meczu (szereg
+// harmoniczny: waga, waga/2, waga/3...) liczą się coraz mniej, żeby np. trzeci gol napastnika
+// w meczu wygranym wysoko nie dominował oceny tak samo jak pierwszy. Stosowane tylko do
+// powtarzalnych akcji ofensywno-kreacyjnych (gole/asysty/strzały celne/kluczowe podania) —
+// NIE do obron/wybić (to praca defensywna "na sztuki", nie powinna być karana za częstość).
+function _diminish(weight,n){
+  let total=0;
+  for(let i=1;i<=n;i++)total+=weight/i;
+  return total;
+}
+// v231: premia "clutch" — gol, który wyrównuje lub daje prowadzenie (nie zwykłe dobicie już
+// wygranego meczu), tym większa im później w meczu. Wykorzystuje dane już zapisane w allEvts
+// (min, isH, sid — te same, z których budowany jest komentarz meczowy), więc nie trzeba
+// dokładać żadnej nowej struktury. Kształt późnej fazy meczu świadomie zgodny z _timeMod()
+// (match-engine.js) — inna funkcja bo tamta moduluje żywą szansę na strzał, nie ocenę pomeczową.
+function _clutchBonusMap(evts){
+  const bonus={};
+  if(!evts)return bonus;
+  const goals=evts.filter(e=>e.type==='goal').slice().sort((a,b)=>a.min-b.min);
+  let hTally=0,aTally=0;
+  goals.forEach(e=>{
+    const before=e.isH?hTally:aTally, oppBefore=e.isH?aTally:hTally;
+    if(before<=oppBefore){
+      const lateMult=e.min<=70?1.0:e.min<=84?1.0+(e.min-70)/70*0.5:1.5+(Math.min(90,e.min)-85)/5*0.3;
+      bonus[e.sid]=(bonus[e.sid]||0)+0.4*lateMult;
+    }
+    if(e.isH)hTally++;else aTally++;
+  });
+  return bonus;
+}
 function calcFinalRatings(ratings, iW, iL, hG, aG, _wasCupMatch){
   // Wariant 3: pełna symulacja per-zawodnik, obie drużyny
   const bothTeams=G.players.filter(p=>(p.clubId===m_hId||p.clubId===m_aId)&&p.starter);
-  const avgStrH=(()=>{const t=bothTeams.filter(p=>p.clubId===m_hId);return t.length?t.reduce((s,p)=>s+playerStr(p),0)/t.length:25;})();
-  const avgStrA=(()=>{const t=bothTeams.filter(p=>p.clubId===m_aId);return t.length?t.reduce((s,p)=>s+playerStr(p),0)/t.length:25;})();
+  // v231: allEvts to globalna zmienna z match-engine.js (ta sama, z której korzysta już
+  // renderRatingsPitch/openMatchSummary w tym pliku) — brak allEvts (np. stary zapis) = brak
+  // premii clutch, reszta oceny liczy się normalnie.
+  const _clutchMap=_clutchBonusMap(typeof allEvts!=='undefined'?allEvts:null);
 
   bothTeams.forEach(p=>{
     const r=ratings[p.id];if(!r)return;
     const isH=p.clubId===m_hId;
-    const avgStr=isH?avgStrH:avgStrA;
     const myGoals=isH?hG:aG;
     const oppGoals=isH?aG:hG;
     const won=myGoals>oppGoals,lost=myGoals<oppGoals;
 
-    const strRatio=playerStr(p)/Math.max(1,avgStr);
-    let base=Math.min(8.5,Math.max(4.0,strRatio*6.5));
+    // v231: ocena bazowa 6.0 dla pełnego meczu (skala 1.0-10.0 bez zmian) — jakość zawodnika
+    // wybija się teraz przez realny wkład w mecz, nie przez samą siłę na papierze.
+    let base=6.0;
 
     const g=r.goals||0,a=r.assists||0,sv=r.saves||0;
     const cl=r.clearances||0,kp=r.keyPasses||0;
     const sh=r.shots||0,ash=r.accurateShots||0,c=r.cards||0;
+    const penSv=r.penaltiesSaved||0,penMiss=r.penaltyMissed||0;
 
     if(p.pos==='GK'){
-      base+=sv*0.35;
-      if(oppGoals===0)base+=2.0;
-      else base-=oppGoals*0.45;
+      // v230/v231: sv to prawdziwe obrony (patrz poprawka match-engine.js) — bonus czystego
+      // konta skalowany liczbą obron, żeby "darmowe" czyste konto (drużyna zdominowała, GK
+      // bierny) nie dawało tego samego bonusu co wypracowane (dużo realnych interwencji).
+      // sv liczone liniowo (praca defensywna "na sztuki", bez malejących przychodów).
+      const svTier=sv>=5?1.9:sv>=3?0.95:0.25;
+      base+=Math.min(2.3,sv*0.7+(oppGoals===0?svTier:0));
+      if(oppGoals>0)base-=oppGoals*0.45;
+      base+=penSv*1.5; // obroniony karny — mocno dodatnio, poza sufitem zwykłych obron
     }else if(p.pos==='OBR'){
-      base+=g*1.2+a*0.8+cl*0.2+kp*0.25;
+      // v230/v231: obrońca też dostaje bonus za czyste konto, skalowany liczbą wybić —
+      // wybicia liniowo (praca "na sztuki"), gole/asysty/kluczowe podania z malejącymi
+      // przychodami (rzadkie u obrońcy, ale traktowane spójnie z POL/NAP).
+      const clTier=cl>=5?0.85:cl>=3?0.42:0.11;
+      base+=_diminish(1.2,g)+_diminish(0.8,a)+cl*0.25+_diminish(0.3,kp)+(oppGoals===0?clTier:0);
       if(won)base+=0.3;
     }else if(p.pos==='POL'){
-      base+=g*1.5+a*1.0+kp*0.3+ash*0.2;
+      // v230/v231: wagi podniesione względem NAP, żeby zrównoważyć rzadsze okazje strzeleckie
+      // pomocnika w silniku zdarzeń (patrz diagnoza rozkładu strzałów/goli per pozycja).
+      base+=_diminish(2.2,g)+_diminish(1.65,a)+_diminish(0.53,kp)+_diminish(0.33,ash);
     }else if(p.pos==='NAP'){
-      base+=g*1.5+a*0.8+ash*0.25+sh*0.1;
+      base+=_diminish(1.5,g)+_diminish(0.78,a)+_diminish(0.24,ash)+_diminish(0.09,sh);
     }
-    base-=c*0.5;
+    base-=c*0.5;                    // żółte kartki (liczone jak dotąd)
+    if(r.redCard)base-=2.0;         // v231: czerwona kartka (bezpośrednia lub druga żółta) — dotkliwa, osobno od żółtek
+    if(penMiss)base-=penMiss*0.8;   // v231: niewykorzystany karny — dotkliwa kara dla egzekutora
     if(won)base+=0.2;else if(lost)base-=0.2;
+    base+=_clutchMap[p.id]||0;      // v231: premia za gole decydujące o wyniku, tym większa im później w meczu
     r.rating=Math.max(3.0,Math.min(10.0,Math.round(base*10)/10));
 
     // Zapisz ocenę dla wszystkich zawodników (własnych i AI)
@@ -322,6 +369,9 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
   const _allMatch=G.players.filter(p=>(p.clubId===G.myClubId||p.clubId===oppId)&&ratings[p.id]!==undefined);
   const _globalMom=_allMatch.reduce((best,p)=>(!best||ratings[p.id].rating>ratings[best.id].rating)?p:best,null);
   const _momId=_globalMom?_globalMom.id:null;
+  // v230: licznik MVP w sezonie — podstawa nagrody 'mvp_matches' przyznawanej na koniec
+  // sezonu (week-progress.js/dev-mode.js), reset w startNewSeason() (season-summary.js)
+  if(_globalMom)_globalMom.seasonMomCount=(_globalMom.seasonMomCount||0)+1;
   // v228: dane do ekranu podsumowania meczu (ui/match-ui.js::openMatchSummary()) — reużywa
   // dokładnie tych samych zmiennych, które ta funkcja już policzyła wyżej (ratings/_globalMom/
   // _sumTxtForSummaryScreen/hc/ac), plus deltę reputacji/frekwencji zapisaną w match-engine.js

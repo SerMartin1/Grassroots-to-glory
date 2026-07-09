@@ -11,7 +11,7 @@ window.onerror=function(msg,src,line,col,err){
 // Faza 1–5 będzie stopniowo dodawać klucze do T.pl i T.en
 // ══════════════════════════════════════════════════════════
 
-let LANG = localStorage.getItem('gtg_lang') || 'pl';
+let LANG = localStorage.getItem('gtg_lang') || 'en';
 
 // Słownik tłumaczeń — rozbudowywany iteracyjnie w Fazach 1–5
 const T = {
@@ -1334,6 +1334,7 @@ const T = {
     plr_awards_chrono:        'CHRONOLOGIA',
     plr_awards_none_chrono:   'Nagrody pojawią się po zakończeniu sezonu',
     plr_award_season:         'SEZON {n}',
+    plr_award_in_progress:    'W TOKU',
     plr_contract_seasons:     '{n} sez.',
     plr_contract_salary:      ' • {n} zł/mc',
     mkcard_age_years:         'lat',
@@ -1434,6 +1435,7 @@ const T = {
     award_promotion:         'Awans — 2. miejsce',
     award_top_scorer:        'Top Strzelec — {n}G',
     award_player_of_season:  'Gracz Sezonu — {n}',
+    award_mvp_matches:       'MVP meczu — {n}×',
     award_club_legend:       'Legenda Klubu',
     // ── Oś czasu klubu (milestone'y pozaligowe) ──
     tl_academy_debut:        '{name} zadebiutował w pierwszym składzie',
@@ -4163,6 +4165,7 @@ const T = {
     plr_awards_chrono:        'CHRONOLOGY',
     plr_awards_none_chrono:   'Awards will appear after the season ends',
     plr_award_season:         'SEASON {n}',
+    plr_award_in_progress:    'IN PROGRESS',
     plr_contract_seasons:     '{n} seas.',
     plr_contract_salary:      ' • {n}/mo',
     mkcard_age_years:         'y',
@@ -4263,6 +4266,7 @@ const T = {
     award_promotion:         'Promotion — 2nd place',
     award_top_scorer:        'Top Scorer — {n}G',
     award_player_of_season:  'Player of the Season — {n}',
+    award_mvp_matches:       'Match MVP — {n}×',
     award_club_legend:       'Club Legend',
     // ── Club timeline (off-table milestones) ──
     tl_academy_debut:        '{name} made their first-team debut',
@@ -5810,8 +5814,8 @@ function showLangPicker(onDone) {
     '<div style="font-weight:700;font-size:var(--fs-hero);color:var(--am);text-shadow:3px 3px 0 #7a5c00;text-align:center;line-height:1.8">GRASSROOTS<br>TO GLORY</div>'+
     '<div style="font-size:var(--fs-display);color:var(--gr);letter-spacing:2px;text-align:center">SELECT LANGUAGE / WYBIERZ JĘZYK</div>'+
     '<div style="display:flex;gap:16px">'+
-      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
-      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
+      '<button id="lang-btn-pl" onclick="pickLang(\'pl\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:1px solid var(--gr);color:var(--gr);cursor:pointer;letter-spacing:1px">🇵🇱 POLSKI</button>'+
+      '<button id="lang-btn-en" onclick="pickLang(\'en\')" style="font-weight:700;font-size:var(--fs-h2);padding:14px 22px;background:var(--tb);border:2px solid var(--am);color:var(--am);cursor:pointer;letter-spacing:1px">🇬🇧 ENGLISH</button>'+
     '</div>'+
     '<div style="font-size:var(--fs-body);color:#1a3d1a;letter-spacing:1px">v1.0</div>';
   document.body.appendChild(overlay);

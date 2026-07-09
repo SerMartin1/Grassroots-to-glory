@@ -374,10 +374,13 @@ if(assistCandidates.length&&Math.random()<0.85){
 _applyMomentum(isH,min);// v197: aktualizuj momentum PRZED zapisem snapshotu
 evts.push({min,type:'goal',sid:sc2.id,isH,scorer:sc2.last,scorerName:sc2.name||sc2.last,assister:assister?assister.last:null,assisterName:assister?(assister.name||assister.last):null,assisterId:assister?assister.id:null,_momSnap:{h:_momentum[true],a:_momentum[false]}});// v199: snapshot momentum
 }else{
-  // Strzał obroniony — GK dostaje save
-  if(gkPlayer&&ratings[gkPlayer.id])ratings[gkPlayer.id].saves=(ratings[gkPlayer.id].saves||0)+1;
-  // Strzał celny ale obroniony → keyPass dla przypadkowego asystenta
+  // v230: save liczymy TYLKO gdy strzał był celny (isAccurate) — wcześniej gk.saves rosło
+  // też przy strzałach niecelnych (obok/nad bramką), co sztucznie zawyżało statystykę obron
+  // bramkarza (patrz diagnoza asymetrii MVP GK vs zawodnicy z pola).
   if(isAccurate){
+    // Strzał celny, ale obroniony — prawdziwa obrona bramkarza
+    if(gkPlayer&&ratings[gkPlayer.id])ratings[gkPlayer.id].saves=(ratings[gkPlayer.id].saves||0)+1;
+    // Strzał celny ale obroniony → keyPass dla przypadkowego asystenta
     const kpCandidates=sc.filter(p=>p.id!==sc2.id&&(p.pos==='POL'||p.pos==='NAP'));
     if(kpCandidates.length&&Math.random()<0.5){
       const kpPick=kpCandidates[Math.floor(Math.random()*kpCandidates.length)];
@@ -457,7 +460,14 @@ if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false
 // v199: zapisz snapshot momentum po set-piece golu
 if(evts.length)evts[evts.length-1]._momSnap={h:_momentum[true],a:_momentum[false]};
     } else {
-      if(oppGK&&ratings[oppGK.id])ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;
+      if(oppGK&&ratings[oppGK.id]){
+        ratings[oppGK.id].saves=(ratings[oppGK.id].saves||0)+1;
+        // v231: obroniony karny liczony też osobno (penaltiesSaved) — w ocenie meczowej
+        // dostaje mocniejszą premię niż zwykła obrona.
+        ratings[oppGK.id].penaltiesSaved=(ratings[oppGK.id].penaltiesSaved||0)+1;
+      }
+      // v231: niewykorzystany karny dla egzekutora — osobna statystyka do dotkliwej kary w ocenie
+      if(ratings[fkTaker.id])ratings[fkTaker.id].penaltyMissed=(ratings[fkTaker.id].penaltyMissed||0)+1;
       evts.push({min,type:'penalty_saved',text:_pickVar('match_penalty_saved').replace('{taker}',fkTaker.last).replace(/\{gk\}/g,oppGK?oppGK.last:''),isH});
     }
   }
@@ -479,11 +489,13 @@ function bldCards(pls){
       evts.push({min:r(5,85),type:'yellow',text:_pickVar('match_yellow_card').replace('{name}',p.last),sid:p.id,isMy});
       // 2nd yellow = red card
       if(yellows[p.id]>=2){
+        if(ratings[p.id])ratings[p.id].redCard=true;// v231: do dotkliwej kary w ocenie meczowej
         evts.push({min:r(86,89),type:'red2y',text:_pickVar('match_red_card_2y').replace('{name}',p.last),sid:p.id,isMy});
       }
     }
     // Direct red card chance
     if(Math.random()<0.007){
+      if(ratings[p.id])ratings[p.id].redCard=true;// v231: do dotkliwej kary w ocenie meczowej
       evts.push({min:r(10,85),type:'red',text:_pickVar('match_red_card').replace('{name}',p.last),sid:p.id,isMy:p.clubId===G.myClubId});
     }
   });
@@ -579,11 +591,23 @@ window._aiTacticalShift={...TACTICAL_SHIFT_DEFS[_aiShiftKey],key:_aiShiftKey,use
 // (klik / timeout w next(), patrz _finalizeSecondHalf niżej). Bez tego shotMod/saveMod z wyboru
 // w 46. minucie nigdy by nie trafiły do wyniku meczu — cały mecz był już rozstrzygnięty wcześniej.
 let _ph3Built=false;
-function _finalizeSecondHalf(){
+// v232: consumedCount — liczba zdarzeń już odtworzonych przez next() (idx2 w chwili wywołania).
+// Dawny pełny resort CAŁEJ tablicy allEvts (już pokazane + jeszcze nie) potrafił po dołożeniu
+// fazy 3 przesunąć nieodtworzone jeszcze zdarzenia PRZED wskaźnik idx2 (gol nigdy nieodtworzony
+// na żywo, mimo że liczony w wyniku końcowym) albo pokazane zdarzenie z powrotem ZA idx2
+// (duplikat w relacji) — patrz diagnoza rozjazdu wyniku "na boisku" vs w relacji pomeczowej.
+// Zachowując prefiks 0..consumedCount-1 nietknięty, next() zawsze kończy z tym samym zestawem
+// zdarzeń, na którym liczony jest wynik końcowy. Wywołania synchroniczne bez animacji
+// (devSimMyMatch, diagnostyka w dev-mode.js) nie podają argumentu — 0 daje dawne zachowanie
+// (nic nie zostało jeszcze "pokazane", więc pełny resort jest bezpieczny).
+function _finalizeSecondHalf(consumedCount){
   if(_ph3Built)return;_ph3Built=true;
   const ph3H=bldEvs(h3fAdj,hSt.atk,aSt.def,aSt.gkOvr,hSc,true,'late',46);
   const ph3A=bldEvs(a3fAdj,aSt.atk,hSt.def,hSt.gkOvr,aSc,false,'late',46);
-  allEvts=[...allEvts,...ph3H,...ph3A].sort((a,b)=>a.min-b.min);
+  const _cut=consumedCount||0;
+  const _already=allEvts.slice(0,_cut);
+  const _rest=allEvts.slice(_cut).concat(ph3H,ph3A).sort((a,b)=>a.min-b.min);
+  allEvts=_already.concat(_rest);
   let hG3=0,aG3=0;allEvts.forEach(e=>{if(e.type==='goal'){if(e.isH)hG3++;else aG3++;}});
   fHG=hG3;fAG=aG3;
 }
@@ -624,11 +648,12 @@ if(aMods.lineMod.offsideRisk>0&&Math.random()<aMods.lineMod.offsideRisk){
 const spH=bldSetPieces(hSc,true);const spA=bldSetPieces(aSc,false);
 // v214: faza 3 (ph3H/ph3A) dochodzi później przez _finalizeSecondHalf(), po rozstrzygnięciu zmiany taktycznej w 46'
 allEvts=[...ph1H,...ph1A,...ph2H,...ph2A,...bldCards(allPl),...specialEvts,...spH,...spA,..._momEvts].sort((a,b)=>a.min-b.min);// v197: _momEvts = zdarzenia narracyjne momentum
-let hG=0,aG=0;allEvts.forEach(ev=>{if(ev.type==='goal'){if(ev.isH)hG++;else aG++;}});
-fHG=hG;fAG=aG;
+// v232: fHG/fAG NIE są tu już liczone — w tym miejscu allEvts nie zawiera jeszcze fazy 3 (61-90'),
+// więc byłby to wynik cząstkowy i tak zaraz nadpisywany przez _finalizeSecondHalf() (jedyne
+// miejsce liczące wynik końcowy, patrz notatka v232 wyżej) — patrz diagnoza rozjazdu wyniku.
 return{ratings,hSt,aSt,isMyH,hA,aA,finalizeSecondHalf:_finalizeSecondHalf,TACTICAL_SHIFT_DEFS};
 }
-function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();notif(t('match_notif_no_match_week'),'info');_releaseMatchLock();closePanel('p-match');fillMatch&&fillMatch();return;}const stC=mySt().length,lim=formationLimits(),req=1+lim.OBR+lim.POL+lim.NAP;if(stC<req){notif(t('match_notif_select_squad').replace('{n}',req-stC),'err');return;}const injuredStarters=mySt().filter(p=>p.injured||p.suspension>0);if(injuredStarters.length){injuredStarters.forEach(p=>{p.starter=false;});notif(t('match_notif_removed_injured').replace('{names}',injuredStarters.map(p=>p.name).join(', ')),'err');fillTacSquad();fillSquad();return;}
+function simMatch(){if(!G)return;const m=nextMatch();if(!m){advWeek();if(typeof flushPendingKronEvent==='function')flushPendingKronEvent();notif(t('match_notif_no_match_week'),'info');_releaseMatchLock();closePanel('p-match');fillMatch&&fillMatch();return;}const stC=mySt().length,lim=formationLimits(),req=1+lim.OBR+lim.POL+lim.NAP;if(stC<req){notif(t('match_notif_select_squad').replace('{n}',req-stC),'err');return;}const injuredStarters=mySt().filter(p=>p.injured||p.suspension>0);if(injuredStarters.length){injuredStarters.forEach(p=>{p.starter=false;});notif(t('match_notif_removed_injured').replace('{names}',injuredStarters.map(p=>p.name).join(', ')),'err');fillTacSquad();fillSquad();return;}
   // Ukryj przycisk taktyki pucharowej gdy mecz startuje
   var _ctb=document.getElementById('cup-tac-btn');if(_ctb)_ctb.style.display='none';
   const btn=document.getElementById('btn-sim');btn.disabled=true;matchInProgress=true;_engageMatchLock('live');saveGame('lock',true);document.getElementById('m-lock-note')&&(document.getElementById('m-lock-note').style.display='none');btn.style.display='none';btn.textContent=t('match_in_progress');const _mls3=document.getElementById('m-live-stats');if(_mls3)_mls3.style.display='block';const _s0=id=>document.getElementById(id);if(_s0('ls-poss-h')){_s0('ls-poss-h').textContent='50%';_s0('ls-poss-a').textContent='50%';}if(_s0('ls-poss-bar-h')){_s0('ls-poss-bar-h').style.flex='50';_s0('ls-poss-bar-a').style.flex='50';}if(_s0('ls-shots-h')){_s0('ls-shots-h').textContent='0';_s0('ls-shots-a').textContent='0';}if(_s0('ls-on-h')){_s0('ls-on-h').textContent='0';_s0('ls-on-a').textContent='0';}if(_s0('ls-fouls-h')){_s0('ls-fouls-h').textContent='0';_s0('ls-fouls-a').textContent='0';}// Ukryj wiersze statystyk — pojawią się przy pierwszej akcji
@@ -948,15 +973,14 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
     upUI(90,fHG,fAG);btn.style.display='block';btn.textContent=t('match_finished_btn');btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;
     const mtabsEnd=document.getElementById('m-tabs');if(mtabsEnd)mtabsEnd.style.display='flex';// v199: log zostaje w #mlog wewnątrz m-speed-btns — zostaje widoczny po meczu
     // v220: po meczu widok zostaje na RELACJI — nie przełączamy automatycznie na BOISKO
-    // Po chwili — otwórz mecz pucharowy (gracz może ustawić skład przez przycisk w panelu meczu)
-    setTimeout(()=>{
-      notif(t('match_cup_next_notif').replace('{opp}',_oppC.n),'ok');
-      matchInProgress=false;
-      fillMatch();
-      openPanel('p-match');
-      _engageMatchLock('prematch');
-      saveGame('lock',true);
-    },800);
+    // v230: mecz ligowy w tygodniu z dubletem (liga+puchar) dostaje TAKIE SAMO podsumowanie
+    // jak każdy inny mecz — zamiast auto-przejścia po setTimeout, gracz klika WRÓĆ→DALEJ
+    // (continueFromMatchSummary() w match-ui.js), która dopiero wtedy aktywuje analizę
+    // przedmeczową pucharu (window._pendingCupTransition). window._lastMatchSummary jest
+    // już ustawione przez postMatch() wyżej (linia 962) — tu tylko pokazujemy WRÓĆ i czekamy.
+    const bb1=document.getElementById('btn-match-back');if(bb1){bb1.style.display='block';bb1.style.background='var(--gb)';bb1.style.color='#000';bb1.textContent=t('match_end_btn');}
+    window._pendingCupTransition={oppName:_oppC.n};
+    _engageMatchLock('summary');
     return;
   }
   // ── FIX v255: po meczu pucharowym symuluj pominięty mecz ligowy gracza ──
@@ -1160,12 +1184,12 @@ const ev=allEvts[idx2++];
 // dopiero teraz budujemy fazę 3, żeby wybrany shotMod/saveMod faktycznie wpłynął na wynik
 if(ev.type==='tacticalChoice'&&!window._tacticalShift.used&&matchSpeed>0){
   // Zapisz callback — odliczanie wywoła go po 10s lub po wyborze gracza
-  window._tacResumeNext=function(){window._tacResumeNext=null;_finalizeSecondHalf();setTimeout(next,matchSpeed===0?1:300);};
+  window._tacResumeNext=function(){window._tacResumeNext=null;_finalizeSecondHalf(idx2);setTimeout(next,matchSpeed===0?1:300);};
   // NIE wywołuj setTimeout(next,...) — czekamy na odliczanie
 } else if(ev.type==='tacticalChoice'){
   // Tryb "pomiń" (matchSpeed===0) — bez UI, neutralny wybór gracza (jeśli jeszcze nierozstrzygnięty), buduj fazę 3 od razu
   if(!window._tacticalShift.used)window._tacticalShift={shotMod:1.0,saveMod:1.0,used:true};
-  _finalizeSecondHalf();
+  _finalizeSecondHalf(idx2);
   setTimeout(next,matchSpeed===0?1:matchSpeed*0.7);
 } else {
   setTimeout(next,matchSpeed===0?1:ev.type==='goal'?matchSpeed*1.5:

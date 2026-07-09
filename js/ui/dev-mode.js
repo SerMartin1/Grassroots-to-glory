@@ -327,6 +327,7 @@ function runDevSim(){
             if(_promDev&&!_lgWonDev)p.awards.push({type:'promotion',icon:'⬆️',label:t('award_promotion'),tier:'silver',season:seasonNum});
             if(_topScrDev&&p.id===_topScrDev.id&&(_topScrDev.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',p.st.g||0),tier:'indiv',season:seasonNum});
             if(_topRatDev&&p.id===_topRatDev.id){var _ar=Math.round(_topRatDev.seasonRatings.reduce(function(s,r){return s+r;},0)/_topRatDev.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:seasonNum});}
+            if((p.seasonMomCount||0)>0)p.awards.push({type:'mvp_matches',icon:'⭐',label:t('award_mvp_matches').replace('{n}',p.seasonMomCount),tier:'indiv',season:seasonNum});
           });
         })();
         // Nowy sezon (awanse/spadki)
@@ -557,4 +558,54 @@ function runDiagStatsSample(nPerLeague){
   console.log('=== DIAGNOSTYKA STATYSTYK MECZOWYCH (n='+nPerLeague+'/liga/ścieżka) — '+((Date.now()-_t0)/1000).toFixed(1)+'s ===');
   console.log('Pełne dane: window._diagStats');
   return window._diagStats;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TEST SCENARIUSZOWY (v231) — weryfikuje formułę ocen calcFinalRatings() (match-post.js):
+// obrońca z 6 wybiciami i zwycięskim golem w 88' meczu 1:0 MUSI zostać wybrany na MVP przed
+// napastnikiem, który zmarnował 5 sytuacji strzeleckich (0 celnych) i bramkarzem ze skromnym,
+// niewypracowanym czystym kontem (tylko 2 obrony). Buduje syntetyczny `ratings` na realnym,
+// wylosowanym składzie dwóch klubów AI (aiSelectSquad — ta sama funkcja co runDiagStatsSample,
+// żadnego nowego generatora składu) i woła calcFinalRatings() bezpośrednio — bez uruchamiania
+// pełnej symulacji meczu. Chronione przez DEV_MODE. Uruchom z konsoli: devTestClutchDefenderMvp()
+function devTestClutchDefenderMvp(){
+  if(!DEV_MODE){console.warn('devTestClutchDefenderMvp: wymaga DEV_MODE=true');return;}
+  if(!G){console.warn('devTestClutchDefenderMvp: brak wczytanej gry');return;}
+  const lg=G.leagues.find(l=>l.level===G.myLeague);
+  const clubs=lg?lg.clubs.filter(c=>c.id!==G.myClubId):[];
+  if(clubs.length<2){devLog('devTestClutchDefenderMvp: za mało klubów AI w lidze gracza','var(--rd)');return;}
+  const homeC=clubs[0],awayC=clubs[1];
+  aiSelectSquad(homeC.id);aiSelectSquad(awayC.id);
+  // v231: m_hId/m_aId/allEvts to globalne zmienne match-engine.js, nadpisywane przy każdym
+  // prawdziwym meczu — bezpieczne do tymczasowego ustawienia tutaj, bez osobnej restauracji.
+  m_hId=homeC.id;m_aId=awayC.id;
+
+  const homeSt=G.players.filter(p=>p.clubId===homeC.id&&p.starter);
+  const awaySt=G.players.filter(p=>p.clubId===awayC.id&&p.starter);
+  const hero=homeSt.find(p=>p.pos==='OBR');
+  const flop=homeSt.find(p=>p.pos==='NAP');
+  const gk=homeSt.find(p=>p.pos==='GK');
+  if(!hero||!flop){devLog('devTestClutchDefenderMvp: brak OBR/NAP w wylosowanym składzie','var(--rd)');return;}
+
+  const ratings={};
+  [...homeSt,...awaySt].forEach(p=>{ratings[p.id]={goals:0,assists:0,saves:0,clearances:0,keyPasses:0,shots:0,accurateShots:0,cards:0};});
+  ratings[hero.id].clearances=6;   // świetna defensywa
+  ratings[hero.id].goals=1;        // zwycięski gol w 88'
+  ratings[flop.id].shots=5;        // zmarnowane sytuacje — 0 celnych, 0 goli
+  if(gk)ratings[gk.id].saves=2;    // skromne, niewypracowane czyste konto
+
+  allEvts=[{min:88,type:'goal',sid:hero.id,isH:true,scorer:hero.last,scorerName:hero.name}];
+
+  calcFinalRatings(ratings,true,false,1,0,false);
+
+  const allMatchPls=[...homeSt,...awaySt];
+  const mvp=allMatchPls.reduce((best,p)=>(!best||ratings[p.id].rating>ratings[best.id].rating)?p:best,null);
+
+  devLog('=== TEST: obrońca ze zwycięskim golem 88\' vs napastnik marnujący sytuacje (1:0) ===','var(--am)');
+  devLog('Obrońca '+hero.name+' (6 wybić, gol 88\'): ocena '+ratings[hero.id].rating,'var(--gb)');
+  devLog('Napastnik '+flop.name+' (5 strzałów, 0 celnych): ocena '+ratings[flop.id].rating,'var(--gb)');
+  if(gk)devLog('Bramkarz '+gk.name+' (2 obrony, czyste konto): ocena '+ratings[gk.id].rating,'var(--gb)');
+  if(mvp.id===hero.id)devLog('WYNIK: PASS — MVP = obrońca, zgodnie z oczekiwaniem','var(--gr)');
+  else devLog('WYNIK: FAIL — MVP = '+mvp.name+' ('+mvp.pos+'), oczekiwano obrońcy '+hero.name,'var(--rd)');
+  return {hero,flop,gk,ratings,mvp};
 }

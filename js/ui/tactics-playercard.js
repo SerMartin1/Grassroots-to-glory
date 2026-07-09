@@ -687,10 +687,19 @@ function acceptChance(offeredSalary,demand){
 }
 function renderPlayerAwards(p){
   var el=document.getElementById('plr-nagr-content');if(!el)return;
-  var awards=(p.awards||[]);
-  var tierColor={gold:'#ffd700',silver:'#c0c0c0',indiv:'#4db8ff',legend:'#e066ff'};
-  var tierBg={gold:'#120e00',silver:'#0e0e0e',indiv:'#040d14',legend:'#0d040d'};
-  var tierBorder={gold:'#ffd700',silver:'#666',indiv:'#1a4a6a',legend:'#6a1a6a'};
+  var awards=(p.awards||[]).slice();
+  // v230: MVP bieżącego sezonu — nie czeka na koniec sezonu jak inne nagrody
+  // indywidualne (week-progress.js), tylko czyta p.seasonMomCount na żywo
+  // (inkrementowany w match-post.js po każdym meczu). Znika sam, gdy na koniec
+  // sezonu week-progress.js zapisze prawdziwy wpis 'mvp_matches' do p.awards.
+  var _liveMomN=p.seasonMomCount||0;
+  var _hasSeasonMvpAward=awards.some(function(a){return a.type==='mvp_matches'&&a.season===G.season;});
+  if(_liveMomN>0&&!_hasSeasonMvpAward){
+    awards.push({type:'mvp_matches',icon:'⭐',label:t('award_mvp_matches').replace('{n}',_liveMomN),tier:'live',season:G.season,_live:true});
+  }
+  var tierColor={gold:'#ffd700',silver:'#c0c0c0',indiv:'#4db8ff',legend:'#e066ff',live:'#ffc107'};
+  var tierBg={gold:'#120e00',silver:'#0e0e0e',indiv:'#040d14',legend:'#0d040d',live:'#1a1400'};
+  var tierBorder={gold:'#ffd700',silver:'#666',indiv:'#1a4a6a',legend:'#6a1a6a',live:'#7a5a00'};
 
   // Zapisz nagrody na window żeby onclick miał do nich dostęp
   window._plrAwards=awards;
@@ -704,9 +713,11 @@ function renderPlayerAwards(p){
     shelfHtml+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
     awards.forEach(function(a,i){
       var tc=tierColor[a.tier]||'var(--am)';
-      shelfHtml+='<div onclick="showAwardDetail('+i+')" style="text-align:center;width:52px;cursor:pointer">';
+      var seasonTag=a._live?t('plr_award_in_progress'):'S'+a.season;
+      var itemStyle=a._live?'border:1px dashed '+tc+';border-radius:2px;padding:3px 0':'';
+      shelfHtml+='<div onclick="showAwardDetail('+i+')" style="text-align:center;width:52px;cursor:pointer;'+itemStyle+'">';
       shelfHtml+='<div style="font-size:26px;line-height:1">'+a.icon+'</div>';
-      shelfHtml+='<div style="font-weight:700;font-size:var(--fs-micro);color:'+tc+';margin-top:3px;line-height:1.5">S'+a.season+'</div>';
+      shelfHtml+='<div style="font-weight:700;font-size:var(--fs-micro);color:'+tc+';margin-top:3px;line-height:1.5">'+seasonTag+'</div>';
       shelfHtml+='</div>';
     });
     shelfHtml+='</div>';
@@ -719,14 +730,16 @@ function renderPlayerAwards(p){
   if(!awards.length){
     listHtml+='<div style="font-weight:700;font-size:var(--fs-h3);color:#2a3a2a;text-align:center;padding:20px 14px">'+t('plr_awards_none_chrono')+'</div>';
   } else {
-    var sorted=awards.slice().sort(function(a,b){return a.season-b.season;});
+    var sorted=awards.slice().sort(function(a,b){return a.season-b.season||(a._live?1:0)-(b._live?1:0);});
     sorted.forEach(function(a,i){
       var tc=tierColor[a.tier]||'var(--am)';
       var bg=i%2===0?'#0a1a0a':'transparent';
-      listHtml+='<div style="display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid #0d1f0d;background:'+bg+'">';
+      var seasonTag=a._live?t('plr_award_in_progress'):'S'+a.season;
+      var rowStyle=a._live?'border:1px dashed '+tc+';border-bottom:1px dashed '+tc:'border-bottom:1px solid #0d1f0d';
+      listHtml+='<div style="display:flex;align-items:center;gap:10px;padding:6px 14px;'+rowStyle+';background:'+bg+'">';
       listHtml+='<span style="font-size:var(--fs-display);width:22px;text-align:center">'+a.icon+'</span>';
       listHtml+='<div style="flex:1;font-size:var(--fs-body);color:'+tc+'">'+a.label+'</div>';
-      listHtml+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">S'+a.season+'</div>';
+      listHtml+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">'+seasonTag+'</div>';
       listHtml+='</div>';
     });
   }
@@ -736,19 +749,19 @@ function renderPlayerAwards(p){
 function showAwardDetail(idx){
   var awards=window._plrAwards||[];
   var a=awards[idx];if(!a)return;
-  var tierColor={gold:'#ffd700',silver:'#c0c0c0',indiv:'#4db8ff',legend:'#e066ff'};
-  var tierBg={gold:'#120e00',silver:'#0e0e0e',indiv:'#040d14',legend:'#0d040d'};
-  var tierBorder={gold:'#ffd700',silver:'#666',indiv:'#1a4a6a',legend:'#6a1a6a'};
+  var tierColor={gold:'#ffd700',silver:'#c0c0c0',indiv:'#4db8ff',legend:'#e066ff',live:'#ffc107'};
+  var tierBg={gold:'#120e00',silver:'#0e0e0e',indiv:'#040d14',legend:'#0d040d',live:'#1a1400'};
+  var tierBorder={gold:'#ffd700',silver:'#666',indiv:'#1a4a6a',legend:'#6a1a6a',live:'#7a5a00'};
   var tc=tierColor[a.tier]||'#ffd700';
   var _d=document.getElementById('plr-award-detail');if(!_d)return;
   if(_d.style.display==='block'&&_d.dataset.idx==idx){_d.style.display='none';return;}
   _d.dataset.idx=idx;
   _d.style.display='block';
-  _d.innerHTML='<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;border:1px solid '+tierBorder[a.tier||'gold']+';background:'+tierBg[a.tier||'gold']+'">'+
+  _d.innerHTML='<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;border:1px '+(a._live?'dashed':'solid')+' '+tierBorder[a.tier||'gold']+';background:'+tierBg[a.tier||'gold']+'">'+
     '<span style="font-size:26px">'+a.icon+'</span>'+
     '<div>'+
       '<div style="font-weight:700;font-size:var(--fs-h3);color:'+tc+';margin-bottom:4px">'+a.label+'</div>'+
-      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">'+t('plr_award_season').replace('{n}',a.season)+'</div>'+
+      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">'+(a._live?t('plr_award_in_progress'):t('plr_award_season').replace('{n}',a.season))+'</div>'+
     '</div>'+
   '</div>';
 }

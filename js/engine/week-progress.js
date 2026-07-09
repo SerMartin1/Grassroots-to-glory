@@ -600,6 +600,8 @@ function finalizeSeasonEnd(){
       // Indywidualne
       if(_topScr&&p.id===_topScr.id&&(_topScr.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',_topScr.st.g||0),tier:'indiv',season:G.season});
       if(_topRat&&p.id===_topRat.id&&p.seasonRatings&&p.seasonRatings.length>=5){var _ar=Math.round(p.seasonRatings.reduce(function(s,r){return s+r;},0)/p.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:G.season});}
+      // MVP meczu — zagregowane per sezon (patrz match-post.js::_globalMom)
+      if((p.seasonMomCount||0)>0)p.awards.push({type:'mvp_matches',icon:'⭐',label:t('award_mvp_matches').replace('{n}',p.seasonMomCount),tier:'indiv',season:G.season});
       // Legenda
       if(G.legends&&G.legends.find(function(l){return l.id===p.id&&l.season===G.season;}))p.awards.push({type:'legend',icon:'👑',label:t('award_club_legend'),tier:'legend',season:G.season});
       // Wierny Klubowi (One Club Man) — 5+ sezonów z minutami w tym samym klubie
