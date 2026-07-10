@@ -930,13 +930,15 @@ if(!G.reputation)G.reputation=10;if(!G.frequency)G.frequency=40;
 // v228: snapshot PRZED zmianą — do wyświetlenia delty na ekranie podsumowania meczu
 const _repBefore0=G.reputation,_freqBefore0=G.frequency;
 // winStreak/loseStreak już zaktualizowane wyżej - tylko frekwencja i reputacja
-if(iW){G.frequency=Math.min(100,G.frequency+5);G.reputation=Math.min(1000,G.reputation+1);
+if(iW){G.frequency=Math.min(100,G.frequency+5);
   // Lider: forma drużyny +2
   if(myPl().some(p=>p.starter&&p.traits&&p.traits.includes('lider')))
     myPl().forEach(p=>{p.form=Math.min(99,p.form+2);});
   // Pewny siebie: OVR bonus przy serii
   if(G.winStreak>=3)
-    myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('pewny_siebie')).forEach(p=>{p.form=Math.min(99,p.form+2);});if(G.winStreak>=3){G.frequency=Math.min(100,G.frequency+5);G.reputation=Math.min(1000,G.reputation+1);}}
+    myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('pewny_siebie')).forEach(p=>{p.form=Math.min(99,p.form+2);});
+  if(G.winStreak>=3){G.frequency=Math.min(100,G.frequency+5);changeReputation(2,t('rep_reason_match_win_streak'));}
+  else{changeReputation(1,t('rep_reason_match_win'));}}
 else if(iL){G.frequency=Math.max(10,G.frequency-3);if(G.loseStreak>=3)G.frequency=Math.max(10,G.frequency-5);
   // Zimna krew: mniejszy spadek formy
   myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('zimna_krew')).forEach(p=>{p.form=Math.min(99,p.form+2);});
@@ -954,6 +956,24 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
   G.players.filter(p=>p.clubId===m.a&&p.starter).forEach(p=>{
     if(aWon2)p.form=Math.min(100,p.form+1);else if(hWon2)p.form=Math.max(30,p.form-1);
   });
+  // ── ŻYWY ŚWIAT AI: forma i seria wyników rywala, gdy gra z graczem ───────
+  (function(){
+    const aiClub=(m.h===G.myClubId)?ac:hc;
+    if(!aiClub||!aiClub.ai)return;
+    const cai=aiClub.ai;
+    const aiWon=(m.h===G.myClubId)?aWon2:hWon2;
+    const aiLost=(m.h===G.myClubId)?hWon2:aWon2;
+    cai.form=Math.max(0,Math.min(100,(typeof cai.form==='number'?cai.form:50)+(aiWon?3:aiLost?-3:0)));
+    if(!cai._streak)cai._streak=0;
+    if(aiWon)cai._streak=cai._streak>0?cai._streak+1:1;
+    else if(aiLost)cai._streak=cai._streak<0?cai._streak-1:-1;
+    else cai._streak=0;
+    if(Math.abs(cai._streak)===4){
+      const isWinStreak=cai._streak>=4;
+      const key=isWinStreak?'world_news_win_streak':'world_news_loss_streak';
+      addWorldNews(t(key).replace('{club}',aiClub.n).replace('{n}',Math.abs(cai._streak)),isWinStreak?'streak_win':'streak_loss',aiClub.id);
+    }
+  })();
   simOthers();
   if(!G._cupMatchActive){
     calcFinalRatings(ratings,iW,iL,fHG,fAG,false);

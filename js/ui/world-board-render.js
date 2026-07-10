@@ -6,10 +6,11 @@ function fillWorld(){
 function worldTab(tab,btn){
   document.querySelectorAll('#p-world .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['transfers','clubs'].forEach(t=>{const e=document.getElementById('world-'+t);if(e)e.classList.remove('on');});
+  ['transfers','clubs','news'].forEach(tb=>{const e=document.getElementById('world-'+tb);if(e)e.classList.remove('on');});
   const e=document.getElementById('world-'+tab);if(e)e.classList.add('on');
   if(tab==='transfers')renderWorldTransfers();
-  else renderWorldClubs();
+  else if(tab==='clubs')renderWorldClubs();
+  else renderWorldNews();
 }
 
 function buildWorldTransferLog(){
@@ -171,40 +172,47 @@ function renderWorldClubs(sortBy){
         });
       }
       const saldo=earned-spent;
+      const squad=G.players.filter(p=>p.clubId===club.id);
+      const squadValue=squad.reduce((s,p)=>s+(p.value||0),0);
       const philoMap={akademia:t('world_philo_academy'),sprzedajacy:t('world_philo_seller'),bogaty:t('world_philo_rich'),stabilny:t('world_philo_stable')};
       clubStats.push({name:club.n,id:club.id,isMe,
         philo:philoMap[ai.type||'stabilny']||t('world_philo_stable'),
-        spent,earned,saldo,buys,sells,lgLevel:lg.level||8});
+        spent,earned,saldo,buys,sells,lgLevel:lg.level||8,
+        squadValue,
+        reputation:isMe?(G.reputation||0):(ai.reputation||0)});
     });
   });
 
   // Sortowanie wg wybranej podstawy
   if(sort==='earned') clubStats.sort((a,b)=>b.earned-a.earned);
   else if(sort==='saldo') clubStats.sort((a,b)=>b.saldo-a.saldo);
+  else if(sort==='value') clubStats.sort((a,b)=>b.squadValue-a.squadValue);
+  else if(sort==='reputation') clubStats.sort((a,b)=>b.reputation-a.reputation);
   else clubStats.sort((a,b)=>b.spent-a.spent);
 
   // Wartość bazowa do paska — zawsze wartość sortowanej kolumny
-  const getVal=c=>sort==='earned'?c.earned:sort==='saldo'?c.saldo:c.spent;
+  const getVal=c=>sort==='earned'?c.earned:sort==='saldo'?c.saldo:sort==='value'?c.squadValue:sort==='reputation'?c.reputation:c.spent;
   const maxVal=Math.max(...clubStats.map(c=>Math.abs(getVal(c))),1);
 
-  const F2=`${F}`;
   const mkBtn=(id,label,col)=>{
     const on=sort===id;
     return `<button onclick="renderWorldClubs('${id}')" style="${F}padding:5px 8px;border:1px solid ${on?col:'var(--gl)'};background:${on?col+'22':'var(--tb)'};color:${on?col:'var(--gr)'};cursor:pointer;flex:1">${label}</button>`;
   };
 
   // ── NAGŁÓWEK Z PRZEŁĄCZNIKAMI ──
-  let h=`<div style="display:flex;gap:4px;margin-bottom:8px">`;
+  let h=`<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">`;
   h+=mkBtn('spent',t('world_sort_spent'),'var(--rd)');
   h+=mkBtn('earned',t('world_sort_earned'),'var(--gb)');
   h+=mkBtn('saldo',t('world_sort_saldo'),'var(--am)');
+  h+=mkBtn('value',t('world_sort_value'),'#ffd700');
+  h+=mkBtn('reputation',t('world_sort_reputation'),'#29b6f6');
   h+=`</div>`;
 
   // ── LEGENDA ──
   h+=`<div style="${F}color:var(--gr);border:1px solid #0d2f0d;padding:5px 8px;margin-bottom:10px;background:#060f06">`;
   h+=`<span style="color:var(--rd)">${t('world_sort_spent')}</span>  <span style="color:var(--gb)">${t('world_sort_earned')}</span>  <span style="color:${sort==='saldo'&&'var(--am)'||'var(--gr)'}">${t('world_sort_saldo')}</span>`;
-  h+=`${t('world_ranking_by')}<span style="color:${sort==='spent'?'var(--rd)':sort==='earned'?'var(--gb)':'var(--am)'}">`;
-  h+=sort==='spent'?t('world_sort_spent_gen'):sort==='earned'?t('world_sort_earned_gen'):t('world_sort_saldo_gen');
+  h+=`${t('world_ranking_by')}<span style="color:${sort==='spent'?'var(--rd)':sort==='earned'?'var(--gb)':sort==='saldo'?'var(--am)':sort==='value'?'#ffd700':'#29b6f6'}">`;
+  h+=sort==='spent'?t('world_sort_spent_gen'):sort==='earned'?t('world_sort_earned_gen'):sort==='saldo'?t('world_sort_saldo_gen'):sort==='value'?t('world_sort_value_gen'):t('world_sort_reputation_gen');
   h+=`</span></div>`;
 
   if(!clubStats.length){
@@ -218,7 +226,7 @@ function renderWorldClubs(sortBy){
     const rankLabel=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
     const val=getVal(c);
     const barW=maxVal>0?Math.round((Math.abs(val)/maxVal)*100):0;
-    const barColor=sort==='spent'?'var(--rd)':sort==='earned'?'var(--gb)':(c.saldo>=0?'var(--gb)':'var(--rd)');
+    const barColor=sort==='spent'?'var(--rd)':sort==='earned'?'var(--gb)':sort==='value'?'#ffd700':sort==='reputation'?'#29b6f6':(c.saldo>=0?'var(--gb)':'var(--rd)');
     const isLeader=rank===1;
     const myBadge=c.isMe?`<span style="${F}color:#000;background:var(--am);padding:0 4px;margin-left:5px">${t('world_badge_yours')}</span>`:'';
     const leadBadge=isLeader?`<span style="${F}color:var(--am);border:1px solid var(--am);padding:0 4px;margin-left:4px">${t('world_badge_dominates')}</span>`:'';
@@ -228,6 +236,8 @@ function renderWorldClubs(sortBy){
     const spentStyle=sort==='spent'?`color:var(--rd);border-bottom:1px solid var(--rd)`:`color:var(--rd)`;
     const earnedStyle=sort==='earned'?`color:var(--gb);border-bottom:1px solid var(--gb)`:`color:var(--gb)`;
     const saldoStyle=sort==='saldo'?`color:${saldoColor};border-bottom:1px solid ${saldoColor}`:`color:${saldoColor}`;
+    const extraColor=sort==='value'?'#ffd700':sort==='reputation'?'#29b6f6':'var(--gr)';
+    const extraStyle=(sort==='value'||sort==='reputation')?`color:${extraColor};border-bottom:1px solid ${extraColor}`:`color:var(--gr)`;
     h+=`<div onclick="openClubModal(${c.id})" style="cursor:pointer;border-bottom:1px solid #0d1f0d;padding:7px 0;${c.isMe?'border-left:3px solid var(--am);padding-left:6px;background:rgba(255,193,7,0.03)':''}">
       <div style="display:flex;align-items:center">
         <div style="${F}color:${rankColor};min-width:34px;text-align:right;margin-right:8px;flex-shrink:0">${rankLabel}</div>
@@ -239,15 +249,56 @@ function renderWorldClubs(sortBy){
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:10px;line-height:1.5">
-          <div style="${F}${spentStyle}">▼${fmtVal(c.spent)}</div>
-          <div style="${F}${earnedStyle}">▲${fmtVal(c.earned)}</div>
-          <div style="${F}${saldoStyle}">${saldoSign}${fmtVal(Math.abs(c.saldo))}</div>
+          <div style="${F}${spentStyle}">▼${fmtMln(c.spent)}</div>
+          <div style="${F}${earnedStyle}">▲${fmtMln(c.earned)}</div>
+          <div style="${F}${saldoStyle}">${saldoSign}${fmtMln(Math.abs(c.saldo))}</div>
+          <div style="${F}${extraStyle}">💎${fmtMln(c.squadValue)} · ⭐${c.reputation}</div>
         </div>
       </div>
     </div>`;
   });
 
   el.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ŻYWY ŚWIAT AI — NEWSY O KLUBACH AI (osobno od G.news gracza)
+// ══════════════════════════════════════════════════════════════
+
+function addWorldNews(msg,type,clubId,leagueLevel){
+  if(!G)return;
+  if(!G.worldNews)G.worldNews=[];
+  G.worldNews.unshift({msg,type,week:G.week,season:G.season,clubId:clubId||null,leagueLevel:leagueLevel||null});
+  if(G.worldNews.length>60)G.worldNews.pop();
+}
+
+function _worldNewsItemHtml(n){
+  const barColor={promotion:'#4caf50',relegation:'#f44336',cup:'#ffd700',academy:'#ab47bc',streak_win:'#4caf50',streak_loss:'#f44336',crisis:'#f44336',goal:'#29b6f6'};
+  const icons={promotion:'⬆️',relegation:'⬇️',cup:'🏆',academy:'🎓',streak_win:'🔥',streak_loss:'📉',crisis:'💸',goal:'🎯'};
+  const bar=barColor[n.type]||'#546e54';
+  const ico=icons[n.type]||'📰';
+  const clickable=!!n.clubId;
+  const clickAttr=clickable?' onclick="openClubModal('+n.clubId+')" style="cursor:pointer"':'';
+  return '<div'+clickAttr+' style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a">'
+    +'<div style="width:3px;background:'+bar+';flex-shrink:0"></div>'
+    +'<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 10px;flex:1">'
+      +'<span style="font-size:var(--fs-body);flex-shrink:0;margin-top:1px">'+ico+'</span>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.3">'+n.msg+'</div>'
+        +'<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('world_news_meta').replace('{s}',n.season).replace('{n}',n.week)+'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
+function renderWorldNews(){
+  const el=document.getElementById('world-news');if(!el||!G)return;
+  const list=G.worldNews||[];
+  if(!list.length){
+    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:30px">'+t('world_news_empty')+'</div>';
+    return;
+  }
+  el.innerHTML=list.map(_worldNewsItemHtml).join('');
 }
 
 function fillBoard(){

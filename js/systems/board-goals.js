@@ -174,8 +174,20 @@ function genBoardGoals(){
     rep1000:{id:'rep1000',label:t('board_rep1000_label'),desc:t('board_rep1000_desc'),
       stars:5,
       check:()=>(G.reputation||0)>=1000,
-      reward:{budget:Math.round(rewardScale*2),rep:50,sponsorBonus:0.10},
+      reward:{budget:Math.round(rewardScale*2.2),rep:60,sponsorBonus:0.12},
       penalty:{rep:pr(8)},
+      difficulty:'hard'},
+    rep2000:{id:'rep2000',label:t('board_rep2000_label'),desc:t('board_rep2000_desc'),
+      stars:5,
+      check:()=>(G.reputation||0)>=2000,
+      reward:{budget:Math.round(rewardScale*3),rep:80,sponsorBonus:0.15},
+      penalty:{rep:pr(8)},
+      difficulty:'hard'},
+    rep4000:{id:'rep4000',label:t('board_rep4000_label'),desc:t('board_rep4000_desc'),
+      stars:5,
+      check:()=>(G.reputation||0)>=4000,
+      reward:{budget:Math.round(rewardScale*5),rep:120,sponsorBonus:0.20},
+      penalty:{budget:0,rep:pr(5)},
       difficulty:'hard'},
     double:{id:'double',label:t('board_double_label'),desc:t('board_double_desc'),
       stars:5,
@@ -275,7 +287,7 @@ function genBoardGoals(){
     pool=[ALL_MAIN.newleague,ALL_MAIN.top5,ALL_MAIN.top3,ALL_MAIN.cup_final];
     G.board.pressureForced=false;
   } else if(wonTitleTwice){
-    pool=[ALL_MAIN.dominate,ALL_MAIN.defend,ALL_MAIN.top1,ALL_MAIN.double];
+    pool=[ALL_MAIN.dominate,ALL_MAIN.defend,ALL_MAIN.top1,ALL_MAIN.double,ALL_MAIN.rep4000];
     G.board.pressureForced=false;
   } else if(wonTitleLast){
     pool=[ALL_MAIN.defend,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.double];
@@ -287,10 +299,10 @@ function genBoardGoals(){
     pool=[ALL_MAIN.back2back_cup,ALL_MAIN.cup_win,ALL_MAIN.top1,ALL_MAIN.top3];
     G.board.pressureForced=false;
   } else if(highRep&&lvl<=3){
-    pool=[ALL_MAIN.dominate,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.double];
+    pool=[ALL_MAIN.dominate,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.double,ALL_MAIN.rep1000,ALL_MAIN.rep2000];
     G.board.pressureForced=false;
   } else if(_neverWonLeague&&rep>200){
-    pool=[ALL_MAIN.first_title,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.cup_win];
+    pool=[ALL_MAIN.first_title,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.cup_win,ALL_MAIN.rep500];
     G.board.pressureForced=false;
   } else if(lvl>=6){
     pool=[ALL_MAIN.mid,ALL_MAIN.top3,ALL_MAIN.stay,ALL_MAIN.cup_final];
@@ -502,10 +514,10 @@ function checkBoardGoals(){
     const rw=b.mainGoal.reward;
     let msg='';
     if(rw.budget){G.budget+=rw.budget;msg+=' +'+fmt(rw.budget);}
-    if(rw.rep){G.reputation=Math.min(1000,(G.reputation||30)+rw.rep);msg+=' +Rep '+rw.rep;}
+    if(rw.rep){changeReputation(rw.rep,b.mainGoal.label);msg+=' +Rep '+rw.rep;}
     if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;msg+=t('board_msg_sponsors').replace('{n}','+'+Math.round(rw.sponsorBonus*100));}
     if(rw.transferBudget){if(!b.transferBudget)b.transferBudget=0;b.transferBudget+=rw.transferBudget;msg+=t('board_msg_transfer_pool').replace('{val}',fmt(rw.transferBudget));}
-    if(streak>=2){G.reputation=Math.min(1000,(G.reputation||30)+10);msg+=t('board_msg_rep_relief');}
+    if(streak>=2){changeReputation(10,t('rep_reason_pressure_relief'));msg+=t('board_msg_rep_relief');}
     addNews(t('news_board_goal_done').replace('{label}',b.mainGoal.label).replace('{msg}',msg),'club');
     notif(t('board_notif_done'),'ok');
   } else {
@@ -513,7 +525,7 @@ function checkBoardGoals(){
     const pn=b.mainGoal.penalty;
     let msg='';
     if(pn.budget&&pn.budget<0){G.budget=Math.max(0,G.budget+pn.budget);msg+=' '+fmt(pn.budget);}
-    if(pn.rep){G.reputation=Math.max(0,(G.reputation||30)+pn.rep);msg+=' Rep '+pn.rep;}
+    if(pn.rep){changeReputation(pn.rep,b.mainGoal.label);msg+=' Rep '+pn.rep;}
     if(pn.transferLock){b.transferLockSeasons=(b.transferLockSeasons||0)+pn.transferLock;msg+=t('board_msg_transfer_lock').replace('{n}',pn.transferLock);}
     if(pn.sponsorPenalty){if(!b.sponsorPenalty)b.sponsorPenalty=0;b.sponsorPenalty+=pn.sponsorPenalty;msg+=t('board_msg_sponsors').replace('{n}','-'+Math.round(pn.sponsorPenalty*100));}
     const newStreak=b.streakFailed;
@@ -528,7 +540,7 @@ function checkBoardGoals(){
       const rw=b.optGoal.reward;
       let omsg='';
       if(rw.budget){G.budget+=rw.budget;omsg+=' +'+fmt(rw.budget);}
-      if(rw.rep){G.reputation=Math.min(1000,(G.reputation||30)+rw.rep);omsg+=' +Rep '+rw.rep;}
+      if(rw.rep){changeReputation(rw.rep,b.optGoal.label);omsg+=' +Rep '+rw.rep;}
       if(rw.sponsorBonus){if(!b.sponsorBonus)b.sponsorBonus=0;b.sponsorBonus+=rw.sponsorBonus;omsg+=t('board_msg_sponsors').replace('{n}','+'+Math.round(rw.sponsorBonus*100));}
       if(rw.ticketBonus){if(!b.ticketBonus)b.ticketBonus=0;b.ticketBonus+=0.1;omsg+=t('board_msg_tickets');}
       if(rw.formBonus){myPl().forEach(p=>{p.form=Math.min(100,(p.form||70)+rw.formBonus);});omsg+=t('board_msg_form').replace('{n}',rw.formBonus);}
@@ -539,7 +551,7 @@ function checkBoardGoals(){
     } else {
       // Kara za wybrany i niespełniony cel opcjonalny
       const pn=b.optGoal.penalty||{};
-      if(pn.rep){G.reputation=Math.max(0,(G.reputation||30)+pn.rep);}
+      if(pn.rep){changeReputation(pn.rep,b.optGoal.label);}
       addNews(t('news_board_bonus_failed').replace('{label}',b.optGoal.label).replace('{msg}',pn.rep?t('news_board_rep_suffix').replace('{n}',pn.rep):''),'club');
     }
     // Zapamiętaj id opcjonalnego by nie powtarzać

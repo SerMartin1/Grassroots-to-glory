@@ -40,6 +40,56 @@ function addNews(msg, type){
   if(G.news.length>30)G.news.pop();
   renderNews();
 }
+// ── REPUTACJA GRACZA: jedyne miejsce, które powinno zmieniać G.reputation ────
+// (poza Kroniką — tam efekty są zbyt zróżnicowane; kronShowModal loguje deltę
+// przez porównanie przed/po, patrz kronika.js)
+function changeReputation(delta, reason){
+  if(!G||!delta)return;
+  const before=G.reputation||30;
+  G.reputation=Math.max(0,before+delta);
+  const actualDelta=G.reputation-before;
+  if(actualDelta===0)return;
+  if(!G.repHistory)G.repHistory=[];
+  G.repHistory.unshift({delta:actualDelta,reason,week:G.week,season:G.season});
+  if(G.repHistory.length>60)G.repHistory.pop();
+}
+function _repHistoryItemHtml(h){
+  const isPos=h.delta>0;
+  const col=isPos?'var(--gb)':'var(--rd)';
+  const sign=isPos?'+':'';
+  return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a">'
+    +'<div style="width:3px;background:'+col+';flex-shrink:0"></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;flex:1">'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:var(--fs-dense);color:var(--wh)">'+h.reason+'</div>'
+        +'<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('world_news_meta').replace('{s}',h.season).replace('{n}',h.week)+'</div>'
+      +'</div>'
+      +'<div style="font-size:var(--fs-body);color:'+col+';font-weight:700;flex-shrink:0">'+sign+h.delta+'</div>'
+    +'</div>'
+  +'</div>';
+}
+function renderRepHistory(){
+  const el=document.getElementById('rep-history-list');if(!el||!G)return;
+  const list=G.repHistory||[];
+  if(!list.length){
+    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:30px">'+t('rep_history_empty')+'</div>';
+    return;
+  }
+  el.innerHTML=list.map(_repHistoryItemHtml).join('');
+}
+function openRepModal(){
+  if(!G)return;
+  const modal=document.getElementById('modal-reputation');if(!modal)return;
+  const sub=document.getElementById('rep-subtitle');
+  if(sub)sub.textContent=t('rep_current').replace('{n}',G.reputation||0);
+  renderRepHistory();
+  modal.style.zIndex='9999';
+  modal.style.display='flex';
+}
+function closeRepModal(){
+  const modal=document.getElementById('modal-reputation');
+  if(modal)modal.style.display='none';
+}
 function newsClickable(msg){
   // Find player in G.players by name match and make it a clickable link
   if(!G||!G.players)return msg;
@@ -470,7 +520,8 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0,gasBonus:0,modules:{},hist:[]},
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0},
     kronika:{cooldown:0,usedThisSeason:[],flags:{}},
-    timeline:[],fanMemory:{cooldown:0,recalled:[]}};
+    timeline:[],fanMemory:{cooldown:0,recalled:[]},
+    worldNews:[],repHistory:[]};
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
   genWeeklyMarket();assignJerseyNumbers();
   myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};if(!p.value||p.value===0)p.value=calcValue(ovr(p),p.age);});
@@ -804,6 +855,8 @@ function loadGame(slot){try{
   if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],flags:{}}; // v207: Kronika Klubu
   if(!G.timeline)G.timeline=[]; // v266: Oś czasu klubu — milestone'y pozaligowe
   if(!G.fanMemory)G.fanMemory={cooldown:0,recalled:[]}; // v266: Pamięć kibiców
+  if(!G.worldNews)G.worldNews=[]; // Żywy świat AI — newsy o klubach AI, osobno od G.news
+  if(!G.repHistory)G.repHistory=[]; // Historia zmian reputacji gracza (modal ⭐ Rep)
   // v240: migracja — KUP: w fin.hist mają cost=0, koszt tylko w fin.transfers
   if(G.fin&&G.fin.hist){G.fin.hist.forEach(function(h){if(h.note&&h.note.startsWith('KUP:')&&h.cost>0)h.cost=0;});}
   if(!G.seasonBonus)G.seasonBonus=0;

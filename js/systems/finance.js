@@ -353,7 +353,7 @@ function renderFinKontrakty(){
                 stadium:{1:150000,2:75000,3:7500,4:2500,5:1000,6:400,7:150,8:80},
                 naming:{1:600000,2:300000,3:30000,4:10000,5:4000,6:1500,7:0,8:0}};
     const b=(base[slot]&&base[slot][lvl])||0;
-    const repMult=Math.max(0.8,Math.min(1.8,0.8+(rep||30)/1000*1.0));
+    const repMult=repCurve(rep||30,0.8,1.0);
     const raw=b*repMult;
     return raw<500?Math.round(raw/50)*50:Math.round(raw/500)*500;
   }
@@ -363,7 +363,7 @@ function renderFinKontrakty(){
     if(lvl>3&&!G.tvForced)return 0; // tylko od III Ligi
     const base={1:500000,2:150000,3:8000};
     const b=base[lvl]||0;
-    return Math.round(b*(Math.max(0.5,rep/50))/100)*100;
+    return Math.round(b*repCurve(rep,0.5,3.5)/100)*100;
   }
 
   // Wymagania
@@ -377,7 +377,9 @@ function renderFinKontrakty(){
     {minRep:100,maxRep:199, name:t('fin_sponsor_tier_3'), color:'var(--am)'},
     {minRep:200,maxRep:399, name:t('fin_sponsor_tier_4'), color:'#4fc3f7'},
     {minRep:400,maxRep:699, name:t('fin_sponsor_tier_5'), color:'var(--gb)'},
-    {minRep:700,maxRep:1000,name:t('fin_sponsor_tier_6'), color:'#ffd700'},
+    {minRep:700, maxRep:1499,   name:t('fin_sponsor_tier_6'), color:'#ffd700'},
+    {minRep:1500,maxRep:2999,   name:t('fin_sponsor_tier_7'), color:'#ff6f00'},
+    {minRep:3000,maxRep:Infinity,name:t('fin_sponsor_tier_8'), color:'#e91e63'},
   ];
   const curRep=G.reputation||30;
   const curTier=sponsorTiers.find(t=>curRep>=t.minRep&&curRep<=t.maxRep)||sponsorTiers[0];
@@ -392,7 +394,7 @@ function renderFinKontrakty(){
         '<div style="flex:1">'+
           '<div style="font-size:var(--fs-dense);color:var(--wh)">'+label+'</div>'+
           (hasActive?(function(){
-            const _repMC=Math.max(0.8,Math.min(1.8,0.8+(G.reputation||30)/1000*1.0));
+            const _repMC=repCurve(G.reputation||30,0.8,1.0);
             const _actual=Math.round(G.contracts[slot].weekly*_repMC);
             const _base=G.contracts[slot].weekly;
             return '<div style="font-size:var(--fs-dense);color:var(--gb)">'+t('fin_contract_line').replace('{n}',fmt(_base)).replace('{seas}',seasonsLeft)+'</div>'+

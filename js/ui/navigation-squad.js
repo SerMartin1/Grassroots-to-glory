@@ -286,7 +286,7 @@ function advWeekPrep(){
       if(next.shopMult!==undefined)G.stadium.shopMult=next.shopMult;
       if(next.freqBonus!==undefined)G.frequency=Math.min(100,(G.frequency||50)+next.freqBonus);
       if(next.adsMult!==undefined)G.stadium.adsMult=next.adsMult;
-      if(next.repBonus!==undefined)G.reputation=Math.min(1000,(G.reputation||30)+next.repBonus);
+      if(next.repBonus!==undefined)changeReputation(next.repBonus,mod.name+' L'+(mb.lvl+1));
       if(!G.stadium.hist)G.stadium.hist=[];
       G.stadium.hist.push({season:G.season,week:G.week,module:mod.name+' L'+(mb.lvl+1),cost:mb.cost,capAfter:G.stadium.capacity||200});
       G.stadium.modulBuilding=null;

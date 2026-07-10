@@ -9,6 +9,10 @@ function curSym(){return CURRENCY_SYMBOLS[CURRENT_CURRENCY]||'€';}
 function fmt(v){const n=Math.round((v||0)*curRate());const s=n.toLocaleString('pl-PL');return CURRENT_CURRENCY==='USD'?curSym()+s:s+' '+curSym();}
 function posOrd(p){return{GK:0,OBR:1,POL:2,NAP:3}[p]||4;}
 function fmtVal(v){const n=(v||0)*curRate();if(n>=1000000){const m=n/1000000;return(m>=10?Math.round(m):m.toFixed(1).replace(/\.0$/,''))+' mln '+curSym();}if(n>=1000)return Math.round(n/1000)+'k '+curSym();return Math.round(n)+' '+curSym();}
+// Wariant fmtVal() dla tabel porównawczych (np. worldTab → Aktywne Kluby): tylko dwa progi
+// (mln / k), bez trzeciego "gołych euro" — inaczej w jednej kolumnie mieszałyby się 3 jednostki
+// naraz przy porównywaniu klubów z różnych lig.
+function fmtMln(v){const n=(v||0)*curRate();if(Math.abs(n)>=1000000){const m=n/1000000;return(Math.abs(m)>=10?Math.round(m):m.toFixed(1).replace(/\.0$/,''))+' mln '+curSym();}return Math.round(n/1000)+'k '+curSym();}
 // ── OŚ CZASU KLUBU — milestone'y pozaligowe (Sesja 2) ─────────────────
 function pushTimeline(type,icon,label,opts){
   if(!G)return;

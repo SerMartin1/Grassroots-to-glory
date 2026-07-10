@@ -470,6 +470,23 @@ function simOthers(){
       if(!st)return; // pomiń jeśli brak standings
       const h2=st.find(s=>parseInt(s.cid)===parseInt(m.h)),a2=st.find(s=>parseInt(s.cid)===parseInt(m.a));
       if(h2&&a2){h2.p++;a2.p++;h2.gf+=hG2;h2.ga+=aG2;a2.gf+=aG2;a2.ga+=hG2;if(hG2>aG2){h2.w++;a2.l++;h2.pts+=3;}else if(hG2<aG2){a2.w++;h2.l++;a2.pts+=3;}else{h2.d++;a2.d++;h2.pts++;a2.pts++;}}
+      // ── ŻYWY ŚWIAT AI: forma i seria wyników klubu po meczu AI↔AI ────────
+      [{cid:m.h,my:hG2,opp:aG2},{cid:m.a,my:aG2,opp:hG2}].forEach(({cid,my,opp})=>{
+        const _fClub=ALL_CLUBS.find(c=>c.id===cid);
+        if(!_fClub||!_fClub.ai)return;
+        const cai=_fClub.ai;
+        const won=my>opp,lost=my<opp;
+        cai.form=Math.max(0,Math.min(100,(typeof cai.form==='number'?cai.form:50)+(won?3:lost?-3:0)));
+        if(!cai._streak)cai._streak=0;
+        if(won)cai._streak=cai._streak>0?cai._streak+1:1;
+        else if(lost)cai._streak=cai._streak<0?cai._streak-1:-1;
+        else cai._streak=0;
+        if(Math.abs(cai._streak)===4&&(_lvl===_myLvl||Math.abs(_lvl-_myLvl)<=1)){
+          const isWinStreak=cai._streak>=4;
+          const key=isWinStreak?'world_news_win_streak':'world_news_loss_streak';
+          addWorldNews(t(key).replace('{club}',_fClub.n).replace('{n}',Math.abs(cai._streak)),isWinStreak?'streak_win':'streak_loss',_fClub.id,_lvl);
+        }
+      });
       // Goal stats for AI players
       const matchEvts2=[];
       [m.h,m.a].forEach(cid=>{
@@ -637,15 +654,21 @@ function initClubAI(club, leagueLevel){
   if(leagueLevel>=5) pool=pool.filter(t=>t!=='bogaty');
   const type=pool[Math.floor(Math.random()*pool.length)];
   const def=AI_TYPES[type];
-  const baseBudget=Math.round((200000+Math.random()*800000)*def.budgetMult*(9-leagueLevel)/8/1000)*1000;
+  // Skala jak u gracza (LEAGUE_BUDGET), skorygowana filozofią klubu i losowym rozrzutem ±30%
+  const baseBudget=Math.round((LEAGUE_BUDGET[leagueLevel]||12000)*def.budgetMult*(0.8+Math.random()*0.5)/1000)*1000;
   return {
     type,
     budget:baseBudget,
-    reputation:Math.round(20+(8-leagueLevel)*8+Math.random()*20),
+    // Ta sama skala 0-1000 co reputacja gracza (G.reputation) — liga wyżej = więcej prestiżu na
+    // start, ale z zapasem miejsca na wzrost (awanse, Puchar, cele zarządu), tak jak u gracza.
+    reputation:Math.round(10+(8-leagueLevel)*30+Math.random()*60),
     promoted:false,
     relegated:false,
     transferLog:[],
-    juniorLog:[]
+    juniorLog:[],
+    form:50,
+    _streak:0,
+    boardGoal:null
   };
 }
 
@@ -778,7 +801,8 @@ function aiTransferSeason(isWinter){
       const ovrOk=ovr(p)>=cOvr4[0]-5&&ovr(p)<=cOvr4[3]+10;
       const hasRoom=G.players.filter(x=>x.clubId===c.id).length<25;
       const wantsBuy=Math.random()<(AI_TYPES[c.ai.type]||AI_TYPES.stabilny).buyRate*winterRate;
-      return lvlOk&&ovrOk&&hasRoom&&wantsBuy;
+      const canAfford=(c.ai.budget||0)>=price*0.8;
+      return lvlOk&&ovrOk&&hasRoom&&wantsBuy&&canAfford;
     });
 
     let buyer=null;
@@ -793,7 +817,7 @@ function aiTransferSeason(isWinter){
         const cLg=G.leagues.find(l=>l.clubs.some(x=>x.id===c.id));
         const cLvl=cLg?cLg.level:99;
         const cOvr4=LEAGUE_OVR[cLvl]||[20,35,35,55];
-        return Math.abs(cLvl-lvl)<=2&&ovr(p)>=cOvr4[0]-5&&ovr(p)<=cOvr4[3]+12&&G.players.filter(x=>x.clubId===c.id).length<25;
+        return Math.abs(cLvl-lvl)<=2&&ovr(p)>=cOvr4[0]-5&&ovr(p)<=cOvr4[3]+12&&G.players.filter(x=>x.clubId===c.id).length<25&&(c.ai.budget||0)>=price*0.8;
       });
       if(last.length){last.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));buyer=last[0];}
     }
@@ -855,7 +879,13 @@ function aiTransferSeason(isWinter){
           const faPool=(G.fa||[]).filter(p=>p.clubId===0&&p.status!=='retired'&&p.age<=def.maxBuyAge&&ovr(p)>=lgMin-5&&ovr(p)<=lgMax+10);
           if(!faPool.length)break; // brak dostępnych FA — nie generuj nowych
           faPool.sort((a,b)=>ovr(b)-ovr(a));
-          const newP=faPool[0];
+          // Wybierz najlepszego kandydata, na którego klub faktycznie ma budżet
+          let newP=null,price2=0;
+          for(const cand of faPool){
+            const estPrice=Math.round(calcValue(ovr(cand),cand.age)*r(90,115)/100/1000)*1000;
+            if((ai.budget||0)>=estPrice*0.7){newP=cand;price2=estPrice;break;}
+          }
+          if(!newP)break; // nie stać klubu na żadnego z dostępnych FA — koniec zakupów w tej rundzie
           if(!newP.formerClubs)newP.formerClubs=[];
           if(!newP.history)newP.history=[];
           fillHistoryGaps(newP);
@@ -871,7 +901,6 @@ function aiTransferSeason(isWinter){
           if(!ai.transferLog)ai.transferLog=[];
           ai.transferLog.unshift({type:'buy',name:newP.name,pos:newP.pos,ovr:ovr(newP),age:newP.age,price:0,season,playerId:newP.id,fromClub:'FA'});
           if(ai.transferLog.length>20)ai.transferLog.pop();
-          const price2=Math.round(calcValue(ovr(newP),newP.age)*r(90,115)/100/1000)*1000;
           ai.budget=(ai.budget||0)-price2*0.7;
         }
       }
@@ -898,6 +927,9 @@ function aiTransferSeason(isWinter){
             if(!ai.juniorLog)ai.juniorLog=[];
             ai.juniorLog.unshift({name:junior.name,pos:junior.pos,ovr:ovr(junior),pot:junior.potential,season,id:junior.id});
             if(ai.juniorLog.length>8)ai.juniorLog.pop();
+            if(junior.potential>=75&&(lvl===G.myLeague||Math.abs(lvl-G.myLeague)<=1)){
+              addWorldNews(t('world_news_academy_talent').replace('{club}',club.n).replace('{name}',junior.name).replace('{pos}',POS_SHORT[junior.pos]||junior.pos).replace('{pot}',junior.potential),'academy',club.id,lvl);
+            }
           }
         }
       }
@@ -923,9 +955,50 @@ function aiTransferSeason(isWinter){
         G.players.push(rp);
       }
 
+      // ── ŻYWY ŚWIAT AI: przychód sezonowy + cel zarządu (tylko latem) ──────
+      // Liczone TU, na końcu FAZA 3 — po sprzedażach, zakupach i juniorach — żeby przychód
+      // odpowiadał faktycznemu, ostatecznemu składowi na sezon, a nie temu sprzed transferów
+      // (inaczej przychód systematycznie nie nadążał za funduszem płac po dokupieniu zawodników).
+      // Przychód i premia za cel są zakotwiczone we własnym funduszu płac klubu (nie w
+      // LEAGUE_BUDGET) — to gwarantuje spójną skalę niezależnie od ligi i siły składu.
+      if(!isWinter){
+        const finalSquad=G.players.filter(p=>p.clubId===club.id);
+        const finalStarters=finalSquad.filter(p=>p.starter);
+        const finalAvgOvr=finalStarters.length?Math.round(finalStarters.reduce((s,p)=>s+ovr(p),0)/finalStarters.length):lgMin;
+        const paymentCycles=Math.max(1,Math.round(2*(lg.clubs.length-1)/4));
+        const squadWageBillPerSeason=finalSquad.reduce((s,p)=>s+(p.salary||0),0)*paymentCycles;
+        ai._wageBillPerSeason=squadWageBillPerSeason; // do cotygodniowego poboru pensji i progu kryzysu
+
+        // Mnożnik wg miejsca w tabeli z zakończonego właśnie sezonu (0,7× ostatni – 1,4× lider);
+        // brak historii (pierwszy sezon klubu) = wartość neutralna (środek tabeli)
+        const lastPos=ai._lastSeasonPos||Math.ceil(lg.clubs.length/2);
+        const lastN=ai._lastSeasonClubCount||lg.clubs.length;
+        const posRatio=lastN>1?1-(lastPos-1)/(lastN-1):0.5;
+        const positionMult=0.7+posRatio*0.7;
+        const seasonIncome=Math.round(squadWageBillPerSeason*positionMult/1000)*1000;
+        ai.budget=(ai.budget||0)+seasonIncome;
+
+        // Cel zarządu na nadchodzący sezon
+        const relStrength=finalAvgOvr/Math.max(1,(lgMin+lgMax)/2);
+        let goalType,targetPos;
+        if(relStrength>1.08){
+          goalType=lvl===1?'title':'promotion';
+          targetPos=2;
+        } else if(relStrength<0.92||ai.relegated){
+          goalType='survival';
+          targetPos=lg.clubs.length-2;
+        } else {
+          goalType='midtable';
+          targetPos=lg.clubs.length-2;
+        }
+        // Premia za cel zarządu to reputacja (skala 0-1000, jak u gracza), nie pieniądze —
+        // porównywalna z nagrodami z board-goals.js (rep 5-60 zależnie od trudności celu).
+        const reward=(goalType==='title'||goalType==='promotion')?45:15;
+        ai.boardGoal={type:goalType,targetPos,reward,achieved:null,season:G.season,clubCount:lg.clubs.length};
+      }
       // ── AKTUALIZUJ FLAGI I SEZONOWE LICZNIKI ──────────────────────────
       if(!isWinter){ai.promoted=false;ai.relegated=false;}
-      ai.reputation=Math.max(10,Math.min(100,(ai.reputation||50)+(ai.type==='bogaty'?2:0)));
+      ai.reputation=Math.max(0,(ai.reputation||50)+(ai.type==='bogaty'?2:0));
       G.players.filter(p=>p.clubId===club.id).forEach(p=>{
         p._seasonsAtClub=(p._seasonsAtClub||0)+(isWinter?0:1);
       });

@@ -716,12 +716,8 @@ tych funkcji wymaga edycji w obu plikach)
 
 **Zmiany wymagające innych modułów:**
 ⚠ każdy system, którego dane agreguje (transfers/finance/traits-history/board-goals)
-⚠ **znany dług techniczny**: plik definiuje własną funkcję `fmtVal()`, która **nadpisuje**
-wersję z `core/state.js` (bo `data-center.js` ładuje się później) i formatuje liczby inaczej
-(np. `12,50 mln` zamiast `12,5 mln`, przecinek zamiast kropki jako separator dziesiętny). W
-praktyce cała gra od momentu wczytania tego skryptu używa wersji z `data-center.js`. Jeśli
-kiedyś ujednolicimy format liczb, trzeba zdecydować, która wersja jest właściwa, i usunąć
-duplikat
+✔ **naprawione**: plik kiedyś definiował własną, nadpisującą kopię `fmtVal()` — usunięta;
+`fmtVal()` jest dziś scentralizowana wyłącznie w `core/state.js` (patrz komentarz w tym pliku)
 
 ---
 
@@ -877,10 +873,13 @@ podstawie kodu:
   - `renderStadModuly()` — dwie definicje w tym samym pliku `systems/training-stadium.js`;
     druga to jednolinijkowy alias na `_renderStadModulyInRozb()` → wygrywa druga, pierwsza
     (pełna implementacja) jest martwym kodem.
-  - `fmtVal()` — w `core/state.js` **i** `ui/data-center.js`, z różnym formatowaniem liczb →
-    wygrywa `data-center.js` (ładowany później) dla całej gry.
+  - `fmtVal()` — **naprawione**, duplikat w `ui/data-center.js` usunięty; scentralizowana
+    wyłącznie w `core/state.js`. Zobacz też `fmtMln()` (tamże) — wariant tylko-mln/k bez
+    trzeciego progu "gołych euro", używany w tabelach porównawczych (np. `worldTab` →
+    Aktywne Kluby), gdzie adaptacyjne trzy-progowe `fmtVal()` dawało niespójne jednostki
+    między wierszami przy porównywaniu klubów z różnych lig.
 
-  Żadna z tych duplikacji nie powoduje dziś widocznego błędu (gra działa), ale są to realne
+  Żadna z pozostałych duplikacji nie powoduje dziś widocznego błędu (gra działa), ale są to realne
   "pułapki" przy przyszłej edycji: zmiana w "niewłaściwej" (przegranej) kopii nie da żadnego
   efektu w grze. Warto je uporządkować przy okazji pracy nad danym plikiem, zgodnie z zasadą
   "nie duplikuj funkcji" z `CLAUDE.md`.

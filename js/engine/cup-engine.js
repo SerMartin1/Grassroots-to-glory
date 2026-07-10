@@ -22,7 +22,7 @@ function grantCupReward(rIdx,won){
   const reward=isFinale?CUP_REWARD_WIN:(CUP_REWARDS[rIdx]||null);
   if(!reward)return;
   G.budget+=reward.cash;
-  G.reputation=Math.min(1000,(G.reputation||30)+reward.rep);
+  changeReputation(reward.rep,t('cup_note_prefix')+reward.label);
   if(!G.fin)G.fin={};
   if(!G.fin.hist)G.fin.hist=[];
   G.fin.hist.push({w:G.week,inc:reward.cash,cost:0,bal:G.budget,note:t('cup_note_prefix')+reward.label});
@@ -247,7 +247,7 @@ function advanceCupRound(rIdx){
         const _fReward=CUP_REWARDS[5];
         if(_fReward&&G){
           G.budget+=_fReward.cash;
-          G.reputation=Math.min(1000,(G.reputation||30)+_fReward.rep);
+          changeReputation(_fReward.rep,t('cup_note_prefix')+t('ht_cup_finalist'));
           if(!G.fin)G.fin={};if(!G.fin.hist)G.fin.hist=[];
           G.fin.hist.push({w:G.week,inc:_fReward.cash,cost:0,bal:G.budget,note:t('cup_note_prefix')+t('ht_cup_finalist')});
           addNews(t('news_cup_final_reward').replace('{cash}',fmt(_fReward.cash)).replace('{rep}',_fReward.rep),'budget');
@@ -256,7 +256,14 @@ function advanceCupRound(rIdx){
         if(!G.trophies)G.trophies=[];
         G.trophies.push({type:'cup',id:'cup_final',name:t('ht_cup_finalist'),season:G.season,place:2});
       } else {
-        addNews(t('news_cup_won_by').replace('{name}',winEntry.name),'info');
+        const _cupWonByMsg=t('news_cup_won_by').replace('{name}',winEntry.name);
+        addNews(_cupWonByMsg,'info');
+        addWorldNews(_cupWonByMsg,'cup',winEntry.cid);
+        // Reputacja AI za Puchar — te same wartości co gracz (zwycięzca/finalista)
+        const _winClub=ALL_CLUBS.find(c=>c.id===winEntry.cid);
+        if(_winClub&&_winClub.ai)_winClub.ai.reputation=Math.max(0,(_winClub.ai.reputation||0)+CUP_REWARD_WIN.rep);
+        const _loseClub=ALL_CLUBS.find(c=>c.id===loseEntry.cid);
+        if(_loseClub&&_loseClub.ai)_loseClub.ai.reputation=Math.max(0,(_loseClub.ai.reputation||0)+CUP_REWARDS[5].rep);
       }
     }
     updateCupTileBadge();

@@ -317,7 +317,7 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
       if(next.shopMult!==undefined)G.stadium.shopMult=next.shopMult;
       if(next.freqBonus!==undefined)G.frequency=Math.min(100,(G.frequency||50)+next.freqBonus);
       if(next.adsMult!==undefined)G.stadium.adsMult=next.adsMult;
-      if(next.repBonus!==undefined)G.reputation=Math.min(1000,(G.reputation||30)+next.repBonus);
+      if(next.repBonus!==undefined)changeReputation(next.repBonus,mod.name+' L'+(mb.lvl+1));
       if(!G.stadium.hist)G.stadium.hist=[];
       G.stadium.hist.push({season:G.season,week:G.week,module:mod.name+' L'+(mb.lvl+1),cost:mb.cost,capAfter:G.stadium.capacity||200});
       G.stadium.modulBuilding=null;
@@ -477,6 +477,28 @@ const name=found?found.name:t('week_fallback_no_candidates');
   if(G.week>=4&&!G.seasonEnded){kronUpdateBenchWeeks();kronTrigger();}
   // ── PAMIĘĆ KIBICÓW — niezależny, rzadki trigger ─────────────────────
   if(G.week>=4&&!G.seasonEnded){fanMemoryTrigger();}
+  // ── ŻYWY ŚWIAT AI: pensje klubów AI (co 4 tygodnie, jak u gracza) + kryzys finansowy ──
+  if(G.leagues){
+    G.leagues.forEach(lg=>{
+      lg.clubs.forEach(club=>{
+        if(club.id===G.myClubId||!club.ai)return;
+        const cai=club.ai;
+        if(G.week%4===0){
+          const squadBill=G.players.filter(p=>p.clubId===club.id).reduce((s,p)=>s+(p.salary||0),0);
+          cai.budget=(cai.budget||0)-squadBill;
+          // Kryzys finansowy — próg zależny od WŁASNEGO funduszu płac klubu (3 wypłaty na
+          // minusie), nie od LEAGUE_BUDGET — inaczej próg nie nadążałby za skalą pensji.
+          const _crisisThresh=squadBill*3;
+          if(cai.budget<-_crisisThresh&&!cai._crisisFlagged&&Math.abs(lg.level-(G.myLeague||8))<=1){
+            cai._crisisFlagged=true;
+            addWorldNews(t('world_news_crisis').replace('{club}',club.n),'crisis',club.id,lg.level);
+          } else if(cai.budget>=0){
+            cai._crisisFlagged=false;
+          }
+        }
+      });
+    });
+  }
   // Akademia — koszt uwzględniony w bloku fin.hist powyżej
   finalizeSeasonEnd();
 }
@@ -553,7 +575,7 @@ function finalizeSeasonEnd(){
       const sc=Math.round((Math.min(stat.matches*0.25,75)+Math.min(stat.goals*0.5,50)+Math.min(stat.assists*0.3,30)+leagues2*12+cups2*8)*10)/10;
       if(sc>=200){
         G.legends.push({id:stat.id,name:stat.name,score:sc,season:G.season});
-        G.reputation=Math.min(1000,(G.reputation||30)+15);
+        changeReputation(15,t('rep_reason_legend').replace('{name}',stat.name));
         addNews(t('news_new_legend').replace('{name}',stat.name).replace('{n}',sc),'academy');
       }
     });

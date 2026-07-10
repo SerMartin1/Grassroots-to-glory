@@ -207,7 +207,7 @@ function runDevSim(){
               if(_next.shopMult!==undefined)G.stadium.shopMult=_next.shopMult;
               if(_next.freqBonus!==undefined)G.frequency=Math.min(100,(G.frequency||50)+_next.freqBonus);
               if(_next.adsMult!==undefined)G.stadium.adsMult=_next.adsMult;
-              if(_next.repBonus!==undefined)G.reputation=Math.min(1000,(G.reputation||30)+_next.repBonus);
+              if(_next.repBonus!==undefined)G.reputation=Math.max(0,(G.reputation||30)+_next.repBonus);
               G.stadium.modulBuilding=null;
             }
           }
@@ -386,7 +386,7 @@ function devSimMyMatch(m,isCup){
   const iL=(isMyH&&hG<aG)||(!isMyH&&aG<hG);
   if(!isCup){
   if(!G.reputation)G.reputation=30;if(!G.frequency)G.frequency=50;
-  if(iW){G.frequency=Math.min(100,G.frequency+5);G.reputation=Math.min(1000,G.reputation+1);}
+  if(iW){G.frequency=Math.min(100,G.frequency+5);G.reputation=G.reputation+1;}
   else if(iL){G.frequency=Math.max(10,G.frequency-3);}
   // Records — serie
   if(!G.records)G.records={maxWinStreak:0,maxUnbeatenStreak:0,maxLoseStreak:0,unbeatenStreak:0,bestWin:null,maxGoalsSeason:0,minConcededSeason:99};

@@ -195,13 +195,22 @@ const FIN={
     8:[3000,1200,400,100,0,0,0,0,0,0,0,0,0,0,0,0]
   }
 };
+// Reputacja bez górnego limitu — krzywa nasycająca zamiast liniowego mnożnika z twardym sufitem.
+// Zbliża się asymptotycznie do (base+range), ale nigdy go nie osiąga: więcej reputacji zawsze
+// daje trochę więcej, z malejącymi zyskami, bez ściany przy 1000. K dobrane tak, by wartości przy
+// typowej wczesnej reputacji (~30-100) były zbliżone do starych, liniowych do 1000 formuł.
+function repCurve(rep,base,range,K){
+  const r=Math.max(0,rep||0);
+  const kk=K||400;
+  return base+range*r/(r+kk);
+}
 function calcWeeklyIncome(){
   if(!G)return{sponsors:0,gadgets:0,ads:0,tv:0,tickets:0,total:0};
   const lvl=G.myLeague||8;
   const _rep=G.reputation||30;
-  const repMultSpon = Math.max(0.7, Math.min(1.5, 0.7 + _rep/1000*0.8));
-  const repMultAds  = Math.max(0.6, Math.min(2.0, 0.6 + _rep/1000*1.4));
-  const repMultContr= Math.max(0.8, Math.min(1.8, 0.8 + _rep/1000*1.0));
+  const repMultSpon = repCurve(_rep, 0.7, 0.8);
+  const repMultAds  = repCurve(_rep, 0.6, 1.4);
+  const repMultContr= repCurve(_rep, 0.8, 1.0);
   const sponsors=Math.round((FIN.sponsors[lvl]||300)*repMultSpon);
   const ads=Math.round((FIN.ads[lvl]||80)*(G.stadium&&G.stadium.adsMult||1)*repMultAds);
   const tv=Math.round((FIN.tv[lvl]||0));
@@ -219,7 +228,7 @@ function calcWeeklyIncome(){
   const ws=G.winStreak||0; const ls=G.loseStreak||0;
   const seriaMod=ws>=6?1.20:ws>=4?1.12:ws>=2?1.05:ls>=3?0.88:1.00;
   // Reputacja
-  const repMod=Math.max(0.80,Math.min(1.30,0.90+(G.reputation||30)/1000*0.5));
+  const repMod=repCurve(G.reputation||30, 0.90, 0.40);
   const freq=Math.max(0.10,Math.min(0.95,bf*wynikMod*seriaMod*repMod));
   G.frequency=Math.round(freq*100); // zapisz dla UI
 

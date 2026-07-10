@@ -379,7 +379,7 @@ function startNewSeason(){
   G.kronika.usedThisSeason=[];G.kronika.cooldown=0;G.kronika.flags={};
   // rumourPool NIE resetujemy — zawodnicy czekają na okno letnie nowego sezonuG.trainFocusLock=0;G.completedFocuses=0;G.contractWarned={};G.noFocusWeeks=0;G.transferMarket=[];G.listedPlayers=[];G.pendingOffers=[];G.trBoughtThisWindow=0;G.trSoldThisWindow=0;G._sellOffers={};
   if(!G.reputation)G.reputation=10;
-  G.reputation=Math.min(1000,G.reputation+5);
+  changeReputation(5,t('rep_reason_new_season'));
   const _fb=Math.min(80,20+(G.reputation||10)/10);
   G.frequency=Math.round(((G.frequency||40)*0.7+_fb*0.3));
   G.winStreak=0;G.loseStreak=0;G.seasonBonus=0;
@@ -446,6 +446,25 @@ function startNewSeason(){
     for(let lvl=1;lvl<=8;lvl++){
       const st=[...(G.allStandings[lvl]||[])].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
       if(!st.length)continue;
+      // ── ŻYWY ŚWIAT AI: rozlicz cel zarządu z kończącego się sezonu, zapamiętaj
+      // miejsce w tabeli (potrzebne aiTransferSeason() do przychodu na nowy sezon) ──
+      st.forEach((s,idx)=>{
+        const club=G.leagues.find(l=>l.level===lvl)?.clubs.find(c=>c.id===s.cid);
+        if(!club||!club.ai)return;
+        club.ai._lastSeasonPos=idx+1;
+        club.ai._lastSeasonClubCount=st.length;
+        const goal=club.ai.boardGoal;
+        if(goal&&goal.achieved===null){
+          const met=(idx+1)<=goal.targetPos;
+          goal.achieved=met;
+          if(met){
+            club.ai.reputation=Math.max(0,(club.ai.reputation||0)+goal.reward);
+            if(Math.abs(lvl-(G.myLeague||8))<=1){
+              addWorldNews(t('world_news_goal_achieved').replace('{club}',club.n).replace('{label}',t('world_goal_'+goal.type)).replace('{rep}',goal.reward),'goal',club.id,lvl);
+            }
+          }
+        }
+      });
       // Top 2 awansują (nie ma ligi wyżej niż 1)
       if(lvl>1){
         st.slice(0,2).forEach(s=>{
@@ -470,11 +489,17 @@ function startNewSeason(){
               if(budgetBonus>0)G.budget+=budgetBonus;
               G.fin.sponsors=LEAGUE_SPONSORS[newLvl]||G.fin.sponsors;
               promotionNews.push({mine:true,dir:'up',league:LEAGUE_NAMES[newLvl],val:fmtVal(budgetBonus)});
-              G.reputation=Math.min(1000,(G.reputation||10)+50);G.frequency=Math.min(100,(G.frequency||40)+10);
+              changeReputation(50,t('rep_reason_promotion').replace('{league}',LEAGUE_NAMES[newLvl]));G.frequency=Math.min(100,(G.frequency||40)+10);
             } else {
               if(lvl===G.myLeague||lvl-1===G.myLeague)promotionNews.push({mine:false,dir:'up',club:club.n,league:LEAGUE_NAMES[lvl-1]});
-              // Oznacz klub AI jako awansowany
-              if(club.ai)club.ai.promoted=true;
+              // Oznacz klub AI jako awansowany + bonus budżetowy i reputacyjny analogiczny do gracza
+              if(club.ai){
+                club.ai.promoted=true;
+                const aiBudgetBonus=(LEAGUE_BUDGET[lvl-1]||0)-(LEAGUE_BUDGET[lvl]||0);
+                if(aiBudgetBonus>0)club.ai.budget=(club.ai.budget||0)+aiBudgetBonus;
+                club.ai.reputation=Math.max(0,(club.ai.reputation||0)+50);
+              }
+              addWorldNews(t('world_news_promoted').replace('{club}',club.n).replace('{league}',LEAGUE_NAMES[lvl-1]),'promotion',club.id,lvl-1);
             }
           }
         });
@@ -500,11 +525,15 @@ function startNewSeason(){
               myPl().forEach(function(p){p.value=Math.round(calcValue(ovr(p),p.age)*0.87/1000)*1000||p.value;});
               G.fin.sponsors=LEAGUE_SPONSORS[newLvl]||G.fin.sponsors;
               promotionNews.push({mine:true,dir:'down',league:LEAGUE_NAMES[newLvl]});
-              G.reputation=Math.max(0,(G.reputation||10)-30);G.frequency=Math.max(10,(G.frequency||40)-10);
+              changeReputation(-30,t('rep_reason_relegation').replace('{league}',LEAGUE_NAMES[newLvl]));G.frequency=Math.max(10,(G.frequency||40)-10);
             } else {
               if(lvl===G.myLeague||lvl+1===G.myLeague)promotionNews.push({mine:false,dir:'down',club:club.n,league:LEAGUE_NAMES[lvl+1]});
-              // Oznacz klub AI jako spadkowicz
-              if(club.ai)club.ai.relegated=true;
+              // Oznacz klub AI jako spadkowicz + kara reputacyjna analogiczna do gracza
+              if(club.ai){
+                club.ai.relegated=true;
+                club.ai.reputation=Math.max(0,(club.ai.reputation||0)-30);
+              }
+              addWorldNews(t('world_news_relegated').replace('{club}',club.n).replace('{league}',LEAGUE_NAMES[lvl+1]),'relegation',club.id,lvl+1);
             }
           }
         });

@@ -12,8 +12,18 @@ function kronShowModal(ev, resolvedBody){
     btn.innerHTML='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
     btn.onclick=function(){
       modal.style.display='none';
+      // Kronika ma dziesiątki gałęzi efektów, każda z własnym clampem G.reputation (0-1000) —
+      // zamiast podmieniać każdą z osobna, logujemy deltę centralnie tutaj (jedyne miejsce,
+      // przez które przechodzi KAŻDY wybór Kroniki), żeby trafiła do modala ⭐ Rep.
+      const _repBefore=G.reputation||0;
       try{ch.effect();}catch(e){console.warn('Kronika effect error:',e);}
       const outcome=ch.outcome?ch.outcome():'';
+      const _repDelta=(G.reputation||0)-_repBefore;
+      if(_repDelta!==0){
+        if(!G.repHistory)G.repHistory=[];
+        G.repHistory.unshift({delta:_repDelta,reason:ev.title+(outcome?': '+outcome:''),week:G.week,season:G.season});
+        if(G.repHistory.length>60)G.repHistory.pop();
+      }
       if(outcome){
         addNews('📰 '+ev.title+': '+outcome,'club');
         notif(outcome.slice(0,60),'ok');
@@ -200,7 +210,7 @@ function kronTrigger(){
             const p=G.players.find(function(x){return x.id===id;});
             if(p){p.form=Math.max(20,(p.form||80)-8);G.budget-=2000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2000,bal:G.budget,season:G.season,note:t('kron_note_s01_party_scandal')});}
           });
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
         },
         outcome:function(){
           const names=(kron.flags._s01pids||[]).map(function(id){const p=G.players.find(function(x){return x.id===id;});return p?p.name.split(' ')[1]:'?';}).join(', ');
@@ -401,7 +411,7 @@ function kronTrigger(){
         },
         outcome:function(){return t('kron_m01_c1_outcome').replace('{val}',fmtVal(G.budget)).replace('{rep}',G.reputation||0);}},
        {label:t('kron_m01_c2_label'),
-        effect:function(){G.reputation=Math.min(1000,(G.reputation||30)+5);kron.flags._stadSponsorDone=true;},
+        effect:function(){G.reputation=(G.reputation||30)+5;kron.flags._stadSponsorDone=true;},
         outcome:function(){return t('kron_m01_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_m01_c3_label'),
         effect:function(){
@@ -435,7 +445,7 @@ function kronTrigger(){
        {label:t('kron_sp05_c1_label'),
         effect:function(){
           kron.flags._sp05budgetBefore=G.budget;kron.flags._sp05repBefore=G.reputation||30;
-          if(Math.random()<0.30){G.reputation=Math.min(1000,(G.reputation||30)+10);addNews(t('kron_sp05_c1_news_win'),'ok');}
+          if(Math.random()<0.30){G.reputation=(G.reputation||30)+10;addNews(t('kron_sp05_c1_news_win'),'ok');}
           else{G.budget=Math.max(0,G.budget-3000);addNews(t('kron_sp05_c1_news_lose'),'err');}
         },
         outcome:function(){
@@ -443,7 +453,7 @@ function kronTrigger(){
           return repGrew?t('kron_sp05_c1_outcome_win').replace('{rep}',G.reputation||0):t('kron_sp05_c1_outcome_lose').replace('{val}',fmtVal(G.budget));
         }},
        {label:t('kron_sp05_c2_label'),
-        effect:function(){G.reputation=Math.min(1000,(G.reputation||30)+5);},
+        effect:function(){G.reputation=(G.reputation||30)+5;},
         outcome:function(){return t('kron_sp05_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp05_c3_label'),
         effect:function(){
@@ -610,7 +620,7 @@ function kronTrigger(){
         effect:function(){
           if(G.budget<5000){notif(t('kron_s03_c1_notif_nobudget'),'err');kron.flags._s03result='noBudget';return;}
           G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:t('kron_note_s03_veteran_farewell')});
-          G.reputation=Math.min(1000,(G.reputation||30)+15);
+          G.reputation=(G.reputation||30)+15;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           const leg=G.players.find(function(p){return p.id===kron.flags._s03legendId;});
           if(leg)leg.form=Math.min(100,(leg.form||80)+10);
@@ -700,7 +710,7 @@ function kronTrigger(){
         }},
        {label:t('kron_s05_c3_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
           const suspect=G.players.find(function(p){return p.id===kron.flags._s05suspectId;});
           if(suspect)suspect.form=Math.max(30,(suspect.form||80)-5);
           addNews(t('kron_s05_c3_news'),'ok');
@@ -1061,7 +1071,7 @@ function kronTrigger(){
             const p=G.players.find(function(x){return x.id===id;});
             if(p){p.form=Math.max(10,(p.form||80)-15);p.starter=false;p._benchWeeks=(p._benchWeeks||0)+3;}
           });
-          G.reputation=Math.min(1000,(G.reputation||30)+10);
+          G.reputation=(G.reputation||30)+10;
           kron.flags._s01canRepeat=false;// reset — nauczka zadziałała
           addNews(t('kron_s07_c1_news'),'ok');
         },
@@ -1144,7 +1154,7 @@ function kronTrigger(){
        {label:t('kron_t07_c2_label'),
         effect:function(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
           if(loyal)loyal.form=Math.min(100,(loyal.form||80)+8);// docenia że nie wykorzystałeś
           addNews(t('kron_t07_c2_news'),'ok');
           kron.flags._t07result='refused';kron.flags._t07name=loyal?loyal.name:t('kron_fallback_player');
@@ -1157,7 +1167,7 @@ function kronTrigger(){
           const loyal=G.players.find(function(p){return p.id===kron.flags._t07loyalId;});
           const saving=kron.flags._t07saving||10000;
           G.budget+=saving;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:saving,cost:0,bal:G.budget,season:G.season,note:t('kron_note_t07_loyalty_reward_b')});
-          G.reputation=Math.min(1000,(G.reputation||30)+8);
+          G.reputation=(G.reputation||30)+8;
           if(loyal){
             loyal.form=Math.min(100,(loyal.form||80)+8);
             loyal._loyaltyBonus=true;
@@ -1194,7 +1204,7 @@ function kronTrigger(){
        {label:t('kron_sp08_c1_label'),
         effect:function(){
           if(Math.random()<0.30){
-            G.reputation=Math.min(1000,(G.reputation||30)+5);
+            G.reputation=(G.reputation||30)+5;
             addNews(t('kron_sp08_c1_news_win'),'ok');
             kron.flags._sp08result='changed';
           } else {
@@ -1228,7 +1238,7 @@ function kronTrigger(){
             addNews(t('kron_sp08_c3_news_punish'),'err');
             kron.flags._sp08result='punished';
           } else {
-            G.reputation=Math.min(1000,(G.reputation||30)+3);
+            G.reputation=(G.reputation||30)+3;
             addNews(t('kron_sp08_c3_news_praise'),'ok');
             kron.flags._sp08result='praised';
           }
@@ -1264,12 +1274,12 @@ function kronTrigger(){
         effect:function(){
           if(G.budget<15000){
             notif(t('kron_x01_c1_notif_nobudget'),'err');
-            G.reputation=Math.min(1000,(G.reputation||30)+10);
+            G.reputation=(G.reputation||30)+10;
             kron.flags._x01result='noBudget';
             return;
           }
           G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:t('kron_note_x01_first_title')});
-          G.reputation=Math.min(1000,(G.reputation||30)+25);
+          G.reputation=(G.reputation||30)+25;
           // Trwały ślad — flaga na G żeby inne eventy wiedziały
           G.flags=G.flags||{};
           G.flags.firstTitleSeason=G.season;
@@ -1284,7 +1294,7 @@ function kronTrigger(){
         }},
        {label:t('kron_x01_c2_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+20);
+          G.reputation=(G.reputation||30)+20;
           G.flags=G.flags||{};
           G.flags.firstTitleSeason=G.season;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+6);});
@@ -1297,7 +1307,7 @@ function kronTrigger(){
        {label:t('kron_x01_c3_label'),
         effect:function(){
           G.budget+=5000;
-          G.reputation=Math.min(1000,(G.reputation||30)+8);
+          G.reputation=(G.reputation||30)+8;
           G.flags=G.flags||{};
           G.flags.firstTitleSeason=G.season;
           addNews(t('kron_x01_c3_news'),'budget');
@@ -1460,7 +1470,7 @@ function kronTrigger(){
             return;
           }
           G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:t('kron_note_x03_promotion_eve_b')});
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           addNews(t('kron_x03_c3_news'),'ok');
           kron.flags._x03result='trip';
@@ -1494,7 +1504,7 @@ function kronTrigger(){
      choices:[
        {label:t('kron_x04_c1_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
           addNews(t('kron_x04_c1_news'),'ok');
           kron.flags._x04result='ignored';
         },
@@ -1503,7 +1513,7 @@ function kronTrigger(){
         }},
        {label:t('kron_x04_c2_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+10);
+          G.reputation=(G.reputation||30)+10;
           // Wzmocnij akademię jeśli istnieje
           if(G.academy){
             if(G.academy.level!==undefined)G.academy.level=Math.min(5,(G.academy.level||0)+1);
@@ -1617,7 +1627,7 @@ function kronTrigger(){
         }},
        {label:t('kron_sp09_c3_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+5);
+          G.reputation=(G.reputation||30)+5;
           if(G.rival&&G.rival.strength!==undefined)G.rival.strength=Math.max(0,(G.rival.strength||50)-2);
           addNews(t('kron_sp09_c3_news').replace('{rival}',kron.flags._sp09rivalName||t('kron_fallback_rival')),'ok');
           kron.flags._sp09result='bluff';
@@ -1658,7 +1668,7 @@ function kronTrigger(){
         }},
        {label:t('kron_m06_c2_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+8);
+          G.reputation=(G.reputation||30)+8;
           addNews(t('kron_m06_c2_news'),'ok');
           kron.flags._m06result='refused';
         },
@@ -1707,7 +1717,7 @@ function kronTrigger(){
         effect:function(){
           if(G.budget<5000){notif(t('kron_notif_no_budget'),'err');kron.flags._h01result='noBudget';return;}
           G.budget-=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:5000,bal:G.budget,season:G.season,note:t('kron_note_h01_hall_of_fame_a')});
-          G.reputation=Math.min(1000,(G.reputation||30)+10);
+          G.reputation=(G.reputation||30)+10;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});
           G.flags=G.flags||{};
           if(!G.flags.hallOfFame)G.flags.hallOfFame=[];
@@ -1723,7 +1733,7 @@ function kronTrigger(){
         effect:function(){
           if(G.budget<15000){notif(t('kron_h01_c2_notif_nobudget'),'err');kron.flags._h01result='noBudget2';return;}
           G.budget-=15000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:15000,bal:G.budget,season:G.season,note:t('kron_note_h01_hall_of_fame_b')});
-          G.reputation=Math.min(1000,(G.reputation||30)+15);
+          G.reputation=(G.reputation||30)+15;
           starters.forEach(function(p){p.form=Math.min(100,(p.form||80)+8);});
           G.flags=G.flags||{};
           if(!G.flags.hallOfFame)G.flags.hallOfFame=[];
@@ -1910,7 +1920,7 @@ function kronTrigger(){
         }},
        {label:t('kron_dc01_c3_label'),
         effect:function(){
-          G.reputation=Math.min(1000,(G.reputation||30)+8);
+          G.reputation=(G.reputation||30)+8;
           if(G.fa&&G.fa.length){
             const lost=[...G.fa].sort(function(a,b){return ovr(b)-ovr(a);})[0];
             if(lost){G.fa=G.fa.filter(function(p){return p.id!==lost.id;});kron.flags._dc01lostName=lost.name;}
