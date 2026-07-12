@@ -128,5 +128,22 @@ if(typeof G!=='undefined'&&G&&G.season&&clubId>0){
 }
 _p2.traits=genTraits(_p2);if(!_p2.demands)genDemands(_p2);return _p2;}
 
+// ── Bezpiecznik: żaden klub AI nie może zostać bez bramkarza ────────────────
+// mkPlayer() losuje pozycję z 8 opcji (1/8 szans na GK) bez żadnej gwarancji rozkładu — przy
+// generowaniu wielu zawodników naraz (reset składu dołu VII Ligi, patrz season-summary.js) jest
+// realna szansa (~9% przy 18 zawodnikach) na zero bramkarzy. Wygasłe kontrakty/transfery AI też
+// mogą teoretycznie wyzerować pozycję. Wołane po każdej operacji, która mogła zmienić składy
+// klubów AI (season-summary.js przy zmianie sezonu, week-progress.js przy zimowym oknie).
+function ensureClubGoalkeepers(){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>(lg.clubs||[]).forEach(club=>{
+    if(club.id===G.myClubId)return; // klub gracza pilnuje składu sam (alert o brakach)
+    if(G.players.some(p=>p.clubId===club.id&&p.pos==='GK'))return;
+    const np=mkPlayer(club.id);np.pos='GK';np.last=np.name.split(' ')[1]||np.name;
+    np.value=calcValue(ovr(np),np.age);np.salary=calcSalary(np.value,lg.level,ovr(np));
+    G.players.push(np);
+  }));
+}
+
 let G=null,selClubId=null,buyId=null,m_hId=0,m_aId=0,liveStats={},matchSpeed=1500,allEvts=[],matchInProgress=false;
 let NAME_POOL=[],namePoolIdx=0;

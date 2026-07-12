@@ -379,7 +379,6 @@ function renderBuyTab(){
   // Okno zamknięte — pokazuj rynek ale blokuj kupno, umożliwiaj obserwację
   const _windowClosed=!tw.open;
   if(!G.transferMarket||!G.transferMarket.length)genTransferMarket();
-  const bought=G.trBoughtThisWindow||0;
   // ── FILTRY I SORTOWANIE ───────────────────────────────────────────────
   if(!G._trFilters)G._trFilters={pos:'',sortBy:'ovr',sortDir:1};
   const _f=G._trFilters;
@@ -416,7 +415,7 @@ function renderBuyTab(){
   const _sale=_mkt.filter(p=>p.section==='sale'||!p.section);
   const _rum=_mkt.filter(p=>p.section==='rumour');
   function _sh(lbl,cnt,c){return cnt?'<div style="font-size:var(--fs-dense);color:'+c+';margin:8px 0 4px;border-bottom:1px solid '+c+';padding-bottom:2px">'+lbl+' ('+cnt+')</div>':'';}
-  function _tcard(p,bought){
+  function _tcard(p){
     const _isObs=!!(p._observed||(G&&G.scout&&(G.scout.observed||[]).find(x=>x.id===p.id)));
     const _isWatching=!_isObs&&G&&G.scout&&(G.scout.modeA||[]).find(x=>x.targetId===p.id);
     const _rawOvr=ovr(p);
@@ -463,7 +462,7 @@ function renderBuyTab(){
       '<div style="text-align:right;margin-left:8px">'+
         (isRum?'<div style="font-size:var(--fs-dense);color:var(--am)">'+t('tr_soon')+'</div>':
           '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">'+
-            '<button class="btn-buy" onclick="buyTransfer('+p.id+')" '+(_windowClosed||bought>=3?'disabled style="opacity:0.4"':'')+'>'+(_windowClosed?t('tr_window_closed_short'):t('tr_btn_buy_short'))+'</button>'+
+            '<button class="btn-buy" onclick="buyTransfer('+p.id+')" '+(_windowClosed?'disabled style="opacity:0.4"':'')+'>'+(_windowClosed?t('tr_window_closed_short'):t('tr_btn_buy_short'))+'</button>'+
             (!_isObs&&!_isWatching?'<button onclick="sendScoutModeA(\'market\','+p.id+',0)" style="font-size:var(--fs-dense);padding:2px 4px;border:1px solid var(--am);background:var(--tb);color:var(--am);cursor:pointer">'+t('tr_watch_btn')+'</button>':'')+
           '</div>')+
       '</div></div>';
@@ -471,9 +470,9 @@ function renderBuyTab(){
   const _closedBanner=_windowClosed?'<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 10px;margin-bottom:8px;font-size:var(--fs-dense);text-align:center;color:var(--gr)">'+
     t('tr_window_closed_prefix')+'<span style="color:var(--wh)">'+windowNextLabel(tw)+'</span>'+(tw.eta?t('tr_window_closed_eta').replace('{n}',tw.eta):'')+
     t('tr_window_closed_suffix')+'</div>':'';
-  el.innerHTML=_closedBanner+_filterBar+'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+((!_windowClosed)?t('tr_bought_count').replace('{n}','<span style="color:'+(bought>=3?'var(--rd)':'var(--am)')+'">'+bought+'</span>'):t('tr_browsing_locked'))+'</div>'+
-    _sh(t('tr_badge_for_sale'),_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p,bought)).join('')+
-    _sh(t('tr_section_rumours'),_rum.length,'var(--am)')+_rum.map(p=>_tcard(p,bought)).join('')+
+  el.innerHTML=_closedBanner+_filterBar+(_windowClosed?'<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+t('tr_browsing_locked')+'</div>':'')+
+    _sh(t('tr_badge_for_sale'),_sale.length,'var(--rd)')+_sale.map(p=>_tcard(p)).join('')+
+    _sh(t('tr_section_rumours'),_rum.length,'var(--am)')+_rum.map(p=>_tcard(p)).join('')+
     (!_sale.length&&!_rum.length?'<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('tr_no_players')+'</div>':'')+
     '<div style="margin-top:14px;border-top:1px solid var(--gl);padding-top:10px;font-size:var(--fs-dense);color:var(--gr)">'+
       '<div style="color:var(--am);margin-bottom:5px">'+t('tr_legend_title')+'</div>'+
@@ -735,7 +734,6 @@ function buyTransfer(id){
   if(!G)return;
   const p=(G.transferMarket||[]).find(x=>String(x.id)===String(id));
   if(!p)return;
-  if((G.trBoughtThisWindow||0)>=3){notif(t('tr_notif_limit3'),'err');return;}
   if(G.budget<p.transferPrice){notif(t('tr_notif_no_money'),'err');return;}
   if(!p.demands)genDemands(p);
   buyId=id;

@@ -164,7 +164,7 @@ function closePanel(id){
       const _ret=window._playerReturnTo;
       window._playerReturnTo=null;
       if(_ret&&_ret.modalId==='md-overlay'&&_ret.extra){
-        showMatchDetail(_ret.extra.idx);
+        showMatchDetail(_ret.extra.idx,_ret.extra.src);
       } else if(_ret&&_ret.modalId==='modal-season-summary'){
         const mss=document.getElementById('modal-season-summary');if(mss)mss.style.display='flex';
       } else if(_ret&&_ret.modalId==='modal-club-ai'&&_ret.extra){

@@ -6,17 +6,20 @@ function fillWorld(){
 function worldTab(tab,btn){
   document.querySelectorAll('#p-world .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['transfers','clubs','news'].forEach(tb=>{const e=document.getElementById('world-'+tb);if(e)e.classList.remove('on');});
+  ['transfers','clubs'].forEach(tb=>{const e=document.getElementById('world-'+tb);if(e)e.classList.remove('on');});
   const e=document.getElementById('world-'+tab);if(e)e.classList.add('on');
   if(tab==='transfers')renderWorldTransfers();
-  else if(tab==='clubs')renderWorldClubs();
-  else renderWorldNews();
+  else renderWorldClubs();
 }
 
 function buildWorldTransferLog(){
   const all=[];
   const leagues=G.leagues||[];
-  // Transfery AI↔AI z logów klubów
+  // Transfery AI↔AI — rekord za całą historię kariery (nieprzycinany, w odróżnieniu od transferLog per klub)
+  (G.worldTopTransfers||[]).forEach(tr=>{
+    if((tr.price||0)>0)all.push({...tr});
+  });
+  // + świeże dane z logów klubów (uzupełnienie, gdyby rekord jeszcze nie zdążył ich objąć — deduplikacja niżej)
   leagues.forEach(lg=>{
     (lg.clubs||[]).forEach(club=>{
       const log=(club.ai&&club.ai.transferLog)||[];
@@ -95,7 +98,8 @@ function renderWorldTransfers(){
   const podiumRanks=[2,1,3];
 
   let h=`<div style="background:#050f05;border-bottom:2px solid var(--gl);padding:12px 8px 0">`;
-  h+=`<div style="${F}color:var(--gr);text-align:center;letter-spacing:1px;margin-bottom:10px">${t('world_top100_title')}</div>`;
+  h+=`<div style="${F}color:var(--gr);text-align:center;letter-spacing:1px">${t('world_top100_title')}</div>`;
+  h+=`<div style="${Fs}color:var(--gb);text-align:center;margin-bottom:10px">${t('world_top100_subtitle')}</div>`;
   h+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;align-items:flex-end">`;
   podiumOrder.forEach((idx,col)=>{
     const tr=top3[idx];if(!tr)return;
@@ -159,17 +163,25 @@ function renderWorldClubs(sortBy){
       const log=ai.transferLog||[];
       const isMe=club.id===G.myClubId;
       let spent=0,earned=0,buys=0,sells=0;
-      log.forEach(t=>{
-        if(t.price>0){
-          if(t.type==='buy'){spent+=t.price;buys++;}
-          else{earned+=t.price;sells++;}
-        }
-      });
       if(isMe){
         (G.fin&&G.fin.transfers||[]).forEach(t=>{
           if(t.type==='buy'){spent+=t.val||0;buys++;}
           else{earned+=t.val||0;sells++;}
         });
+      } else {
+        // Liczniki za całą historię kariery (nieprzycinane). Stare zapisy jeszcze ich nie mają —
+        // jednorazowo zainicjuj je z dostępnego (okrojonego do 20 wpisów) transferLog, żeby nic nie "zniknęło" po aktualizacji.
+        if(ai.totalSpent===undefined){
+          let seedSpent=0,seedEarned=0,seedBuys=0,seedSells=0;
+          log.forEach(t=>{
+            if(t.price>0){
+              if(t.type==='buy'){seedSpent+=t.price;seedBuys++;}
+              else{seedEarned+=t.price;seedSells++;}
+            }
+          });
+          ai.totalSpent=seedSpent;ai.totalEarned=seedEarned;ai.totalBuys=seedBuys;ai.totalSells=seedSells;
+        }
+        spent=ai.totalSpent||0;earned=ai.totalEarned||0;buys=ai.totalBuys||0;sells=ai.totalSells||0;
       }
       const saldo=earned-spent;
       const squad=G.players.filter(p=>p.clubId===club.id);
@@ -207,6 +219,7 @@ function renderWorldClubs(sortBy){
   h+=mkBtn('value',t('world_sort_value'),'#ffd700');
   h+=mkBtn('reputation',t('world_sort_reputation'),'#29b6f6');
   h+=`</div>`;
+  h+=`<div style="${F}color:var(--gb);text-align:center;margin-bottom:6px">${t('world_clubs_subtitle')}</div>`;
 
   // ── LEGENDA ──
   h+=`<div style="${F}color:var(--gr);border:1px solid #0d2f0d;padding:5px 8px;margin-bottom:10px;background:#060f06">`;
@@ -265,40 +278,497 @@ function renderWorldClubs(sortBy){
 // ŻYWY ŚWIAT AI — NEWSY O KLUBACH AI (osobno od G.news gracza)
 // ══════════════════════════════════════════════════════════════
 
-function addWorldNews(msg,type,clubId,leagueLevel){
+const LEAGUE_TAB_MIN_PRIORITY=50;
+
+// Sufiksy a..j wspólne dla wszystkich puli szablonów newsów (10 wariantów zamiast 3) —
+// unika przepisywania tej samej listy liter przy każdym typie w WORLD_NEWS_TYPES.
+const _NEWS_VARIANTS=['a','b','c','d','e','f','g','h','i','j'];
+function _newsTemplates(prefix){return _NEWS_VARIANTS.map(v=>prefix+'_'+v);}
+const WORLD_NEWS_TYPES={
+  champion:   {priority:95, icon:'👑', color:'#ffd700',
+               templates:_newsTemplates('world_news_champion')},
+  record:     {priority:90, icon:'⭐', color:'#ffd700',
+               templates:_newsTemplates('world_news_record'),
+               dedupKey:'type+playerId'},
+  promotion:  {priority:85, icon:'⬆️', color:'#4caf50',
+               templates:_newsTemplates('world_news_promoted')},
+  relegation: {priority:85, icon:'⬇️', color:'#f44336',
+               templates:_newsTemplates('world_news_relegated')},
+  cup:        {priority:80, icon:'🏆', color:'#ffd700',
+               templates:_newsTemplates('world_news_cup')},
+  title_race:      {priority:75, icon:'⚔️', color:'#dba24a',
+                    templates:_newsTemplates('world_news_title_race')},
+  relegation_race: {priority:75, icon:'⚠️', color:'#c2665c',
+                    templates:_newsTemplates('world_news_relegation_race')},
+  transfer:   {priority:70, icon:'💰', color:'#4db8ff',
+               templates:_newsTemplates('world_news_transfer'),
+               dedupKey:'type+playerId'},
+  derby_result:   {priority:65, icon:'🔥', color:'#e05252',
+                   templates:_newsTemplates('world_news_derby_result'),
+                   dedupKey:'type'},
+  goal_summary: {priority:55, icon:'🎯', color:'#29b6f6',
+                 templates:_newsTemplates('world_news_goal_summary')},
+  // goal: priorytet POD progiem zakładki ligi (celowo, jak season_recap_club) — szczegóły „jaki
+  // cel" zostają tylko w karcie klubu; zbiorcze „kto wykonał cel + ile reputacji" bez szczegółu
+  // celu trafia do ligi jako goal_summary (budowany raz na ligę na tydzień, patrz season-summary.js).
+  goal:       {priority:45, icon:'🎯', color:'#29b6f6',
+               templates:_newsTemplates('world_news_goal')},
+  streak_win: {priority:55, icon:'🔥', color:'#4caf50',
+               templates:_newsTemplates('world_news_win_streak'),
+               cooldownWeeks:3, dedupKey:'type',
+               recordPriority:85,
+               recordTemplates:_newsTemplates('world_news_win_record')},
+  streak_loss:{priority:55, icon:'📉', color:'#f44336',
+               templates:_newsTemplates('world_news_loss_streak'),
+               cooldownWeeks:3, dedupKey:'type',
+               recordPriority:85,
+               recordTemplates:_newsTemplates('world_news_loss_record')},
+  derby_announce: {priority:50, icon:'🆚', color:'#dba24a',
+                   templates:_newsTemplates('world_news_derby_announce')},
+  contract:   {priority:40, icon:'📄', color:'#8a9a84',
+               templates:_newsTemplates('world_news_contract'),
+               dedupKey:'type+playerId'},
+  academy:    {priority:35, icon:'🎓', color:'#ab47bc',
+               templates:_newsTemplates('world_news_academy'),
+               dedupKey:'type+playerId'},
+  rumour:     {priority:20, icon:'💬', color:'#e8f5e9',
+               templates:_newsTemplates('world_news_rumour'),
+               dedupKey:'type+playerId'},
+  // typy „meta" — treść budowana (flushWeeklyNews/generateSeasonRecaps/announceSeasonPreview),
+  // nie losowana z templates
+  digest:              {icon:'📰', color:'#8a9a84'},
+  season_recap_club:   {icon:'📖', color:'#ab47bc'},
+  season_recap_league: {icon:'📖', color:'#ffd700'},
+  season_preview:      {priority:65, icon:'📊', color:'#4db8ff'},
+};
+
+// ── Punkt wejścia dla wszystkich detektorów zdarzeń ─────────────────────────
+// ctx: {clubId, leagueLevel, playerId, vars:{...podstawienia}, priorityBonus, isRecord,
+//       season, week} — season/week opcjonalnie nadpisują znakowanie wpisu (np. zdarzenia
+//       końca sezonu generowane w startNewSeason() już PO G.season++, patrz season-summary.js)
+function addWorldNewsEvent(type,ctx){
+  const def=WORLD_NEWS_TYPES[type];
+  if(!def||!G)return;
+  ctx=ctx||{};
+  // Newsy bez clubId (ligowe — walka o tytuł, zapowiedź sezonu, ogłoszenie derbów) pomijają
+  // bufor/dedup per-klub (sekcja 09/10 dokumentu) — nie ma jednego klubu, do którego by je przypiąć.
+  if(!ctx.clubId){
+    const gkey=pick(def.templates);
+    let gmsg=t(gkey);
+    Object.keys(ctx.vars||{}).forEach(k=>{gmsg=gmsg.replace('{'+k+'}',ctx.vars[k]);});
+    addWorldNews(gmsg,type,null,ctx.leagueLevel||null,ctx.playerId||null,def.priority||30,ctx.season,ctx.week);
+    return;
+  }
+  const club=ALL_CLUBS.find(c=>c.id===ctx.clubId);
+  if(!club||!club.ai)return;
+  if(!club.ai._newsCooldown)club.ai._newsCooldown={};
+
+  const dedupKey=(def.dedupKey==='type+playerId')?type+'_'+(ctx.playerId||0):type;
+
+  // Rekord (np. seria klubu) omija cooldown — to rzadkie i zawsze warte pokazania.
+  const isRecord=!!ctx.isRecord&&def.recordTemplates;
+  const readyWeek=club.ai._newsCooldown[dedupKey]||0;
+  const absWeek=(G.season*100)+G.week;
+  if(def.cooldownWeeks&&!isRecord&&absWeek<readyWeek)return;
+
+  const basePriority=isRecord?(def.recordPriority||def.priority):def.priority;
+  const priority=Math.min(100,(basePriority||30)+(ctx.priorityBonus||0));
+
+  const key=pick(isRecord?def.recordTemplates:def.templates);
+  let msg=t(key);
+  Object.keys(ctx.vars||{}).forEach(k=>{msg=msg.replace('{'+k+'}',ctx.vars[k]);});
+
+  // Nie zapisuj od razu — dołóż do bufora tygodnia tego klubu; flushWeeklyNews()
+  // (wołane z week-progress.js i season-summary.js) scali >=2 zdarzenia w jeden digest.
+  if(!club.ai._newsCountThisWeek||club.ai._newsCountThisWeek.week!==G.week){
+    club.ai._newsCountThisWeek={week:G.week,entries:[]};
+  }
+  club.ai._newsCountThisWeek.entries.push({type,msg,priority,leagueLevel:ctx.leagueLevel||null,playerId:ctx.playerId||null});
+
+  if(def.cooldownWeeks)club.ai._newsCooldown[dedupKey]=absWeek+def.cooldownWeeks;
+}
+
+// ── Warstwa zapisu — priority-aware eviction per liga ───────────────────────
+// season/week: opcjonalne nadpisanie znakowania wpisu (domyślnie bieżący G.season/G.week) —
+// potrzebne dla zdarzeń końca sezonu wołanych już po G.season++ (patrz startNewSeason()).
+function addWorldNews(msg,type,clubId,leagueLevel,playerId,priority,season,week){
   if(!G)return;
   if(!G.worldNews)G.worldNews=[];
-  G.worldNews.unshift({msg,type,week:G.week,season:G.season,clubId:clubId||null,leagueLevel:leagueLevel||null});
-  if(G.worldNews.length>60)G.worldNews.pop();
+  if(G._worldNewsNextId==null)G._worldNewsNextId=0;
+  const lvl=leagueLevel||null;
+  G.worldNews.unshift({
+    id:G._worldNewsNextId++, msg, type, priority:priority||30,
+    week:week!=null?week:G.week, season:season!=null?season:G.season,
+    clubId:clubId||null, leagueLevel:lvl, playerId:playerId||null
+  });
+  // Limit per liga (nie globalny): moja liga — więcej miejsca, pozostałe ligi — mniej.
+  // Retrospektywy (season_recap_club/league) są WYŁĄCZONE z tego limitu — mają być trwałą
+  // kroniką (season_recap_club w karcie klubu za każdy sezon od S1, season_recap_league do
+  // czasu następnej retrospektywy, patrz purgeSeasonToRecapOnly). Bez wyjątku niski priorytet
+  // season_recap_club (40, pod progiem zakładki ligi) sprawiał, że kasowały się jako pierwsze —
+  // przy ~15 klubach w lidze same coroczne retrospektywy przekraczały limit 30/60 i znikały,
+  // zanim ktokolwiek zdążył je zobaczyć w karcie klubu.
+  const RECAP_TYPES=new Set(['season_recap_club','season_recap_league']);
+  const cap=(lvl===G.myLeague)?60:30;
+  const sameLeague=(n)=>n.leagueLevel===lvl&&!RECAP_TYPES.has(n.type);
+  let count=G.worldNews.filter(sameLeague).length;
+  while(count>cap){
+    // najpierw kasuj najstarszy o niskim priorytecie; dopiero gdy takich brak — najstarszy w ogóle
+    let idx=-1;
+    for(let i=G.worldNews.length-1;i>=0;i--){
+      if(sameLeague(G.worldNews[i])&&G.worldNews[i].priority<LEAGUE_TAB_MIN_PRIORITY){idx=i;break;}
+    }
+    if(idx===-1){
+      for(let i=G.worldNews.length-1;i>=0;i--){
+        if(sameLeague(G.worldNews[i])){idx=i;break;}
+      }
+    }
+    if(idx===-1)break;
+    G.worldNews.splice(idx,1);
+    count--;
+  }
+}
+
+// ── Rekord serii klubu — wołane z match-post.js (AI↔AI) i match-engine.js (mecz gracza) ────
+function _checkStreakRecord(club,streak){
+  if(!club||!club.ai)return{isNewRecord:false,isAmbient:false};
+  if(!club.ai._streakRecord)club.ai._streakRecord={win:0,loss:0};
+  const abs=Math.abs(streak);
+  const key=streak>0?'win':'loss';
+  const isNewRecord=abs>=4&&abs>club.ai._streakRecord[key];
+  if(isNewRecord)club.ai._streakRecord[key]=abs;
+  // isAmbient: zwykłe „dokładnie 4", ale NIE nowy rekord (inaczej dubluje się z isNewRecord)
+  return {isNewRecord, isAmbient:abs===4&&!isNewRecord};
+}
+
+// ── Scalanie newsów tygodnia jednego klubu w jeden „digest" ─────────────────
+// season/week: opcjonalne nadpisanie znakowania CAŁEGO flusha (domyślnie bieżący G.season/
+// G.week). Używane przez startNewSeason() — bufor klubu w tym momencie może jeszcze zawierać
+// niespłukane zdarzenia z OSTATNIEGO tygodnia kończącego się sezonu (np. seria porażek, wynik
+// derbów), a G.season/G.week są już podbite na nowy sezon. Bez nadpisania takie zaległe wpisy
+// dostałyby błędną datę nowego sezonu zamiast tego, który właśnie się kończy.
+function flushWeeklyNews(club,season,week){
+  if(!club||!club.ai||!club.ai._newsCountThisWeek)return;
+  const bucket=club.ai._newsCountThisWeek;
+  if(!bucket.entries||!bucket.entries.length)return;
+  const entries=bucket.entries.slice().sort((a,b)=>b.priority-a.priority).slice(0,4);
+  if(entries.length===1){
+    const e=entries[0];
+    addWorldNews(e.msg,e.type,club.id,e.leagueLevel,e.playerId,e.priority,season,week);
+  } else {
+    const msg=t('world_news_digest_prefix').replace('{club}',club.n)+entries.map(e=>e.msg).join(' • ');
+    const maxPriority=Math.max(...entries.map(e=>e.priority));
+    addWorldNews(msg,'digest',club.id,entries[0].leagueLevel,null,maxPriority,season,week);
+  }
+  bucket.entries=[];
+}
+function flushAllWeeklyNews(season,week){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>(lg.clubs||[]).forEach(club=>{
+    if(club.id!==G.myClubId&&club.ai)flushWeeklyNews(club,season,week);
+  }));
+}
+
+// ── Walka o tytuł / o utrzymanie — 3 kolejki przed końcem sezonu ────────────
+function checkTitleRelegationRace(){
+  if(!G||!G.leagues||!G.allStandings)return;
+  G.leagues.forEach(lg=>{
+    const lvl=lg.level;
+    const nClubs=(lg.clubs||[]).length;
+    if(nClubs<3)return;
+    const totalRounds=2*(nClubs-1);
+    if(G.round!==totalRounds-2)return; // dokładnie raz, 3 kolejki do końca
+    const remaining=totalRounds-G.round;
+    const margin=remaining*3;
+    const st=[...(G.allStandings[lvl]||[])].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
+    if(!st.length)return;
+    const n=st.length;
+
+    const leaderPts=st[0].pts;
+    const titleContenders=st.filter(s=>leaderPts-(s.pts||0)<=margin);
+    if(titleContenders.length>=2){
+      const names=titleContenders.slice(0,4).map(s=>s.n).join(', ');
+      addWorldNewsEvent('title_race',{leagueLevel:lvl,
+        vars:{league:LEAGUE_NAMES[lvl],n:titleContenders.length,clubs:names}});
+    }
+
+    if(lvl<8){
+      const safePts=st[Math.max(0,n-3)].pts||0;
+      const relCandidates=st.filter((s,idx)=>idx>=Math.max(0,n-4)&&safePts-(s.pts||0)<=margin);
+      if(relCandidates.length>=2){
+        const names=relCandidates.slice(-4).map(s=>s.n).join(', ');
+        addWorldNewsEvent('relegation_race',{leagueLevel:lvl,
+          vars:{league:LEAGUE_NAMES[lvl],clubs:names}});
+      }
+    }
+  });
+}
+
+// ── Bukmacherska zapowiedź sezonu — raz na ligę, na starcie sezonu ──────────
+// Bukmacherskie szanse — softmax po tStr() znormalizowanym w obrębie ligi (0..1), więc kształt
+// rozkładu (lider ~20-25%, outsider kilka %) jest ten sam niezależnie od bezwzględnej skali OVR
+// danej ligi. invert=true liczy „ryzyko" (najsłabszy dostaje najwyższy %) — użyte do spadku.
+function _bookmakerOdds(clubs,invert){
+  const vals=clubs.map(c=>tStr(c.id));
+  const min=Math.min(...vals),max=Math.max(...vals);
+  const range=Math.max(1,max-min);
+  const SCALE=3.2;
+  const weighted=clubs.map((c,i)=>{
+    const norm=(vals[i]-min)/range;
+    const x=invert?(1-norm):norm;
+    return {c,w:Math.exp(x*SCALE)};
+  });
+  const total=weighted.reduce((s,x)=>s+x.w,0);
+  return weighted.map(({c,w})=>({c,pct:Math.max(1,Math.round(100*w/total))}))
+    .sort((a,b)=>b.pct-a.pct);
+}
+function _oddsPct(odds,clubId){
+  const found=odds&&odds.find(o=>o.c.id===clubId);
+  return found?found.pct:1;
+}
+// Odnośnik do karty klubu wewnątrz tekstu newsa (news sam nie ma clubId — dotyczy całej ligi).
+// stopPropagation: wpis newsa bywa sam w sobie klikalny (n.clubId, patrz _worldNewsItemHtml) —
+// bez tego klik w link klubu wewnątrz tekstu otwierałby zamiast niego kartę klubu z całego wiersza.
+function _clubLink(c){
+  return '<span onclick="event.stopPropagation();openClubModal('+c.id+')" style="cursor:pointer;text-decoration:underline">'+c.n+'</span>';
+}
+// Zamienia KAŻDE wystąpienie nazwy klubu w tekście newsa na klikalny link do jego karty — dotyczy
+// wszystkich klubów wymienionych w treści (nie tylko tego, do którego news jest przypięty przez
+// n.clubId — np. rywal w wyniku derbów, obie strony transferu, lista klubów w walce o tytuł).
+// Pomija wiadomości, które już mają linki (np. bukmacherska zapowiedź sezonu buduje je sama),
+// żeby nie zagnieżdżać <span> w <span>. Sortowanie po długości nazwy — zabezpieczenie na wypadek,
+// gdyby jedna nazwa klubu była literalnym podciągiem innej.
+function _linkifyClubNames(msg){
+  if(!msg||msg.indexOf('openClubModal(')!==-1)return msg;
+  const clubs=(ALL_CLUBS||[]).filter(c=>c&&c.n).slice().sort((a,b)=>b.n.length-a.n.length);
+  clubs.forEach(c=>{
+    if(msg.indexOf(c.n)===-1)return;
+    msg=msg.split(c.n).join(_clubLink(c));
+  });
+  return msg;
+}
+// Buduje wieloliniowy news ligowy: TOP 3 kandydatów do tytułu/awansu i TOP 3 zagrożonych spadkiem
+// (liga VIII nie ma spadku — reset składu zamiast tego, patrz startNewSeason()).
+function _buildSeasonPreviewMsg(lg){
+  const lvl=lg.level;
+  const clubs=lg.clubs||[];
+  const titleOdds=_bookmakerOdds(clubs,false);
+  const relOdds=lvl<8?_bookmakerOdds(clubs,true):null;
+  const titleLabel=lvl===1?t('season_preview_title_label'):t('season_preview_promo_label');
+  let msg=t('world_news_season_preview_header').replace('{league}',LEAGUE_NAMES[lvl]);
+  msg+='<br>'+titleLabel;
+  titleOdds.slice(0,3).forEach((o,i)=>{msg+='<br>'+(i+1)+'. '+_clubLink(o.c)+' — '+o.pct+'%';});
+  if(relOdds){
+    msg+='<br>'+t('season_preview_relegation_label');
+    relOdds.slice(0,3).forEach((o,i)=>{msg+='<br>'+(i+1)+'. '+_clubLink(o.c)+' — '+o.pct+'%';});
+  }
+  return {msg,titleOdds,relOdds};
+}
+function announceSeasonPreview(){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>{
+    const lvl=lg.level;
+    const clubs=lg.clubs||[];
+    if(clubs.length<3)return;
+    // Zapowiedź jest teraz o CAŁEJ lidze (TOP 3 + TOP 3), nie o jednym klubie — zawsze bez
+    // clubId (nie wchodzi do bufora/digestu jednego klubu, patrz sekcja 09 architektury).
+    const {msg,titleOdds,relOdds}=_buildSeasonPreviewMsg(lg);
+    addWorldNews(msg,'season_preview',null,lvl,null,WORLD_NEWS_TYPES.season_preview.priority);
+    // ── Twój klub: dedykowany news w G.news (nie tylko world-news ligi) z własnymi szansami ──
+    if(lvl===G.myLeague&&G.myClubId){
+      const myTitlePct=_oddsPct(titleOdds,G.myClubId);
+      const key=lvl===1?'startnews_odds_title':(relOdds?'startnews_odds_promo_rel':'startnews_odds_promo_only');
+      let myMsg=t(key).replace('{titlePct}',myTitlePct);
+      if(relOdds)myMsg=myMsg.replace('{relPct}',_oddsPct(relOdds,G.myClubId));
+      addNews(myMsg,'club');
+    }
+  });
+}
+
+// ── Derby: parowanie (arbitralne, brak danych geograficznych) + ogłoszenie ──
+function assignDerbyPairs(){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>{
+    const clubs=lg.clubs||[];
+    clubs.forEach(c=>{c.rivalId=null;}); // reset — większość klubów nie ma rywala
+    // Tylko 2 pary derbowe na ligę (nie wszystkie kluby) — losowe, ale spośród wszystkich,
+    // więc każdy klub (łącznie z klubem gracza) ma szansę trafić do puli w danym sezonie.
+    const shuffled=[...clubs];
+    for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+    const pairsToPick=Math.min(2,Math.floor(shuffled.length/2));
+    for(let i=0;i<pairsToPick;i++){
+      const a=shuffled[i*2],b=shuffled[i*2+1];
+      if(a&&b){a.rivalId=b.id;b.rivalId=a.id;}
+    }
+  });
+  // Ożywia dziś martwe G.rival (engine/kronika.js) — bez zmian w tamtym pliku.
+  if(G.myClub)G.rival=ALL_CLUBS.find(c=>c.id===G.myClub.rivalId)||null;
+}
+function announceDerbies(){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>{
+    const lvl=lg.level;
+    const clubs=lg.clubs||[];
+    const seen=new Set();
+    const pairs=[];
+    clubs.forEach(c=>{
+      if(c.rivalId&&!seen.has(c.id)&&!seen.has(c.rivalId)){
+        const rival=clubs.find(x=>x.id===c.rivalId);
+        if(rival){pairs.push(c.n+' – '+rival.n);seen.add(c.id);seen.add(c.rivalId);}
+      }
+    });
+    if(!pairs.length)return;
+    addWorldNewsEvent('derby_announce',{leagueLevel:lvl,
+      vars:{league:LEAGUE_NAMES[lvl],pairs:pairs.join(', ')}});
+  });
+}
+// Wołane po każdym meczu z hooków streak (match-post.js AI↔AI, match-engine.js mecz gracza).
+// Pomija remisy — derby news tylko przy rozstrzygnięciu.
+function checkDerbyResult(winnerClub,loserClub,winnerGoals,loserGoals,leagueLevel){
+  if(!winnerClub||!loserClub||winnerGoals===loserGoals)return;
+  if(winnerClub.rivalId!==loserClub.id)return;
+  addWorldNewsEvent('derby_result',{clubId:winnerClub.id,leagueLevel,
+    vars:{club:winnerClub.n,rival:loserClub.n,score:winnerGoals+':'+loserGoals}});
+}
+
+// ── Retrospektywa sezonu — klub AI + liga, redakcyjny render nad G.worldNews ─
+// digest LICZY SIĘ jako pojedynczy materiał (to już zbiorczy news tego tygodnia) — gdyby go
+// wykluczyć, klub, którego zdarzenia w tym samym tygodniu scaliły się w jeden digest, nigdy nie
+// przekroczyłby progu 2 pozycji i retrospektywa by dla niego nigdy nie powstała.
+// season_preview/derby_announce to zapowiedzi z TYGODNIA 1 tego samego sezonu (bukmacherski typ,
+// pary derbowe) — mają wysoki priorytet więc łatwo wskakują do top 5/4 po zdarzeniach, ale nie są
+// tym, co się w sezonie WYDARZYŁO, więc nie mają czego szukać w retrospektywie „sezon w skrócie".
+function _seasonRecapEligible(n,season){
+  return n.season===season&&n.type!=='season_recap_club'&&n.type!=='season_recap_league'
+    &&n.type!=='season_preview'&&n.type!=='derby_announce';
+}
+// digest ma własny nagłówek „Tydzień {club}: " — sensowny w logu tygodniowym, ale myląco
+// zagnieżdżony w retrospektywie sezonu („sezon w skrócie" pokazujący „tydzień X" w środku).
+// Przy wklejaniu do recapu ściągamy ten nagłówek, zostawiając samą treść zdarzeń.
+function _stripDigestPrefix(n){
+  if(n.type!=='digest')return n.msg;
+  const club=ALL_CLUBS.find(c=>c.id===n.clubId);
+  if(!club)return n.msg;
+  const prefix=t('world_news_digest_prefix').replace('{club}',club.n);
+  return n.msg.indexOf(prefix)===0?n.msg.slice(prefix.length):n.msg;
+}
+function generateSeasonRecaps(season,week){
+  if(!G||!G.leagues)return;
+  G.leagues.forEach(lg=>{
+    const lvl=lg.level;
+    (lg.clubs||[]).forEach(club=>{
+      if(club.id===G.myClubId||!club.ai)return;
+      const items=(G.worldNews||[])
+        .filter(n=>_seasonRecapEligible(n,season)&&n.clubId===club.id)
+        .sort((a,b)=>b.priority-a.priority).slice(0,4);
+      // Retrospektywa klubu powstaje KAŻDY sezon dla KAŻDEGO klubu AI — nawet gdy sezon był
+      // wyjątkowo spokojny (brak zdarzeń nad progiem), żeby w karcie klubu nie brakowało wpisu
+      // za dany sezon. Priorytet 40: celowo POD progiem zakładki ligi (LEAGUE_TAB_MIN_PRIORITY=50)
+      // — retrospektywa klubu ma być widoczna tylko w jego karcie, nie duplikować się w newsach
+      // całej ligi (tam jest już season_recap_league, budowany osobno z tych samych „surowców").
+      const body=items.length?items.map(x=>_stripDigestPrefix(x)).join(' • '):t('world_news_season_recap_club_empty');
+      const msg=t('world_news_season_recap_club_prefix').replace('{club}',club.n)+body;
+      addWorldNews(msg,'season_recap_club',club.id,lvl,null,40,season,week);
+    });
+    // W VII Lidze (poziom 8, najniższa) 'relegation' oznacza kluby PRZYCHODZĄCE tam z VI Ligi
+    // (news trafia do ligi docelowej) — dla samego klubu to sensowna historia (zostaje w jego
+    // retrospektywie wyżej), ale w retrospektywie CAŁEJ VII Ligi brzmi myląco, jakby dało się
+    // spaść jeszcze niżej. Wykluczone tylko stąd, nie z bieżących newsów ligi ani karty klubu.
+    const leagueItems=(G.worldNews||[])
+      .filter(n=>_seasonRecapEligible(n,season)&&n.leagueLevel===lvl&&!(lvl===8&&n.type==='relegation'))
+      .sort((a,b)=>b.priority-a.priority).slice(0,5);
+    if(leagueItems.length<2)return;
+    const lmsg=t('world_news_season_recap_league_prefix').replace('{league}',LEAGUE_NAMES[lvl])+leagueItems.map(x=>_stripDigestPrefix(x)).join(' • ');
+    addWorldNews(lmsg,'season_recap_league',null,lvl,null,85,season,week);
+  });
+}
+// ── Migracja zapisów sprzed naprawy retrospektywy (kasowanej limitem per liga/progiem
+// „wydarzeniowości", lub — dla klubu gracza — nigdy nie generowanej, bo klub gracza nie ma
+// club.ai i nie przechodzi przez addWorldNewsEvent) — dogenerowuje brakujące season_recap_club
+// dla KAŻDEGO zakończonego sezonu (S1..G.season-1) i KAŻDEGO klubu, gracza włącznie, żeby karta
+// klubu miała wpis za każdy sezon od S1. Wołane przy każdym wczytaniu zapisu (news-bootstrap.js
+// loadGame) — bezpieczne przy wielokrotnym uruchomieniu, bo sprawdza czy wpis już istnieje zanim
+// go doda. Nie zna szczegółów zdarzeń z utraconych sezonów (te dane już nie istnieją — G.news
+// klubu gracza jest czyszczone co sezon, G.worldNews klubów AI miało próg/limit), więc wstawia
+// ogólny tekst zamiast ich zmyślać.
+function backfillMissingClubRecaps(){
+  if(!G||!G.leagues)return;
+  const lastCompleted=(G.season||1)-1;
+  if(lastCompleted<1)return;
+  G.leagues.forEach(lg=>{
+    const lvl=lg.level;
+    (lg.clubs||[]).forEach(club=>{
+      if(!club.ai&&club.id!==G.myClubId)return;
+      for(let s=1;s<=lastCompleted;s++){
+        const has=(G.worldNews||[]).some(n=>n.type==='season_recap_club'&&n.clubId===club.id&&n.season===s);
+        if(has)continue;
+        const msg=t('world_news_season_recap_club_prefix').replace('{club}',club.n)+t('world_news_season_recap_club_backfill');
+        addWorldNews(msg,'season_recap_club',club.id,lvl,null,40,s,33);
+      }
+    });
+  });
+}
+// ── Napraw retrospektywy, w których zgubiło się mistrzostwo ─────────────────
+// G.lgHist (tabele końcowe każdej ligi/sezonu — niezależne źródło, to z niego liczy się trofeum
+// w karcie klubu) zawsze poprawnie wie, kto był mistrzem. Ale retrospektywy (season_recap_club)
+// z sezonów sprzed naprawy potoku newsów (kolejność G.season++, limit per liga, brak ścieżki dla
+// klubu gracza — wszystko już naprawione wyżej) mogły w tamtym czasie zgubić samo zdarzenie
+// „mistrzostwo" i zostać z ogólnikowym tekstem-wypełniaczem. Naprawiamy TYLKO wypełniacze
+// (Spokojny sezon / Brak szczegółowych danych) — jeśli retrospektywa ma już jakąkolwiek realną
+// treść, zakładamy że mistrzostwo tam jest (albo celowo go tam nie ma) i jej nie ruszamy, żeby
+// nie zdublować wzmianki w świeżo poprawnie wygenerowanych wpisach.
+function fixMissingChampionInRecaps(){
+  if(!G||!G.lgHist||!G.worldNews)return;
+  const FILLER=new Set([t('world_news_season_recap_club_empty'),t('world_news_season_recap_club_backfill')]);
+  Object.keys(G.lgHist).forEach(lvl=>{
+    (G.lgHist[lvl]||[]).forEach(h=>{
+      if(!h.champion||h.champion.cid==null)return;
+      const cid=h.champion.cid,season=h.season;
+      const entry=G.worldNews.find(n=>n.type==='season_recap_club'&&n.clubId===cid&&n.season===season);
+      if(!entry)return;
+      const prefix=t('world_news_season_recap_club_prefix').replace('{club}',h.champion.n||'');
+      const body=entry.msg.indexOf(prefix)===0?entry.msg.slice(prefix.length):entry.msg;
+      if(!FILLER.has(body))return;
+      const leagueName=LEAGUE_NAMES[Number(lvl)]||'';
+      entry.msg=prefix+t('world_news_champion_recap_fallback').replace('{league}',leagueName);
+    });
+  });
+}
+// Po zbudowaniu retrospektywy surowe wpisy minionych sezonów są już zbędne — zostały wchłonięte
+// przez season_recap_club/league. Czyścimy je, żeby historia zawierała tylko podsumowania, a
+// bieżący (dopiero co rozpoczęty) sezon zaczynał się czysto od derby/zapowiedzi bukmacherów.
+// Uwaga: to musi być reguła oparta o numer sezonu (>=G.season), nie o wyliczankę typów „do
+// zachowania" — inaczej każdy nowy typ newsa bez clubId (jak goal_summary) trzeba by pamiętać
+// dopisać do takiej listy, a zapomnienie kasowałoby go natychmiast po utworzeniu.
+// endedSeason: numer sezonu, który się właśnie skończył. Retrospektywa LIGI (season_recap_league,
+// zakładka światowa) jest tam pokazywana tylko dla ostatniego zakończonego sezonu — starsze (S1,
+// S0… przy przejściu do S3) znikają z listy. Retrospektywa KLUBU (season_recap_club) zostaje
+// za to na zawsze — to jest kronika widoczna w karcie klubu, tam ma być pełna historia sezonów.
+function purgeSeasonToRecapOnly(endedSeason){
+  if(!G||!G.worldNews)return;
+  G.worldNews=G.worldNews.filter(n=>{
+    if(n.type==='season_recap_club')return true;
+    if(n.type==='season_recap_league')return endedSeason==null||n.season>=endedSeason;
+    return n.season>=G.season;
+  });
 }
 
 function _worldNewsItemHtml(n){
-  const barColor={promotion:'#4caf50',relegation:'#f44336',cup:'#ffd700',academy:'#ab47bc',streak_win:'#4caf50',streak_loss:'#f44336',crisis:'#f44336',goal:'#29b6f6'};
-  const icons={promotion:'⬆️',relegation:'⬇️',cup:'🏆',academy:'🎓',streak_win:'🔥',streak_loss:'📉',crisis:'💸',goal:'🎯'};
-  const bar=barColor[n.type]||'#546e54';
-  const ico=icons[n.type]||'📰';
+  const def=WORLD_NEWS_TYPES[n.type]||{};
+  const bar=def.color||'#546e54';
   const clickable=!!n.clubId;
   const clickAttr=clickable?' onclick="openClubModal('+n.clubId+')" style="cursor:pointer"':'';
+  // Ikona NIE jest dublowana tutaj — każdy szablon newsa (i18n.js) już zaczyna się od
+  // własnej ikony, więc osobny znacznik ikony tylko powielałby to, co jest w n.msg.
   return '<div'+clickAttr+' style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a">'
     +'<div style="width:3px;background:'+bar+';flex-shrink:0"></div>'
     +'<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 10px;flex:1">'
-      +'<span style="font-size:var(--fs-body);flex-shrink:0;margin-top:1px">'+ico+'</span>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.3">'+n.msg+'</div>'
+        +'<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.3">'+_linkifyClubNames(n.msg)+'</div>'
         +'<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('world_news_meta').replace('{s}',n.season).replace('{n}',n.week)+'</div>'
       +'</div>'
     +'</div>'
   +'</div>';
-}
-
-function renderWorldNews(){
-  const el=document.getElementById('world-news');if(!el||!G)return;
-  const list=G.worldNews||[];
-  if(!list.length){
-    el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:30px">'+t('world_news_empty')+'</div>';
-    return;
-  }
-  el.innerHTML=list.map(_worldNewsItemHtml).join('');
 }
 
 function fillBoard(){

@@ -481,12 +481,22 @@ function simOthers(){
         if(won)cai._streak=cai._streak>0?cai._streak+1:1;
         else if(lost)cai._streak=cai._streak<0?cai._streak-1:-1;
         else cai._streak=0;
-        if(Math.abs(cai._streak)===4&&(_lvl===_myLvl||Math.abs(_lvl-_myLvl)<=1)){
-          const isWinStreak=cai._streak>=4;
-          const key=isWinStreak?'world_news_win_streak':'world_news_loss_streak';
-          addWorldNews(t(key).replace('{club}',_fClub.n).replace('{n}',Math.abs(cai._streak)),isWinStreak?'streak_win':'streak_loss',_fClub.id,_lvl);
+        const rec=_checkStreakRecord(_fClub,cai._streak);
+        if(rec.isNewRecord||rec.isAmbient){
+          addWorldNewsEvent(cai._streak>0?'streak_win':'streak_loss',{
+            clubId:_fClub.id, leagueLevel:_lvl, isRecord:rec.isNewRecord,
+            vars:{club:_fClub.n, n:Math.abs(cai._streak)}
+          });
         }
       });
+      // ── ŻYWY ŚWIAT AI: derby (para rywali z assignDerbyPairs(), sekcja 11) ──
+      (function(){
+        const hClub=ALL_CLUBS.find(c=>c.id===m.h),aClub=ALL_CLUBS.find(c=>c.id===m.a);
+        if(!hClub||!aClub||hG2===aG2)return;
+        const winClub=hG2>aG2?hClub:aClub, loseClub=hG2>aG2?aClub:hClub;
+        const winG=Math.max(hG2,aG2), loseG=Math.min(hG2,aG2);
+        checkDerbyResult(winClub,loseClub,winG,loseG,_lvl);
+      })();
       // Goal stats for AI players
       const matchEvts2=[];
       [m.h,m.a].forEach(cid=>{
@@ -497,9 +507,13 @@ function simOthers(){
           const sc=scorers[Math.floor(Math.random()*scorers.length)];
           const ass=scorers.filter(p=>p.id!==sc.id);
           const assP=ass.length&&Math.random()<0.8?ass[Math.floor(Math.random()*ass.length)]:null;
-          matchEvts2.push({scorerId:sc.id,assistId:assP?assP.id:null});
+          matchEvts2.push({scorerId:sc.id,assistId:assP?assP.id:null,min:r(3,88),isHome:cid===m.h});
         }
       });
+      // Kartki + oceny per zawodnik — lekki odpowiednik bldCards()/calcFinalRatings() z match-engine.js,
+      // tylko do podglądu meczu w karcie klubu (WYNIKI), patrz G._mHistAI niżej
+      const matchCards2=[];
+      const matchRatings2={};
       // Aktualizuj mecze i oceny sezonowe dla zawodników AI
       [m.h,m.a].forEach(cid=>{
         const isHTeam=cid===m.h;
@@ -518,6 +532,11 @@ function simOthers(){
           if(!p.seasonRatings)p.seasonRatings=[];
           p.seasonRatings.push(aiRat);
           p.lastMatchRating=aiRat;
+          matchRatings2[p.id]=aiRat;
+          // Kartki — te same bazowe prawdopodobieństwa co bldCards() w match-engine.js (0.05/0.007),
+          // bez modyfikatorów taktyki (uproszczenie B-lekki)
+          if(Math.random()<0.05)matchCards2.push({m:r(5,85),id:p.id,t:'y'});
+          if(Math.random()<0.007)matchCards2.push({m:r(10,85),id:p.id,t:'r'});
         });
         // v218: Lider/Zimna krew/Nerwowy — te same bonusy formy co w simMatch() (patrz punkt 5b),
         // teraz też dla klubów AI. Pewny siebie (seria zwycięstw) zostaje pominięty — kluby AI nie
@@ -531,6 +550,17 @@ function simOthers(){
         }
       });
       matchEvts2.forEach(e=>{const sc=G.players.find(x=>x.id===e.scorerId);if(sc){if(!sc.st.g)sc.st.g=0;sc.st.g++;}const as=e.assistId?G.players.find(x=>x.id===e.assistId):null;if(as){if(!as.st.a)as.st.a=0;as.st.a++;}});
+      // Zapis meczu do podglądu w karcie klubu (zakładka WYNIKI) — runtime-only, bieżący sezon,
+      // celowo POMIJANY w saveGame() (patrz SKIP w news-bootstrap.js) żeby nie obciążać zapisu
+      if(!G._mHistAI)G._mHistAI=[];
+      G._mHistAI.push({
+        rnd:m.rnd,season:G.season,
+        hn:(ALL_CLUBS.find(c=>c.id===m.h)||{n:'?'}).n,an:(ALL_CLUBS.find(c=>c.id===m.a)||{n:'?'}).n,
+        hg:hG2,ag:aG2,
+        g:matchEvts2.map(e=>({m:e.min,s:e.scorerId,a:e.assistId,h:e.isHome?1:0})),
+        c:matchCards2,
+        r:matchRatings2
+      });
     });
   });
 }
@@ -574,6 +604,15 @@ function aiRenewContracts(){
     const fc2=p.formerClubs.find(x=>x.clubId===p.clubId);
     if(fc2)fc2.seasons=(fc2.seasons||0)+1;
     else if(p.clubId>0)p.formerClubs.push({clubId:p.clubId,clubName:_hClub2?_hClub2.n:'?',seasons:1});
+    // ── ŻYWY ŚWIAT AI: kontrakt — zawodnik na szczycie pasma OVR swojej ligi trafia na wolny rynek ──
+    if(_hClub2&&_hClub2.ai){
+      const _lg2=G.leagues.find(l=>l.clubs.some(c=>c.id===_hClub2.id));
+      const _lgMax2=_lg2?(LEAGUE_OVR[_lg2.level]||[20,35,35,55])[3]:0;
+      if(ovr(p)>=_lgMax2){
+        addWorldNewsEvent('contract',{clubId:_hClub2.id,leagueLevel:_lg2?_lg2.level:null,playerId:p.id,
+          vars:{name:p.name,club:_hClub2.n}});
+      }
+    }
     p.starter=false;p.clubId=0;p.status='freeAgent';p.isFreeAgent=true;
     G.fa.push(p);
   });
@@ -668,7 +707,10 @@ function initClubAI(club, leagueLevel){
     juniorLog:[],
     form:50,
     _streak:0,
-    boardGoal:null
+    boardGoal:null,
+    _newsCooldown:{},
+    _newsCountThisWeek:{week:0,entries:[]},
+    _streakRecord:{win:0,loss:0}
   };
 }
 
@@ -696,6 +738,14 @@ function fillHistoryGaps(p){
 
 // takeFromPool usunięty — zamknięty świat, brak G.playerPool
 
+// Rekord transferowy świata AI — cała historia kariery (max 100, sort po cenie)
+function _recordWorldTransfer(entry){
+  if(!G.worldTopTransfers)G.worldTopTransfers=[];
+  G.worldTopTransfers.push(entry);
+  G.worldTopTransfers.sort((a,b)=>b.price-a.price);
+  if(G.worldTopTransfers.length>100)G.worldTopTransfers.length=100;
+}
+
 function aiTransferPlayer(p,fromClub,toClub,price,season,isWinter){
   if(!p.formerClubs)p.formerClubs=[];
   const fc=p.formerClubs.find(x=>x.clubId===fromClub.id);
@@ -719,6 +769,10 @@ function aiTransferPlayer(p,fromClub,toClub,price,season,isWinter){
   if(!toClub.ai.transferLog)toClub.ai.transferLog=[];
   toClub.ai.transferLog.unshift({type:'buy',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,fromClub:fromClub.n});
   if(toClub.ai.transferLog.length>20)toClub.ai.transferLog.pop();
+  // Statystyki za całą historię kariery (nieprzycinane, w odróżnieniu od transferLog)
+  toClub.ai.totalSpent=(toClub.ai.totalSpent||0)+price;
+  toClub.ai.totalBuys=(toClub.ai.totalBuys||0)+1;
+  if(price>0)_recordWorldTransfer({name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,fromClub:fromClub.n,toClub:toClub.n,type:'ai',clubId:toClub.id,playerId:p.id});
   fromClub.ai.budget=(fromClub.ai.budget||0)+price*0.7;
   toClub.ai.budget=(toClub.ai.budget||0)-price*0.8;
   return p;
@@ -775,6 +829,11 @@ function aiTransferSeason(isWinter){
         if(isStar&&(lvl===G.myLeague||lvl===G.myLeague-1||lvl===G.myLeague+1)){
           importantNews.push({msg:t('mp_news_listed').replace('{club}',club.n).replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]||p.pos).replace('{ovr}',ovr(p)),type:'info'});
         }
+        // ── ŻYWY ŚWIAT AI: plotka transferowa — próg niższy niż transfer (zapowiedź, nie transakcja) ──
+        if(ovr(p)>lgMax*0.95){
+          addWorldNewsEvent('rumour',{clubId:club.id,leagueLevel:lvl,playerId:p.id,
+            vars:{club:club.n,name:p.name}});
+        }
       });
     });
   });
@@ -827,9 +886,26 @@ function aiTransferSeason(isWinter){
       if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
       fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,toClub:buyer.n});
       if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
+      fromClub.ai.totalEarned=(fromClub.ai.totalEarned||0)+price;
+      fromClub.ai.totalSells=(fromClub.ai.totalSells||0)+1;
       const nearMyLeague=lvl===G.myLeague||Math.abs(lvl-G.myLeague)<=1;
       if(nearMyLeague||isStar){
         importantNews.push({msg:t('mp_news_transferred').replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]||p.pos).replace('{ovr}',ovr(p)).replace('{from}',fromClub.n).replace('{to}',buyer.n),type:'info'});
+      }
+      // ── ŻYWY ŚWIAT AI: news transferowy per liga — próg to wartość zawodnika na szczycie
+      // pasma OVR ligi sprzedającego (calcValue), nie mnożnik isStar (dla ligi 1 był nieosiągalny) ──
+      const _buyerLg=G.leagues.find(l=>l.clubs.some(x=>x.id===buyer.id));
+      const _buyerLvl=_buyerLg?_buyerLg.level:lvl;
+      const _bigTransferThreshold=calcValue((LEAGUE_OVR[lvl]||[20,35,35,55])[3],25);
+      const _trVars={name:p.name,from:fromClub.n,to:buyer.n,val:fmtVal(price)};
+      if(price>=_bigTransferThreshold){
+        addWorldNewsEvent('transfer',{clubId:fromClub.id,leagueLevel:lvl,playerId:p.id,vars:_trVars});
+        if(_buyerLvl!==lvl)addWorldNewsEvent('transfer',{clubId:buyer.id,leagueLevel:_buyerLvl,playerId:p.id,vars:_trVars});
+      }
+      // ── ŻYWY ŚWIAT AI: rekord — transfer w TOP 10 wszech czasów (G.worldTopTransfers) ──
+      const _wtRank=(G.worldTopTransfers||[]).findIndex(e=>e.playerId===p.id&&e.season===season);
+      if(_wtRank>=0&&_wtRank<10){
+        addWorldNewsEvent('record',{clubId:buyer.id,leagueLevel:_buyerLvl,playerId:p.id,vars:_trVars});
       }
     } else {
       // Naprawdę nikt nie pasuje → FA
@@ -842,6 +918,9 @@ function aiTransferSeason(isWinter){
       if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
       fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,toClub:null});
       if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
+      fromClub.ai.totalEarned=(fromClub.ai.totalEarned||0)+price;
+      fromClub.ai.totalSells=(fromClub.ai.totalSells||0)+1;
+      if(price>0)_recordWorldTransfer({name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,fromClub:fromClub.n,toClub:t('world_market'),type:'ai',clubId:fromClub.id,playerId:p.id});
     }
   });
 
@@ -927,8 +1006,9 @@ function aiTransferSeason(isWinter){
             if(!ai.juniorLog)ai.juniorLog=[];
             ai.juniorLog.unshift({name:junior.name,pos:junior.pos,ovr:ovr(junior),pot:junior.potential,season,id:junior.id});
             if(ai.juniorLog.length>8)ai.juniorLog.pop();
-            if(junior.potential>=75&&(lvl===G.myLeague||Math.abs(lvl-G.myLeague)<=1)){
-              addWorldNews(t('world_news_academy_talent').replace('{club}',club.n).replace('{name}',junior.name).replace('{pos}',POS_SHORT[junior.pos]||junior.pos).replace('{pot}',junior.potential),'academy',club.id,lvl);
+            if(junior.potential>=75){
+              addWorldNewsEvent('academy',{clubId:club.id,leagueLevel:lvl,playerId:junior.id,
+                vars:{club:club.n,name:junior.name,pos:POS_SHORT[junior.pos]||junior.pos,pot:junior.potential}});
             }
           }
         }

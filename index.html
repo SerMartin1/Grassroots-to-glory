@@ -82,6 +82,7 @@
       <button class="mss-tab" onclick="mssTab('finanse',this)" style="flex:1;min-width:40px;font-size:var(--fs-meta);padding:5px 2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--gr);cursor:pointer">💰 FIN</button>
       <button class="mss-tab" onclick="mssTab('transfery',this)" style="flex:1;min-width:40px;font-size:var(--fs-meta);padding:5px 2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--gr);cursor:pointer">🔄 TR</button>
       <button class="mss-tab" onclick="mssTab('wyceny',this)" style="flex:1;min-width:40px;font-size:var(--fs-meta);padding:5px 2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--gr);cursor:pointer">📈 WYCENY</button>
+      <button class="mss-tab" onclick="mssTab('wydarzenia',this)" style="flex:1;min-width:40px;font-size:var(--fs-meta);padding:5px 2px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--gr);cursor:pointer">📖 SEZON</button>
     </div>
     <!-- TAB CONTENT -->
     <div id="mss-wyniki" class="mss-panel" style="display:block;padding:8px 10px"></div>
@@ -89,6 +90,7 @@
     <div id="mss-finanse" class="mss-panel" style="display:none;padding:8px 10px"></div>
     <div id="mss-transfery" class="mss-panel" style="display:none;padding:8px 10px"></div>
     <div id="mss-wyceny" class="mss-panel" style="display:none;padding:8px 10px"></div>
+    <div id="mss-wydarzenia" class="mss-panel" style="display:none;padding:8px 10px"></div>
     <!-- FOOTER -->
     <div style="padding:8px 10px;border-top:1px solid var(--gl)">
       <button onclick="closeSeasSummaryAndStartNew()" style="width:100%;font-weight:700;font-size:var(--fs-h3);background:var(--am);color:#000;border:none;padding:8px;cursor:pointer;letter-spacing:1px">▶ NOWY SEZON →</button>
@@ -771,11 +773,9 @@
     <div class="tabs">
       <button class="tab-btn active" id="world-tab-transfers" onclick="worldTab('transfers',this)" data-i18n="world_tab_transfers">💸 REKORDOWE TRANSFERY</button>
       <button class="tab-btn" id="world-tab-clubs" onclick="worldTab('clubs',this)" data-i18n="world_tab_clubs">📊 AKTYWNE KLUBY</button>
-      <button class="tab-btn" id="world-tab-news" onclick="worldTab('news',this)" data-i18n="world_tab_news">📰 NEWSY</button>
     </div>
     <div id="world-transfers" class="tab-pane on" style="padding:0"></div>
     <div id="world-clubs" class="tab-pane" style="padding:10px"></div>
-    <div id="world-news" class="tab-pane" style="padding:0"></div>
   </div>
 </div>
 
@@ -945,6 +945,7 @@
     <div style="display:flex;border-bottom:2px solid var(--gb);flex-shrink:0">
       <button id="cm-tab-karta" onclick="cmTab('karta')" style="flex:1;background:var(--gm);border:none;border-right:1px solid var(--gl);color:var(--am);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid var(--am)" data-i18n="cm_tab_card">KARTA KLUBU</button>
       <button id="cm-tab-sklad" onclick="cmTab('sklad')" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="tile_squad">SKŁAD</button>
+      <button id="cm-tab-wyniki" onclick="cmTab('wyniki')" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="cm_tab_matches">WYNIKI</button>
       <button id="cm-tab-historia" onclick="cmTab('historia')" style="flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="fin_tab_history">HISTORIA</button>
       <button id="cm-tab-newsy" onclick="cmTab('newsy')" style="flex:1;background:var(--tb);border:none;color:var(--gr);font-weight:700;font-size:var(--fs-h3);padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent" data-i18n="cm_tab_news">NEWSY</button>
     </div>
@@ -952,6 +953,7 @@
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div id="cm-pane-karta" style="padding:12px 14px"></div>
       <div id="cm-pane-sklad" style="display:none;padding:0"></div>
+      <div id="cm-pane-wyniki" style="display:none;padding:0"></div>
       <div id="cm-pane-historia" style="display:none;padding:12px 14px"></div>
       <div id="cm-pane-newsy" style="display:none;padding:0"></div>
     </div>

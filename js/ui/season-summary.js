@@ -302,6 +302,23 @@ function showSeasonSummary(){
   }
   document.getElementById('mss-wyceny').innerHTML=wycHtml;
 
+  // ── RETROSPEKTYWA SEZONU GRACZA — z G.news, nie G.worldNews (ten nigdy nie zawiera
+  // zdarzeń klubu gracza). Lokalna mapa ważności tylko do sortowania — G.news nie dostaje
+  // pola priority, to system poza zakresem Żywego Świata AI. ──
+  {
+    const _recapPriority={ok:80,budget:60,club:55,contract:50,scout:35,academy:45,train:20,back:30,inj:40,card:25,info:30,premium:70,rumour:15};
+    const _seasonNews=(G.news||[]).filter(n=>n.season===G.season);
+    const _topNews=_seasonNews.slice().sort((a,b)=>(_recapPriority[b.type]||30)-(_recapPriority[a.type]||30)).slice(0,8);
+    let wdHtml='';
+    if(!_topNews.length){
+      wdHtml='<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:20px">'+t('mss_events_empty')+'</div>';
+    } else {
+      wdHtml='<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+t('mss_events_intro')+'</div>'
+        +_topNews.map(n=>_newsItemHtml(n,false)).join('');
+    }
+    document.getElementById('mss-wydarzenia').innerHTML=wdHtml;
+  }
+
   // Aktywuj pierwszą zakładkę
   mssTab('wyniki', document.querySelector('.mss-tab'));
 
@@ -329,6 +346,19 @@ function closeSeasSummaryAndStartNew(){
 
 function startNewSeason(){
   if(!G||!G.seasonEnded)return;
+  // Sezon/tydzień, który się kończy — zapamiętane PRZED G.season++ niżej. Zdarzenia opisujące
+  // wynik tego sezonu (mistrzostwo/awans/spadek/cel) muszą być znakowane tym numerem, a nie
+  // już podbitym G.season, inaczej trafiają do newsów nowego sezonu (mieszają się z zapowiedzią
+  // bukmacherską/derbami) zamiast do retrospektywy kończącego się sezonu.
+  const _endedSeason=G.season,_endedWeek=G.week;
+  // Newsy klubu gracza za kończący się sezon — zapamiętane PRZED G.news=[] niżej. Klub gracza
+  // nie ma club.ai, więc nigdy nie przechodzi przez addWorldNewsEvent/G.worldNews (patrz
+  // world-board-render.js) — bez tej migawki jego retrospektywa (niżej, po generateSeasonRecaps)
+  // nie miałaby z czego zbudować treści.
+  // Pomijamy n.action (newsy-przypomnienia „zrób X" — okno transferowe, cele zarządu, sponsorzy,
+  // obóz, oferta premium, raport skauta — to CTA, nie historia) i n.noRecap (jednorazowe
+  // zapowiedzi sezonu bez własnego action, np. start Pucharu — patrz cup-engine.js).
+  const _myEndedSeasonNews=(G.news||[]).filter(n=>n.season===_endedSeason&&!n.action&&!n.noRecap);
   // ── EMERYTURA: losuj dla zawodników 32-38 lat ────────────────────────
   const retireChance={32:0.10,33:0.10,34:0.25,35:0.25,36:0.50,37:0.50,38:0.90};
   G.players.forEach(p=>{
@@ -355,7 +385,7 @@ function startNewSeason(){
   // Reset ocen sezonowych zawodników
   G.players.forEach(p=>{p.seasonRatings=[];p.lastMatchRating=null;p.fatigue=0;});
   G.schedule=G.allSchedules[G.myLeague]||buildSchedule(G.myClubId,getLeagueClubs(G.leagues,G.myLeague));
-  G.mHist=[];G.news=[];G.trainLog=[];G._newsModalShown={};
+  G.mHist=[];G._mHistAI=[];G.news=[];G.trainLog=[];G._newsModalShown={};
   if(G.scout)G.scout.signedThisSeason=0;
   // Koszt skauta na poczatek nowego sezonu
   if(G.scout&&G.scout.level&&G.scout.level!=='free'){
@@ -379,7 +409,6 @@ function startNewSeason(){
   G.kronika.usedThisSeason=[];G.kronika.cooldown=0;G.kronika.flags={};
   // rumourPool NIE resetujemy — zawodnicy czekają na okno letnie nowego sezonuG.trainFocusLock=0;G.completedFocuses=0;G.contractWarned={};G.noFocusWeeks=0;G.transferMarket=[];G.listedPlayers=[];G.pendingOffers=[];G.trBoughtThisWindow=0;G.trSoldThisWindow=0;G._sellOffers={};
   if(!G.reputation)G.reputation=10;
-  changeReputation(5,t('rep_reason_new_season'));
   const _fb=Math.min(80,20+(G.reputation||10)/10);
   G.frequency=Math.round(((G.frequency||40)*0.7+_fb*0.3));
   G.winStreak=0;G.loseStreak=0;G.seasonBonus=0;
@@ -390,7 +419,7 @@ function startNewSeason(){
       if(G.contracts[k]&&G.contracts[k].seasonsLeft>0){
         G.contracts[k].seasonsLeft--;
         if(G.contracts[k].seasonsLeft<=0){
-          G.news=G.news||[];G.news.unshift({msg:t('mss_news_expired_contract').replace('{name}',k),type:'info',week:G.week||1,season:G.season,action:'finance',actionLabel:t('tile_finance')});renderNews();
+          G.news=G.news||[];G.news.unshift({msg:t('mss_news_expired_contract').replace('{name}',k),type:'info',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:t('fin_tab_contracts')});renderNews();
           G.contracts[k]={weekly:0,seasonsLeft:0};
         }
       }
@@ -443,28 +472,58 @@ function startNewSeason(){
   // ── AWANSE I SPADKI ──────────────────────────────────────────────────
   if(G.leagues&&G.allStandings){
     const promotionNews=[];
+    // Nagrody sezonowe zawodników AI (assignSeasonAwards, patrz week-progress.js) potrzebują
+    // wiedzieć, kto wygrał Puchar — dla AI nie ma G.trophies (to system tylko klubu gracza),
+    // więc czytamy z G.cupHistory, uniwersalnego dla każdego klubu. Liczone raz przed pętlą lig.
+    const _cupHistThisSeason=(G.cupHistory||[]).find(ch=>ch.season===G.season);
+    const _cupWinnerCid=_cupHistThisSeason&&_cupHistThisSeason.winner?_cupHistThisSeason.winner.cid:null;
+    const _cupRunnerUpCid=_cupHistThisSeason&&_cupHistThisSeason.runnerUp?_cupHistThisSeason.runnerUp.cid:null;
     for(let lvl=1;lvl<=8;lvl++){
       const st=[...(G.allStandings[lvl]||[])].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
       if(!st.length)continue;
+      // ── ŻYWY ŚWIAT AI: mistrzostwo ligi (AI) — bez ograniczenia odległości, jak awans/spadek ──
+      const champClub=G.leagues.find(l=>l.level===lvl)?.clubs.find(c=>c.id===st[0].cid);
+      if(champClub&&champClub.id!==G.myClubId){
+        addWorldNewsEvent('champion',{clubId:champClub.id,leagueLevel:lvl,
+          vars:{club:champClub.n,league:LEAGUE_NAMES[lvl]}});
+      }
       // ── ŻYWY ŚWIAT AI: rozlicz cel zarządu z kończącego się sezonu, zapamiętaj
       // miejsce w tabeli (potrzebne aiTransferSeason() do przychodu na nowy sezon) ──
+      const _goalAchievers=[]; // zbiorczy news do ligi — bez szczegółu celu, patrz goal_summary niżej
       st.forEach((s,idx)=>{
         const club=G.leagues.find(l=>l.level===lvl)?.clubs.find(c=>c.id===s.cid);
         if(!club||!club.ai)return;
         club.ai._lastSeasonPos=idx+1;
         club.ai._lastSeasonClubCount=st.length;
+        // Nagrody sezonowe zawodników — ta sama mechanika co dla klubu gracza, patrz
+        // assignSeasonAwards() w week-progress.js. Karta zawodnika AI dostaje zakładkę
+        // Nagrody tak samo jak u gracza (wcześniej nie miała nic, bo liczono tylko myPl()).
+        const _squadAi=G.players.filter(p=>p.clubId===club.id);
+        if(_squadAi.length){
+          // _endedSeason: G.season jest tu już podbite (patrz początek startNewSeason()) — bez
+          // jawnego podania nagroda dostałaby datę NOWEGO sezonu zamiast tego, w którym padła.
+          assignSeasonAwards(club.id,_squadAi,idx===0,_cupWinnerCid===club.id,_cupRunnerUpCid===club.id,idx<=1&&lvl>1,_endedSeason);
+        }
         const goal=club.ai.boardGoal;
         if(goal&&goal.achieved===null){
           const met=(idx+1)<=goal.targetPos;
           goal.achieved=met;
           if(met){
             club.ai.reputation=Math.max(0,(club.ai.reputation||0)+goal.reward);
-            if(Math.abs(lvl-(G.myLeague||8))<=1){
-              addWorldNews(t('world_news_goal_achieved').replace('{club}',club.n).replace('{label}',t('world_goal_'+goal.type)).replace('{rep}',goal.reward),'goal',club.id,lvl);
-            }
+            // Szczegóły (jaki cel) — tylko do karty klubu, priorytet goal jest pod progiem ligi.
+            addWorldNewsEvent('goal',{clubId:club.id,leagueLevel:lvl,
+              vars:{club:club.n,label:t('world_goal_'+goal.type),rep:goal.reward}});
+            _goalAchievers.push({name:club.n,rep:goal.reward});
           }
         }
       });
+      // ── ŻYWY ŚWIAT AI: zbiorczy news do ligi — kto wykonał cel i ile reputacji, bez jakiego
+      // konkretnie celu dotyczył (to zostaje w karcie klubu, patrz wyżej) ──
+      if(_goalAchievers.length){
+        const _clubsList=_goalAchievers.map(a=>a.name+' (+'+a.rep+')').join(', ');
+        addWorldNewsEvent('goal_summary',{leagueLevel:lvl,
+          vars:{league:LEAGUE_NAMES[lvl],clubs:_clubsList},season:_endedSeason,week:_endedWeek});
+      }
       // Top 2 awansują (nie ma ligi wyżej niż 1)
       if(lvl>1){
         st.slice(0,2).forEach(s=>{
@@ -499,7 +558,8 @@ function startNewSeason(){
                 if(aiBudgetBonus>0)club.ai.budget=(club.ai.budget||0)+aiBudgetBonus;
                 club.ai.reputation=Math.max(0,(club.ai.reputation||0)+50);
               }
-              addWorldNews(t('world_news_promoted').replace('{club}',club.n).replace('{league}',LEAGUE_NAMES[lvl-1]),'promotion',club.id,lvl-1);
+              addWorldNewsEvent('promotion',{clubId:club.id,leagueLevel:lvl-1,
+                vars:{club:club.n,league:LEAGUE_NAMES[lvl-1]}});
             }
           }
         });
@@ -533,7 +593,8 @@ function startNewSeason(){
                 club.ai.relegated=true;
                 club.ai.reputation=Math.max(0,(club.ai.reputation||0)-30);
               }
-              addWorldNews(t('world_news_relegated').replace('{club}',club.n).replace('{league}',LEAGUE_NAMES[lvl+1]),'relegation',club.id,lvl+1);
+              addWorldNewsEvent('relegation',{clubId:club.id,leagueLevel:lvl+1,
+                vars:{club:club.n,league:LEAGUE_NAMES[lvl+1]}});
             }
           }
         });
@@ -554,6 +615,9 @@ function startNewSeason(){
     G.leagues.forEach(lg=>{
       while(lg.clubs.length>16)lg.clubs.pop();
     });
+    // Bezpiecznik: reset składu (VII Liga) albo wygasłe kontrakty (aiRenewContracts wyżej)
+    // mogły zostawić klub AI bez bramkarza — patrz state.js.
+    ensureClubGoalkeepers();
     // Zaktualizuj CLUBS_B i ALL_CLUBS
     setCurrentLeague(G.leagues,G.myLeague);
     ALL_CLUBS=G.leagues.flatMap(l=>l.clubs);
@@ -566,6 +630,34 @@ function startNewSeason(){
     });
     G.standing=G.allStandings[G.myLeague];
     G.schedule=G.allSchedules[G.myLeague];
+    // ── ŻYWY ŚWIAT AI: najpierw domknij kończący się sezon. flushAllWeeklyNews(_endedSeason,
+    // _endedWeek) opróżnia bufor KAŻDEGO klubu ze znakowaniem kończącego się sezonu — obejmuje
+    // to zarówno zdarzenia dodane wyżej (champion/promotion/relegation/goal), jak i wszelkie
+    // zwykłe newsy z ostatniego tygodnia sezonu (seria, derby), które mogły jeszcze nie zdążyć
+    // się spłukać przed tym momentem. Bez tego nadpisania dostałyby błędnie datę nowego sezonu,
+    // bo G.season/G.week są już podbite (patrz początek funkcji). Retrospektywa i czyszczenie
+    // surowych wpisów — dopiero potem. Derby/zapowiedź nowego sezonu jeszcze później — dzięki tej
+    // kolejności w newsach (najnowsze na górze) retrospektywa ląduje POD derby/zapowiedzią, jako
+    // „ostatnia wiadomość poprzedniego sezonu" widoczna na przejściu do nowego.
+    flushAllWeeklyNews(_endedSeason,_endedWeek);
+    generateSeasonRecaps(_endedSeason,_endedWeek);
+    // generateSeasonRecaps() celowo pomija klub gracza (nie ma club.ai, nie ma czego czytać z
+    // G.worldNews) — jego retrospektywa budowana jest tu, z G.news (ta sama logika wyboru
+    // "najważniejsze zdarzenia sezonu" co zakładka „Sezon" w podsumowaniu sezonu), żeby zakładka
+    // Newsy we WŁASNEJ karcie klubu (club-modal.js) też miała wpis za każdy sezon, tak jak AI.
+    if(G.myClubId){
+      const _recapPriority={ok:80,budget:60,club:55,contract:50,scout:35,academy:45,train:20,back:30,inj:40,card:25,info:30,premium:70,rumour:15};
+      const _topMyNews=_myEndedSeasonNews.slice().sort((a,b)=>(_recapPriority[b.type]||30)-(_recapPriority[a.type]||30)).slice(0,8);
+      const _myBody=_topMyNews.length?_topMyNews.map(n=>n.msg).join(' • '):t('world_news_season_recap_club_empty');
+      const _myMsg=t('world_news_season_recap_club_prefix').replace('{club}',(G.myClub&&G.myClub.n)||'')+_myBody;
+      addWorldNews(_myMsg,'season_recap_club',G.myClubId,G.myLeague,null,40,_endedSeason,_endedWeek);
+    }
+    purgeSeasonToRecapOnly(_endedSeason);
+    // ── ŻYWY ŚWIAT AI: derby na nowy sezon (parowanie arbitralne — brak danych
+    // geograficznych) + bukmacherska zapowiedź, na świeżo przebudowanych ligach ──
+    assignDerbyPairs();
+    announceDerbies();
+    announceSeasonPreview();
     // Pokaż news o awansach/spadkach
     if(promotionNews.length){
       // Wiadomość gracza osobno
@@ -662,8 +754,8 @@ function fillLeaguesOverview(){
     drawer.style.cssText='display:none;border-bottom:2px solid '+(isMyLg?'var(--am)':'var(--gl)')+';';
 
     // --- INLINE SUBTABS ---
-    const tabIds=['tabela','wyniki','strzelcy','asysty','oceny','historia'];
-    const tabLabels=[t('tbl_tab_table'),t('tbl_tab_results'),t('tbl_tab_scorers'),t('tbl_tab_assists'),t('tbl_tab_ratings'),t('tbl_tab_history')];
+    const tabIds=['tabela','wyniki','strzelcy','asysty','oceny','historia','newsy'];
+    const tabLabels=[t('tbl_tab_table'),t('tbl_tab_results'),t('tbl_tab_scorers'),t('tbl_tab_assists'),t('tbl_tab_ratings'),t('tbl_tab_history'),t('tbl_tab_news')];
     const tabsBar=document.createElement('div');
     tabsBar.style.cssText='display:flex;overflow-x:auto;background:#0a1a0a;border-bottom:1px solid var(--gl);';
     tabIds.forEach((t,i)=>{
@@ -811,6 +903,16 @@ function fillLeaguesOverview(){
     paneHistoria.dataset.lgLvl=lvl;
     paneHistoria.dataset.needsRender='1';
     drawer.appendChild(paneHistoria);
+
+    // --- PANE: NEWSY (newsy Żywego Świata AI przypisane do tej ligi) ---
+    const paneNewsy=document.createElement('div');
+    paneNewsy.id='lgpane'+lvl+'_newsy';
+    paneNewsy.style.display='none';
+    const lgNewsList=(G.worldNews||[]).filter(n=>n.leagueLevel===lvl&&n.priority>=LEAGUE_TAB_MIN_PRIORITY);
+    paneNewsy.innerHTML=lgNewsList.length
+      ? lgNewsList.map(_worldNewsItemHtml).join('')
+      : '<div style="font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:20px">'+t('world_news_empty')+'</div>';
+    drawer.appendChild(paneNewsy);
 
     // --- TOGGLE NAGŁÓWKA ---
     hdr.onclick=()=>{
@@ -1017,65 +1119,12 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
       '</div>'+
     '</div>';
 
-  // ── SEKCJA 2: KLUB — Ranking prestiżu ─────────────────────────────
   const myClubId=G.myClubId;
   const leagueTitles=(G.trophies||[]).filter(t=>t.type==='league').length;
   const specialTrophies=(G.trophies||[]).filter(t=>t.type==='special').length;
   const promotions=(G.cHist||[]).filter((h,i,arr)=>{ const next=arr[i+1]; return next&&next.leagueLevel<h.leagueLevel; }).length;
   const stadiumCap=(G.stadium&&G.stadium.capacity)||0;
   const prestige=leagueTitles*100+promotions*30+specialTrophies*20+Math.floor(stadiumCap/100);
-  const maxPrestige=Math.max(900,prestige+100);
-  const barPct=Math.min(100,Math.round((prestige/maxPrestige)*100));
-  // Ranking prestiżu wszystkich klubów z lgHist tej ligi
-  const klubRanking=[...allClubs.values()].map(c=>{
-    const t=c.cid===myClubId?leagueTitles:c.titles;
-    const p=t*100+Math.floor(c.pkt/10);
-    return {cid:c.cid,n:c.n,p};
-  }).sort((a,b)=>b.p-a.p);
-  const myKlubPos=klubRanking.findIndex(c=>c.cid===myClubId)+1||'?';
-  const myPrestigeBar=
-    '<div style="background:var(--tb);height:8px;border-radius:2px;overflow:hidden;margin:6px 0 2px">'+
-      '<div style="width:'+barPct+'%;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:2px"></div>'+
-    '</div>'+
-    '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr)">'+
-      '<span>'+t('lg_prestige_pts_label').replace('{n}',prestige)+'</span><span>'+t('lg_prestige_max_label').replace('{n}',maxPrestige)+'</span>'+
-    '</div>';
-  const klubMiniRows=klubRanking.slice(0,5).map((c,i)=>{
-    const isMy=c.cid===myClubId;
-    const barW=Math.round((c.p/(klubRanking[0].p||1))*100);
-    return '<div onclick="openClubModal('+c.cid+')" style="margin-bottom:6px;cursor:pointer">'+
-      '<div style="display:flex;justify-content:space-between;font-size:var(--fs-meta);margin-bottom:2px">'+
-        '<span style="color:'+(isMy?'var(--am)':'var(--wh)')+'">'+'<span style="color:'+(i===0?'var(--am)':'var(--gr)')+';font-weight:700;font-size:var(--fs-h3);margin-right:4px">#'+(i+1)+'</span>'+c.n+'</span>'+
-        '<span style="color:#a78bfa">'+c.p+t('lg_hist_pts_suffix')+'</span>'+
-      '</div>'+
-      '<div style="background:var(--tb);height:4px;border-radius:2px;overflow:hidden">'+
-        '<div style="width:'+barW+'%;height:100%;background:'+(isMy?'linear-gradient(90deg,#7c3aed,#a78bfa)':'var(--gl)')+';border-radius:2px"></div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  const secKlub=
-    '<div style="padding:10px 12px 4px;border-top:1px solid var(--gl)">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
-        '<span style="font-size:var(--fs-body)">⭐</span>'+
-        '<span style="font-weight:700;font-size:var(--fs-h3);color:#a78bfa">'+t('lg_prestige_title')+'</span>'+
-      '</div>'+
-      '<div style="background:#0d2b0d;border:1px solid var(--gb);border-left:4px solid #a78bfa;padding:10px 12px;margin-bottom:10px">'+
-        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px">'+G.myClub.n+' • #'+myKlubPos+' / '+klubRanking.length+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:var(--fs-meta);margin-bottom:8px">'+
-          '<div><div style="color:var(--gr)">'+t('lg_prestige_trophies')+'</div><div style="color:#a78bfa">'+leagueTitles+'</div></div>'+
-          '<div><div style="color:var(--gr)">'+t('lg_prestige_promotions')+'</div><div style="color:#a78bfa">'+promotions+'</div></div>'+
-          '<div><div style="color:var(--gr)">'+t('lg_prestige_achievements')+'</div><div style="color:#a78bfa">'+specialTrophies+'</div></div>'+
-          '<div><div style="color:var(--gr)">'+t('lg_prestige_stadium')+'</div><div style="color:#a78bfa">'+stadiumCap.toLocaleString()+'</div></div>'+
-          '<div><div style="color:var(--gr)">'+t('lg_prestige_score')+'</div><div style="color:#a78bfa">'+prestige+t('lg_hist_pts_suffix')+'</div></div>'+
-        '</div>'+
-        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px;line-height:1.4">'+
-          t('lg_prestige_formula')+
-        '</div>'+
-        myPrestigeBar+
-      '</div>'+
-      '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:8px">'+t('lg_prestige_top5')+'</div>'+
-      klubMiniRows+
-    '</div>';
 
   // ── SEKCJA 3: ŚWIAT — Ranking historyczny ─────────────────────────
   // Agreguje wszystkie ligi z G.lgHist i liczy łączne punkty per klub
@@ -1124,7 +1173,7 @@ function renderLegenda(lvl,pane,subBar,lgHistData){
 
   pane.innerHTML=subBar+
     '<div style="overflow-y:auto;max-height:calc(100vh - 200px)">'+
-      secLiga+secKlub+secSwiat+
+      secLiga+secSwiat+
     '</div>';
 }
 
@@ -1218,7 +1267,7 @@ function lgRefreshWyniki(lvl){
 }
 
 function lgSwitchTab(lvl,tab){
-  const tabs=['tabela','wyniki','strzelcy','asysty','oceny','historia'];
+  const tabs=['tabela','wyniki','strzelcy','asysty','oceny','historia','newsy'];
   const isMyLg=G&&lvl===G.myLeague;
   tabs.forEach(t=>{
     const pane=document.getElementById('lgpane'+lvl+'_'+t);

@@ -72,6 +72,7 @@ function initCup(){
     myRound:-1, // ostatnia runda w której gracz grał
   };
   addNews(t('news_cup_started').replace('{n}',participants.length).replace('{week}',CUP_WEEKS[0]),'ok');
+  G.news[0].noRecap=true; // zapowiedź startu Pucharu (sezon), nie wydarzenie z historii klubu — pomiń w retrospektywie sezonu (season-summary.js)
   updateCupTileBadge();
 }
 
@@ -258,7 +259,9 @@ function advanceCupRound(rIdx){
       } else {
         const _cupWonByMsg=t('news_cup_won_by').replace('{name}',winEntry.name);
         addNews(_cupWonByMsg,'info');
-        addWorldNews(_cupWonByMsg,'cup',winEntry.cid);
+        const _winLg=G.leagues&&G.leagues.find(l=>l.clubs.some(c=>c.id===winEntry.cid));
+        addWorldNewsEvent('cup',{clubId:winEntry.cid,leagueLevel:_winLg?_winLg.level:null,
+          vars:{club:winEntry.name}});
         // Reputacja AI za Puchar — te same wartości co gracz (zwycięzca/finalista)
         const _winClub=ALL_CLUBS.find(c=>c.id===winEntry.cid);
         if(_winClub&&_winClub.ai)_winClub.ai.reputation=Math.max(0,(_winClub.ai.reputation||0)+CUP_REWARD_WIN.rep);

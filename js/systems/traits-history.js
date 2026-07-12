@@ -215,33 +215,46 @@ function renderHistSezony(){
   }).join('')+(G.cHist.some(h=>h.reconstructed)?'<div style="font-size:var(--fs-dense);color:var(--gr);padding:6px">'+t('ht_reconstructed_note')+'</div>':'');
 }
 
-function showMatchDetail(mHistIdx){
-  const m=G.mHist&&G.mHist[mHistIdx];if(!m)return;
+function showMatchDetail(mHistIdx,src){
+  const arr=src==='ai'?(G._mHistAI||[]):(G.mHist||[]);
+  const m=arr[mHistIdx];if(!m)return;
   // v223: zapamiętane dla _captureReturnPoint() w tactics-playercard.js — pozwala karcie
   // zawodnika wrócić do WŁAŚCIWEGO meczu po zamknięciu (jeden mechanizm powrotu)
   window._curMatchDetailIdx=mHistIdx;
+  window._curMatchDetailSrc=src;
   const myName=G.myClub.n;
-  const isMyH=m.isMyH!=null?m.isMyH:(m.hn===myName);
-  const myG=isMyH?m.hg:m.ag,oppG=isMyH?m.ag:m.hg;
-  const iW=myG>oppG,iL=myG<oppG;
-  const resClass=iW?'win':iL?'loss':'draw';
-  const resTxt=iW?t('ht_result_win'):iL?t('ht_result_lose'):t('ht_result_draw');
+  // Mecz AI-AI (src='ai') nigdy nie dotyczy klubu gracza — framing "wygrana/przegrana" byłby
+  // wtedy mylący, więc dla takich meczów pokazujemy neutralnie kto wygrał (gospodarz/gość).
+  const involvesMe=m.hn===myName||m.an===myName;
+  const isMyH=involvesMe?(m.isMyH!=null?m.isMyH:(m.hn===myName)):null;
+  const hWon=m.hg>m.ag,aWon=m.ag>m.hg;
+  let resClass,resTxt;
+  if(involvesMe){
+    const myG=isMyH?m.hg:m.ag,oppG=isMyH?m.ag:m.hg;
+    const iW=myG>oppG,iL=myG<oppG;
+    resClass=iW?'win':iL?'loss':'draw';
+    resTxt=iW?t('ht_result_win'):iL?t('ht_result_lose'):t('ht_result_draw');
+  } else {
+    resClass=hWon?'win':aWon?'loss':'draw';
+    resTxt=hWon?t('ht_result_home_win'):aWon?t('ht_result_away_win'):t('ht_result_draw');
+  }
   // Szukaj cid drużyn żeby otworzyć kartę klubu
   const hClub=ALL_CLUBS.find(c=>c.n===m.hn);
   const aClub=ALL_CLUBS.find(c=>c.n===m.an);
   // v224: powrót do overlayu meczu po zamknięciu modalu klubu — patrz window._clubModalReturn,
   // odczytywane w closeClubModal() (club-modal.js). Ten sam wzorzec co _playerReturnTo dla karty
   // zawodnika, tylko dla zamknięcia modalu klubu.
-  const hClick=hClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:{idx:'+mHistIdx+'}};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+hClub.id+')"':'';
-  const aClick=aClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:{idx:'+mHistIdx+'}};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+aClub.id+')"':'';
+  const _retExtra='{idx:'+mHistIdx+',src:'+(src?"'"+src+"'":'undefined')+'}';
+  const hClick=hClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:'+_retExtra+'};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+hClub.id+')"':'';
+  const aClick=aClub?'style="cursor:pointer;text-decoration:underline" onclick="window._clubModalReturn={modalId:\'md-overlay\',extra:'+_retExtra+'};document.getElementById(\'md-overlay\').classList.remove(\'open\');openClubModal('+aClub.id+')"':'';
   // Scoreboard
   let html='<div class="md-ph"><div class="md-ph-title">'+t('ht_match_details_title')+'</div><button class="md-close" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\')">✕</button></div>';
   html+='<div class="md-scoreboard">';
   html+='<div class="md-round">'+t('ht_round_season').replace('{rnd}',m.rnd).replace('{season}',m.season||'?')+(m._isCup?t('ht_cup_suffix'):'')+'</div>';
   html+='<div class="md-teams">';
-  html+='<div class="md-team home'+(isMyH?' my':'')+'" '+hClick+'>'+m.hn+'</div>';
+  html+='<div class="md-team home'+(involvesMe&&isMyH?' my':'')+'" '+hClick+'>'+m.hn+'</div>';
   html+='<div class="md-score">'+m.hg+'–'+m.ag+'</div>';
-  html+='<div class="md-team away'+(!isMyH?' my':'')+'" '+aClick+'>'+m.an+'</div>';
+  html+='<div class="md-team away'+(involvesMe&&!isMyH?' my':'')+'" '+aClick+'>'+m.an+'</div>';
   html+='</div>';
   html+='<div class="md-result '+resClass+'">'+resTxt+'</div>';
   html+='</div>';
@@ -273,13 +286,13 @@ function showMatchDetail(mHistIdx){
     html+='<div class="md-timeline"><div class="md-tl-hdr">'+t('ht_match_timeline')+'</div>';
     evts.forEach(e=>{
       if(e.type==='goal'){
-        const isMy=(isMyH&&e.isH)||(!isMyH&&!e.isH);
+        const isMy=involvesMe&&((isMyH&&e.isH)||(!isMyH&&!e.isH));
         const scorerLink=e.sid?'<span class="md-scorer-link" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.sid+')">'+e.scorer+'</span>':'<span class="md-scorer">'+e.scorer+'</span>';
         const assLink=e.aid&&e.assister?'<span class="md-assist-link" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\');showById('+e.aid+')">'+e.assister+'</span>':'<span style="color:var(--gl)">'+(e.assister||t('ht_no_assist'))+'</span>';
         html+='<div class="md-tl-ev">';
         html+='<div class="md-tl-min">'+e.min+'\'</div>';
         html+='<div class="md-tl-icon">⚽</div>';
-        html+='<div class="md-tl-txt">'+scorerLink+'<span class="md-tag '+(isMy?'my':'opp')+'">'+(isMy?t('ht_tag_my'):t('ht_tag_rival'))+'</span>';
+        html+='<div class="md-tl-txt">'+scorerLink+(involvesMe?'<span class="md-tag '+(isMy?'my':'opp')+'">'+(isMy?t('ht_tag_my'):t('ht_tag_rival'))+'</span>':'');
         html+='<div class="md-assist"><span style="font-size:10px">🅰️</span>'+assLink+'</div></div>';
         html+='</div>';
       } else {

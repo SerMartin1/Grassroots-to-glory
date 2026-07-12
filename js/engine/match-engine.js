@@ -968,11 +968,17 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
     if(aiWon)cai._streak=cai._streak>0?cai._streak+1:1;
     else if(aiLost)cai._streak=cai._streak<0?cai._streak-1:-1;
     else cai._streak=0;
-    if(Math.abs(cai._streak)===4){
-      const isWinStreak=cai._streak>=4;
-      const key=isWinStreak?'world_news_win_streak':'world_news_loss_streak';
-      addWorldNews(t(key).replace('{club}',aiClub.n).replace('{n}',Math.abs(cai._streak)),isWinStreak?'streak_win':'streak_loss',aiClub.id);
+    const rec=_checkStreakRecord(aiClub,cai._streak);
+    if(rec.isNewRecord||rec.isAmbient){
+      addWorldNewsEvent(cai._streak>0?'streak_win':'streak_loss',{
+        clubId:aiClub.id, leagueLevel:G.myLeague, isRecord:rec.isNewRecord,
+        vars:{club:aiClub.n, n:Math.abs(cai._streak)}
+      });
     }
+    // ── ŻYWY ŚWIAT AI: derby — mecz gracza przeciw jego rivalId ──
+    const winClub=hWon2?hc:(aWon2?ac:null);
+    const loseClub=hWon2?ac:(aWon2?hc:null);
+    if(winClub&&loseClub)checkDerbyResult(winClub,loseClub,Math.max(fHG,fAG),Math.min(fHG,fAG),G.myLeague);
   })();
   simOthers();
   if(!G._cupMatchActive){

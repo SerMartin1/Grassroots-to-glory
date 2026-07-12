@@ -209,7 +209,7 @@ function _traitDesc(id){return t('trait_'+id+'_desc')||TRAITS[id]&&TRAITS[id].de
 function _captureReturnPoint(){
   const mdOv=document.getElementById('md-overlay');
   if(mdOv&&mdOv.classList.contains('open')&&window._curMatchDetailIdx!=null){
-    return{modalId:'md-overlay',extra:{idx:window._curMatchDetailIdx}};
+    return{modalId:'md-overlay',extra:{idx:window._curMatchDetailIdx,src:window._curMatchDetailSrc}};
   }
   const mss=document.getElementById('modal-season-summary');
   if(mss&&mss.style.display==='flex'){

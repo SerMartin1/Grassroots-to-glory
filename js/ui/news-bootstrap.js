@@ -29,7 +29,7 @@ function newsAction(el){
   if(panel==='skauci'){openPanel('p-transfers');setTimeout(()=>{const btn=document.querySelector('#p-transfers .tab-btn[onclick*="skauci"]');if(btn)btn.click();},200);return;}
   if(panel==='sell_offer'){const _pid=el.dataset&&el.dataset.pid?parseInt(el.dataset.pid):null;if(_pid){window._sellId=_pid;openSellModal(_pid);}return;}
   if(panel==='training_plan'){openPanel('p-training');setTimeout(()=>{const btn=document.querySelector('#p-training .sq-tab2-btn:nth-child(1)');if(btn){btn.click();}},200);return;}
-  if(panel==='finance_contracts'){openPanel('p-finance');setTimeout(()=>{const btn=document.querySelector('#p-finance .tab-btn:nth-child(3)');if(btn)btn.click();},200);return;}
+  if(panel==='finance_contracts'){openPanel('p-finance');setTimeout(()=>{const btn=document.querySelector('#p-finance .tab-btn[data-tab="kontrakty"]');if(btn)btn.click();},200);return;}
   if(panel==='board'){openPanel('p-finance');setTimeout(()=>{const btn=document.querySelector('#p-finance .tab-btn[data-tab="zarzad"]');if(btn)btn.click();},200);return;}
   openPanel(panelMap[panel]||panel);
 }
@@ -509,7 +509,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     standing:allStandings[myLeagueLevel],
     allStandings,allSchedules,
     schedule:allSchedules[myLeagueLevel],
-    weeklyMarket:[],mHist:[],cHist:[],retiredPlayers:[],
+    weeklyMarket:[],mHist:[],_mHistAI:[],cHist:[],retiredPlayers:[],
     training:'ATK',formation:'4-4-2',style:'Zrównoważony',tempo:'Normalne',pressing:'Normalny',line:'Normalna',instruction:'Bezpośrednia',
     fin:{tickets:0,sponsors,salaries:0,hist:[],transfers:[]},
     reputation:30,frequency:50,winStreak:0,loseStreak:0,seasonBonus:0,trainingCenter:{level:0,building:null,profiles:[],profilesLocked:false},scout:{level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]},scout:null,
@@ -521,7 +521,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0},
     kronika:{cooldown:0,usedThisSeason:[],flags:{}},
     timeline:[],fanMemory:{cooldown:0,recalled:[]},
-    worldNews:[],repHistory:[]};
+    worldNews:[],_worldNewsNextId:0,repHistory:[]};
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
   genWeeklyMarket();assignJerseyNumbers();
   myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};if(!p.value||p.value===0)p.value=calcValue(ovr(p),p.age);});
@@ -536,6 +536,11 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
   }));
   // ── AI TRANSFERY SEZONOWE DLA SEZONU 1 ───────────────────
   try{ aiTransferSeason(false); }catch(e){ console.warn('aiTransferSeason s1 error:',e); }
+  // ── ŻYWY ŚWIAT AI: derby i bukmacherska zapowiedź na start sezonu 1 ──────
+  // flushAllWeeklyNews() na końcu: season_preview z clubId trafia do bufora klubu
+  // (jak każdy news z addWorldNewsEvent) i poza cotygodniowym tickiem nikt by go nie opróżnił.
+  try{ assignDerbyPairs(); announceDerbies(); announceSeasonPreview(); flushAllWeeklyNews(); }
+  catch(e){ console.warn('Żywy Świat AI season 1 init error:',e); }
 }
 
 function myPl(){return G.players.filter(p=>p.clubId===G.myClubId);}
@@ -588,7 +593,8 @@ function saveGame(slot,silent){
     const SKIP=new Set(['players','fa','retiredPlayers',
       'allSchedules','allStandings','schedule','standing',
       '_mssValSnap','trainSnapshot','_newsModalShown','_cupMatchActive','_cupFakeMatch',
-      'rumourPool','transferMarket','listedPlayers','pendingOffers','_sellOffers','weeklyMarket']);
+      'rumourPool','transferMarket','listedPlayers','pendingOffers','_sellOffers','weeklyMarket',
+      '_mHistAI']);
     const sd={savedAt:new Date().toISOString()};
     Object.keys(G).forEach(k=>{if(!SKIP.has(k))sd[k]=G[k];});
 
@@ -776,11 +782,32 @@ function loadGame(slot){try{
   // Restore leagues structure
   if(G.leagues&&G.leagues.length){
     ALL_CLUBS=G.leagues.flatMap(l=>l.clubs);
+    // Migracja: uzupełnij pola Żywego Świata AI na starych zapisach (sprzed tej sesji)
+    ALL_CLUBS.forEach(c=>{
+      if(c.ai){
+        if(!c.ai._newsCooldown)c.ai._newsCooldown={};
+        if(!c.ai._newsCountThisWeek)c.ai._newsCountThisWeek={week:0,entries:[]};
+        if(!c.ai._streakRecord)c.ai._streakRecord={win:0,loss:0};
+      }
+      if(c.rivalId===undefined)c.rivalId=null;
+    });
     CLUBS_B=[...getLeagueClubs(G.leagues,G.myLeague||8)];
     if(!G.allStandings){G.allStandings={};G.leagues.forEach(lg=>{G.allStandings[lg.level]=lg.clubs.map(c=>({cid:c.id,n:c.n,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}));});}
     if(!G.allSchedules){G.allSchedules={};G.leagues.forEach(lg=>{G.allSchedules[lg.level]=buildSchedule(G.myClubId,lg.clubs);});}
     G.standing=G.allStandings[G.myLeague||8]||G.standing||[];
     if(!G.schedule||!G.schedule.length)G.schedule=G.allSchedules[G.myLeague||8]||[];
+    // Migracja: dogeneruj brakujące retrospektywy sezonów (season_recap_club) na zapisach
+    // sprzed naprawy limitu newsów per liga, który je kasował — patrz world-board-render.js.
+    backfillMissingClubRecaps();
+    // Migracja: dopisz wzmiankę o mistrzostwie do retrospektyw, które w starym kodzie zgubiły
+    // to zdarzenie i zostały z ogólnikowym tekstem-wypełniaczem (G.lgHist zawsze wie, kto wygrał).
+    fixMissingChampionInRecaps();
+    // Migracja: dogeneruj bramkarza klubom AI, które (np. przez reset składu VII Ligi sprzed
+    // tej naprawy) zostały bez żadnego — patrz state.js.
+    ensureClubGoalkeepers();
+    // Migracja: napraw nagrody AI błędnie oznaczone dopiero co rozpoczętym sezonem (karta
+    // zawodnika, zakładka Nagrody) — patrz week-progress.js.
+    fixMisdatedSeasonAwards();
   } else if(G.standing&&G.standing.length){
     CLUBS_B=G.standing.map(s=>({id:s.cid,n:s.n}));ALL_CLUBS=[...CLUBS_B];
   }
@@ -855,7 +882,13 @@ function loadGame(slot){try{
   if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],flags:{}}; // v207: Kronika Klubu
   if(!G.timeline)G.timeline=[]; // v266: Oś czasu klubu — milestone'y pozaligowe
   if(!G.fanMemory)G.fanMemory={cooldown:0,recalled:[]}; // v266: Pamięć kibiców
+  if(!G.worldTopTransfers)G.worldTopTransfers=[]; // Rekord transferowy świata AI — cała historia kariery
   if(!G.worldNews)G.worldNews=[]; // Żywy świat AI — newsy o klubach AI, osobno od G.news
+  if(G._worldNewsNextId==null){
+    // Stary zapis bez id na wpisach worldNews — dolicz od najwyższego istniejącego (jeśli są)
+    const _maxWnId=G.worldNews.reduce((m,n)=>Math.max(m,n.id||0),0);
+    G._worldNewsNextId=_maxWnId+1;
+  }
   if(!G.repHistory)G.repHistory=[]; // Historia zmian reputacji gracza (modal ⭐ Rep)
   // v240: migracja — KUP: w fin.hist mają cost=0, koszt tylko w fin.transfers
   if(G.fin&&G.fin.hist){G.fin.hist.forEach(function(h){if(h.note&&h.note.startsWith('KUP:')&&h.cost>0)h.cost=0;});}

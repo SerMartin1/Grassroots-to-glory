@@ -11,6 +11,8 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
       G.trBoughtThisWindow=0;G.listedPlayers=[];G.pendingOffers=[];G._zimowePrepared=true;
       // AI zimowe transfery
       try{aiTransferSeason(true);}catch(e){console.warn('aiTransferSeason winter error:',e);}
+      // Bezpiecznik: zimowe transfery AI mogły sprzedać jedynego bramkarza klubu — patrz state.js.
+      ensureClubGoalkeepers();
       addNews(t('news_tr_winter_open'),'budget');G.news[0].action='transfers';G.news[0].actionLabel=t('news_tr_action_label');
     }
 
@@ -477,30 +479,83 @@ const name=found?found.name:t('week_fallback_no_candidates');
   if(G.week>=4&&!G.seasonEnded){kronUpdateBenchWeeks();kronTrigger();}
   // ── PAMIĘĆ KIBICÓW — niezależny, rzadki trigger ─────────────────────
   if(G.week>=4&&!G.seasonEnded){fanMemoryTrigger();}
-  // ── ŻYWY ŚWIAT AI: pensje klubów AI (co 4 tygodnie, jak u gracza) + kryzys finansowy ──
+  // ── ŻYWY ŚWIAT AI: pensje klubów AI (co 4 tygodnie, jak u gracza) ─────
+  // v4: news o kryzysie finansowym usunięty świadomie (decyzja redakcyjna, nie brak danych) —
+  // samo naliczanie budżetu zostaje, bo wpływa na zdolność zakupową AI w aiTransferSeason().
   if(G.leagues){
     G.leagues.forEach(lg=>{
       lg.clubs.forEach(club=>{
         if(club.id===G.myClubId||!club.ai)return;
-        const cai=club.ai;
         if(G.week%4===0){
           const squadBill=G.players.filter(p=>p.clubId===club.id).reduce((s,p)=>s+(p.salary||0),0);
-          cai.budget=(cai.budget||0)-squadBill;
-          // Kryzys finansowy — próg zależny od WŁASNEGO funduszu płac klubu (3 wypłaty na
-          // minusie), nie od LEAGUE_BUDGET — inaczej próg nie nadążałby za skalą pensji.
-          const _crisisThresh=squadBill*3;
-          if(cai.budget<-_crisisThresh&&!cai._crisisFlagged&&Math.abs(lg.level-(G.myLeague||8))<=1){
-            cai._crisisFlagged=true;
-            addWorldNews(t('world_news_crisis').replace('{club}',club.n),'crisis',club.id,lg.level);
-          } else if(cai.budget>=0){
-            cai._crisisFlagged=false;
-          }
+          club.ai.budget=(club.ai.budget||0)-squadBill;
         }
       });
     });
   }
+  // ── ŻYWY ŚWIAT AI: scalanie newsów tygodnia klubu (digest) + walka o tytuł/spadek ──
+  flushAllWeeklyNews();
+  checkTitleRelegationRace();
   // Akademia — koszt uwzględniony w bloku fin.hist powyżej
   finalizeSeasonEnd();
+}
+
+// ── Nagrody sezonowe zawodnika — wspólne dla klubu gracza i klubów AI ────────
+// Wywoływane raz na klub na koniec sezonu z już obliczonymi flagami (mistrzostwo/awans/Puchar
+// TEJ konkretnej drużyny) — zapisuje trwałe wpisy do p.awards każdego zawodnika składu. Klub
+// gracza woła to niżej (finalizeSeasonEnd) z G.trophies; kluby AI — z season-summary.js, liczone
+// z G.allStandings/G.cupHistory (uniwersalne, bo AI nie ma G.trophies). 'legend' pomija się
+// samoistnie dla AI — G.legends/allTimeStats to system tylko dla klubu gracza, po prostu nigdy
+// nie znajdzie dopasowania po p.id, nie trzeba specjalnie tego warunkować.
+// season: opcjonalnie numer sezonu, który się kończy (domyślnie bieżący G.season) — MUSI być
+// podany jawnie, gdy wołane po G.season++ (season-summary.js, kluby AI), inaczej nagroda
+// dostaje datę już podbitego, nowego sezonu zamiast tego, w którym faktycznie została zdobyta.
+function assignSeasonAwards(clubId,squad,leagueWon,cupWon,cupFin,promotionWon,season){
+  if(season==null)season=G.season;
+  var _topScr=squad.filter(function(p){return p.st&&(p.st.g||0)>0;}).sort(function(a,b){return (b.st.g||0)-(a.st.g||0);})[0];
+  var _topRat=squad.filter(function(p){return p.seasonRatings&&p.seasonRatings.length>=5;}).sort(function(a,b){var ar=a.seasonRatings.reduce(function(s,r){return s+r;},0)/a.seasonRatings.length;var br=b.seasonRatings.reduce(function(s,r){return s+r;},0)/b.seasonRatings.length;return br-ar;})[0];
+  squad.forEach(function(p){
+    if(!p.awards)p.awards=[];
+    // Drużynowe
+    if(leagueWon)p.awards.push({type:'league',icon:'🏆',label:t('award_league_title'),tier:'gold',season:season});
+    if(cupWon)p.awards.push({type:'cup_win',icon:'🥇',label:t('ht_champions_cup'),tier:'gold',season:season});
+    if(cupFin&&!cupWon)p.awards.push({type:'cup_final',icon:'🥈',label:t('ht_cup_finalist'),tier:'silver',season:season});
+    if(promotionWon&&!leagueWon)p.awards.push({type:'promotion',icon:'⬆️',label:t('award_promotion'),tier:'silver',season:season});
+    // Indywidualne
+    if(_topScr&&p.id===_topScr.id&&(_topScr.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',_topScr.st.g||0),tier:'indiv',season:season});
+    if(_topRat&&p.id===_topRat.id&&p.seasonRatings&&p.seasonRatings.length>=5){var _ar=Math.round(_topRat.seasonRatings.reduce(function(s,r){return s+r;},0)/_topRat.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:season});}
+    // MVP meczu — zagregowane per sezon (patrz match-post.js::_globalMom)
+    if((p.seasonMomCount||0)>0)p.awards.push({type:'mvp_matches',icon:'⭐',label:t('award_mvp_matches').replace('{n}',p.seasonMomCount),tier:'indiv',season:season});
+    // Legenda
+    if(G.legends&&G.legends.find(function(l){return l.id===p.id&&l.season===season;}))p.awards.push({type:'legend',icon:'👑',label:t('award_club_legend'),tier:'legend',season:season});
+    // Wierny Klubowi (One Club Man) — 5+ sezonów z minutami w tym samym klubie
+    var _clubSeasons=(p.history||[]).filter(function(h){return h.clubId===clubId&&!h._placeholder&&(h.m||0)>0;});
+    if(_clubSeasons.length>=5&&!p.awards.find(function(a){return a.type==='one_club_man';}))
+      p.awards.push({type:'one_club_man',icon:'🎖️',label:t('leg_one_club_man')+' — '+_clubSeasons.length+' sez.',tier:'legend',season:season});
+    // Ulubieniec Kibiców (Fan Favourite) — śr. ocena 7.3+ przez min. 3 sezony w klubie
+    var _ratedSeasons=_clubSeasons.filter(function(h){return h.avgRat!=null;});
+    if(_ratedSeasons.length>=3){
+      var _favAvg=_ratedSeasons.reduce(function(s,h){return s+h.avgRat;},0)/_ratedSeasons.length;
+      if(_favAvg>=7.3&&!p.awards.find(function(a){return a.type==='fan_favourite';}))
+        p.awards.push({type:'fan_favourite',icon:'❤️',label:t('leg_fan_favourite')+' — '+(Math.round(_favAvg*10)/10),tier:'legend',season:season});
+    }
+  });
+}
+// ── Migracja: napraw nagrody AI błędnie oznaczone dopiero co rozpoczętym sezonem ────────────
+// Pierwsza wersja assignSeasonAwards() dla klubów AI (season-summary.js) była wołana już PO
+// G.season++ i nie dostawała jawnego numeru kończącego się sezonu — nagrody za sezon, który
+// właśnie się skończył, zapisywały się z numerem NOWEGO sezonu (już naprawione, patrz wywołanie
+// w season-summary.js). Jedyny legalny moment na wpis z season===G.season to samo wywołanie
+// assignSeasonAwards() w trakcie kończenia tego sezonu — poza tym momentem (czyli zawsze, gdy ta
+// migracja faktycznie działa) taki wpis może być tylko artefaktem tego błędu.
+function fixMisdatedSeasonAwards(){
+  if(!G||!G.players||(G.season||1)<=1)return;
+  const allP=[...G.players,...(G.retiredPlayers||[]),...(G.fa||[])];
+  allP.forEach(p=>{
+    (p.awards||[]).forEach(a=>{
+      if(!a._live&&a.season===G.season)a.season=G.season-1;
+    });
+  });
 }
 
 // ── PUCHAR: zakończenie sezonu ligowego jest wstrzymywane, dopóki gracz ma
@@ -601,43 +656,15 @@ function finalizeSeasonEnd(){
     G.trophies.push({type:'special',id:'odkrywca',name:t('trophy_talent_spotter'),season:G.season});
   if(G.stadium&&G.stadium.capacity>=10000&&!G.trophies.find(t=>t.id==='budowlaniec'))
     G.trophies.push({type:'special',id:'budowlaniec',name:t('trophy_builder'),season:G.season});
-  // Nagrody indywidualne zawodników — zapis do p.awards
+  // Nagrody indywidualne zawodników — zapis do p.awards (klub gracza — dla AI patrz
+  // assignSeasonAwards() niżej, wołane analogicznie z season-summary.js)
   (function(){
     var _squad=myPl();
     var _cupWon=G.trophies&&G.trophies.some(function(t){return t.type==='cup'&&t.place===1&&t.season===G.season;});
     var _cupFin=G.trophies&&G.trophies.some(function(t){return t.type==='cup'&&t.place===2&&t.season===G.season;});
     var _leagueWon=(_pos+1)===1;
     var _promotionWon=(_pos+1)<=2&&(G.myLeague||8)>1;
-    // Top strzelec sezonu (liga)
-    var _topScr=_squad.filter(function(p){return p.st&&(p.st.g||0)>0;}).sort(function(a,b){return (b.st.g||0)-(a.st.g||0);})[0];
-    // Najlepsza ocena sezonu
-    var _topRat=_squad.filter(function(p){return p.seasonRatings&&p.seasonRatings.length>=5;}).sort(function(a,b){var ar=a.seasonRatings.reduce(function(s,r){return s+r;},0)/a.seasonRatings.length;var br=b.seasonRatings.reduce(function(s,r){return s+r;},0)/b.seasonRatings.length;return br-ar;})[0];
-    _squad.forEach(function(p){
-      if(!p.awards)p.awards=[];
-      // Drużynowe
-      if(_leagueWon)p.awards.push({type:'league',icon:'🏆',label:t('award_league_title'),tier:'gold',season:G.season});
-      if(_cupWon)p.awards.push({type:'cup_win',icon:'🥇',label:t('ht_champions_cup'),tier:'gold',season:G.season});
-      if(_cupFin&&!_cupWon)p.awards.push({type:'cup_final',icon:'🥈',label:t('ht_cup_finalist'),tier:'silver',season:G.season});
-      if(_promotionWon&&!_leagueWon)p.awards.push({type:'promotion',icon:'⬆️',label:t('award_promotion'),tier:'silver',season:G.season});
-      // Indywidualne
-      if(_topScr&&p.id===_topScr.id&&(_topScr.st.g||0)>0)p.awards.push({type:'top_scorer',icon:'⚽',label:t('award_top_scorer').replace('{n}',_topScr.st.g||0),tier:'indiv',season:G.season});
-      if(_topRat&&p.id===_topRat.id&&p.seasonRatings&&p.seasonRatings.length>=5){var _ar=Math.round(p.seasonRatings.reduce(function(s,r){return s+r;},0)/p.seasonRatings.length*10)/10;p.awards.push({type:'best_rating',icon:'⭐',label:t('award_player_of_season').replace('{n}',_ar),tier:'indiv',season:G.season});}
-      // MVP meczu — zagregowane per sezon (patrz match-post.js::_globalMom)
-      if((p.seasonMomCount||0)>0)p.awards.push({type:'mvp_matches',icon:'⭐',label:t('award_mvp_matches').replace('{n}',p.seasonMomCount),tier:'indiv',season:G.season});
-      // Legenda
-      if(G.legends&&G.legends.find(function(l){return l.id===p.id&&l.season===G.season;}))p.awards.push({type:'legend',icon:'👑',label:t('award_club_legend'),tier:'legend',season:G.season});
-      // Wierny Klubowi (One Club Man) — 5+ sezonów z minutami w tym samym klubie
-      var _clubSeasons=(p.history||[]).filter(function(h){return h.clubId===G.myClubId&&!h._placeholder&&(h.m||0)>0;});
-      if(_clubSeasons.length>=5&&!p.awards.find(function(a){return a.type==='one_club_man';}))
-        p.awards.push({type:'one_club_man',icon:'🎖️',label:t('leg_one_club_man')+' — '+_clubSeasons.length+' sez.',tier:'legend',season:G.season});
-      // Ulubieniec Kibiców (Fan Favourite) — śr. ocena 7.3+ przez min. 3 sezony w klubie
-      var _ratedSeasons=_clubSeasons.filter(function(h){return h.avgRat!=null;});
-      if(_ratedSeasons.length>=3){
-        var _favAvg=_ratedSeasons.reduce(function(s,h){return s+h.avgRat;},0)/_ratedSeasons.length;
-        if(_favAvg>=7.3&&!p.awards.find(function(a){return a.type==='fan_favourite';}))
-          p.awards.push({type:'fan_favourite',icon:'❤️',label:t('leg_fan_favourite')+' — '+(Math.round(_favAvg*10)/10),tier:'legend',season:G.season});
-      }
-    });
+    assignSeasonAwards(G.myClubId,_squad,_leagueWon,_cupWon,_cupFin,_promotionWon);
   })();
   // Zapisz historię sezonu
   if(!G.cHist)G.cHist=[];
