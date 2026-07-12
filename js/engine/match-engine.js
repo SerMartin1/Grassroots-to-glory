@@ -981,9 +981,11 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
     if(winClub&&loseClub)checkDerbyResult(winClub,loseClub,Math.max(fHG,fAG),Math.min(fHG,fAG),G.myLeague);
   })();
   simOthers();
+  let _myMatchHistIdx=null;
   if(!G._cupMatchActive){
     calcFinalRatings(ratings,iW,iL,fHG,fAG,false);
-    G.mHist.push({rnd:m.rnd,season:G.season,hn:hc.n,an:ac.n,hg:fHG,ag:fAG,isMyH:isMyH,g:allEvts.filter(e=>e.type==='goal').map(e=>({m:e.min,s:e.sid,a:e.assisterId,h:e.isH?1:0})),c:allEvts.filter(e=>['yellow','red','red2y'].includes(e.type)).map(e=>({m:e.min,id:e.sid,t:e.type==='yellow'?'y':'r'})),st:[liveStats.hShots||0,liveStats.aShots||0,liveStats.hOn||0,liveStats.aOn||0],r:Object.fromEntries(myPl().filter(p=>p.starter).map(p=>[p.id,Math.round(((ratings&&ratings[p.id]&&ratings[p.id].rating)||6)*10)/10]))});
+    G.mHist.push({rnd:m.rnd,season:G.season,hn:hc.n,an:ac.n,hg:fHG,ag:fAG,isMyH:isMyH,g:allEvts.filter(e=>e.type==='goal').map(e=>({m:e.min,s:e.sid,a:e.assisterId,h:e.isH?1:0})),c:allEvts.filter(e=>['yellow','red','red2y'].includes(e.type)).map(e=>({m:e.min,id:e.sid,t:e.type==='yellow'?'y':'r'})),st:[liveStats.hShots||0,liveStats.aShots||0,liveStats.hOn||0,liveStats.aOn||0],r:Object.fromEntries(Object.keys(ratings||{}).map(id=>[id,Math.round(((ratings[id]&&ratings[id].rating)||6)*10)/10]))});
+    _myMatchHistIdx=G.mHist.length-1;
     if(document.getElementById('dc-klub')&&document.getElementById('dc-klub').style.display!=='none')dcRenderKlub();
     postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,false,true);
   }
@@ -1081,7 +1083,7 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
   // v228: blokada wyjścia z meczu zostaje aktywna przez ekran podsumowania — zwalniana dopiero
   // przyciskiem "DALEJ" na tym ekranie (continueFromMatchSummary() w match-ui.js), nie tutaj.
   _engageMatchLock('summary');
-  updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
+  updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');if(_myMatchHistIdx!=null){G.news[0].action='match_result';G.news[0].actionLabel=t('news_action_view_match');G.news[0].midx=_myMatchHistIdx;renderNews();}notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
 const ev=allEvts[idx2++];
       // Inkrementuj liveStats sukcesywnie dla każdego zdarzenia
       const _isH=ev.isH;

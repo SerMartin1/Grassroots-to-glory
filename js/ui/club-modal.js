@@ -54,14 +54,16 @@ function closeClubModal(){
   const modal=document.getElementById('modal-club-ai');
   if(modal){modal.style.display='none';modal.style.zIndex='900';}
   _cmClubId=null;
+  const _ret=window._clubModalReturn;
+  window._clubModalReturn=null;
   // v224: powrót do overlayu szczegółów meczu, jeśli stamtąd przyszliśmy (patrz traits-history.js)
-  if(window._clubModalReturn&&window._clubModalReturn.modalId==='md-overlay'){
-    const _idx=window._clubModalReturn.extra.idx;
-    const _src=window._clubModalReturn.extra.src;
-    window._clubModalReturn=null;
-    showMatchDetail(_idx,_src);
-  } else {
-    window._clubModalReturn=null;
+  if(_ret&&_ret.modalId==='md-overlay'&&_ret.extra){
+    showMatchDetail(_ret.extra.idx,_ret.extra.src);
+  } else if(_ret&&_ret.modalId==='p-player'&&_ret.extra){
+    // powrót do karty zawodnika, z której otwarto ten klub (link do klubu w tactics-playercard.js)
+    const _pid=_ret.extra.pid;
+    const _p=(G.players||[]).find(x=>x.id===_pid)||(G.retiredPlayers||[]).find(x=>x.id===_pid)||(G.fa||[]).find(x=>x.id===_pid);
+    if(_p)showPlayer(_p);
   }
 }
 
@@ -90,6 +92,7 @@ function _renderClubCard(club,ai,def,lgSt){
   const avgOvr=starters.length?Math.round(starters.reduce((s,p)=>s+ovr(p),0)/starters.length):0;
   // Realna dyspozycja zespołu — średnia forma zawodników wyjściowej 11, ta sama wartość co wpływa na moc drużyny w meczu (patrz tSt2() w match-ui.js)
   const avgForm=starters.length?Math.round(starters.reduce((s,p)=>s+(p.form||100),0)/starters.length):(squad.length?Math.round(squad.reduce((s,p)=>s+(p.form||100),0)/squad.length):null);
+  const avgAge=squad.length?Math.round(squad.reduce((s,p)=>s+(p.age||0),0)/squad.length*10)/10:null;
   const star=clubStarPlayer(squad);
   const squadValue=squad.reduce((s,p)=>s+(p.value||0),0);
   // Reputacja: ta sama skala 0-1000 co u gracza (G.reputation)
@@ -186,6 +189,7 @@ function _renderClubCard(club,ai,def,lgSt){
     '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:10px">'+
       (function(){const _tac=G.clubTactics&&G.clubTactics[club.id];return _tac?row2(t('cm_row_formation'),_tac.formation):'';})()+
       (avgOvr?row2(t('cm_row_avg_ovr'),avgOvr):'')+
+      (avgAge!=null?row2(t('cm_row_avg_age'),t('cm_age_years').replace('{n}',avgAge)):'')+
       row2(t('cm_row_players'),squad.length)+
       (star?row2(t('cm_row_star'),'⭐ '+star.name+' ('+(POS_SHORT[star.pos]||star.pos)+')'):'')+
       (avgForm!=null?row2(t('cm_row_form'),avgForm+'%'):'')+
@@ -254,7 +258,7 @@ function _renderClubMatches(clubId){
     const oppName=isHome?m.an:m.hn;
     const myG=isHome?m.hg:m.ag,oppG=isHome?m.ag:m.hg;
     const resCol=myG>oppG?'var(--gb)':myG<oppG?'var(--rd)':'var(--am)';
-    return '<div onclick="showMatchDetail('+row.idx+',\''+row.src+'\')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-left:3px solid '+resCol+';border-bottom:1px solid #0d1f0d;cursor:pointer">'+
+    return '<div onclick="closeClubModal();showMatchDetail('+row.idx+',\''+row.src+'\')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-left:3px solid '+resCol+';border-bottom:1px solid #0d1f0d;cursor:pointer">'+
       '<span style="font-size:var(--fs-dense);color:var(--gr);width:52px;flex-shrink:0">'+t('lg_round_label').replace('{n}',m.rnd)+'</span>'+
       '<span style="font-size:var(--fs-dense);color:var(--gr);width:52px;flex-shrink:0">'+(isHome?t('hdr_home'):t('hdr_away'))+'</span>'+
       '<span style="flex:1;min-width:0;font-size:var(--fs-meta);color:var(--wh);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+oppName+'</span>'+

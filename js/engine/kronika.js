@@ -72,6 +72,108 @@ function fanMemoryTrigger(){
   notif(msg.slice(0,60),'ok');
 }
 
+// ── Zamknięty świat: wydarzenia Kroniki szukają realnych kandydatów w klubach AI zamiast
+// dawnej puli G.fa (usuniętej — patrz js/CLAUDE.md, PROPOZYCJA_LIKWIDACJA_FA.md). Ta sama
+// logika nadwyżki/rdzenia co przy realokacji AI (match-post.js: aiCoreProtect, POS_QUOTA).
+// "Okazja"/"licytacja" itp.: znajdź najlepszego kandydata z NADWYŻKI u realnego klubu AI.
+function kronFindSurplusPlayer(ovrMin,ovrMax,ageMax,pos,excludeIds){
+  // Ograniczone do lig w rozsądnym zasięgu własnej ligi (±2) — bez tego kandydat mógłby
+  // wypaść z zupełnie innego poziomu rozgrywek (np. gwiazda Ligi 1 dla klubu z Ligi 8), z
+  // ceną kompletnie oderwaną od budżetu gracza. Ta sama zasada co w aiSignReplacement().
+  const myLvl=G.myLeague||8;
+  const clubLevel={};G.leagues.forEach(function(l){l.clubs.forEach(function(c){clubLevel[c.id]=l.level;});});
+  const squadByClub={};
+  G.players.forEach(function(p){if(p.clubId>0)(squadByClub[p.clubId]||(squadByClub[p.clubId]=[])).push(p);});
+  var best=null,bestClub=null;
+  ALL_CLUBS.filter(function(c){
+    if(c.id===G.myClubId||!c.ai)return false;
+    var lvl=clubLevel[c.id];
+    return lvl!=null&&Math.abs(lvl-myLvl)<=2;
+  }).forEach(function(c){
+    var sq=squadByClub[c.id]||[];
+    var atPos=sq.filter(function(p){return(!pos||p.pos===pos)&&ovr(p)>=ovrMin&&ovr(p)<=ovrMax&&(ageMax==null||p.age<=ageMax);});
+    if(!atPos.length)return;
+    var core=aiCoreProtect(c,sq);
+    atPos.forEach(function(p){
+      if(excludeIds&&excludeIds.has(p.id))return;
+      if(core.has(p.id))return;
+      var posQ=POS_QUOTA[p.pos];
+      if(posQ&&sq.filter(function(x){return x.pos===p.pos;}).length<=posQ.min)return; // dawca bez nadwyżki
+      if(!best||ovr(p)>ovr(best)){best=p;bestClub=c;}
+    });
+  });
+  return best?{player:best,fromClub:bestClub}:null;
+}
+// Cena "okazji" w wydarzeniach Kroniki — nigdy więcej niż ułamek AKTUALNEGO budżetu gracza.
+// calcValue() dla realnego OVR łatwo sięga milionów niezależnie od ligi (bo skaluje się z
+// OVR^4.5), kompletnie oderwane od budżetu niższych/średnich lig — bez tego capu "okazja"
+// byłaby nieosiągalna dla większości graczy. Ta sama zasada co w navigation-squad.js (Etap 2).
+function kronAffordablePrice(rawPrice,budgetFraction){
+  return Math.min(rawPrice,Math.max(1000,Math.round((G.budget||0)*(budgetFraction||0.6)/500)*500));
+}
+// "Sprzedaż"/"odejście": znajdź realny klub AI z wolnym miejscem na pozycji zawodnika, żeby
+// odchodzący z klubu gracza nie znikał bez śladu. opts.levelBias przesuwa cel w górę/dół
+// drabinki lig (np. -1 = liga wyżej), opts.preferClub próbuje najpierw wskazanego klubu.
+function kronFindDestinationClub(p,opts){
+  opts=opts||{};
+  if(opts.preferClub&&opts.preferClub.ai){
+    var prefSq=G.players.filter(function(x){return x.clubId===opts.preferClub.id;});
+    if(!POS_QUOTA[p.pos]||prefSq.filter(function(x){return x.pos===p.pos;}).length<POS_QUOTA[p.pos].max)return opts.preferClub;
+  }
+  var myLvl=G.myLeague||8;
+  var targetLvl=opts.levelBias!=null?Math.max(1,Math.min(8,myLvl+opts.levelBias)):myLvl;
+  var range=opts.levelRange!=null?opts.levelRange:2;
+  var candidates=ALL_CLUBS.filter(function(c){
+    if(c.id===G.myClubId||!c.ai)return false;
+    var lg=G.leagues.find(function(l){return l.clubs.some(function(x){return x.id===c.id;});});
+    var lvl=lg?lg.level:8;
+    if(Math.abs(lvl-targetLvl)>range)return false;
+    return !POS_QUOTA[p.pos]||G.players.filter(function(x){return x.clubId===c.id&&x.pos===p.pos;}).length<POS_QUOTA[p.pos].max;
+  });
+  if(!candidates.length)return null;
+  candidates.sort(function(a,b){return(b.ai.budget||0)-(a.ai.budget||0);});
+  return candidates[0];
+}
+// Przenosi zawodnika Z klubu gracza DO realnego klubu AI (dest) — pełna historia/log po
+// stronie przyjmującego klubu, tak jak przy każdym innym transferze w grze.
+function kronTransferOut(p,dest){
+  if(!p.formerClubs)p.formerClubs=[];
+  var _fc=p.formerClubs.find(function(x){return x.clubId===G.myClubId;});
+  if(_fc)_fc.seasons=(_fc.seasons||0)+1;else p.formerClubs.push({clubId:G.myClubId,clubName:G.myClub?G.myClub.n:'?',seasons:1});
+  if(!p.history)p.history=[];
+  var _lastH=p.history[p.history.length-1];
+  if(_lastH&&_lastH.clubId===G.myClubId)_lastH.transferOut={type:'sell',toClub:dest.n,toClubId:dest.id,price:0,season:G.season};
+  p.clubId=dest.id;p.starter=false;p.contract=r(2,4);p.status='active';p.isFreeAgent=false;p._seasonsAtClub=0;
+  if(!p.history.find(function(h){return h._current&&h.season===G.season&&h.clubId===dest.id;})){
+    p.history.push({season:G.season,clubId:dest.id,club:dest.n,m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
+  }
+  if(dest.ai){
+    if(!dest.ai.transferLog)dest.ai.transferLog=[];
+    dest.ai.transferLog.unshift({type:'buy',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price:0,season:G.season,playerId:p.id,fromClub:G.myClub?G.myClub.n:'?'});
+    if(dest.ai.transferLog.length>20)dest.ai.transferLog.pop();
+  }
+}
+// Przenosi zawodnika Z realnego klubu AI DO klubu gracza (odwrotność kronTransferOut) — dla
+// wydarzeń "okazja"/"licytacja" itp., gdy gracz podpisuje kandydata z kronFindSurplusPlayer.
+function kronTransferIn(p,fromClub){
+  if(!p.formerClubs)p.formerClubs=[];
+  var _fc=p.formerClubs.find(function(x){return x.clubId===fromClub.id;});
+  if(_fc)_fc.seasons=(_fc.seasons||0)+1;else p.formerClubs.push({clubId:fromClub.id,clubName:fromClub.n,seasons:1});
+  if(!p.history)p.history=[];
+  fillHistoryGaps(p);
+  var _lastH=p.history[p.history.length-1];
+  if(_lastH&&_lastH.clubId===fromClub.id)_lastH.transferOut={type:'sell',toClub:G.myClub?G.myClub.n:'?',toClubId:G.myClubId,price:0,season:G.season};
+  if(fromClub.ai){
+    if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
+    fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price:0,season:G.season,playerId:p.id,toClub:G.myClub?G.myClub.n:'?'});
+    if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
+  }
+  p.clubId=G.myClubId;p.starter=false;p.status='active';p.isFreeAgent=false;p.contract=r(2,3);p._seasonsAtClub=0;
+  if(!p.history.find(function(h){return h._current&&h.season===G.season&&h.clubId===G.myClubId;})){
+    p.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
+  }
+}
+
 function kronTrigger(){
   if(!G||!G.kronika||G.seasonEnded||G.week<4)return;
   if(G.kronika.cooldown>0){G.kronika.cooldown--;return;}
@@ -294,9 +396,10 @@ function kronTrigger(){
             if(!G.fin.transfers)G.fin.transfers=[];
             G.fin.transfers.push({type:'sell',name:tr.name,val:val,week:G.week,season:G.season});
             addNews(t('news_tr_sold').replace('{name}',tr.name).replace('{val}',fmtVal(val)),'budget');
-            tr.clubId=0;tr.starter=false;tr.status='freeAgent';tr.isFreeAgent=true;
-            G.players=G.players.filter(function(p){return p.id!==tr.id;});
-            if(!G.fa)G.fa=[];G.fa.push(tr);
+            // Zamknięty świat: "oferta z wyższej ligi" faktycznie przenosi zawodnika do
+            // realnego klubu tam wyżej, nie usuwa go bez śladu — patrz kronFindDestinationClub.
+            const dest=kronFindDestinationClub(tr,{levelBias:-1,levelRange:1})||kronFindDestinationClub(tr,{});
+            if(dest)kronTransferOut(tr,dest);
           }
         },
         outcome:function(){return t('kron_t01_c1_outcome').replace('{val}',fmtVal(kron.flags._t01val||0));}},
@@ -317,9 +420,8 @@ function kronTrigger(){
             if(tr){
               G.budget+=val2;
               addNews(t('news_tr_nego_success').replace('{name}',tr.name).replace('{val}',fmtVal(val2)),'budget');
-              tr.clubId=0;tr.starter=false;tr.status='freeAgent';tr.isFreeAgent=true;
-              G.players=G.players.filter(function(p){return p.id!==tr.id;});
-              if(!G.fa)G.fa=[];G.fa.push(tr);
+              const dest2=kronFindDestinationClub(tr,{levelBias:-1,levelRange:1})||kronFindDestinationClub(tr,{});
+              if(dest2)kronTransferOut(tr,dest2);
               kron.flags._t01val=val2;
             }
           } else {
@@ -392,7 +494,22 @@ function kronTrigger(){
         effect:function(){
           const pos2=kron.flags._t04pos||'POL';
           const np=mkPlayer(0);np.pos=pos2;
-          if(!G.fa)G.fa=[];G.fa.push(np);
+          // Zamknięty świat: odrzucony talent trafia do realnego, pobliskiego klubu — nie
+          // znika w pustce puli FA (usuniętej, patrz js/CLAUDE.md).
+          const dest=kronFindDestinationClub(np,{});
+          if(dest){
+            const destLvl=(G.leagues.find(function(l){return l.clubs.some(function(c){return c.id===dest.id;});})||{level:8}).level;
+            np.clubId=dest.id;np.contract=r(1,3);np.starter=false;
+            np.value=calcValue(ovr(np),np.age);np.salary=calcSalary(np.value,destLvl,ovr(np));
+            if(!np.history)np.history=[];
+            np.history.push({season:G.season,clubId:dest.id,club:dest.n,m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(np),avgRat:null,_current:true});
+            G.players.push(np);
+            if(dest.ai){
+              if(!dest.ai.transferLog)dest.ai.transferLog=[];
+              dest.ai.transferLog.unshift({type:'buy',name:np.name,pos:np.pos,ovr:ovr(np),age:np.age,price:0,season:G.season,playerId:np.id,fromClub:null});
+              if(dest.ai.transferLog.length>20)dest.ai.transferLog.pop();
+            }
+          }
         },
         outcome:function(){return t('kron_t04_c3_outcome');}},
      ]},
@@ -787,35 +904,34 @@ function kronTrigger(){
         }},
      ]},
 
-    // T-05: Okazja — wolny agent z klasą
+    // T-05: Okazja — nadwyżka u rywala (zamknięty świat: zamiast anonimowego wolnego agenta,
+    // konkretny nazwany zawodnik z nadwyżki realnego klubu AI — patrz kronFindSurplusPlayer).
     {id:'t05_bargain_release', category:t('kron_cat_transfers'),
      weight:function(){
-       if(!G.fa||!G.fa.length)return 0;
-       const gem=G.fa.find(function(p){return ovr(p)>=60&&(p.age||25)<=30;});
+       const gem=kronFindSurplusPlayer(60,99,30);
        return (gem&&G.budget>=15000)?22:0;
      },
      title:t('kron_t05_title'),
      body:function(){
-       const gem=G.fa.filter(function(p){return ovr(p)>=60&&(p.age||25)<=30;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
-       kron.flags._t05gemId=gem?gem.id:-1;
-       const cost=gem?Math.round((gem.value||40000)*0.50/1000)*1000:20000;
+       const found=kronFindSurplusPlayer(60,99,30);
+       kron.flags._t05gemId=found?found.player.id:-1;
+       kron.flags._t05fromClubId=found?found.fromClub.id:-1;
+       const gem=found?found.player:null;
+       const cost=gem?kronAffordablePrice(Math.round((gem.value||40000)*0.50/1000)*1000,0.55):20000;
        kron.flags._t05cost=cost;
        kron.flags._t05cheapCost=Math.round(cost*0.60/1000)*1000;
-       return t('kron_t05_body').replace('{name}',gem?gem.name:t('kron_t05_fallback_name')).replace('{pos}',gem?gem.pos:'?').replace('{ovr}',gem?ovr(gem):'?').replace('{age}',gem?gem.age:'?').replace('{cost}',fmtVal(cost));
+       return t('kron_t05_body').replace('{name}',gem?gem.name:t('kron_t05_fallback_name')).replace('{pos}',gem?gem.pos:'?').replace('{ovr}',gem?ovr(gem):'?').replace('{age}',gem?gem.age:'?').replace('{cost}',fmtVal(cost)).replace('{club}',found?found.fromClub.n:'?');
      },
      choices:[
        {label:t('kron_t05_c1_label'),
         effect:function(){
-          const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
+          const gem=G.players.find(function(p){return p.id===kron.flags._t05gemId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t05fromClubId;});
           const cost=kron.flags._t05cost||20000;
-          if(!gem){kron.flags._t05result='gone';return;}
+          if(!gem||!fromClub||gem.clubId!==fromClub.id){kron.flags._t05result='gone';return;}
           if(G.budget<cost){notif(t('kron_notif_no_budget'),'err');kron.flags._t05result='noBudget';return;}
           G.budget-=cost;
-          fillHistoryGaps(gem);
-          gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
-          gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
-          G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
-          G.players.push(gem);
+          kronTransferIn(gem,fromClub);
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'buy',name:gem.name,val:cost,fee:cost,week:G.week,season:G.season});
           addNews(t('news_tr_gem_signed').replace('{name}',gem.name).replace('{ovr}',ovr(gem)).replace('{val}',fmtVal(cost)),'budget');
@@ -828,23 +944,20 @@ function kronTrigger(){
         }},
        {label:t('kron_t05_c2_label'),
         effect:function(){
-          const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
+          const gem=G.players.find(function(p){return p.id===kron.flags._t05gemId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t05fromClubId;});
           const cheapCost=kron.flags._t05cheapCost||12000;
-          if(!gem){kron.flags._t05result='gone';return;}
+          if(!gem||!fromClub||gem.clubId!==fromClub.id){kron.flags._t05result='gone';return;}
           if(Math.random()<0.70){
             if(G.budget<cheapCost){notif(t('kron_t05_c2_notif_nobudget'),'err');kron.flags._t05result='noBudget';return;}
             G.budget-=cheapCost;
-            fillHistoryGaps(gem);
-            gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=r(2,3);gem._seasonsAtClub=0;
-            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
-            G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
-            G.players.push(gem);
+            kronTransferIn(gem,fromClub);
             if(!G.fin.transfers)G.fin.transfers=[];
             G.fin.transfers.push({type:'buy',name:gem.name,val:cheapCost,fee:cheapCost,week:G.week,season:G.season});
             addNews(t('news_tr_gem_nego').replace('{name}',gem.name).replace('{val}',fmtVal(cheapCost)),'budget');
             kron.flags._t05result='negotiated';kron.flags._t05name=gem.name;kron.flags._t05ovr=ovr(gem);
           } else {
-            G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
+            // Negocjacje padły — zawodnik zostaje u siebie, nic więcej się nie dzieje.
             addNews(t('news_tr_gem_rejected').replace('{name}',gem.name),'err');
             kron.flags._t05result='walkaway';kron.flags._t05name=gem.name;
           }
@@ -857,15 +970,13 @@ function kronTrigger(){
         }},
        {label:t('kron_t05_c3_label'),
         effect:function(){
-          const gem=G.fa.find(function(p){return p.id===kron.flags._t05gemId;});
-          if(!gem){kron.flags._t05result='gone';return;}
+          const gem=G.players.find(function(p){return p.id===kron.flags._t05gemId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t05fromClubId;});
+          if(!gem||!fromClub||gem.clubId!==fromClub.id){kron.flags._t05result='gone';return;}
           if(Math.random()<0.40){
-            fillHistoryGaps(gem);
-            gem.clubId=G.myClubId;gem.starter=false;gem.status='active';gem.isFreeAgent=false;gem.contract=2;gem._seasonsAtClub=0;
+            kronTransferIn(gem,fromClub);
+            gem.contract=2;
             gem.form=Math.min(100,(gem.form||80)-5);
-            gem.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(gem),avgRat:null,_current:true});
-            G.fa=G.fa.filter(function(p){return p.id!==gem.id;});
-            G.players.push(gem);
             addNews(t('news_tr_gem_trial_ok').replace('{name}',gem.name),'ok');
             kron.flags._t05result='trial';kron.flags._t05name=gem.name;
           } else {
@@ -880,19 +991,23 @@ function kronTrigger(){
         }},
      ]},
 
-    // T-06: Licytacja z rywalem
+    // T-06: Licytacja z rywalem — nadwyżka u realnego klubu AI (patrz T-05, ta sama zasada).
+    // "Przegrana" licytacja teraz faktycznie przenosi zawodnika do G.rival (realny klub), nie
+    // usuwa go bez śladu.
     {id:'t06_bidding_war', category:t('kron_cat_transfers'),
      weight:function(){
        if(!G.rival)return 0;
-       if(!G.fa||!G.fa.length)return 0;
-       const target=G.fa.find(function(p){return ovr(p)>=55&&(p.age||25)<=28;});
+       const target=kronFindSurplusPlayer(55,99,28);
        return (target&&G.budget>=20000)?25:0;
      },
      title:t('kron_t06_title'),
      body:function(){
-       const target=G.fa.filter(function(p){return ovr(p)>=55&&(p.age||25)<=28;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
-       kron.flags._t06targetId=target?target.id:-1;
-       const base=target?Math.round((target.value||35000)*0.65/1000)*1000:25000;
+       const found=kronFindSurplusPlayer(55,99,28);
+       kron.flags._t06targetId=found?found.player.id:-1;
+       kron.flags._t06fromClubId=found?found.fromClub.id:-1;
+       const target=found?found.player:null;
+       // 0.45 nie 0.6 jak w T-05: "high" (c1, poniżej) to 1.2× base, więc zostaw zapas.
+       const base=target?kronAffordablePrice(Math.round((target.value||35000)*0.65/1000)*1000,0.45):25000;
        kron.flags._t06base=base;
        kron.flags._t06high=Math.round(base*1.20/1000)*1000;
        kron.flags._t06cheap=Math.round(base*0.55/1000)*1000;
@@ -902,16 +1017,13 @@ function kronTrigger(){
      choices:[
        {label:t('kron_t06_c1_label'),
         effect:function(){
-          const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
+          const target=G.players.find(function(p){return p.id===kron.flags._t06targetId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t06fromClubId;});
           const high=kron.flags._t06high||30000;
-          if(!target){kron.flags._t06result='gone';return;}
+          if(!target||!fromClub||target.clubId!==fromClub.id){kron.flags._t06result='gone';return;}
           if(G.budget<high){notif(t('kron_t06_c1_notif_nobudget'),'err');kron.flags._t06result='noBudget';return;}
           G.budget-=high;
-          fillHistoryGaps(target);
-          target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
-          target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
-          G.fa=G.fa.filter(function(p){return p.id!==target.id;});
-          G.players.push(target);
+          kronTransferIn(target,fromClub);
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'buy',name:target.name,val:high,fee:high,week:G.week,season:G.season});
           addNews(t('news_tr_auction_win').replace('{name}',target.name).replace('{val}',fmtVal(high)),'budget');
@@ -924,10 +1036,11 @@ function kronTrigger(){
         }},
        {label:t('kron_t06_c2_label'),
         effect:function(){
-          const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
-          if(target&&G.rival){
-            target.isFreeAgent=false;target.status='active';
-            G.fa=G.fa.filter(function(p){return p.id!==target.id;});
+          const target=G.players.find(function(p){return p.id===kron.flags._t06targetId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t06fromClubId;});
+          if(target&&fromClub&&target.clubId===fromClub.id&&G.rival&&G.rival.ai&&G.rival.id!==fromClub.id){
+            const price=Math.round((target.value||35000)*0.65/1000)*1000;
+            aiTransferPlayer(target,fromClub,G.rival,price,G.season,false);
             if(G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+3;
             addNews(t('news_tr_to_rival').replace('{name}',target.name||t('kron_t06_fallback_freeagent')).replace('{rival}',G.rival.n||t('kron_t06_fallback_rival_gen')),'err');
           }
@@ -939,24 +1052,24 @@ function kronTrigger(){
         }},
        {label:t('kron_t06_c3_label'),
         effect:function(){
-          const target=G.fa.find(function(p){return p.id===kron.flags._t06targetId;});
+          const target=G.players.find(function(p){return p.id===kron.flags._t06targetId;});
+          const fromClub=ALL_CLUBS.find(function(c){return c.id===kron.flags._t06fromClubId;});
           const cheap=kron.flags._t06cheap||18000;
-          if(!target){kron.flags._t06result='gone';return;}
+          if(!target||!fromClub||target.clubId!==fromClub.id){kron.flags._t06result='gone';return;}
           if(Math.random()<0.30){
             if(G.budget<cheap){notif(t('kron_notif_no_budget'),'err');kron.flags._t06result='noBudget';return;}
             G.budget-=cheap;
-            fillHistoryGaps(target);
-            target.clubId=G.myClubId;target.starter=false;target.status='active';target.isFreeAgent=false;target.contract=r(2,3);target._seasonsAtClub=0;
-            target.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(target),avgRat:null,_current:true});
-            G.fa=G.fa.filter(function(p){return p.id!==target.id;});
-            G.players.push(target);
+            kronTransferIn(target,fromClub);
             if(!G.fin.transfers)G.fin.transfers=[];
             G.fin.transfers.push({type:'buy',name:target.name,val:cheap,fee:cheap,week:G.week,season:G.season});
             addNews(t('news_tr_backstage_win').replace('{name}',target.name).replace('{val}',fmtVal(cheap)),'ok');
             kron.flags._t06result='sneaky';kron.flags._t06name=target.name;
           } else {
-            G.fa=G.fa.filter(function(p){return p.id!==target.id;});
-            if(G.rival&&G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+2;
+            if(G.rival&&G.rival.ai&&G.rival.id!==fromClub.id){
+              const price=Math.round((target.value||35000)*0.65/1000)*1000;
+              aiTransferPlayer(target,fromClub,G.rival,price,G.season,false);
+              if(G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+2;
+            }
             G.reputation=Math.max(0,(G.reputation||30)-5);
             addNews(t('news_tr_backstage_lose').replace('{name}',target.name||t('kron_fallback_player')),'err');
             kron.flags._t06result='sneakyFail';kron.flags._t06name=target?target.name:t('kron_fallback_player');
@@ -997,9 +1110,10 @@ function kronTrigger(){
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'sell',name:rebel.name,val:val,week:G.week,season:G.season});
           addNews(t('kron_k04_c1_news').replace('{name}',rebel.name).replace('{val}',fmtVal(val)),'budget');
-          rebel.clubId=0;rebel.starter=false;rebel.status='freeAgent';rebel.isFreeAgent=true;rebel._wantsOut=false;
-          G.players=G.players.filter(function(p){return p.id!==rebel.id;});
-          if(!G.fa)G.fa=[];G.fa.push(rebel);
+          rebel._wantsOut=false;
+          // Zamknięty świat: buntownik trafia do realnego klubu, nie do puli FA.
+          const rebelDest=kronFindDestinationClub(rebel,{});
+          if(rebelDest)kronTransferOut(rebel,rebelDest);
           kron.flags._k04result='sold';kron.flags._k04name=rebel.name;kron.flags._k04val=val;
         },
         outcome:function(){
@@ -1368,19 +1482,13 @@ function kronTrigger(){
             return;
           }
           G.budget-=20000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:20000,bal:G.budget,season:G.season,note:t('kron_note_x02_relegation_crisis')});
-          // Znajdź najlepszego dostępnego FA i podpisz
-          if(G.fa&&G.fa.length){
-            const rescue=G.fa.filter(function(p){return ovr(p)>=50;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
-            if(rescue){
-              fillHistoryGaps(rescue);
-              rescue.clubId=G.myClubId;rescue.starter=false;rescue.status='active';
-              rescue.isFreeAgent=false;rescue.contract=1;rescue._seasonsAtClub=0;
-              rescue.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(rescue),avgRat:null,_current:true});
-              G.fa=G.fa.filter(function(p){return p.id!==rescue.id;});
-              G.players.push(rescue);
-              addNews(t('kron_x02_c2_news').replace('{name}',rescue.name).replace('{ovr}',ovr(rescue)),'budget');
-              kron.flags._x02rescueName=rescue.name;
-            }
+          // Znajdź najlepszego kandydata z nadwyżki u realnego klubu AI i podpisz (zamknięty świat).
+          const found=kronFindSurplusPlayer(50,99,null);
+          if(found){
+            kronTransferIn(found.player,found.fromClub);
+            found.player.contract=1;
+            addNews(t('kron_x02_c2_news').replace('{name}',found.player.name).replace('{ovr}',ovr(found.player)),'budget');
+            kron.flags._x02rescueName=found.player.name;
           }
           kron.flags._x02result='transfer';
         },
@@ -1543,27 +1651,22 @@ function kronTrigger(){
         }},
        {label:t('kron_x04_c3_label'),
         effect:function(){
-          // Znajdź najlepszego FA i podpisz drogo
-          if(!G.fa||!G.fa.length){
+          // Znajdź gwiazdę z nadwyżki u realnego klubu AI i podpisz drogo (zamknięty świat).
+          const found=kronFindSurplusPlayer(55,99,null);
+          if(!found){
             notif(t('kron_x04_c3_notif_nofa'),'err');
             kron.flags._x04result='noFA';
             return;
           }
-          const star=G.fa.filter(function(p){return ovr(p)>=55;}).sort(function(a,b){return ovr(b)-ovr(a);})[0];
-          if(!star){kron.flags._x04result='noFA';return;}
-          const cost=Math.round((star.value||40000)*0.80/1000)*1000;
+          const star=found.player;
+          const cost=kronAffordablePrice(Math.round((star.value||40000)*0.80/1000)*1000,0.6);
           if(G.budget<cost){
             notif(t('kron_x04_c3_notif_nobudget'),'err');
             kron.flags._x04result='noBudget';
             return;
           }
           G.budget-=cost;
-          fillHistoryGaps(star);
-          star.clubId=G.myClubId;star.starter=false;star.status='active';
-          star.isFreeAgent=false;star.contract=r(2,3);star._seasonsAtClub=0;
-          star.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:t('kron_fallback_club'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(star),avgRat:null,_current:true});
-          G.fa=G.fa.filter(function(p){return p.id!==star.id;});
-          G.players.push(star);
+          kronTransferIn(star,found.fromClub);
           if(!G.fin.transfers)G.fin.transfers=[];
           G.fin.transfers.push({type:'buy',name:star.name,val:cost,fee:cost,week:G.week,season:G.season});
           // Rywal słabnie psychicznie — obniż symboliczne
@@ -1900,13 +2003,19 @@ function kronTrigger(){
         }},
        {label:t('kron_dc01_c2_label'),
         effect:function(){
-          if(G.fa&&G.fa.length>=2){
-            const sorted=[...G.fa].sort(function(a,b){return ovr(b)-ovr(a);});
-            const stolen=sorted.slice(0,2);
-            kron.flags._dc01stolenNames=stolen.map(function(p){return p.name;}).join(', ');
-            stolen.forEach(function(p){
-              G.fa=G.fa.filter(function(x){return x.id!==p.id;});
-              if(G.rival&&G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+1;
+          // Zamknięty świat: "skradzione namiary" to realni kandydaci z nadwyżki u klubów AI —
+          // rywal faktycznie ich przejmuje (aiTransferPlayer), nie znikają w próżni.
+          const found1=kronFindSurplusPlayer(1,99,null);
+          const found2=found1?kronFindSurplusPlayer(1,99,null,null,new Set([found1.player.id])):null;
+          const stolen=[found1,found2].filter(Boolean);
+          if(stolen.length){
+            kron.flags._dc01stolenNames=stolen.map(function(s){return s.player.name;}).join(', ');
+            stolen.forEach(function(s){
+              if(G.rival&&G.rival.ai&&G.rival.id!==s.fromClub.id){
+                const price=Math.round((s.player.value||30000)*0.5/1000)*1000;
+                aiTransferPlayer(s.player,s.fromClub,G.rival,price,G.season,false);
+                if(G.rival.strength!==undefined)G.rival.strength=(G.rival.strength||50)+1;
+              }
             });
             addNews(t('kron_dc01_c2_news_stolen').replace('{names}',kron.flags._dc01stolenNames||t('kron_dc01_fallback_stolen')),'err');
           } else {
@@ -1921,10 +2030,8 @@ function kronTrigger(){
        {label:t('kron_dc01_c3_label'),
         effect:function(){
           G.reputation=(G.reputation||30)+8;
-          if(G.fa&&G.fa.length){
-            const lost=[...G.fa].sort(function(a,b){return ovr(b)-ovr(a);})[0];
-            if(lost){G.fa=G.fa.filter(function(p){return p.id!==lost.id;});kron.flags._dc01lostName=lost.name;}
-          }
+          const found=kronFindSurplusPlayer(1,99,null);
+          if(found)kron.flags._dc01lostName=found.player.name;
           addNews(t('kron_dc01_c3_news').replace('{name}',kron.flags._dc01lostName||t('kron_dc01_fallback_lost')),'ok');
           kron.flags._dc01result='reported';
         },
@@ -1991,16 +2098,45 @@ function kronUpdateBenchWeeks(){
 
 function aiSeasonalRefresh(){
   if(!G||!G.leagues)return;
-  // Zamknięty świat: tylko starzenie i naturalne wzrosty atrybutów.
-  // Brak wymiany zawodników z puli — uzupełnienie składu do min 22 odbywa się tylko z G.fa.
+  // Zamknięty świat: starzenie i naturalne wzrosty atrybutów, skalowane jakością rozwoju klubu
+  // (filozofia AI + reputacja + wynik kończącego się sezonu — patrz clubDevMult niżej).
+  // Zamknięty świat: uzupełnienie składu do min 22 to realokacja z nadwyżek innych klubów
+  // (aiSignReplacement, match-post.js), nie pula G.fa — patrz js/CLAUDE.md.
+  // Limit podpisań na sezon (aiSigningCap, match-post.js) zerowany TU — to pierwsza funkcja w
+  // sekwencji zmiany sezonu (startNewSeason(): aiSeasonalRefresh → aiRenewContracts →
+  // aiTransferSeason), więc podpisania z każdego z tych trzech kroków liczą się do JEDNEGO,
+  // wspólnego limitu sezonowego zamiast każdy dostawać osobny, "darmowy" budżet.
+  G.leagues.forEach(function(lg){lg.clubs.forEach(function(c){if(c.ai){c.ai.signingsThisSeason=0;c.ai.sellsThisSeason=0;}});});
+  // G.allStandings i G.cupHistory w tym momencie startNewSeason() wciąż opisują kończący się
+  // sezon (przenosiny klubów między ligami przy awansach/spadkach dzieją się DALEJ w tej funkcji,
+  // patrz season-summary.js) — można ich tu bezpiecznie użyć do oceny sukcesu klubu.
+  const _cupHistR=(G.cupHistory||[]).find(ch=>ch.season===G.season);
+  const _cupWinnerCidR=_cupHistR&&_cupHistR.winner?_cupHistR.winner.cid:null;
+  const _cupFinalCidR=_cupHistR&&_cupHistR.runnerUp?_cupHistR.runnerUp.cid:null;
   G.leagues.forEach(lg=>{
     const _ovr4r=LEAGUE_OVR[lg.level]||[20,35,35,50];
     const nClubsR=lg.clubs.length;
+    const _stR=[...(G.allStandings&&G.allStandings[lg.level]||[])].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
     lg.clubs.filter(c=>c.id!==G.myClubId).forEach((c,ci)=>{
       const sq=G.players.filter(p=>p.clubId===c.id);
-      // 1. Starzenie: zawodnicy 28+ tracą atrybuty
+      const ai=c.ai||{};
+      const aiDef=AI_TYPES[ai.type]||AI_TYPES.stabilny;
+      // Jakość rozwoju klubu: filozofia AI × reputacja × sukces kończącego się sezonu
+      // (górna połowa tabeli / finał lub wygrana Pucharu) — im lepszy klub, tym szybszy
+      // rozwój młodych/dojrzałych i łagodniejsze starzenie weteranów.
+      const _posIdxR=_stR.findIndex(s=>s.cid===c.id);
+      const _topHalfR=_posIdxR>=0&&_posIdxR<_stR.length/2;
+      const _wonCupR=_cupWinnerCidR===c.id,_finalCupR=_cupFinalCidR===c.id;
+      const _repTierR=(ai.reputation||0)>=500?1.10:(ai.reputation||0)>=250?1.05:(ai.reputation||0)<50?0.95:1.0;
+      let _successMultR=1.0;
+      if(_topHalfR)_successMultR+=0.10;
+      if(_wonCupR)_successMultR+=0.15;else if(_finalCupR)_successMultR+=0.08;
+      const clubDevMult=Math.max(0.7,Math.min(1.6,(aiDef.devMult||1.0)*_repTierR*_successMultR));
+      const declineMult=Math.max(0.5,Math.min(1.3,2-clubDevMult));
+      // 1. Starzenie: zawodnicy 28+ tracą atrybuty (wolniej w dobrze rozwijających klubach)
       sq.filter(p=>p.age>=28).forEach(p=>{
-        const drop=p.age>=33?r(2,4):r(1,2);
+        const baseDrop=p.age>=33?r(2,4):r(1,2);
+        const drop=Math.max(1,Math.round(baseDrop*declineMult));
         const attrs=['tec','pas','sht','def','phy','men'];
         for(let i=0;i<drop;i++){
           const a=attrs[Math.floor(Math.random()*attrs.length)];
@@ -2010,7 +2146,7 @@ function aiSeasonalRefresh(){
       });
       // 2. Naturalne wzrosty: zawodnicy <22 lat zyskują atrybuty
       sq.filter(p=>p.age<=22).forEach(p=>{
-        const gain=r(1,2);
+        const gain=Math.round(r(1,2)*clubDevMult*(p.trainRate||1.0));
         const attrs=['tec','pas','sht','def','phy','men'];
         for(let i=0;i<gain;i++){
           const a=attrs[Math.floor(Math.random()*attrs.length)];
@@ -2018,31 +2154,36 @@ function aiSeasonalRefresh(){
         }
         p.value=calcValue(ovr(p),p.age);
       });
+      // 3. Dojrzewanie w wieku 23-27: bez tego pasmo lat świetności zawodnika stało w miejscu
+      // między młodzieżowym wzrostem (<=22) a starzeniem (28+) — patrz analiza spadku OVR AI.
+      sq.filter(p=>p.age>=23&&p.age<=27).forEach(p=>{
+        const gain=Math.round(r(0,2)*clubDevMult*(p.trainRate||1.0));
+        const attrs=['tec','pas','sht','def','phy','men'];
+        for(let i=0;i<gain;i++){
+          const a=attrs[Math.floor(Math.random()*attrs.length)];
+          if(ovr(p)<p.potential)p[a]=Math.min(99,p[a]+1);
+        }
+        if(gain>0)p.value=calcValue(ovr(p),p.age);
+      });
     });
   });
-  // Uzupełnij skład do minimum 22 — tylko z G.fa (zamknięty świat)
-  ALL_CLUBS.filter(c=>c.id!==G.myClubId).forEach(c=>{
-    const sq=G.players.filter(p=>p.clubId===c.id);
-    const missing=Math.max(0,22-sq.length);
-    if(!missing)return;
+  // Uzupełnij skład do minimum 22 — realokacja bezpośrednia z nadwyżek (zamknięty świat)
+  // shuffled(): losowa kolejność klubów co sezon — patrz komentarz przy analogicznym
+  // uzupełnieniu w aiRenewContracts() (match-post.js). aiSignReplacement(): wspólna ścieżka
+  // z priorytetem pozycji w deficycie i logiem transferu, patrz match-post.js.
+  shuffled(ALL_CLUBS.filter(c=>c.id!==G.myClubId)).forEach(c=>{
+    if(!c.ai)return;
     const lg=G.leagues?G.leagues.find(l=>l.clubs.some(x=>x.id===c.id)):null;
-    const _ovr4c=lg?LEAGUE_OVR[lg.level]||[20,35,35,50]:[20,35,35,50];
-    const [minO,maxO]=[_ovr4c[0],_ovr4c[3]];
-    const season=G.season||1;
-    for(let i=0;i<missing;i++){
-      const faPool=(G.fa||[]).filter(p=>p.clubId===0&&p.status!=='retired'&&ovr(p)>=minO-5&&ovr(p)<=maxO+5);
-      if(!faPool.length)break;
-      faPool.sort((a,b)=>ovr(b)-ovr(a));
-      const np=faPool[0];
-      fillHistoryGaps(np);
-      np.clubId=c.id;np.contract=r(1,3);np.starter=false;np.status='active';np.isFreeAgent=false;
-      np.value=calcValue(ovr(np),np.age);np.salary=calcSalary(np.value,lg?lg.level:null,ovr(np));
-      if(!np.history.find(h=>h._current&&h.season===season&&h.clubId===c.id)){
-        np.history.push({season,clubId:c.id,club:c.n,m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(np),avgRat:null,_current:true});
-      }
-      G.fa=G.fa.filter(p=>p!==np);
-      G.players.push(np);
-    }
+    const lvl=lg?lg.level:8;
+    const _ovr4c=LEAGUE_OVR[lvl]||[20,35,35,50];
+    const curSize=G.players.filter(function(p){return p.clubId===c.id;}).length;
+    const cap=aiSigningCap(c,lvl);
+    const remaining=Math.max(0,cap-(c.ai.signingsThisSeason||0));
+    // Prawdziwy kryzys (<18) ma pierwszeństwo nad limitem sezonowym — poza tym liczy się do
+    // wspólnej puli z aiRenewContracts()/aiTransferSeason() (patrz reset licznika wyżej).
+    const maxCount=curSize<18?2:Math.min(2,remaining);
+    if(maxCount<=0)return;
+    aiSignReplacement(c,lvl,{targetSize:22,maxCount,band:[_ovr4c[0]-5,_ovr4c[3]+5]});
   });
 }
 

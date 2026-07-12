@@ -19,6 +19,8 @@ function showById(id){
     window._clubModalReturn=null;
     closeClubModal();
   }
+  var mdOv=document.getElementById('md-overlay');
+  if(mdOv)mdOv.classList.remove('open');
 }
 function newsAction(el){
   const panel=el.dataset&&el.dataset.panel;
@@ -28,6 +30,7 @@ function newsAction(el){
   if(panel==='camp'){openPanel('p-training');setTimeout(()=>{const btn=document.querySelector('#p-training .sq-tab2-btn:nth-child(2)');if(btn){btn.click();}},200);return;}
   if(panel==='skauci'){openPanel('p-transfers');setTimeout(()=>{const btn=document.querySelector('#p-transfers .tab-btn[onclick*="skauci"]');if(btn)btn.click();},200);return;}
   if(panel==='sell_offer'){const _pid=el.dataset&&el.dataset.pid?parseInt(el.dataset.pid):null;if(_pid){window._sellId=_pid;openSellModal(_pid);}return;}
+  if(panel==='match_result'){const _midx=el.dataset&&el.dataset.midx!=null?parseInt(el.dataset.midx):null;if(_midx!=null)showMatchDetail(_midx,'mHist');return;}
   if(panel==='training_plan'){openPanel('p-training');setTimeout(()=>{const btn=document.querySelector('#p-training .sq-tab2-btn:nth-child(1)');if(btn){btn.click();}},200);return;}
   if(panel==='finance_contracts'){openPanel('p-finance');setTimeout(()=>{const btn=document.querySelector('#p-finance .tab-btn[data-tab="kontrakty"]');if(btn)btn.click();},200);return;}
   if(panel==='board'){openPanel('p-finance');setTimeout(()=>{const btn=document.querySelector('#p-finance .tab-btn[data-tab="zarzad"]');if(btn)btn.click();},200);return;}
@@ -119,7 +122,7 @@ function _newsItemHtml(n,dimmed){
     msg=newsClickable(n.msg||'');
   }
   const actionHtml=(!dimmed&&n.action)
-    ?'<div style="margin-top:3px"><span style="font-weight:700;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+'>▶ '+(n.actionLabel||t('news_action_default'))+'</span></div>'
+    ?'<div style="margin-top:3px"><span style="font-weight:700;font-size:var(--fs-micro);cursor:pointer;color:var(--am);border:1px solid var(--am);padding:2px 6px;background:rgba(255,193,7,0.08)" onclick="newsAction(this)" data-panel="'+n.action+'"'+(n.pid?' data-pid="'+n.pid+'"':'')+(n.midx!=null?' data-midx="'+n.midx+'"':'')+'>▶ '+(n.actionLabel||t('news_action_default'))+'</span></div>'
     :'';
   const opacity=dimmed?'opacity:0.6;':'' ;
   return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #0a180a;'+opacity+'">'
@@ -443,6 +446,19 @@ function mkLeaguePlayers(leagues,myClubId){
         genPlayerHistory(p,leagues,1);
         players.push(p);
       }
+      // Dodatkowa głębia składu — dawniej osobna pula 150 wolnych agentów (buildInitialFA),
+      // teraz zamknięty świat: rozdzielona bezpośrednio do klubów zamiast czekać w zawieszeniu
+      // (patrz js/CLAUDE.md, zasada zamkniętego świata).
+      const extra=r(0,2);
+      for(let i=0;i<extra;i++){
+        const p=mkPlayer(c.id);p.last=p.name.split(' ')[1]||p.name;
+        const target=r(cMin,cMax);const attrs=['tec','pas','sht','def','phy','men'];
+        attrs.forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(target+r(-8,8))));});
+        p.potential=calcPotential(p,lg.level);
+        p.value=calcValue(ovr(p),p.age);p.salary=calcSalary(p.value,lg.level,ovr(p));
+        genPlayerHistory(p,leagues,1);
+        players.push(p);
+      }
     });
   });
   return players;
@@ -451,28 +467,6 @@ function mkLeaguePlayers(leagues,myClubId){
 function genPlayerHistory(p,leagues,currentSeason){
   // Historia zaczyna się od S1 — brak historii wstecznej
   return;
-}
-
-// ── STARTOWI WOLNI AGENCI (zamknięty świat — 150 FA na starcie gry) ──────────────
-function buildInitialFA(size){
-  const pool=[];
-  const allLevels=[1,2,3,4,5,6,7,8];
-  for(let i=0;i<size;i++){
-    const lvl=allLevels[Math.floor(Math.pow(Math.random(),0.6)*8)];
-    const ovr4=LEAGUE_OVR[lvl]||[15,30,30,50];
-    const p=mkPlayer(0);
-    const tOvr=r(ovr4[0],ovr4[3]);
-    ['tec','pas','sht','def','phy','men'].forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(tOvr+r(-8,8))));});
-    p.value=calcValue(ovr(p),p.age);
-    p.salary=calcSalary(p.value,lvl,ovr(p));
-    p.potential=calcPotential(p,lvl);
-    p._poolLvl=lvl;
-    p.status='freeAgent';p.isFreeAgent=true;
-    // Historia od S1 jako wolny agent
-    p.history=[{season:1,clubId:0,club:t('plr_free_agent'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_placeholder:true}];
-    pool.push(p);
-  }
-  return pool;
 }
 
 function initGame(mgrName,clubId,startLeague,preLeagues){
@@ -490,8 +484,6 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
       else{if(gks.length)gks[0].starter=true;sq.filter(p=>p.pos!=='GK').slice(0,10).forEach(p=>p.starter=true);}
     });
   });
-  // Zamknięty świat: 150 wolnych agentów generowanych raz na starcie gry
-  const fa=buildInitialFA(150);
   // Build standings and schedules for all leagues
   const allStandings={};const allSchedules={};
   leagues.forEach(lg=>{
@@ -504,7 +496,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
   const sponsors=LEAGUE_SPONSORS[myLeagueLevel]||200;
   G={mgrName,myClubId:parseInt(clubId),myClub:ALL_CLUBS.find(c=>c.id===clubId)||leagues.flatMap(l=>l.clubs).find(c=>c.id===clubId),
     currency:CURRENT_CURRENCY,
-    season:1,week:1,round:1,budget,players,fa,
+    season:1,week:1,round:1,budget,players,
     leagues,myLeague:myLeagueLevel,
     standing:allStandings[myLeagueLevel],
     allStandings,allSchedules,

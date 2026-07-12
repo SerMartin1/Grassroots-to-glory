@@ -449,22 +449,45 @@ function _faCrisisMissingHtml(crisis){
 }
 function openFACrisis(crisis){
   if(!G)return;
-  // Zamknięty świat: pokazuj dostępnych FA z G.fa pasujących do ligi gracza
+  // Zamknięty świat (js/CLAUDE.md): brak puli FA — konkretne oferty transferu od klubów AI,
+  // które mają NADWYŻKĘ na brakującej pozycji (dawca zostaje z >= POS_QUOTA.min, nie oddaje
+  // chronionego rdzenia — aiCoreProtect, ta sama logika co przy realokacji AI-AI).
   const lvl=G.myLeague||8;
   const _ovr4=LEAGUE_OVR[lvl]||[10,20,20,35];const [minO,maxO]=[_ovr4[0],_ovr4[3]];
-  // Dostępni FA z globalnej puli — bez ograniczenia pozycją (gracz sam wybiera)
-  const availableFA=(G.fa||[]).filter(p=>p.clubId===0&&p.status!=='retired'&&ovr(p)>=minO-8&&ovr(p)<=maxO+10)
-    .sort((a,b)=>ovr(b)-ovr(a)).slice(0,15);
+  const needPos=['GK','OBR','POL','NAP'].filter(pos=>(crisis['need'+pos]||0)>0);
+  const posList=needPos.length?needPos:['GK','OBR','POL','NAP'];
+  const squadByClub={};
+  G.players.forEach(p=>{if(p.clubId>0)(squadByClub[p.clubId]||(squadByClub[p.clubId]=[])).push(p);});
+  let offers=[];
+  posList.forEach(pos=>{
+    ALL_CLUBS.filter(c=>c.id!==G.myClubId&&c.ai).forEach(c=>{
+      const sq=squadByClub[c.id]||[];
+      const atPos=sq.filter(p=>p.pos===pos);
+      if(!POS_QUOTA[pos]||atPos.length<=POS_QUOTA[pos].min)return; // dawca nie ma nadwyżki
+      const core=aiCoreProtect(c,sq);
+      const cand=atPos.filter(p=>!core.has(p.id)&&ovr(p)>=minO-8&&ovr(p)<=maxO+10).sort((a,b)=>ovr(b)-ovr(a))[0];
+      if(cand)offers.push({p:cand,fromClub:c});
+    });
+  });
+  offers.sort((a,b)=>ovr(b.p)-ovr(a.p));
+  offers=offers.slice(0,12);
   const info=document.getElementById('fa-crisis-info');
   if(info)info.innerHTML=_faCrisisMissingHtml(crisis);
   const list=document.getElementById('fa-list');
   if(list){
-    if(availableFA.length){
-      list.innerHTML=availableFA.map(p=>{
+    if(offers.length){
+      list.innerHTML=offers.map(({p,fromClub})=>{
         const o=ovr(p);
+        // Cena "kryzysowa" — zakotwiczona w AKTUALNYM budżecie klubu, nie w pełnej wartości
+        // rynkowej: calcValue() dla realnego OVR łatwo przekracza cały budżet niższej ligi
+        // (setki tysięcy vs. kilkanaście tysięcy startowego budżetu). To ratunek, nie
+        // negocjacja — nigdy nie kosztuje więcej niż połowa tego, co klub aktualnie ma.
+        const price=Math.min(Math.round(calcValue(o,p.age)*0.4/1000)*1000,Math.max(0,Math.round((G.budget||0)*0.5/500)*500));
+        p._crisisOfferPrice=price; // ta sama cena przy podpisaniu co na liście
         return '<div class="tcard" style="margin-bottom:6px">'+
           '<div style="flex:1"><div class="tname">'+p.name+'</div>'+
-          '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+o+' • '+t('fa_salary_lbl').replace('{n}',fmt(p.salary))+'</div></div>'+
+          '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+o+' • '+t('fa_salary_lbl').replace('{n}',fmt(p.salary))+'</div>'+
+          '<div class="tdet">'+t('fa_offer_from').replace('{club}',fromClub.n)+' • '+t('fa_offer_price').replace('{n}',fmtVal(price))+'</div></div>'+
           '<button class="btn-buy" style="background:var(--gb);color:#000" onclick="signFreeAgent('+p.id+')">'+t('fa_sign_btn')+'</button>'+
         '</div>';
       }).join('');
@@ -477,23 +500,42 @@ function openFACrisis(crisis){
 }
 function signFreeAgent(id){
   if(!G)return;
-  // Szukaj w G.fa (zamknięty świat)
-  const p=(G.fa||[]).find(x=>x.id===id);
+  // Zawodnik należy do konkretnego klubu AI (zamknięty świat, brak puli FA) — transfer
+  // bezpośredni, nie "podpisanie za darmo".
+  const p=G.players.find(x=>x.id===id&&x.clubId>0&&x.clubId!==G.myClubId);
   if(!p)return;
-  // Dodaj wpis _current w historii
+  const fromClub=ALL_CLUBS.find(c=>c.id===p.clubId);
+  if(!fromClub||!fromClub.ai)return;
+  const price=p._crisisOfferPrice!=null?p._crisisOfferPrice
+    :Math.min(Math.round(calcValue(ovr(p),p.age)*0.4/1000)*1000,Math.max(0,Math.round((G.budget||0)*0.5/500)*500));
+  // To ratunek kadrowy, nie zwykły rynek — cena skalowana do budżetu (patrz openFACrisis) nigdy
+  // nie zablokuje transferu; ostrzegamy tylko, gdyby mimo to zszedł poniżej zera.
+  G.budget-=price;
+  if(G.budget<0)notif(t('week_notif_negative_budget'),'err');
+  fromClub.ai.budget=(fromClub.ai.budget||0)+price*0.7;
+  if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
+  fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season:G.season,playerId:p.id,toClub:G.myClub?G.myClub.n:'?'});
+  if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
   if(!p.history)p.history=[];
   fillHistoryGaps(p);
-  const _cl=ALL_CLUBS.find(c=>c.id===G.myClubId);
-  if(!p.history.find(h=>h._current&&h.season===G.season&&h.clubId===G.myClubId)){
-    p.history.push({season:G.season,clubId:G.myClubId,club:_cl?_cl.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
+  const _lastH=p.history[p.history.length-1];
+  if(_lastH&&_lastH.clubId===p.clubId){
+    _lastH.transferOut={type:'buy',toClub:G.myClub?G.myClub.n:'?',toClubId:G.myClubId,price,season:G.season};
   }
+  if(!p.formerClubs)p.formerClubs=[];
+  const _fc=p.formerClubs.find(x=>x.clubId===fromClub.id);
+  if(_fc)_fc.seasons=(_fc.seasons||0)+1;else p.formerClubs.push({clubId:fromClub.id,clubName:fromClub.n,seasons:1});
   p.clubId=G.myClubId;p.starter=false;p.status='active';p.isFreeAgent=false;
-  p.contract=1;
+  p.contract=2;p.boughtSeason=G.season||1;p.boughtPrice=price;
   if(!p.trainRate)p.trainRate=1.0;
   if(!p.trainMatches)p.trainMatches=0;
+  delete p._crisisOfferPrice;
   assignJerseyNum(p);
-  G.players.push(p);
-  G.fa=G.fa.filter(x=>x.id!==id);
+  if(!p.history.find(h=>h._current&&h.season===G.season&&h.clubId===G.myClubId)){
+    p.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
+  }
+  if(!G.fin.transfers)G.fin.transfers=[];
+  G.fin.transfers.push({type:'buy',name:p.name,val:price,season:G.season,week:G.week,id:p.id,buyAge:p.age});
   G.fin.salaries=myPl().reduce((s,x)=>s+x.salary,0);
   addNews(t('news_wa_signed').replace('{name}',p.name),'ok');
   notif(t('nav_notif_fa_signed').replace('{name}',p.name),'ok');

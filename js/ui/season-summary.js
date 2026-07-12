@@ -359,16 +359,18 @@ function startNewSeason(){
   // obóz, oferta premium, raport skauta — to CTA, nie historia) i n.noRecap (jednorazowe
   // zapowiedzi sezonu bez własnego action, np. start Pucharu — patrz cup-engine.js).
   const _myEndedSeasonNews=(G.news||[]).filter(n=>n.season===_endedSeason&&!n.action&&!n.noRecap);
-  // ── EMERYTURA: losuj dla zawodników 32-38 lat ────────────────────────
+  // ── EMERYTURA: losuj dla zawodników 32-38 lat — WYŁĄCZNIE klub gracza. AI ma
+  // własną, jedyną loterię emerytalną w aiRenewContracts() (match-post.js); ta pętla
+  // była kiedyś omyłkowo G.players.forEach (cały świat), co dawało AI DWIE niezależne
+  // szanse na emeryturę w tym samym sezonie i sztucznie zawyżało odpływ ponad dopływ
+  // juniorów — patrz analiza kurczącej się populacji świata.
   const retireChance={32:0.10,33:0.10,34:0.25,35:0.25,36:0.50,37:0.50,38:0.90};
-  G.players.forEach(p=>{
+  myPl().forEach(p=>{
     p.retiring=false; // reset każdy sezon
     const chance=retireChance[p.age]||(p.age>38?0.95:0);
     if(chance>0&&Math.random()<chance){
       p.retiring=true;
-      if(p.clubId===G.myClubId){
-        addNews(t('news_retire_announce').replace('{name}',p.name).replace('{age}',p.age),'budget');
-      }
+      addNews(t('news_retire_announce').replace('{name}',p.name).replace('{age}',p.age),'budget');
     }
   });
   // Reset statystyk dla nowego sezonu (historia już zapisana przy G.seasonEnded=true)
@@ -598,18 +600,12 @@ function startNewSeason(){
             }
           }
         });
-      } else {
-        // VII Liga: bottom 2 dostają reset składu
-        st.slice(-2).forEach(s=>{
-          G.players.filter(p=>p.clubId===s.cid).forEach(p=>{
-            G.players=G.players.filter(x=>x.id!==p.id);
-          });
-          const club=G.leagues.find(l=>l.level===8)?.clubs.find(c=>c.id===s.cid);
-          if(club){
-            for(let i=0;i<18;i++){const np=mkPlayer(s.cid);np.last=np.name.split(' ')[1]||np.name;np.value=calcValue(ovr(np),np.age);np.salary=calcSalary(np.value,8,ovr(np));G.players.push(np);}
-          }
-        });
       }
+      // VIII Liga (lvl===8): brak niższej ligi, więc bottom 2 nie spada i nie ma resetu —
+      // zamknięty świat, zawodnicy nie znikają ani nie powstają znikąd (patrz
+      // PROPOZYCJA_RESET_VIII_LIGI.md). Klub zostaje z tym samym składem, konsekwencja
+      // słabego sezonu przychodzi naturalnie przez aiSeasonalRefresh() (brak bonusu za
+      // górną połowę tabeli), tak jak dla każdego innego miejsca w tabeli.
     }
     // Zapewnij każda liga ma 16 drużyn
     G.leagues.forEach(lg=>{
@@ -1237,6 +1233,10 @@ function lgRefreshWyniki(lvl){
         rowBg=isDone?'':(isCurrent?'':'');
         scoreCol=m.done?'var(--gb)':'#1a3a1a';
         borderLeft='border-left:3px solid transparent;';
+        if(m.done){
+          const aiHistIdx=(G._mHistAI||[]).findIndex(x=>x.rnd===rnd&&x.season===G.season&&x.hn===hn&&x.an===an);
+          if(aiHistIdx>=0){onclk=' onclick="showMatchDetail('+aiHistIdx+',\'ai\')"';cursor='cursor:pointer;';}
+        }
       }
 
       const hColor=isMy&&m.h===G.myClubId?'var(--am)':isMy?'var(--wh)':(isDone?'var(--wh)':'#3a5a3a');

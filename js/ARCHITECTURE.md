@@ -233,8 +233,9 @@ sprawdzaj w `face-harness.html` (siatka 50-100 twarzy) pod kątem nachodzących 
   projekcie (`kronika.js`, `week-progress.js`, `transfers.js`, `board-goals.js`,
   `cup-engine.js`, `match-post.js`, `academy.js`, `training-stadium.js`),
 - **inicjalizację nowej gry/sezonu**: `initGame()`, `buildSchedule()` (terminarz ligi),
-  `mkLeaguePlayers()`, `buildInitialFA()` (początkowi wolni agenci), `assignJerseyNumbers()`/
-  `assignJerseyNum()`, `assignAITactics()`, `genPlayerHistory()`, `capOvrAtPotential()`,
+  `mkLeaguePlayers()` (składy 24+głębia, zamknięty świat — bez osobnej puli FA, patrz
+  `js/CLAUDE.md`), `assignJerseyNumbers()`/`assignJerseyNum()`, `assignAITactics()`,
+  `genPlayerHistory()`, `capOvrAtPotential()`,
 - **zapis/odczyt gry**: `saveGame()`, `loadGame()`, `delSave()`, `saveInfo()`,
 - **pomocnicze funkcje składu/formacji** używane w całym projekcie: `myPl()` (moi zawodnicy),
   `mySt()` (moi starterzy), `formationLimits()`, `positionsForFormation()`, `showById()`
@@ -944,7 +945,7 @@ engine/week-progress.js
 ### Start nowej gry
 ```
 ui/save-setup-misc.js (startGame)
-  → ui/news-bootstrap.js (initGame → buildSchedule, mkLeaguePlayers, buildInitialFA,
+  → ui/news-bootstrap.js (initGame → buildSchedule, mkLeaguePlayers,
                            assignJerseyNumbers, assignAITactics)
   → ui/navigation-squad.js (go, updateHdr)
 ```

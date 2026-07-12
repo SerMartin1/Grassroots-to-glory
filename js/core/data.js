@@ -170,6 +170,29 @@ function calcPotential(p,lgLevel){
   else if(p.age>=28)pot=Math.min(pot,curOvr+5);
   return Math.max(curOvr+1,pot); // zawsze przynajmniej 1 ponad OVR
 }
+// Strojenie decyzji transferowych AI per liga (aiEvaluateSale/aiEvaluateSigning, match-post.js):
+// churnMult skaluje limit podpisań na sezon (niższe ligi = więcej naturalnego ruchu składu),
+// strictnessMult skaluje próg "czy kandydat jest realną poprawą" (wyższe ligi = ostrzejsza
+// selekcja, mniejsze = odrobinę luźniejsza, ale nigdy zakup/sprzedaż bez powodu).
+const LEAGUE_AI_TUNING={
+  1:{churnMult:0.8,strictnessMult:1.3},
+  2:{churnMult:0.9,strictnessMult:1.2},
+  3:{churnMult:1.0,strictnessMult:1.1},
+  4:{churnMult:1.0,strictnessMult:1.0},
+  5:{churnMult:1.1,strictnessMult:0.95},
+  6:{churnMult:1.2,strictnessMult:0.9},
+  7:{churnMult:1.3,strictnessMult:0.85},
+  8:{churnMult:1.4,strictnessMult:0.8},
+};
+// Limity liczby zawodników na pozycję w składzie klubu AI — egzekwowane przy sprzedaży
+// (aiEvaluateSale: nie schodź poniżej min) i zakupie (aiEvaluateSigning/aiSignFromFA: nie
+// przekraczaj max), żeby kluby nie gromadziły np. 8 bramkarzy i 0 napastników.
+const POS_QUOTA={
+  GK: {min:2, max:4},
+  OBR:{min:6, max:10},
+  POL:{min:6, max:10},
+  NAP:{min:4, max:7},
+};
 const LEAGUE_BUDGET={1:2000000,2:800000,3:300000,4:120000,5:60000,6:30000,7:18000,8:12000};
 const LEAGUE_SPONSORS={1:20000,2:8000,3:3000,4:1500,5:800,6:500,7:300,8:200};
 const FIN={

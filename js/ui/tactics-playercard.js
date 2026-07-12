@@ -289,7 +289,7 @@ function showPlayer(p){
     const retiredNote=p.status==='retired'?t('plr_retired_since').replace('{n}',p.retiredSeason||'?'):'';
     const acadBadge=p.fromAcademy?' 🎓':'';
     var _arch6=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' '+t('mkcard_age_years')+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+t('arch_'+p.archetype)+'</span>':'');
+    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="window._clubModalReturn={modalId:\'p-player\',extra:{pid:'+p.id+'}};closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' '+t('mkcard_age_years')+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+t('arch_'+p.archetype)+'</span>':'');
   }
   // TRAITS ICONS - ukryte (przeniesione do CHARAKTER)
   const traitsIcons=document.getElementById('plr-traits-icons');
@@ -407,6 +407,10 @@ function showPlayer(p){
 
   // HISTORIA — renderuj przez wspólną funkcję (też aktualizuje plr-cur-stats)
   renderPlayerHistory(p);
+  // NAGRODY — renderuj zawsze, nie tylko przy ręcznym przełączeniu na zakładkę (plrTab()),
+  // inaczej otwarta zakładka NAGRODY pokazuje nieaktualny stan (np. świeży MVP/nagroda
+  // sezonowa) dopóki gracz nie przełączy zakładki i nie wróci.
+  renderPlayerAwards(p);
 
   // Pokaż/ukryj zakładkę WYCHOWANEK
   var _acadTabBtn=document.getElementById('plr-acad-tab-btn');

@@ -567,7 +567,6 @@ function simOthers(){
 function updStand(hid,aid,hg,ag){const st=G.standing;const h=st.find(s=>parseInt(s.cid)===parseInt(hid)),a=st.find(s=>parseInt(s.cid)===parseInt(aid));if(!h||!a)return;h.p++;a.p++;h.gf+=hg;h.ga+=ag;a.gf+=ag;a.ga+=hg;if(hg>ag){h.w++;a.l++;h.pts+=3;}else if(hg<ag){a.w++;h.l++;a.pts+=3;}else{h.d++;a.d++;h.pts++;a.pts++;}}
 function aiRenewContracts(){
   if(!G.retiredPlayers)G.retiredPlayers=[];
-  if(!G.fa)G.fa=[];
 
   // ── 1. STARZENIE — age++ dla wszystkich zawodników AI ────────────────
   G.players.filter(p=>p.clubId!==G.myClubId).forEach(p=>{p.age++;});
@@ -586,6 +585,15 @@ function aiRenewContracts(){
     const fc=p.formerClubs.find(x=>x.clubId===p.clubId);
     if(fc)fc.seasons=(fc.seasons||0)+1;
     else if(p.clubId>0)p.formerClubs.push({clubId:p.clubId,clubName:_hClub?_hClub.n:'?',seasons:1});
+    // Ślad w logu klubu i w historii zawodnika — club-modal.js już umie wyrenderować
+    // "→ 🏁" dla p.status==='retired', wystarczy zostawić wpis.
+    if(_hClub&&_hClub.ai){
+      if(!_hClub.ai.transferLog)_hClub.ai.transferLog=[];
+      _hClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price:0,season:G.season,playerId:p.id,toClub:null});
+      if(_hClub.ai.transferLog.length>20)_hClub.ai.transferLog.pop();
+    }
+    const _lhRet=p.history&&p.history.length?p.history[p.history.length-1]:null;
+    if(_lhRet&&_lhRet.clubId===p.clubId)_lhRet.transferOut={type:'sell',toClub:null,price:0,season:G.season};
     p.status='retired';p.retiredSeason=G.season;p.clubId=0;p.starter=false;
     G.retiredPlayers.push(p);
   });
@@ -596,64 +604,80 @@ function aiRenewContracts(){
     if(p.contract>0)p.contract--;
   });
 
-  // ── 4. WYGASŁE KONTRAKTY → FA ────────────────────────────────────────
+  // ── 3.5 PRÓBA ODNOWIENIA — chronieni gracze (rdzeń/wychowankowie) dostają szansę na
+  // przedłużenie kontraktu PRZED trafieniem do kroku 4, żeby klub nie tracił gwiazd do FA
+  // bez żadnej decyzji z jego strony. Zwykli gracze — dużo mniejsza szansa (0.4× typu).
+  G.leagues.forEach(lg=>{
+    lg.clubs.forEach(club=>{
+      if(club.id===G.myClubId||!club.ai)return;
+      const def=AI_TYPES[club.ai.type]||AI_TYPES.stabilny;
+      const squad=G.players.filter(p=>p.clubId===club.id);
+      const expiring=squad.filter(p=>p.contract<=0&&!(p.traits&&p.traits.includes('lojalny')));
+      if(!expiring.length)return;
+      const core=aiCoreProtect(club,squad);
+      expiring.forEach(p=>{
+        const chance=core.has(p.id)?def.renewChance:def.renewChance*0.4;
+        if(Math.random()<chance)p.contract=r(2,4);
+      });
+    });
+  });
+
+  // ── 4. WYGASŁE KONTRAKTY: bez odnowienia → bezpośrednie przeniesienie do klubu z wolnym
+  // miejscem na tej pozycji (zamknięty świat: nikt nie zawisa bez klubu, patrz js/CLAUDE.md).
+  // Brak takiego klubu LUB brak zapasu w limicie sezonowym (dawcy/biorcy) → kontrakt zostaje
+  // automatycznie przedłużony, zawodnik zostaje — inaczej ta ścieżka omijała aiSigningCap/
+  // aiSellingCap całkowicie i generowała nielimitowany ruch (patrz zgłoszenie o nadmiarze
+  // transferów mimo limitów w aiTransferSeason()).
   const expired=G.players.filter(p=>p.clubId!==G.myClubId&&p.contract<=0&&!(p.traits&&p.traits.includes('lojalny')));
+  const _clubLevel4={};G.leagues.forEach(l=>l.clubs.forEach(c=>{_clubLevel4[c.id]=l.level;}));
+  // Liczniki rozmiaru/pozycji per klub, aktualizowane na bieżąco przy przenosinach — bez
+  // ponownego skanowania całego G.players za każdym wygasłym kontraktem osobno (zbyt wolne
+  // dla całego świata AI, kilkaset wygasłych kontraktów na sezon).
+  const _sizeByClub={},_posByClub={};
+  G.players.forEach(p=>{
+    if(p.clubId<=0)return;
+    _sizeByClub[p.clubId]=(_sizeByClub[p.clubId]||0)+1;
+    if(!_posByClub[p.clubId])_posByClub[p.clubId]={};
+    _posByClub[p.clubId][p.pos]=(_posByClub[p.clubId][p.pos]||0)+1;
+  });
   expired.forEach(p=>{
-    if(!p.formerClubs)p.formerClubs=[];
-    const _hClub2=ALL_CLUBS.find(c=>c.id===p.clubId);
-    const fc2=p.formerClubs.find(x=>x.clubId===p.clubId);
-    if(fc2)fc2.seasons=(fc2.seasons||0)+1;
-    else if(p.clubId>0)p.formerClubs.push({clubId:p.clubId,clubName:_hClub2?_hClub2.n:'?',seasons:1});
-    // ── ŻYWY ŚWIAT AI: kontrakt — zawodnik na szczycie pasma OVR swojej ligi trafia na wolny rynek ──
-    if(_hClub2&&_hClub2.ai){
-      const _lg2=G.leagues.find(l=>l.clubs.some(c=>c.id===_hClub2.id));
-      const _lgMax2=_lg2?(LEAGUE_OVR[_lg2.level]||[20,35,35,55])[3]:0;
-      if(ovr(p)>=_lgMax2){
-        addWorldNewsEvent('contract',{clubId:_hClub2.id,leagueLevel:_lg2?_lg2.level:null,playerId:p.id,
-          vars:{name:p.name,club:_hClub2.n}});
+    const oldClubId=p.clubId;
+    const fromClub=ALL_CLUBS.find(c=>c.id===oldClubId);
+    const fromLvl=_clubLevel4[oldClubId]||8;
+    const fromCapOk=!fromClub||!fromClub.ai||(fromClub.ai.sellsThisSeason||0)<aiSellingCap(fromClub,fromLvl);
+    const candidates=fromCapOk?ALL_CLUBS.filter(c=>c.id!==oldClubId&&c.id!==G.myClubId&&c.ai
+      &&Math.abs((_clubLevel4[c.id]||8)-fromLvl)<=2
+      &&(_sizeByClub[c.id]||0)<40
+      &&(!POS_QUOTA[p.pos]||((_posByClub[c.id]||{})[p.pos]||0)<POS_QUOTA[p.pos].max)
+      &&(c.ai.signingsThisSeason||0)<aiSigningCap(c,_clubLevel4[c.id]||8)):[];
+    if(candidates.length){
+      candidates.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));
+      const dest=candidates[0];
+      // ── ŻYWY ŚWIAT AI: kontrakt — zawodnik na szczycie pasma OVR swojej ligi zmienia klub ──
+      if(fromClub&&fromClub.ai&&ovr(p)>=(LEAGUE_OVR[fromLvl]||[20,35,35,55])[3]){
+        addWorldNewsEvent('contract',{clubId:fromClub.id,leagueLevel:fromLvl,playerId:p.id,
+          vars:{name:p.name,club:fromClub.n}});
       }
+      aiTransferPlayer(p,fromClub,dest,0,G.season,false);
+      _sizeByClub[oldClubId]=(_sizeByClub[oldClubId]||1)-1;
+      _posByClub[oldClubId][p.pos]=(_posByClub[oldClubId][p.pos]||1)-1;
+      _sizeByClub[dest.id]=(_sizeByClub[dest.id]||0)+1;
+      if(!_posByClub[dest.id])_posByClub[dest.id]={};
+      _posByClub[dest.id][p.pos]=(_posByClub[dest.id][p.pos]||0)+1;
+    } else {
+      p.contract=r(1,3); // nikt nie ma miejsca — kontrakt zostaje automatycznie przedłużony
     }
-    p.starter=false;p.clubId=0;p.status='freeAgent';p.isFreeAgent=true;
-    G.fa.push(p);
-  });
-  G.players=G.players.filter(p=>!expired.includes(p));
-
-  // ── 5. FA UZUPEŁNIANIE: AI podpisuje do prefSize zawodników ──────────
-  ALL_CLUBS.filter(c=>c.id!==G.myClubId).forEach(c=>{
-    const ai=c.ai||{};
-    const def=AI_TYPES[ai.type]||AI_TYPES.stabilny;
-    const prefSize=24;
-    const sq=G.players.filter(p=>p.clubId===c.id);
-    const missing=Math.max(0,prefSize-sq.length);
-    if(missing<=0||!G.fa.length)return;
-    const lg=(G.leagues||[]).find(l=>l.clubs.some(x=>x.id===c.id));
-    const lvl=lg?lg.level:8;
-    const ovr4=LEAGUE_OVR[lvl]||[15,35,35,55];
-    const available=G.fa.filter(p=>p.clubId===0&&p.status!=='retired'&&p.age<=def.maxBuyAge&&ovr(p)>=ovr4[0]-5&&ovr(p)<=ovr4[3]+10)
-      .sort((a,b)=>ovr(b)-ovr(a));
-    const signed=[];
-    for(let i=0;i<Math.min(missing,available.length);i++){
-      const p=available[i];
-      if(!p.formerClubs)p.formerClubs=[];
-      p.clubId=c.id;p.contract=r(1,3);p.status='active';p.isFreeAgent=false;
-      p.salary=Math.round(p.salary*r(90,110)/100/50)*50;
-      if(!p.history)p.history=[];
-      fillHistoryGaps(p);
-      // Wpis _current dla nowego sezonu
-      const _s=G.season||1;
-      if(!p.history.find(h=>h._current&&h.season===_s&&h.clubId===c.id)){
-        const _cl=ALL_CLUBS.find(x=>x.id===c.id);
-        p.history.push({season:_s,clubId:c.id,club:_cl?_cl.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
-      }
-      signed.push(p);
-      G.players.push(p);
-    }
-    G.fa=G.fa.filter(p=>!signed.includes(p));
   });
 
-  // ── 6. LIMIT FA: brak sztucznego limitu — zamknięty świat, FA to emeryci lub bez klubu ──────
+  // ── 5. UZUPEŁNIANIE SKŁADU: usunięte — czysta duplikacja z aiSeasonalRefresh() (kronika.js),
+  // która wypełnia do minimum 22 TUŻ PRZED wywołaniem tej funkcji (patrz season-summary.js:
+  // aiSeasonalRefresh() → aiRenewContracts()). Ewentualny niedobór z kroków 1-4 powyżej i tak
+  // domyka aiTransferSeason() chwilę później w tej samej zmianie sezonu. Osobny, w pełni
+  // powielony przebieg co sezon dla każdego klubu był jedną z przyczyn nadmiarowej liczby
+  // transferów AI (patrz zgłoszenie — "kilkanaście transferów na drużynę na sezon" zamiast
+  // kilku wg AI_TYPES.maxAnnualSignings).
 
-  // ── 7. LIMIT EMERYTÓW: zachowaj max 200 (najnowsi) ───────────────────
+  // ── 6. LIMIT EMERYTÓW: zachowaj max 200 (najnowsi) ───────────────────
   if(G.retiredPlayers.length>200){
     G.retiredPlayers=G.retiredPlayers.slice(-200);
   }
@@ -663,26 +687,38 @@ function aiRenewContracts(){
 // AI KLUBÓW — WARIANT B „DYNAMICZNA FILOZOFIA"
 // ══════════════════════════════════════════════════════════════
 
+// minUpgradeDelta: próg OVR ponad najsłabszego na pozycji, żeby transfer się liczył jako
+// poprawa (może być ujemny — "bogaty" akceptuje lekki spadek OVR pod potencjał/reputację).
+// maxAnnualSignings: twardy limit podpisań na sezon (rynek+FA), skalowany LEAGUE_AI_TUNING.
+// maxAnnualSells: twardy limit SPRZEDAŻY na sezon (symetryczny do maxAnnualSignings — bez
+// niego klub mógł kupować zdyscyplinowanie, a i tak generować dużo ruchu jako częsty "dawca"
+// w cudzych realokacjach, patrz zgłoszenie o nadmiarze transferów).
+// coreProtectSize: ilu najlepszych wg OVR jest chronionych przed przypadkową sprzedażą.
+// renewChance: szansa na proaktywne przedłużenie kontraktu chronionemu graczowi przed wygaśnięciem.
 const AI_TYPES={
   akademia:{
     icon:'🎓',label:t('mp_ai_akademia_label'),
     desc:t('mp_ai_akademia_desc'),
-    buyRate:0.3,sellRate:0.4,juniors:[3,5],maxBuyAge:23,budgetMult:0.7
+    buyRate:0.3,sellRate:0.4,juniors:[3,5],maxBuyAge:23,budgetMult:0.7,devMult:1.3,
+    minUpgradeDelta:1,maxAnnualSignings:3,maxAnnualSells:2,coreProtectSize:4,renewChance:0.75
   },
   sprzedajacy:{
     icon:'💸',label:t('mp_ai_sprzedajacy_label'),
     desc:t('mp_ai_sprzedajacy_desc'),
-    buyRate:0.7,sellRate:0.8,juniors:[1,2],maxBuyAge:27,budgetMult:1.0
+    buyRate:0.7,sellRate:0.8,juniors:[1,2],maxBuyAge:27,budgetMult:1.0,devMult:1.15,
+    minUpgradeDelta:0,maxAnnualSignings:5,maxAnnualSells:5,coreProtectSize:2,renewChance:0.50
   },
   bogaty:{
     icon:'💰',label:t('mp_ai_bogaty_label'),
     desc:t('mp_ai_bogaty_desc'),
-    buyRate:0.9,sellRate:0.2,juniors:[0,0],maxBuyAge:32,budgetMult:2.0
+    buyRate:0.9,sellRate:0.2,juniors:[0,0],maxBuyAge:32,budgetMult:2.0,devMult:0.85,
+    minUpgradeDelta:-1,maxAnnualSignings:6,maxAnnualSells:1,coreProtectSize:5,renewChance:0.85
   },
   stabilny:{
     icon:'🛡️',label:t('mp_ai_stabilny_label'),
     desc:t('mp_ai_stabilny_desc'),
-    buyRate:0.3,sellRate:0.25,juniors:[1,1],maxBuyAge:30,budgetMult:1.1
+    buyRate:0.3,sellRate:0.25,juniors:[1,1],maxBuyAge:30,budgetMult:1.1,devMult:1.0,
+    minUpgradeDelta:1,maxAnnualSignings:3,maxAnnualSells:2,coreProtectSize:4,renewChance:0.70
   }
 };
 const AI_TYPES_LIST=['akademia','sprzedajacy','bogaty','stabilny'];
@@ -746,6 +782,146 @@ function _recordWorldTransfer(entry){
   if(G.worldTopTransfers.length>100)G.worldTopTransfers.length=100;
 }
 
+// ── DECYZJE TRANSFEROWE AI — bramka jakości i zasadności (zamiast czystej losowości) ──────
+// Rdzeń składu: najlepsi wg OVR (coreProtectSize) + wychowankowie w pierwszych 3 sezonach —
+// chronieni przed przypadkową sprzedażą, patrz aiEvaluateSale.
+function aiCoreProtect(club,squad){
+  const def=AI_TYPES[club.ai&&club.ai.type]||AI_TYPES.stabilny;
+  const byOvr=[...squad].sort((a,b)=>ovr(b)-ovr(a)).slice(0,def.coreProtectSize).map(p=>p.id);
+  const youngAcademy=squad.filter(p=>p.fromAcademy&&(p._seasonsAtClub||0)<3).map(p=>p.id);
+  return new Set([...byOvr,...youngAcademy]);
+}
+// Czy sprzedać zawodnika: konkretny powód, nie rzut kostką. core = Set id chronionych (aiCoreProtect).
+function aiEvaluateSale(p,club,squad,core,lgMax,prefMax,avgOvr){
+  const posQ=POS_QUOTA[p.pos];
+  if(posQ&&squad.filter(x=>x.pos===p.pos).length<=posQ.min)return false; // nigdy poniżej minimum na pozycji
+  if(core.has(p.id))return ovr(p)>lgMax*1.25; // rdzeń — tylko wyjątkowa oferta
+  if(p.contract<=0)return true; // wygasły kontrakt — decyzja poza kontrolą klubu (patrz aiTryRenewContracts)
+  const o=ovr(p);
+  if(o>lgMax*1.15){
+    const hasReplacement=squad.some(x=>x.id!==p.id&&x.pos===p.pos&&ovr(x)>=lgMax*0.7);
+    if(hasReplacement)return true; // sprzedaż "za dobrego na ligę" tylko z planem zastępstwa
+  }
+  if(squad.length>prefMax){
+    const atPos=squad.filter(x=>x.pos===p.pos);
+    const weakest=atPos.reduce((m,x)=>ovr(x)<ovr(m)?x:m,atPos[0]);
+    if(weakest&&weakest.id===p.id)return true; // przycinanie nadwyżki: zawsze najsłabszy na pozycji
+  }
+  if(club.ai.type==='sprzedajacy'&&(p._seasonsAtClub||0)>=2&&o>avgOvr+5)return true; // model: rozwiń i sprzedaj
+  return false;
+}
+// Czy kupić kandydata: musi być lepszy/porównywalny do najsłabszego na pozycji w składzie,
+// z wyjątkiem młodych wysokopotencjałowych (kupno pod przyszłość, nie pod dziś).
+function aiEvaluateSigning(cand,pos,squad,club,lgLevel,lgMin){
+  const posQ=POS_QUOTA[pos];
+  if(posQ&&squad.filter(x=>x.pos===pos).length>=posQ.max)return false; // pozycja już pełna
+  const def=AI_TYPES[club.ai&&club.ai.type]||AI_TYPES.stabilny;
+  const tuning=LEAGUE_AI_TUNING[lgLevel]||LEAGUE_AI_TUNING[4];
+  const atPos=squad.filter(x=>x.pos===pos);
+  const weakestOvr=atPos.length?Math.min(...atPos.map(x=>ovr(x))):lgMin;
+  const required=weakestOvr+Math.max(-2,def.minUpgradeDelta+(tuning.strictnessMult-1)*3);
+  if(ovr(cand)>=required)return true;
+  if(cand.age<=21&&cand.potential>=required+5&&(club.ai.type==='akademia'||club.ai.type==='sprzedajacy'))return true;
+  return false;
+}
+// Limit podpisań na sezon (rynek+FA), skalowany typem klubu i ligą.
+function aiSigningCap(club,lgLevel){
+  const def=AI_TYPES[club.ai&&club.ai.type]||AI_TYPES.stabilny;
+  const tuning=LEAGUE_AI_TUNING[lgLevel]||LEAGUE_AI_TUNING[4];
+  return Math.max(1,Math.round(def.maxAnnualSignings*tuning.churnMult));
+}
+// Limit sprzedaży na sezon — symetryczny do aiSigningCap, tą samą skalą ligi (churnMult), ale
+// osobną bazą (maxAnnualSells) — bez tego klub mógł kupować zdyscyplinowanie, a i tak
+// generować dużo ruchu jako częsty "dawca" w cudzych realokacjach.
+function aiSellingCap(club,lgLevel){
+  const def=AI_TYPES[club.ai&&club.ai.type]||AI_TYPES.stabilny;
+  const tuning=LEAGUE_AI_TUNING[lgLevel]||LEAGUE_AI_TUNING[4];
+  return Math.max(1,Math.round(def.maxAnnualSells*tuning.churnMult));
+}
+// ── Realokacja bezpośrednia między klubami — zamknięty świat: nikt nie zawisa bez klubu
+// (patrz js/CLAUDE.md), więc uzupełnienie składu szuka klubu z NADWYŻKĄ na danej pozycji
+// (dawca zostaje z >= POS_QUOTA.min po oddaniu, nie oddaje chronionego rdzenia —
+// aiCoreProtect) i przenosi zawodnika przez aiTransferPlayer() — ta sama historia/log co
+// zwykły transfer AI-AI. Zastępuje dawną pulę G.fa w 4 miejscach (aiRenewContracts krok 5,
+// aiSeasonalRefresh uzupełnienie do min 22, aiTransferSeason FAZA 3 zakupy+regeneracja).
+// opts: targetSize (domyślnie 22), maxCount (limit w tym wywołaniu), band [min,max] OVR,
+// maxAge, requireQuality (aiEvaluateSigning), requireBudget (ai.budget).
+function aiSignReplacement(club,lgLevel,opts){
+  opts=opts||{};
+  const ai=club.ai;if(!ai)return;
+  const ovr4=LEAGUE_OVR[lgLevel]||[20,35,35,55];
+  const targetSize=opts.targetSize||22;
+  const [bandMin,bandMax]=opts.band||[ovr4[0]-5,ovr4[3]+5];
+  const season=G.season||1;
+  const clubLevel={};G.leagues.forEach(l=>l.clubs.forEach(c=>{clubLevel[c.id]=l.level;}));
+  let signed=0;
+  while(true){
+    const squad=G.players.filter(p=>p.clubId===club.id);
+    if(squad.length>=targetSize)break;
+    if(opts.maxCount!=null&&signed>=opts.maxCount)break;
+    const cnt={GK:0,OBR:0,POL:0,NAP:0};
+    squad.forEach(p=>{if(cnt[p.pos]!=null)cnt[p.pos]++;});
+    // Składy i chronione rdzenie WSZYSTKICH klubów liczone raz na tę iterację pętli (nie per
+    // kandydat) — inaczej O(kandydaci × rozmiar_klubu) przy każdym podpisaniu, zbyt wolne dla
+    // całego świata AI.
+    const squadByClub={};
+    G.players.forEach(p=>{if(p.clubId>0)(squadByClub[p.clubId]||(squadByClub[p.clubId]=[])).push(p);});
+    const donorPosCnt={};
+    Object.keys(squadByClub).forEach(cid=>{
+      const cc={};squadByClub[cid].forEach(p=>{cc[p.pos]=(cc[p.pos]||0)+1;});
+      donorPosCnt[cid]=cc;
+    });
+    const coreCache={};
+    function coreOf(cid){
+      if(coreCache[cid])return coreCache[cid];
+      const donor=ALL_CLUBS.find(c=>c.id===cid);
+      const s=donor&&donor.ai?aiCoreProtect(donor,squadByClub[cid]||[]):new Set();
+      coreCache[cid]=s;return s;
+    }
+    let pool=G.players.filter(p=>{
+      if(p.clubId===club.id||p.clubId===G.myClubId||p.clubId<=0)return false;
+      if(opts.maxAge!=null&&p.age>opts.maxAge)return false;
+      const o=ovr(p);if(o<bandMin||o>bandMax)return false;
+      if(POS_QUOTA[p.pos]&&cnt[p.pos]>=POS_QUOTA[p.pos].max)return false;
+      const donorLvl=clubLevel[p.clubId];
+      if(donorLvl==null||Math.abs(donorLvl-lgLevel)>2)return false;
+      // Dawca musi mieć nadwyżkę na TEJ pozycji (zostaje z >= min po oddaniu) i to nie może
+      // być jego chroniony rdzeń.
+      if(POS_QUOTA[p.pos]&&(donorPosCnt[p.clubId]||{})[p.pos]<=POS_QUOTA[p.pos].min)return false;
+      // Dawca musi też mieścić się w SWOIM limicie sprzedaży na sezon (aiSellingCap) — inaczej
+      // klub omijałby własny limit, będąc częstym "dawcą" w cudzych realokacjach.
+      const donorClub=ALL_CLUBS.find(c=>c.id===p.clubId);
+      if(donorClub&&donorClub.ai){
+        const donorCap=aiSellingCap(donorClub,donorLvl);
+        if((donorClub.ai.sellsThisSeason||0)>=donorCap)return false;
+      }
+      return !coreOf(p.clubId).has(p.id);
+    });
+    if(opts.requireQuality)pool=pool.filter(p=>aiEvaluateSigning(p,p.pos,squad,club,lgLevel,ovr4[0]));
+    if(!pool.length)break;
+    // Priorytet: pozycje w deficycie (poniżej POS_QUOTA.min) najpierw, potem najwyższy OVR.
+    pool.sort((a,b)=>{
+      const da=POS_QUOTA[a.pos]?Math.max(0,POS_QUOTA[a.pos].min-cnt[a.pos]):0;
+      const db=POS_QUOTA[b.pos]?Math.max(0,POS_QUOTA[b.pos].min-cnt[b.pos]):0;
+      if(da!==db)return db-da;
+      return ovr(b)-ovr(a);
+    });
+    const p=pool[0];
+    const donor=ALL_CLUBS.find(c=>c.id===p.clubId);
+    // Cena nigdy nie przekracza połowy AKTUALNEGO budżetu kupującego — calcValue() dla
+    // realnego OVR łatwo sięga milionów niezależnie od ligi, kompletnie oderwane od budżetów
+    // klubów AI (LEAGUE_BUDGET startuje od 12k). Bez tego nawet bezpiecznik minimalnego składu
+    // (wywołania bez requireBudget) potrafił wpędzić klub w dziesiątki milionów długu.
+    const estPrice=Math.min(
+      Math.round(calcValue(ovr(p),p.age)*r(60,90)/100/1000)*1000,
+      Math.max(500,Math.round((ai.budget||0)*0.5/500)*500)
+    );
+    if(opts.requireBudget&&(ai.budget||0)<estPrice*0.7)break;
+    aiTransferPlayer(p,donor,club,estPrice,season,false);
+    signed++;
+  }
+}
+
 function aiTransferPlayer(p,fromClub,toClub,price,season,isWinter){
   if(!p.formerClubs)p.formerClubs=[];
   const fc=p.formerClubs.find(x=>x.clubId===fromClub.id);
@@ -772,7 +948,17 @@ function aiTransferPlayer(p,fromClub,toClub,price,season,isWinter){
   // Statystyki za całą historię kariery (nieprzycinane, w odróżnieniu od transferLog)
   toClub.ai.totalSpent=(toClub.ai.totalSpent||0)+price;
   toClub.ai.totalBuys=(toClub.ai.totalBuys||0)+1;
+  toClub.ai.signingsThisSeason=(toClub.ai.signingsThisSeason||0)+1;
   if(price>0)_recordWorldTransfer({name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,fromClub:fromClub.n,toClub:toClub.n,type:'ai',clubId:toClub.id,playerId:p.id});
+  // Log po stronie sprzedającego — symetrycznie do kupującego. Jedyne miejsce, przez które
+  // przechodzi KAŻDY transfer AI (FAZA 2, aiSignReplacement, wydarzenia Kroniki), więc licząc
+  // to tutaj (a nie osobno u każdego wołającego) każda sprzedaż zawsze poprawnie się liczy.
+  if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
+  fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,toClub:toClub.n});
+  if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
+  fromClub.ai.totalEarned=(fromClub.ai.totalEarned||0)+price;
+  fromClub.ai.totalSells=(fromClub.ai.totalSells||0)+1;
+  fromClub.ai.sellsThisSeason=(fromClub.ai.sellsThisSeason||0)+1;
   fromClub.ai.budget=(fromClub.ai.budget||0)+price*0.7;
   toClub.ai.budget=(toClub.ai.budget||0)-price*0.8;
   return p;
@@ -782,9 +968,14 @@ function aiTransferSeason(isWinter){
   if(!G||!G.leagues)return;
   ensureClubsHaveAI();
   if(!G.retiredPlayers)G.retiredPlayers=[];
-  if(!G.fa)G.fa=[];
   const season=G.season||1;
   const importantNews=[];
+  // Limit podpisań (aiSigningCap) liczony narastająco przez oba okna tego samego sezonu —
+  // zerowanie PRZENIESIONE do aiSeasonalRefresh() (kronika.js), pierwszej funkcji w sekwencji
+  // zmiany sezonu: gdyby zerować dopiero tutaj (jak dawniej), podpisania z aiSeasonalRefresh()
+  // i aiRenewContracts() — obie wołane WCZEŚNIEJ w tej samej sekwencji — nigdy nie liczyłyby
+  // się do limitu, a FAZA 3 dostawałaby pełny limit jeszcze raz od zera. Stąd kluby AI robiły
+  // kilkanaście transferów/sezon zamiast kilku wg AI_TYPES.maxAnnualSignings.
 
   // ═══════════════════════════════════════════════════════════
   // FAZA 1: SPRZEDAŻ (do FA lub rynku AI)
@@ -807,18 +998,23 @@ function aiTransferSeason(isWinter){
       const prefMax={akademia:22,sprzedajacy:24,bogaty:25,stabilny:22}[ai.type]||22;
       const winterRate=isWinter?0.5:1.0; // zimą mniej ruchów
 
-      // Kandydaci do sprzedaży — tylko realne powody
-      const typeRate=ai.type==='stabilny'?def.sellRate*0.25:ai.type==='bogaty'?def.sellRate*0.3:def.sellRate;
-      const toSell=squad.filter(p=>{
-        if(p.clubId===G.myClubId)return false;
+      // Kandydaci do sprzedaży — konkretny powód (aiEvaluateSale) + ochrona rdzenia składu,
+      // nie luźny zbiór warunków za losową kostką jak dawniej. sellRate typu to już tylko
+      // tempo transakcji, nie selekcja — selekcja jest w aiEvaluateSale.
+      const core=aiCoreProtect(club,squad);
+      const sellCandidates=squad.filter(p=>{
         if((p._seasonsAtClub||0)===0)return false; // nie sprzedaj w pierwszym sezonie
-        const o=ovr(p);
-        const tooStrong=o>lgMax*1.15;
-        const contractExpired=p.contract<=0;
-        const overSquad=squad.length>prefMax;
-        const developed=ai.type==='sprzedajacy'&&(p._seasonsAtClub||0)>=2&&o>avgOvr+5;
-        return(tooStrong||contractExpired||overSquad||developed)&&Math.random()<typeRate*winterRate;
+        if(!aiEvaluateSale(p,club,squad,core,lgMax,prefMax,avgOvr))return false;
+        return Math.random()<def.sellRate*winterRate;
       });
+      // Limit sprzedaży na sezon (aiSellingCap) — symetryczny do limitu kupna (aiSigningCap).
+      // Wygasły kontrakt (p.contract<=0) ma pierwszeństwo nad limitem — to nie decyzja klubu,
+      // tylko wymuszona okoliczność (rzadkie tu — aiRenewContracts to zwykle już rozwiązał na
+      // starcie sezonu, zanim to okno w ogóle się otworzy).
+      const _forcedSell=sellCandidates.filter(p=>p.contract<=0);
+      const _voluntarySell=sellCandidates.filter(p=>p.contract>0);
+      const _remainingSells=Math.max(0,aiSellingCap(club,lvl)-(ai.sellsThisSeason||0));
+      const toSell=_forcedSell.concat(_voluntarySell.slice(0,_remainingSells));
 
       toSell.forEach(p=>{
         const price=Math.round(calcValue(ovr(p),p.age)*r(85,115)/100/1000)*1000;
@@ -850,18 +1046,21 @@ function aiTransferSeason(isWinter){
     if(p.clubId!==fromClub.id)return;
     const winterRate=isWinter?0.5:1.0;
 
-    // Szukaj kupca — wystarczy OVR fit, wolne miejsce i chęć zakupu
+    // Szukaj kupca — bramka jakości (aiEvaluateSigning: tylko lepszy/porównywalny na tej
+    // pozycji), limit podpisań na sezon, wolne miejsce i chęć zakupu.
     const allBuyers=allAiClubs.filter(c=>{
       if(c.id===fromClub.id)return false;
       const cLg=G.leagues.find(l=>l.clubs.some(x=>x.id===c.id));
       const cLvl=cLg?cLg.level:99;
       const cOvr4=LEAGUE_OVR[cLvl]||[20,35,35,55];
       const lvlOk=Math.abs(cLvl-lvl)<=2;
-      const ovrOk=ovr(p)>=cOvr4[0]-5&&ovr(p)<=cOvr4[3]+10;
-      const hasRoom=G.players.filter(x=>x.clubId===c.id).length<25;
+      const cSquad=G.players.filter(x=>x.clubId===c.id);
+      const hasRoom=cSquad.length<25;
       const wantsBuy=Math.random()<(AI_TYPES[c.ai.type]||AI_TYPES.stabilny).buyRate*winterRate;
       const canAfford=(c.ai.budget||0)>=price*0.8;
-      return lvlOk&&ovrOk&&hasRoom&&wantsBuy&&canAfford;
+      const underCap=(c.ai.signingsThisSeason||0)<aiSigningCap(c,cLvl);
+      const qualityOk=aiEvaluateSigning(p,p.pos,cSquad,c,cLvl,cOvr4[0]);
+      return lvlOk&&hasRoom&&wantsBuy&&canAfford&&underCap&&qualityOk;
     });
 
     let buyer=null;
@@ -870,24 +1069,22 @@ function aiTransferSeason(isWinter){
       allBuyers.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));
       buyer=allBuyers[0];
     } else {
-      // Ostatni fallback: dowolny klub z wolnym miejscem i pasującym OVR
+      // Ostatni fallback: dowolny klub z wolnym miejscem, pasującym OVR i wciąż pod bramką jakości
       const last=allAiClubs.filter(c=>{
         if(c.id===fromClub.id)return false;
         const cLg=G.leagues.find(l=>l.clubs.some(x=>x.id===c.id));
         const cLvl=cLg?cLg.level:99;
         const cOvr4=LEAGUE_OVR[cLvl]||[20,35,35,55];
-        return Math.abs(cLvl-lvl)<=2&&ovr(p)>=cOvr4[0]-5&&ovr(p)<=cOvr4[3]+12&&G.players.filter(x=>x.clubId===c.id).length<25&&(c.ai.budget||0)>=price*0.8;
+        const cSquad=G.players.filter(x=>x.clubId===c.id);
+        return Math.abs(cLvl-lvl)<=2&&cSquad.length<25&&(c.ai.budget||0)>=price*0.8
+          &&(c.ai.signingsThisSeason||0)<aiSigningCap(c,cLvl)&&aiEvaluateSigning(p,p.pos,cSquad,c,cLvl,cOvr4[0]);
       });
       if(last.length){last.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));buyer=last[0];}
     }
 
     if(buyer){
+      // Log obu stron (buy/sell, totalEarned/totalSells) — liczony wewnątrz aiTransferPlayer().
       aiTransferPlayer(p,fromClub,buyer,price,season,isWinter);
-      if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
-      fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,toClub:buyer.n});
-      if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
-      fromClub.ai.totalEarned=(fromClub.ai.totalEarned||0)+price;
-      fromClub.ai.totalSells=(fromClub.ai.totalSells||0)+1;
       const nearMyLeague=lvl===G.myLeague||Math.abs(lvl-G.myLeague)<=1;
       if(nearMyLeague||isStar){
         importantNews.push({msg:t('mp_news_transferred').replace('{name}',p.name).replace('{pos}',POS_SHORT[p.pos]||p.pos).replace('{ovr}',ovr(p)).replace('{from}',fromClub.n).replace('{to}',buyer.n),type:'info'});
@@ -907,25 +1104,10 @@ function aiTransferSeason(isWinter){
       if(_wtRank>=0&&_wtRank<10){
         addWorldNewsEvent('record',{clubId:buyer.id,leagueLevel:_buyerLvl,playerId:p.id,vars:_trVars});
       }
-    } else {
-      // Naprawdę nikt nie pasuje → FA
-      const fc=p.formerClubs?p.formerClubs.find(x=>x.clubId===fromClub.id):null;
-      if(fc)fc.seasons=(fc.seasons||0)+1;
-      else{if(!p.formerClubs)p.formerClubs=[];p.formerClubs.push({clubId:fromClub.id,clubName:fromClub.n,seasons:1});}
-      p.clubId=0;p.starter=false;p.status='freeAgent';p.isFreeAgent=true;
-      if(!G.fa)G.fa=[];
-      G.fa.push(p);
-      if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
-      fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,playerId:p.id,toClub:null});
-      if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
-      fromClub.ai.totalEarned=(fromClub.ai.totalEarned||0)+price;
-      fromClub.ai.totalSells=(fromClub.ai.totalSells||0)+1;
-      if(price>0)_recordWorldTransfer({name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season,fromClub:fromClub.n,toClub:t('world_market'),type:'ai',clubId:fromClub.id,playerId:p.id});
     }
+    // Brak kupca → transakcja nie dochodzi do skutku, zawodnik zostaje w klubie (zamknięty
+    // świat: nikt nie zawisa bez klubu, patrz js/CLAUDE.md).
   });
-
-  // Oczyść G.players z zawodników sprzedanych do FA (clubId=0, status freeAgent)
-  G.players=G.players.filter(p=>p.clubId>0);
 
   // ═══════════════════════════════════════════════════════════
   // FAZA 3: ZAKUPY Z FA + JUNIORZY + REGENERACJA
@@ -948,54 +1130,56 @@ function aiTransferSeason(isWinter){
       const avgOvr=starters.length?Math.round(starters.reduce((s,p)=>s+ovr(p),0)/starters.length):lgMin;
       const winterRate=isWinter?0.5:1.0;
 
-      // ── ZAKUPY Z FA — tylko G.fa, bez generowania nowych ──────────────
+      // ── ZAKUPY: realokacja bezpośrednia z nadwyżek innych klubów ──────
+      // aiSignReplacement(): priorytet pozycji w deficycie (POS_QUOTA), zawsze log transferu.
+      // Limit podpisań na sezon (aiSigningCap) obowiązuje TU już od razu — nie tylko w drugim,
+      // "opcjonalnym" kroku niżej — bo to właśnie brak tego liczyło się w każdym kroku osobno
+      // i dawało kilkanaście transferów/sezon zamiast kilku wg AI_TYPES.maxAnnualSignings.
+      // Wyjątek: prawdziwy kryzys składu (<18) zawsze ma pierwszeństwo nad limitem.
+      const signingCap=aiSigningCap(club,lvl);
+      if(squadNow.length<prefSize){
+        const remaining0=Math.max(0,signingCap-(ai.signingsThisSeason||0));
+        const mc0=squadNow.length<18?2:Math.min(2,remaining0);
+        if(mc0>0)aiSignReplacement(club,lvl,{targetSize:prefSize,maxCount:mc0,maxAge:def.maxBuyAge,band:[lgMin-5,lgMax+10]});
+      }
       const needsBuy=squadNow.length<prefSize||avgOvr<lgMin*0.88||(ai.promoted&&!isWinter);
       const wantsBuy=Math.random()<def.buyRate*winterRate;
-      if((needsBuy||wantsBuy)&&squadNow.length<prefMax){
+      const curSizeAfterMin=G.players.filter(p=>p.clubId===club.id).length;
+      if((needsBuy||wantsBuy)&&curSizeAfterMin<prefMax&&(ai.signingsThisSeason||0)<signingCap){
         const buyCount=ai.promoted&&!isWinter?r(2,3):r(1,2);
-        for(let i=0;i<buyCount;i++){
-          if(G.players.filter(p=>p.clubId===club.id).length>=prefMax)break;
-          const faPool=(G.fa||[]).filter(p=>p.clubId===0&&p.status!=='retired'&&p.age<=def.maxBuyAge&&ovr(p)>=lgMin-5&&ovr(p)<=lgMax+10);
-          if(!faPool.length)break; // brak dostępnych FA — nie generuj nowych
-          faPool.sort((a,b)=>ovr(b)-ovr(a));
-          // Wybierz najlepszego kandydata, na którego klub faktycznie ma budżet
-          let newP=null,price2=0;
-          for(const cand of faPool){
-            const estPrice=Math.round(calcValue(ovr(cand),cand.age)*r(90,115)/100/1000)*1000;
-            if((ai.budget||0)>=estPrice*0.7){newP=cand;price2=estPrice;break;}
-          }
-          if(!newP)break; // nie stać klubu na żadnego z dostępnych FA — koniec zakupów w tej rundzie
-          if(!newP.formerClubs)newP.formerClubs=[];
-          if(!newP.history)newP.history=[];
-          fillHistoryGaps(newP);
-          const _lhFA=newP.history[newP.history.length-1];
-          if(_lhFA&&_lhFA.clubId&&_lhFA.clubId!==club.id)_lhFA.transferOut={type:'sell',toClub:club.n,toClubId:club.id,price:0,season};
-          newP.clubId=club.id;newP.contract=r(2,4);newP.starter=false;
-          newP.status='active';newP.isFreeAgent=false;newP._seasonsAtClub=0;
-          if(!newP.history.find(h=>h._current&&h.season===season&&h.clubId===club.id)){
-            newP.history.push({season,clubId:club.id,club:club.n,m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(newP),avgRat:null,_current:true});
-          }
-          G.fa=G.fa.filter(p=>p!==newP);
-          G.players.push(newP);
-          if(!ai.transferLog)ai.transferLog=[];
-          ai.transferLog.unshift({type:'buy',name:newP.name,pos:newP.pos,ovr:ovr(newP),age:newP.age,price:0,season,playerId:newP.id,fromClub:'FA'});
-          if(ai.transferLog.length>20)ai.transferLog.pop();
-          ai.budget=(ai.budget||0)-price2*0.7;
-        }
+        const capLeft=Math.min(buyCount,signingCap-(ai.signingsThisSeason||0),prefMax-curSizeAfterMin);
+        aiSignReplacement(club,lvl,{targetSize:curSizeAfterMin+capLeft,maxCount:capLeft,maxAge:def.maxBuyAge,
+          band:[lgMin-5,lgMax+10],requireQuality:true,requireBudget:true});
       }
 
       // ── JUNIORZY — tylko latem, tylko 'akademia' i 'sprzedajacy' ──────
       if(!isWinter){
-        const [jMin,jMax]=def.juniors;
-        if(jMax>0&&Math.random()<0.85){
+        const [jMin,jMaxBase]=def.juniors;
+        // Ligi 1-2: większe zaplecze skautingowe czołowych klubów — +1 do górnego limitu.
+        const jMax=(lvl<=2&&(ai.type==='akademia'||ai.type==='sprzedajacy'))?jMaxBase+1:jMaxBase;
+        // Wcześniej Math.random()<0.85 (część klubów pomijała nabór): dopływ juniorów musi
+        // domykać się z odpływem emerytów (patrz analiza kurczącej się populacji świata) —
+        // nawet po usunięciu podwójnej loterii emerytalnej brakowało ~18% dopływu; usunięcie
+        // tego losowego pominięcia daje +17,6% naboru, prawie dokładnie tyle ile brakowało.
+        if(jMax>0){
           const count=r(jMin,jMax);
           for(let j=0;j<count;j++){
-            if(G.players.filter(p=>p.clubId===club.id).length>=prefMax)break;
-            const juniorOvr=r(lgMin-8,lgMin+5);
+            const curSquadJ=G.players.filter(p=>p.clubId===club.id);
+            if(curSquadJ.length>=prefMax)break;
+            // Pozycja juniora: priorytet deficytu wg POS_QUOTA, nigdy ponad max (mkPlayer()
+            // sam losuje pozycję z ustalonych proporcji 1GK/3OBR/3POL/1NAP, bez wiedzy o
+            // składzie klubu — nadpisujemy jej wybór poniżej).
+            const cntJ={GK:0,OBR:0,POL:0,NAP:0};
+            curSquadJ.forEach(p=>{if(cntJ[p.pos]!=null)cntJ[p.pos]++;});
+            const deficitPos=Object.keys(POS_QUOTA).filter(pos=>cntJ[pos]<POS_QUOTA[pos].min);
+            const openPos=Object.keys(POS_QUOTA).filter(pos=>cntJ[pos]<POS_QUOTA[pos].max);
+            if(!openPos.length)break; // wszystkie pozycje pełne — koniec naboru w tym oknie
+            const juniorOvr=r(lgMin-3,lgMin+10);
             const junior=mkPlayer(club.id);
+            junior.pos=deficitPos.length?pick(deficitPos):pick(openPos);
             junior.age=r(16,18);
             ['tec','pas','sht','def','phy','men'].forEach(a=>{junior[a]=Math.max(1,Math.min(99,Math.round(juniorOvr+r(-5,5))));});
-            junior.potential=Math.min(99,Math.round(lgMax*0.9+r(0,10)));
+            junior.potential=calcPotential(junior,lvl);
             junior.contract=r(2,3);junior.starter=false;junior.fromAcademy=true;
             junior.status='active';junior._seasonsAtClub=0;
             junior.value=calcValue(ovr(junior),junior.age);
@@ -1014,26 +1198,10 @@ function aiTransferSeason(isWinter){
         }
       }
 
-      // ── REGENERACJA — minimum 22 tylko z G.fa (zamknięty świat) ────────
-      const finalSq=G.players.filter(p=>p.clubId===club.id);
-      const missing2=Math.max(0,22-finalSq.length);
-      for(let k=0;k<missing2;k++){
-        const faRegen=(G.fa||[]).filter(p=>p.clubId===0&&p.status!=='retired'&&ovr(p)>=lgMin-8&&ovr(p)<=lgMax+8);
-        if(!faRegen.length)break; // brak FA — nie generuj nowych
-        faRegen.sort((a,b)=>ovr(b)-ovr(a));
-        const rp=faRegen[0];
-        fillHistoryGaps(rp);
-        rp.clubId=club.id;rp.contract=r(1,3);rp.starter=false;rp.status='active';rp.isFreeAgent=false;
-        rp.value=calcValue(ovr(rp),rp.age);
-        rp.salary=calcSalary(rp.value,lvl,ovr(rp));
-        const _lhRp=rp.history&&rp.history.length?rp.history[rp.history.length-1]:null;
-        if(_lhRp&&_lhRp.clubId!==club.id)_lhRp.transferOut={type:'podpisanie',toClub:club.n,toClubId:club.id,price:0,season};
-        if(!rp.history.find(h=>h._current&&h.season===season&&h.clubId===club.id)){
-          rp.history.push({season,clubId:club.id,club:club.n,m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(rp),avgRat:null,_current:true});
-        }
-        G.fa=G.fa.filter(p=>p!==rp);
-        G.players.push(rp);
-      }
+      // ── REGENERACJA: usunięta — czysta duplikacja z kroku "ZAKUPY" kilka linii wyżej
+      // (ten sam docelowy rozmiar, ta sama funkcja), patrz komentarz przy kroku 5
+      // aiRenewContracts() (match-post.js) — jeden z kilku redundantnych przebiegów, które
+      // razem dawały kilkanaście transferów/sezon zamiast kilku.
 
       // ── ŻYWY ŚWIAT AI: przychód sezonowy + cel zarządu (tylko latem) ──────
       // Liczone TU, na końcu FAZA 3 — po sprzedażach, zakupach i juniorach — żeby przychód

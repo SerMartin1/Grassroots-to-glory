@@ -1,5 +1,9 @@
 function r(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
+// Fisher-Yates: kolejność losowa co wywołanie — używane tam, gdzie kolejność iteracji po klubach
+// AI decyduje o pierwszeństwie do wspólnej puli (np. podpisywanie z G.fa), żeby nie faworyzować
+// systematycznie tych samych klubów przez stałą kolejność ALL_CLUBS.
+function shuffled(a){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 // Waluta bazowa gry to EUR (rate 1). USD/PLN są przeliczane wyłącznie na potrzeby wyświetlania.
 const CURRENCY_RATES={USD:1.09,EUR:1,PLN:4.3};
 const CURRENCY_SYMBOLS={USD:'$',EUR:'€',PLN:'zł'};

@@ -4,6 +4,73 @@ Zasady
 Po każdej większej zmianie dopisz kilka krótkich punktów opisujących, co zostało zmienione wraz z datą.
 
 
+12.07.2026
+1. Zakładka WYNIKI w karcie klubu — mecze otwierały się „z opóźnieniem"
+- Przyczyna: modal klubu jest przy każdym otwarciu przenoszony na koniec <body>, więc przy tym samym z-index co overlay meczu zawsze lądował nad nim — klik na mecz otwierał overlay ukryty pod wciąż widocznym modalem klubu. Naprawione: klik na mecz najpierw zamyka modal klubu (closeClubModal()), dopiero potem otwiera szczegóły meczu.
+
+2. Oceny zawodników w szczegółach meczu — podpis drużyny + naprawiony brakujący skład rywala
+- Sekcja ocen podzielona na dwie grupy z nagłówkiem nazwy drużyny (gospodarz/gość) zamiast jednej wymieszanej listy bez podpisu — dotyczy meczów AI-AI i gracz-AI.
+- Złapany przy okazji poważniejszy błąd: mecz gracz-AI zapisywał w historii (G.mHist) oceny WYŁĄCZNIE własnych zawodników (filtr myPl() w match-engine.js) — oceny rywala AI w ogóle nie trafiały do zapisu, więc w historycznym widoku meczu połowa ocen zawsze była pusta. Naprawione zapisem obu drużyn, tak jak już działo się to dla meczów AI-AI.
+
+3. Zakładka Tabela → Wyniki — można teraz otworzyć też mecze AI-AI
+- Wcześniej klikalne były wyłącznie mecze z udziałem klubu gracza (lgRefreshWyniki() w season-summary.js); mecze AI-AI nie miały żadnej akcji. Dodane wyszukiwanie wpisu w G._mHistAI i otwarcie tych samych szczegółów meczu.
+
+4. Powrót do widoku meczu po otwarciu karty zawodnika ze strzelców/ocen
+- Linki do zawodnika w szczegółach meczu zamykały overlay meczu PRZED otwarciem karty zawodnika, więc mechanizm zapamiętywania „skąd wróciłem" (_captureReturnPoint()) nie widział już overlayu jako otwartego i po zamknięciu karty gracz lądował w złym miejscu (np. w tabeli ligi). Naprawione: overlay zamyka się dopiero PO otwarciu karty (showById() w news-bootstrap.js), tym samym wzorcem co już istniał dla modalu klubu/podsumowania sezonu.
+
+5. News o wyniku meczu — przycisk „ZOBACZ MECZ" + naprawiony brak natychmiastowego wyświetlania
+- Wiadomość o wyniku Twojego meczu w aktualnościach dostała przycisk prowadzący wprost do szczegółów tego meczu.
+- Złapany własny błąd po drodze: addNews() renderuje listę od razu w środku siebie, a pole action/actionLabel dopisywało się do newsa DOPIERO po tym wywołaniu — pierwszy render wychodził bez przycisku i pojawiał się dopiero po przypadkowym kolejnym odświeżeniu listy. Naprawione dodatkowym renderNews() po ustawieniu action.
+
+6. Przebudowa „PRZEBIEG MECZU" — wydarzenia pogrupowane per drużyna
+- Zamiast jednej chronologicznej listy z tagiem drużyny przy strzelcu: dwie kolumny — wydarzenia gospodarzy po lewej, gości po prawej, każda z nagłówkiem nazwy drużyny i własną chronologią (gole + kartki). Kartki (bez zapisanej wprost drużyny w danych) przypisywane po aktualnym klubie zawodnika, tak jak już robiła to sekcja ocen.
+- W kartach ocen doszły ikonki ⚽/🅰️ przy nazwisku — liczba ikonek odpowiada liczbie goli/asyst danego zawodnika w tym meczu.
+
+7. Karta zawodnika: zakładka NAGRODY nie odświeżała się od razu
+- renderPlayerAwards() był wołany wyłącznie przy ręcznym kliknięciu zakładki, w przeciwieństwie do zakładki HISTORIA, która odświeża się przy każdym (re)renderze karty. Efekt: świeża nagroda (np. MVP) nie pojawiała się, dopóki gracz nie przełączył zakładki i nie wrócił. Naprawione — nagrody renderują się teraz zawsze przy otwarciu/odświeżeniu karty, tak samo jak historia.
+
+8. Powrót z karty klubu otwartej z poziomu karty zawodnika
+- Audyt całego mechanizmu powrotu (karta klubu/gracza/mecz/podsumowanie sezonu) wykrył jeszcze jedną lukę: klik na nazwę klubu w karcie zawodnika zamykał kartę zawodnika PRZED otwarciem karty klubu, więc karta klubu nie miała zapisane, skąd przyszła — zamknięcie lądowało na przypadkowym wcześniejszym panelu zamiast z powrotem na karcie zawodnika. Naprawione dopisaniem tej ścieżki do window._clubModalReturn/closeClubModal(), tym samym mechanizmem co istniejący już powrót karta klubu ↔ szczegóły meczu.
+
+9. Diagnoza i naprawa spadku OVR klubów AI — rozwój, transfery, limity pozycji
+- Diagnoza (symulacja wieloseznowa w izolowanym środowisku, nie w grze): OVR klubów AI systematycznie spadał, bo `aiSeasonalRefresh()` (kronika.js) miał starzenie 28+ i wzrost ≤22 lat, ale zupełną lukę 23-27 lat (wiek świetności zawodnika stał w miejscu), a AI w ogóle nie miało własnego treningu.
+- `aiSeasonalRefresh()` przebudowany: nowy mnożnik `clubDevMult` (filozofia klubu × reputacja × sukces kończącego się sezonu — górna połowa tabeli/Puchar) przyspiesza rozwój i łagodzi starzenie; nowe pasmo wzrostu 23-27 lat.
+- Mechanika transferowa AI przepisana od zera (`match-post.js`): sprzedaż/zakup przechodzi teraz przez bramkę jakości (`aiEvaluateSale`/`aiEvaluateSigning` — kupuj tylko lepszych/porównywalnych, sprzedawaj tylko z konkretnym powodem), ochronę rdzenia składu (`aiCoreProtect` — najlepsi + młodzi wychowankowie nie idą na sprzedaż bez wyjątkowej oferty) i limit podpisań na sezon skalowany typem klubu i ligą (`aiSigningCap`, `LEAGUE_AI_TUNING`). Nowy mechanizm: AI proaktywnie przedłuża kontrakty chronionym graczom przed wygaśnięciem (`aiTryRenewContracts`), zamiast tracić ich bez decyzji klubu.
+- Nowe limity liczby zawodników na pozycję w składzie (`POS_QUOTA`, data.js) — bez tego kluby AI potrafiły zgromadzić np. 10 bramkarzy i 0 napastników (zmierzone: 38% klubów z ≥4 bramkarzami po 8 sezonach), co samo w sobie osłabiało wyniki i przez to tempo rozwoju.
+- Usunięty reset składu dołu VIII Ligi (season-summary.js) — kasował zawodników bez śladu i tworzył nowych przez surowy mkPlayer() z pominięciem pasma OVR ligi; to też był błąd, przez który klub GRACZA (jeśli spadł na dno VIII Ligi) tracił cały skład bez ostrzeżenia.
+
+10. Likwidacja puli wolnych agentów (G.fa) — zamknięty świat
+- Nowa, formalna zasada w js/CLAUDE.md: świat zawodników to zamknięty obieg — wejście wyłącznie jako junior, wyjście wyłącznie przez emeryturę, cała reszta to bilansowanie między klubami. Pula G.fa (zawodnicy „zawieszeni" bez klubu) łamała tę zasadę i dawała nierealistyczne, oderwane od budżetu ceny.
+- Silnik AI: wygasły kontrakt/sprzedaż bez kupca szuka teraz bezpośrednio realnego klubu z wolnym miejscem (`aiSignReplacement` — zastąpił dawną `aiSignFromFA`); brak takiego klubu = kontrakt zostaje automatycznie przedłużony. Zero zawodników w zawieszeniu.
+- Panel kryzysu kadrowego gracza (navigation-squad.js) pokazuje teraz konkretne, nazwane oferty transferu od klubów AI z nadwyżką na danej pozycji zamiast anonimowej listy „wolnych agentów", z ceną kotwiczoną do aktualnego budżetu gracza (nigdy więcej niż połowa) zamiast pełnej wartości rynkowej.
+- 8 wydarzeń Kroniki Klubu opartych o G.fa (m.in. „okazja transferowa", „licytacja z rywalem", zbuntowany zawodnik) przepisane na realnych kandydatów z nadwyżki u klubów AI, z tą samą logiką kotwiczenia ceny do budżetu.
+- 150 startowych wolnych agentów rozdzielone bezpośrednio do klubów AI na starcie gry zamiast osobnej puli.
+
+11. Naprawa nadmiernej liczby transferów AI po pkt. 9-10
+- Po wdrożeniu limitu podpisań na sezon (pkt 9) okazało się, że i tak dochodziło do kilkunastu transferów na klub na sezon zamiast kilku wg AI_TYPES.maxAnnualSignings, część z kwotami sięgającymi setek milionów euro, część klubów AI na kilkudziesięciomilionowym minusie budżetowym.
+- Przyczyna 1: `aiTransferPlayer()` nigdy nie zapisywał strony sprzedającego (tylko kupującego) — naprawione, teraz loguje obie strony jednego transferu w jednym miejscu.
+- Przyczyna 2: cztery z pięciu miejsc uzupełniających skład AI nie miały żadnego limitu liczby zakupów na wywołanie ani odniesienia ceny do budżetu — dodane limity i cena kotwiczona do budżetu kupującego (ta sama zasada co w pkt 10).
+- Przyczyna 3: trzy niezależne, redundantne ścieżki robiły dokładnie to samo zadanie („uzupełnij skład") w tej samej sekwencji zmiany sezonu — dwie usunięte jako czysta duplikacja.
+- Przyczyna 4: limit podpisań na sezon zerował się w środku sekwencji zmiany sezonu, PO tym jak dwie wcześniejsze funkcje już coś podpisały — te podpisania nigdy się nie liczyły do limitu. Reset przeniesiony na sam początek sekwencji.
+- Wynik: liczba transferów na klub na sezon spadła o połowę, 0 klubów AI na minusie budżetowym w symulacji 5-sezonowej (wcześniej ~55 na ~127). Nadal wyżej niż docelowe 3-6/sezon — do dalszej obserwacji.
+
+12. Limit sprzedaży, domknięcie ostatniej dziury w limitach transferów AI i naprawa populacji świata
+- Dodany symetryczny limit sprzedaży (`aiSellingCap`, `maxAnnualSells` w AI_TYPES — akademia 2, sprzedający 5, bogaty 1, stabilny 2, skalowane ligą) — do tej pory capowane było tylko kupno, sprzedaż nie miała żadnego ograniczenia.
+- Znaleziona i domknięta ostatnia nielimitowana ścieżka: krok „wygasłe kontrakty" w `aiRenewContracts()` (match-post.js) przenosił zawodnika do innego klubu całkowicie z pominięciem `aiSigningCap`/`aiSellingCap` — to była najbardziej masowa, w pełni bezlimitowa ścieżka transferów AI. Naprawione: transfer odbywa się teraz tylko gdy obie strony mają jeszcze zapas w limicie sezonowym; inaczej kontrakt automatycznie się przedłuża (już istniejący fallback).
+- Wynik (symulacja 5-sezonowa): wolumen transferów na klub spadł z 48-64 (suma kupna+sprzedaży po 5 sezonach) do 25-49, zgodnie z zaprojektowanymi limitami per typ klubu (np. „sprzedający" z założenia ma wyższy wolumen — to jego filozofia, nie błąd).
+
+13. Diagnoza i naprawa spadającego OVR świata AI, cz. 2 — nieosiągalny potencjał juniorów
+- Diagnoza (symulacja 16-sezonowa z podziałem na grupy wiekowe): OVR grupy ≤22 lat spadał z ~46 do ~32 i się tam stabilizował, a `headroom` (potencjał minus OVR) rósł bez końca zamiast się domykać — grupa 23-27 zaczynała łapać ten sam spadek po ok. 6 sezonach, gdy słaby rocznik zaczynał w nią wchodzić.
+- Przyczyna: generator juniorów AI (`aiTransferSeason`, match-post.js) liczył potencjał osobnym wzorem kotwiczonym do szczytu ligi (`lgMax*0.9+r(0,10)`), niezależnie od faktycznego (niskiego) OVR startowego juniora — luka 26-31 pkt, nieosiągalna przy obecnym tempie wzrostu. Cała reszta świata (populacja startowa, `mkLeaguePlayers()`) już używała właściwej, powiązanej z OVR formuły `calcPotential()` (data.js) — to był jedyny niespójny punkt.
+- Naprawione dwoma zmianami w tej samej funkcji: pasmo startowego OVR juniora podniesione z `r(lgMin-8,lgMin+5)` na `r(lgMin-3,lgMin+10)`, potencjał liczony teraz przez `calcPotential(junior,lvl)` zamiast osobnego wzoru — headroom po zmianie stabilny ~12 pkt (dopasowany do reszty świata) zamiast rosnącego bez końca.
+- Sprawdzone: system akademii własnego klubu gracza (`systems/academy.js`) ma podobnie dużą lukę potencjału (min. 20 pkt), ale to inny, zamierzony mechanizm — napędzany aktywnym treningiem gracza (`training-stadium.js`, bez twardej granicy wieku, ze wzmocnieniami z centrum treningowego), analitycznie osiągalny w ~7 sezonach nawet bez inwestycji. Zostawiony bez zmian.
+
+14. Naprawa kurczącej się populacji świata AI
+- Diagnoza: mimo napraw z pkt. 12-13 populacja świata AI systematycznie malała (3428→2921 w 16 sezonów, ~15%, bez oznak zatrzymania), choć dobór juniorów (~140-210/sezon) formalnie przewyższał zmierzony odpływ emerytów.
+- Przyczyna 1 — podwójna loteria emerytalna: `season-summary.js` losował emeryturę dla WSZYSTKICH zawodników (`G.players.forEach`, próg 10-90% wg wieku) tuż przed tym, jak `aiRenewContracts()` (match-post.js) robił dla klubów AI DRUGĄ, niezależną loterię (inny próg 5-90%) — AI miało efektywnie dwie szanse na emeryturę w tym samym sezonie zamiast jednej. Pętla w `season-summary.js` miała wyraźny ślad, że pierwotnie miała dotyczyć tylko klubu gracza (news o zapowiedzi emerytury filtrowany po `myClubId`) — zawężona do `myPl()`, tak jak było zamierzone; AI ma teraz jedną, właściwą loterię.
+- Przyczyna 2 — dobór juniorów wciąż za wolny nawet bez duplikatu: każdy klub AI miał tylko 85% szans w sezonie na w ogóle podjęcie naboru juniora (`Math.random()<0.85` w `aiTransferSeason`) — usunięty ten losowy próg (+17,6% naboru), dopasowane do zmierzonego niedoboru (~18%).
+- Wynik (symulacja 16-sezonowa): populacja ustabilizowała się w okolicach 3120-3260 zamiast dalej spadać (spadek złagodniał z ~15% do ~9% i się wypłaszcza od 6. sezonu). Średni OVR świata nadal spada podobnym tempem co wcześniej — to osobny, wciąż niezbadany wątek (skład populacji nowych juniorów zdaje się przesuwać w stronę słabszych lig z czasem), do dalszej analizy.
+
 11.07.2026
 1. Newsy klubowe/transferowe — osobna sekcja per liga
 - Przeniesione z ogólnej zakładki Świat do kontekstu przeglądu lig (ui/season-summary.js) — każda liga ma teraz własną zakładkę Newsy z wydarzeniami klubów tej ligi.
