@@ -2144,9 +2144,16 @@ function aiSeasonalRefresh(){
         }
         p.value=calcValue(ovr(p),p.age);
       });
-      // 2. Naturalne wzrosty: zawodnicy <22 lat zyskują atrybuty
+      // 2. Naturalne wzrosty: zawodnicy <22 lat zyskują atrybuty. Tempo skalibrowane na
+      // realny trening gracza (week-progress.js: cotygodniowy fokus, NOR, bez centrum
+      // treningowego) — Monte Carlo obu ścieżek pokazał, że dawne r(1,2)/sezon dawało AI
+      // ~1-1,5 pkt/sezon wobec ~8-9 pkt/sezon u gracza (4-9× wolniej), a w dekompozycji
+      // sumy OVR świata trening AI netto ledwo równoważył starzenie (+70..+180 pkt/sezon
+      // na ~2000 graczy) — praktycznie nie licząc się przy odpływie emerytur (patrz
+      // zgłoszenie o spadającym OVR świata, symulacja 16-sezonowa). r(6,10) daje AI przy
+      // clubDevMult=1,0 średnio ~8 pkt/sezon — tego samego rzędu co gracz na NOR.
       sq.filter(p=>p.age<=22).forEach(p=>{
-        const gain=Math.round(r(1,2)*clubDevMult*(p.trainRate||1.0));
+        const gain=Math.round(r(6,10)*clubDevMult*(p.trainRate||1.0));
         const attrs=['tec','pas','sht','def','phy','men'];
         for(let i=0;i<gain;i++){
           const a=attrs[Math.floor(Math.random()*attrs.length)];
@@ -2156,8 +2163,10 @@ function aiSeasonalRefresh(){
       });
       // 3. Dojrzewanie w wieku 23-27: bez tego pasmo lat świetności zawodnika stało w miejscu
       // między młodzieżowym wzrostem (<=22) a starzeniem (28+) — patrz analiza spadku OVR AI.
+      // r(4,8) — ta sama kalibracja co pkt. 2, lekko niżej (odpowiednik malejącego ageMod
+      // gracza z wiekiem, patrz week-progress.js).
       sq.filter(p=>p.age>=23&&p.age<=27).forEach(p=>{
-        const gain=Math.round(r(0,2)*clubDevMult*(p.trainRate||1.0));
+        const gain=Math.round(r(4,8)*clubDevMult*(p.trainRate||1.0));
         const attrs=['tec','pas','sht','def','phy','men'];
         for(let i=0;i<gain;i++){
           const a=attrs[Math.floor(Math.random()*attrs.length)];

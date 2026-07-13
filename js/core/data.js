@@ -150,6 +150,13 @@ const LEAGUE_OVR={
 };
 // Potencjał per liga: [maxPot, bonusMin, bonusMax]
 // maxPot = sufit potencjału dla ligi; bonus = ile ponad OVR może sięgać
+// UWAGA: ta stała/calcPotential() jest wspólna dla CAŁEGO świata — sezon 1 (mkLeaguePlayers,
+// news-bootstrap.js), transferów (transfers.js) i juniorów AI (match-post.js). Poszerzenie
+// bMin/bMax TU podnosi potencjał również już dojrzałej, wysoko postawionej populacji startowej
+// (sezon 1), nie tylko młodych juniorów, którzy realnie potrzebują szerszego pasma do wzrostu —
+// zmierzone w symulacji: podbija to równowagę świata o +4 do +9 pkt PONAD sezon 1 zamiast ją
+// ustabilizować. Właściwe miejsce na szerszy bonus to WYŁĄCZNIE generator juniora AI
+// (match-post.js, `junior.potential=...`), osobno od tej stałej — patrz komentarz tam.
 const LEAGUE_POT={
   1:{max:99,bMin:5, bMax:20}, // Premier Division: gwiazdy blisko sufitu
   2:{max:90,bMin:8, bMax:25}, // I Liga: solidni zawodowcy
@@ -193,6 +200,12 @@ const POS_QUOTA={
   POL:{min:6, max:10},
   NAP:{min:4, max:7},
 };
+// Jedno wspólne źródło prawdy dla rozmiaru składu — zastępuje rozrzucone po match-post.js
+// literały (25/40/22-25 zależnie od miejsca). min = suma POS_QUOTA.min (nigdy nie łamana
+// przez żadną ścieżkę odpływu AI — sprzedaż, wygasły kontrakt), target = preferowany rozmiar
+// przy zwykłych zakupach, max = twardy sufit (AI i gracz, patrz doBuy()/signTalent()/
+// signFreeAgent()/kronTransferIn()).
+const SQUAD_SIZE={min:18, target:24, max:30};
 const LEAGUE_BUDGET={1:2000000,2:800000,3:300000,4:120000,5:60000,6:30000,7:18000,8:12000};
 const LEAGUE_SPONSORS={1:20000,2:8000,3:3000,4:1500,5:800,6:500,7:300,8:200};
 const FIN={

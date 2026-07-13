@@ -526,8 +526,12 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
   leagues.forEach(lg=>lg.clubs.forEach(club=>{
     if(club.id!==clubId&&!club.ai) club.ai=initClubAI(club,lg.level);
   }));
-  // ── AI TRANSFERY SEZONOWE DLA SEZONU 1 ───────────────────
-  try{ aiTransferSeason(false); }catch(e){ console.warn('aiTransferSeason s1 error:',e); }
+  // ── BRAK TRANSFERÓW AI NA START SEZONU 1 ──────────────────
+  // Świeżo utworzony świat: kluby AI mają już pełne składy z mkLeaguePlayers().
+  // Pierwsza aktywność transferowa AI w karierze pojawia się dopiero przy
+  // otwarciu okna zimowego (runda 16, patrz week-progress.js) — nie od razu
+  // na starcie. Od sezonu 2 wzwyż normalne okno letnie działa jak zwykle
+  // (season-summary.js woła aiTransferSeason(false) przy zmianie sezonu).
   // ── ŻYWY ŚWIAT AI: derby i bukmacherska zapowiedź na start sezonu 1 ──────
   // flushAllWeeklyNews() na końcu: season_preview z clubId trafia do bufora klubu
   // (jak każdy news z addWorldNewsEvent) i poza cotygodniowym tickiem nikt by go nie opróżnił.

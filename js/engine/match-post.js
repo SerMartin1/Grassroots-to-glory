@@ -585,11 +585,14 @@ function aiRenewContracts(){
     const fc=p.formerClubs.find(x=>x.clubId===p.clubId);
     if(fc)fc.seasons=(fc.seasons||0)+1;
     else if(p.clubId>0)p.formerClubs.push({clubId:p.clubId,clubName:_hClub?_hClub.n:'?',seasons:1});
-    // Ślad w logu klubu i w historii zawodnika — club-modal.js już umie wyrenderować
-    // "→ 🏁" dla p.status==='retired', wystarczy zostawić wpis.
+    // Ślad w logu klubu i w historii zawodnika — club-modal.js renderuje "→ 🏁" po fladze
+    // retired:true. Nie polegamy już na wyszukiwaniu żywego obiektu gracza po playerId —
+    // G.retiredPlayers jest przy zapisie gry przycinane do zawodników, którzy grali w klubie
+    // gracza (news-bootstrap.js), więc AI-owy emeryt po wczytaniu zapisu potrafił "zniknąć"
+    // z danych i log mylnie pokazywał "→ FA" zamiast 🏁.
     if(_hClub&&_hClub.ai){
       if(!_hClub.ai.transferLog)_hClub.ai.transferLog=[];
-      _hClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price:0,season:G.season,playerId:p.id,toClub:null});
+      _hClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price:0,season:G.season,playerId:p.id,toClub:null,retired:true});
       if(_hClub.ai.transferLog.length>20)_hClub.ai.transferLog.pop();
     }
     const _lhRet=p.history&&p.history.length?p.history[p.history.length-1]:null;
@@ -624,10 +627,16 @@ function aiRenewContracts(){
 
   // ── 4. WYGASŁE KONTRAKTY: bez odnowienia → bezpośrednie przeniesienie do klubu z wolnym
   // miejscem na tej pozycji (zamknięty świat: nikt nie zawisa bez klubu, patrz js/CLAUDE.md).
-  // Brak takiego klubu LUB brak zapasu w limicie sezonowym (dawcy/biorcy) → kontrakt zostaje
+  // Brak takiego klubu LUB brak zapasu w limicie sezonowym (dawcy/biorcy) LUB brak funduszy
+  // na symboliczną opłatę u żadnego kandydata LUB odejście złamałoby SQUAD_SIZE.min/POS_QUOTA.min
+  // klubu źródłowego LUB żaden kandydat nie ma OVR pasującego do swojej ligi → kontrakt zostaje
   // automatycznie przedłużony, zawodnik zostaje — inaczej ta ścieżka omijała aiSigningCap/
   // aiSellingCap całkowicie i generowała nielimitowany ruch (patrz zgłoszenie o nadmiarze
-  // transferów mimo limitów w aiTransferSeason()).
+  // transferów mimo limitów w aiTransferSeason()), albo podpisywała zawodnika mimo braku
+  // pokrycia w budżecie, albo drenowała słabsze kluby (zgłoszenie o klubach VII ligi spadających
+  // do ~14 zawodników po kilku sezonach), albo importowała zawodników poniżej poziomu ligi
+  // docelowej (zgłoszenie o spadającym OVR świata — symulacja: ta ścieżka to >50% wolumenu
+  // wszystkich transferów AI i była głównym źródłem spadku).
   const expired=G.players.filter(p=>p.clubId!==G.myClubId&&p.contract<=0&&!(p.traits&&p.traits.includes('lojalny')));
   const _clubLevel4={};G.leagues.forEach(l=>l.clubs.forEach(c=>{_clubLevel4[c.id]=l.level;}));
   // Liczniki rozmiaru/pozycji per klub, aktualizowane na bieżąco przy przenosinach — bez
@@ -645,11 +654,35 @@ function aiRenewContracts(){
     const fromClub=ALL_CLUBS.find(c=>c.id===oldClubId);
     const fromLvl=_clubLevel4[oldClubId]||8;
     const fromCapOk=!fromClub||!fromClub.ai||(fromClub.ai.sellsThisSeason||0)<aiSellingCap(fromClub,fromLvl);
-    const candidates=fromCapOk?ALL_CLUBS.filter(c=>c.id!==oldClubId&&c.id!==G.myClubId&&c.ai
+    // Klub źródłowy nie może zejść poniżej SQUAD_SIZE.min ani poniżej POS_QUOTA.min na tej
+    // pozycji — w odróżnieniu od dobrowolnej sprzedaży (aiEvaluateSale, chroni to samo) ta
+    // ścieżka nie miała żadnej ochrony, mimo że to najbardziej masowy odpływ zawodników AI
+    // (patrz zgłoszenie o klubach VII ligi spadających do ~14 zawodników po kilku sezonach).
+    const fromSizeAfter=(_sizeByClub[oldClubId]||0)-1;
+    const fromPosQ=POS_QUOTA[p.pos];
+    const fromPosAfter=((_posByClub[oldClubId]||{})[p.pos]||0)-1;
+    const fromFloorOk=fromSizeAfter>=SQUAD_SIZE.min&&(!fromPosQ||fromPosAfter>=fromPosQ.min);
+    // Symboliczna opłata (10-20% wartości, podłoga 500) zamiast sztywnego 0 — realny wolny
+    // transfer bez odstępnego wciąż istnieje w futbolu jako pojęcie, ale tu ma być zawsze
+    // walutowy: nowy klub płaci niewielką premię za podpisanie, nie robi transferu za darmo.
+    const price=Math.max(500,Math.round(calcValue(ovr(p),p.age)*r(10,20)/100/1000)*1000);
+    // Dopasowanie OVR do ligi docelowej — ta sama tolerancja (dolna granica ligi -5) co band[]
+    // w aiSignReplacement(). Bez tego kandydat był dobierany wyłącznie po zasięgu poziomu ligi
+    // (±2), wielkości składu i budżecie: zawodnik poniżej core (stąd w ogóle wygasły kontrakt,
+    // zwykle słabszy niż średnia własnej ligi) mógł wylądować nawet 2 ligi wyżej, systemowo
+    // ciągnąc w dół OVR ligi docelowej. To pojedynczy najbardziej masowy kanał transferów AI
+    // (>50% wolumenu światowego w symulacji) — patrz zgłoszenie o spadającym OVR świata.
+    const _ovrOk=c=>{
+      const destOvr4=LEAGUE_OVR[_clubLevel4[c.id]||8]||[20,35,35,55];
+      return ovr(p)>=destOvr4[0]-5;
+    };
+    const candidates=(fromCapOk&&fromFloorOk)?ALL_CLUBS.filter(c=>c.id!==oldClubId&&c.id!==G.myClubId&&c.ai
       &&Math.abs((_clubLevel4[c.id]||8)-fromLvl)<=2
-      &&(_sizeByClub[c.id]||0)<40
+      &&(_sizeByClub[c.id]||0)<SQUAD_SIZE.max
       &&(!POS_QUOTA[p.pos]||((_posByClub[c.id]||{})[p.pos]||0)<POS_QUOTA[p.pos].max)
-      &&(c.ai.signingsThisSeason||0)<aiSigningCap(c,_clubLevel4[c.id]||8)):[];
+      &&(c.ai.signingsThisSeason||0)<aiSigningCap(c,_clubLevel4[c.id]||8)
+      &&(c.ai.budget||0)>=price*0.5
+      &&_ovrOk(c)):[];
     if(candidates.length){
       candidates.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));
       const dest=candidates[0];
@@ -658,7 +691,7 @@ function aiRenewContracts(){
         addWorldNewsEvent('contract',{clubId:fromClub.id,leagueLevel:fromLvl,playerId:p.id,
           vars:{name:p.name,club:fromClub.n}});
       }
-      aiTransferPlayer(p,fromClub,dest,0,G.season,false);
+      aiTransferPlayer(p,fromClub,dest,price,G.season,false);
       _sizeByClub[oldClubId]=(_sizeByClub[oldClubId]||1)-1;
       _posByClub[oldClubId][p.pos]=(_posByClub[oldClubId][p.pos]||1)-1;
       _sizeByClub[dest.id]=(_sizeByClub[dest.id]||0)+1;
@@ -912,8 +945,10 @@ function aiSignReplacement(club,lgLevel,opts){
     // realnego OVR łatwo sięga milionów niezależnie od ligi, kompletnie oderwane od budżetów
     // klubów AI (LEAGUE_BUDGET startuje od 12k). Bez tego nawet bezpiecznik minimalnego składu
     // (wywołania bez requireBudget) potrafił wpędzić klub w dziesiątki milionów długu.
+    // Podłoga 500 na obu członach — bez niej zaokrąglenie do pełnych tysięcy potrafiło
+    // zjechać do 0 dla słabych/starszych zawodników, dając pozornie "darmowe" transfery.
     const estPrice=Math.min(
-      Math.round(calcValue(ovr(p),p.age)*r(60,90)/100/1000)*1000,
+      Math.max(500,Math.round(calcValue(ovr(p),p.age)*r(60,90)/100/1000)*1000),
       Math.max(500,Math.round((ai.budget||0)*0.5/500)*500)
     );
     if(opts.requireBudget&&(ai.budget||0)<estPrice*0.7)break;
@@ -995,6 +1030,8 @@ function aiTransferSeason(isWinter){
       const squad=G.players.filter(p=>p.clubId===club.id);
       const starters=squad.filter(p=>p.starter);
       const avgOvr=starters.length?Math.round(starters.reduce((s,p)=>s+ovr(p),0)/starters.length):lgMin;
+      // Próg przycinania nadwyżki, osobny per typ klubu (filozofia: akademia trzyma szczuplej,
+      // bogaty trzyma więcej) — zawsze poniżej twardego sufitu SQUAD_SIZE.max (data.js).
       const prefMax={akademia:22,sprzedajacy:24,bogaty:25,stabilny:22}[ai.type]||22;
       const winterRate=isWinter?0.5:1.0; // zimą mniej ruchów
 
@@ -1017,7 +1054,10 @@ function aiTransferSeason(isWinter){
       const toSell=_forcedSell.concat(_voluntarySell.slice(0,_remainingSells));
 
       toSell.forEach(p=>{
-        const price=Math.round(calcValue(ovr(p),p.age)*r(85,115)/100/1000)*1000;
+        // Podłoga 500 — calcValue() sama nigdy nie schodzi poniżej 500, ale zaokrąglenie
+        // do pełnych tysięcy po przemnożeniu potrafiło zjechać do 0 dla słabych/starszych
+        // zawodników blisko tej podłogi, dając pozornie "darmowe" transfery w logu klubu.
+        const price=Math.max(500,Math.round(calcValue(ovr(p),p.age)*r(85,115)/100/1000)*1000);
         const isStar=ovr(p)>lgMax*1.10;
         // Wystaw na rynek AI — log zapisujemy dopiero w Fazie 2 gdy znamy kupca
         aiMarket.push({player:p,fromClub:club,price,lvl,isStar});
@@ -1055,7 +1095,7 @@ function aiTransferSeason(isWinter){
       const cOvr4=LEAGUE_OVR[cLvl]||[20,35,35,55];
       const lvlOk=Math.abs(cLvl-lvl)<=2;
       const cSquad=G.players.filter(x=>x.clubId===c.id);
-      const hasRoom=cSquad.length<25;
+      const hasRoom=cSquad.length<SQUAD_SIZE.max;
       const wantsBuy=Math.random()<(AI_TYPES[c.ai.type]||AI_TYPES.stabilny).buyRate*winterRate;
       const canAfford=(c.ai.budget||0)>=price*0.8;
       const underCap=(c.ai.signingsThisSeason||0)<aiSigningCap(c,cLvl);
@@ -1076,7 +1116,7 @@ function aiTransferSeason(isWinter){
         const cLvl=cLg?cLg.level:99;
         const cOvr4=LEAGUE_OVR[cLvl]||[20,35,35,55];
         const cSquad=G.players.filter(x=>x.clubId===c.id);
-        return Math.abs(cLvl-lvl)<=2&&cSquad.length<25&&(c.ai.budget||0)>=price*0.8
+        return Math.abs(cLvl-lvl)<=2&&cSquad.length<SQUAD_SIZE.max&&(c.ai.budget||0)>=price*0.8
           &&(c.ai.signingsThisSeason||0)<aiSigningCap(c,cLvl)&&aiEvaluateSigning(p,p.pos,cSquad,c,cLvl,cOvr4[0]);
       });
       if(last.length){last.sort((a,b)=>(b.ai.budget||0)-(a.ai.budget||0));buyer=last[0];}
@@ -1122,9 +1162,9 @@ function aiTransferSeason(isWinter){
       const ai=club.ai;
       if(!ai)return;
       const def=AI_TYPES[ai.type]||AI_TYPES.stabilny;
-      // ── ZAMKNIĘTY ŚWIAT: prefSize=24, max=40 ─────────────────────────
-      const prefSize=24;
-      const prefMax=40;
+      // ── ZAMKNIĘTY ŚWIAT: patrz SQUAD_SIZE (data.js) — jedno wspólne źródło prawdy ──────
+      const prefSize=SQUAD_SIZE.target;
+      const prefMax=SQUAD_SIZE.max;
       const squadNow=G.players.filter(p=>p.clubId===club.id);
       const starters=squadNow.filter(p=>p.starter);
       const avgOvr=starters.length?Math.round(starters.reduce((s,p)=>s+ovr(p),0)/starters.length):lgMin;
@@ -1135,12 +1175,26 @@ function aiTransferSeason(isWinter){
       // Limit podpisań na sezon (aiSigningCap) obowiązuje TU już od razu — nie tylko w drugim,
       // "opcjonalnym" kroku niżej — bo to właśnie brak tego liczyło się w każdym kroku osobno
       // i dawało kilkanaście transferów/sezon zamiast kilku wg AI_TYPES.maxAnnualSignings.
-      // Wyjątek: prawdziwy kryzys składu (<18) zawsze ma pierwszeństwo nad limitem.
+      // Wyjątek: prawdziwy kryzys składu (<18) zawsze ma pierwszeństwo nad limitem —
+      // i jako jedyny przypadek wolno mu podpisać zawodnika mimo braku funduszy
+      // (requireBudget pominięty), żeby klub AI nie został bez możliwości wystawienia
+      // drużyny meczowej. Poza tym kryzysem "za darmo" transferów nie ma: klub bez
+      // pokrycia w budżecie po prostu nie robi transferu (requireBudget:true niżej).
       const signingCap=aiSigningCap(club,lvl);
       if(squadNow.length<prefSize){
-        const remaining0=Math.max(0,signingCap-(ai.signingsThisSeason||0));
-        const mc0=squadNow.length<18?2:Math.min(2,remaining0);
-        if(mc0>0)aiSignReplacement(club,lvl,{targetSize:prefSize,maxCount:mc0,maxAge:def.maxBuyAge,band:[lgMin-5,lgMax+10]});
+        if(squadNow.length<SQUAD_SIZE.min){
+          // maxCount domyka faktyczny deficyt do SQUAD_SIZE.min (nie sztywne 2) — inaczej
+          // klub głęboko poniżej minimum nigdy nie odrabiał różnicy, bo pętla w
+          // aiSignReplacement i tak zatrzymuje się na targetSize, więc wyższy maxCount tu
+          // nie ryzykuje przesady, tylko pozwala faktycznie dobić do minimum w jednym sezonie.
+          aiSignReplacement(club,lvl,{targetSize:SQUAD_SIZE.min,maxCount:Math.max(2,SQUAD_SIZE.min-squadNow.length),maxAge:def.maxBuyAge,band:[lgMin-5,lgMax+10]});
+        }
+        const squadAfterCrisis=G.players.filter(p=>p.clubId===club.id);
+        if(squadAfterCrisis.length<prefSize){
+          const remaining0=Math.max(0,signingCap-(ai.signingsThisSeason||0));
+          const mc0=Math.min(2,remaining0);
+          if(mc0>0)aiSignReplacement(club,lvl,{targetSize:prefSize,maxCount:mc0,maxAge:def.maxBuyAge,band:[lgMin-5,lgMax+10],requireBudget:true});
+        }
       }
       const needsBuy=squadNow.length<prefSize||avgOvr<lgMin*0.88||(ai.promoted&&!isWinter);
       const wantsBuy=Math.random()<def.buyRate*winterRate;
@@ -1174,12 +1228,35 @@ function aiTransferSeason(isWinter){
             const deficitPos=Object.keys(POS_QUOTA).filter(pos=>cntJ[pos]<POS_QUOTA[pos].min);
             const openPos=Object.keys(POS_QUOTA).filter(pos=>cntJ[pos]<POS_QUOTA[pos].max);
             if(!openPos.length)break; // wszystkie pozycje pełne — koniec naboru w tym oknie
-            const juniorOvr=r(lgMin-3,lgMin+10);
+            // Start juniora podniesiony TYLKO dla klubów wyraźnie mocniejszych niż typowy dla
+            // ligi (avgOvr — średnia jedenastki wyjściowej klubu, policzona wyżej), nie dla
+            // całej ligi jednolicie. Diagnoza (rozkład OVR starterzy/ławka w symulacji
+            // 40-sezonowej): w resztkowej luce Premier Division/I Ligi starterzy trzymali się
+            // dobrze, ale ŁAWKA/głębia składu spadała wszędzie o 9-11,5 pkt — bo sezon 1
+            // (mkLeaguePlayers, news-bootstrap.js) przydziela OVR całym 24-osobowym składom wg
+            // klasy klubu (gradient słaby→mocny klub), a odtąd każdy klub, niezależnie od
+            // własnej siły, rekrutuje juniora z tego samego, płaskiego pasma ligi — mocne kluby
+            // tracą tę przewagę w głębi składu, gdy ich sezon-1 kohorta się starzeje. Słabe/
+            // średnie kluby (avgOvr blisko lgMin) dostają dokładnie to samo pasmo co wcześniej —
+            // to NIE jest jednolite podniesienie całej ligi (które w poprzedniej próbie zalewało
+            // świat i podbijało OVR ponad sezon 1), tylko przywrócenie różnicy między klubami.
+            const _juniorFloor=Math.max(lgMin-3,avgOvr-25);
+            const _juniorCeil=Math.max(lgMin+10,avgOvr-10);
+            const juniorOvr=r(_juniorFloor,_juniorCeil);
             const junior=mkPlayer(club.id);
             junior.pos=deficitPos.length?pick(deficitPos):pick(openPos);
             junior.age=r(16,18);
             ['tec','pas','sht','def','phy','men'].forEach(a=>{junior[a]=Math.max(1,Math.min(99,Math.round(juniorOvr+r(-5,5))));});
-            junior.potential=calcPotential(junior,lvl);
+            // Potencjał liczony OSOBNO od calcPotential()/LEAGUE_POT (data.js) — ta funkcja jest
+            // wspólna dla całego świata (sezon 1 w mkLeaguePlayers, transfery), więc poszerzenie
+            // jej bonusu podbijałoby też potencjał już dojrzałej populacji startowej zamiast
+            // tylko juniorów (to również zmierzone i odrzucone — ten sam efekt nadmiernego
+            // wzrostu). Bonus r(10,18) (szerszy niż wąski LEAGUE_POT per liga, np. VIII liga
+            // 3-10) daje juniorowi realną przestrzeń do wzrostu przy obecnym tempie treningu,
+            // bez zalewania świata graczami bliskimi sufitu. Sufit = LEAGUE_POT[lvl].max, ten
+            // sam co dla reszty ligi.
+            const _potCap=(LEAGUE_POT[lvl]||LEAGUE_POT[8]).max;
+            junior.potential=Math.min(_potCap,ovr(junior)+r(10,18));
             junior.contract=r(2,3);junior.starter=false;junior.fromAcademy=true;
             junior.status='active';junior._seasonsAtClub=0;
             junior.value=calcValue(ovr(junior),junior.age);

@@ -125,9 +125,13 @@ function _renderClubCard(club,ai,def,lgSt){
       if(c)return (isBuy?'← ':'→ ')+'<span style="cursor:pointer;text-decoration:underline;color:var(--am)" onclick="event.stopPropagation();openClubModal('+c.id+')">'+name+'</span>';
       return (isBuy?'← ':'→ ')+name;
     }
+    // retired:true jest jawnie zapisane na wpisie (match-post.js) — nie zależy od tego, czy
+    // zawodnik nadal istnieje w danych (G.retiredPlayers jest przy zapisie gry przycinane,
+    // patrz news-bootstrap.js). livePl.status pozostaje jako fallback dla starszych zapisów
+    // sprzed wprowadzenia tej flagi.
     const dirStr=isBuy
       ?(tr.fromClub?clubLink(tr.fromClub):'← FA')
-      :(tr.toClub?clubLink(tr.toClub):(livePl&&livePl.status==='retired'?'→ 🏁':'→ FA'));
+      :(tr.toClub?clubLink(tr.toClub):((tr.retired||(livePl&&livePl.status==='retired'))?'→ 🏁':'→ FA'));
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)">'+
       '<div style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:0">'+
         '<div style="display:flex;gap:6px;align-items:center">'+icon+nameHtml+'</div>'+

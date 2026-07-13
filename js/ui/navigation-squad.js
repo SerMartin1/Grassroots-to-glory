@@ -504,6 +504,7 @@ function signFreeAgent(id){
   // bezpośredni, nie "podpisanie za darmo".
   const p=G.players.find(x=>x.id===id&&x.clubId>0&&x.clubId!==G.myClubId);
   if(!p)return;
+  if(myPl().length>=SQUAD_SIZE.max){notif(t('plr_notif_squad_full').replace('{n}',SQUAD_SIZE.max),'err');return;}
   const fromClub=ALL_CLUBS.find(c=>c.id===p.clubId);
   if(!fromClub||!fromClub.ai)return;
   const price=p._crisisOfferPrice!=null?p._crisisOfferPrice

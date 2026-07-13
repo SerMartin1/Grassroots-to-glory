@@ -807,6 +807,9 @@ function adjOffer(field,delta){
 function doBuy(){
   const p=(G.transferMarket||[]).find(x=>String(x.id)===String(buyId));
   if(!p){closeModal('m-buy');return;}
+  // Jedyny twardy limit rozmiaru składu gracza — bez wymuszonego minimum ani rozkładu
+  // pozycyjnego, gracz sam decyduje ile i na jaką pozycję (patrz SQUAD_SIZE, data.js).
+  if(myPl().length>=SQUAD_SIZE.max){notif(t('plr_notif_squad_full').replace('{n}',SQUAD_SIZE.max),'err');return;}
   // Sprawdz demands
   const o=_buyOffer;
   const _sigBon=o.signing&&p.demands&&p.demands.includes('signing')?Math.round(Math.max(p.salary,o.salary||p.salary)*2/500)*500:0;
@@ -1319,6 +1322,7 @@ function signTalent(idx){
   const p=G.scout.discovered[idx];if(!p)return;
   const cost=p.signingCost||0;
   if(cost>0&&G.budget<cost){notif(t('tr_notif_no_funds_need').replace('{cost}',fmt(cost)),'err');return;}
+  if(myPl().length>=SQUAD_SIZE.max){notif(t('plr_notif_squad_full').replace('{n}',SQUAD_SIZE.max),'err');return;}
   const maxT=acadMaxTalents();
   const curT=myPl().filter(x=>x._isTalent).length;
   if(curT>=maxT&&maxT>0){notif(t('tr_talent_limit_academy').replace('{max}',maxT),'err');return;}
