@@ -132,6 +132,11 @@ function fillFinance(){if(!G)return;
 
 function fillHistory(){
   if(!G)return;
+  // Świeże (nie-przekierowane) otwarcie panelu Historii — unieważnij ewentualny punkt powrotu
+  // do karty klubu ustawiony przez _cmGoToPlayerHistory() (club-modal.js), gdyby panel został
+  // zamknięty bez przycisku WRÓĆ (np. przejście na inną zakładkę menu) i otwarty ponownie
+  // normalnie. _cmGoToPlayerHistory() ustawia punkt powrotu DOPIERO PO tym wywołaniu.
+  window._historyPanelReturn=null;
   const hc=document.getElementById('hist-club');
   if(hc)hc.textContent=G.myClub.n+t('ht_club_season_suffix').replace('{n}',G.season);
   if(!G.cHist)G.cHist=[];
@@ -182,7 +187,48 @@ function histTab(tab,btn){
 function renderHistSezony(){
   const el=document.getElementById('hist-sezony');if(!el||!G)return;
   if(!G.cHist||!G.cHist.length){el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('ht_no_seasons_history')+'</div>';return;}
-  el.innerHTML=G.cHist.slice().reverse().map((h,ri)=>{
+
+  // ── Wykresy OVR/punkty na górze — te same komponenty co karta klubu (Historia→Przegląd) u
+  // klubów AI, patrz club-modal.js: _cmSquadOvrForSeason/_cmSeasonSliderHtml/_cmOvrChartSvg/
+  // _cmPtsChartSvg (Rozwiązanie 2: przeniesione tu z karty klubu zamiast dublować) ──
+  var myClubId=G.myClubId;
+  var chartEntries=G.cHist.map(function(h){
+    return {season:h.season,pos:h.pos,pts:h.pts||0,lg:h.leagueLevel,
+      ovr:_cmSquadOvrForSeason(myClubId,h.season)};
+  }).sort(function(a,b){return a.season-b.season;});
+  var ovrEntriesAll=chartEntries.filter(function(e){return e.ovr>0;});
+  var winMaxStart=Math.max(0,chartEntries.length-CM_HIST_WIN);
+  var hasHistSlider=chartEntries.length>CM_HIST_WIN;
+  var winStart=winMaxStart;
+  var windowEntries=hasHistSlider?chartEntries.slice(winStart,winStart+CM_HIST_WIN):chartEntries;
+  _cmHistCache[myClubId]={entries:chartEntries,minO:null,maxO:null,maxPts:null,winMaxStart:winMaxStart};
+
+  var chartsHtml=hasHistSlider?_cmSeasonSliderHtml(myClubId,windowEntries,winMaxStart,winStart):'';
+  if(ovrEntriesAll.length>=2){
+    var minO=Math.max(10,Math.min.apply(null,ovrEntriesAll.map(function(e){return e.ovr;}))-3);
+    var maxO=Math.min(99,Math.max.apply(null,ovrEntriesAll.map(function(e){return e.ovr;}))+3);
+    _cmHistCache[myClubId].minO=minO;
+    _cmHistCache[myClubId].maxO=maxO;
+    var ovrWindowEntries=windowEntries.filter(function(e){return e.ovr>0;});
+    chartsHtml+=_cmSecHead('📈',t('cm_chart_ovr_time'),'var(--gb)')+
+      '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
+        _cmOvrChartSvg(myClubId,ovrWindowEntries,minO,maxO)+
+      '</div>';
+  }
+  if(chartEntries.length>=2){
+    var maxPts=Math.max.apply(null,chartEntries.map(function(e){return e.pts||0;}));
+    if(maxPts<1)maxPts=1;
+    _cmHistCache[myClubId].maxPts=maxPts;
+    chartsHtml+=_cmSecHead('🏅',t('cm_chart_pts_season'),'var(--am)')+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
+        '<span style="color:#ffd700">■</span> '+t('cm_legend_champion')+' &nbsp;<span style="color:#4caf50">■</span> '+t('cm_legend_podium')+' &nbsp;<span style="color:#1565c0">■</span> '+t('cm_legend_other')+
+      '</div>'+
+      '<div style="background:var(--tb);border:1px solid var(--gl);padding:6px 4px;overflow-x:auto">'+
+        _cmPtsChartSvg(myClubId,windowEntries,maxPts)+
+      '</div>';
+  }
+
+  el.innerHTML=chartsHtml+G.cHist.slice().reverse().map((h,ri)=>{
     const myName=G.myClub.n;
     const oi=G.cHist.indexOf(h);
     const next=G.cHist[oi+1]; // następny sezon (chronologicznie) — awans/spadek dotyczy tego sezonu
@@ -523,6 +569,25 @@ function renderHistDynastia(){
   const ctWon=ct.filter(t=>t.place===1);
   const ctFin=ct.filter(t=>t.place===2);
   const cHist=(G.cHist||[]).slice().sort((a,b)=>b.season-a.season);
+
+  // ── Przegląd — te same komponenty co karta klubu (Historia→Przegląd) u klubów AI, bez
+  // legend (mają własną zakładkę Zawodnicy tutaj) — patrz club-modal.js:
+  // _cmStatsRowHtml/_cmRecordHtml/_cmTrophyTimelineHtml (Rozwiązanie 2: ten sam wygląd, żeby
+  // dane klubu gracza nie wyglądały inaczej niż dane klubów AI w tej samej grze) ──
+  var chronHist=G.cHist||[];
+  var promotions=0,relegations=0;
+  for(var _hi=1;_hi<chronHist.length;_hi++){
+    if(chronHist[_hi].leagueLevel<chronHist[_hi-1].leagueLevel)promotions++;
+    if(chronHist[_hi].leagueLevel>chronHist[_hi-1].leagueLevel)relegations++;
+  }
+  var dynAllTrophies=tr.filter(function(x){
+    return x.type==='league'||(x.type==='cup'&&x.place===1);
+  }).map(function(x){
+    return x.type==='league'?{type:'league',season:x.season,lg:x.league}:{type:'cup',season:x.season};
+  });
+  var overviewHtml=_cmStatsRowHtml(lt.length,ctWon.length,promotions,relegations)+
+    _cmRecordHtml(chronHist)+
+    _cmTrophyTimelineHtml(dynAllTrophies);
   const rec=G.records||{};
   const allStats=G.allTimeStats||{};
   const maxRep=cHist.length?Math.max(...cHist.map(h=>h.reputation||0)):G.reputation||30;
@@ -649,7 +714,7 @@ function renderHistDynastia(){
   }
 
   html+='</div>'; // dyn-tl
-  el.innerHTML=html;
+  el.innerHTML=overviewHtml+html;
 }
 
 // ════════════════════════════════════════════════════════

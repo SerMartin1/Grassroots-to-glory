@@ -265,8 +265,11 @@ dosłownie wszędzie; zmiana sygnatury którejkolwiek wymaga przejrzenia całego
   wszystkich systemów,
 - **renderowanie kadry/składu**: `fillSquad`, `renderSquadContracts`, `renderSquadHealth`,
   `renderSquadStats`, `setSqFilter`/`setSqSort`, `squadTab`,
-- **kryzys kadrowy**: `checkSquadCrisis`, `openFACrisis`/`closeFACrisis`,
-  `_faCrisisMissingHtml`, `signFreeAgent`, `autoFillSquadFromBench`,
+- **uzupełnianie składu przed meczem**: `autoFillSquadFromBench` — z ławki na tej samej pozycji,
+  a gdy to nie wystarcza (kontuzje/zawieszenia wybiły całą pozycję) awaryjnie zawodnikiem z innej
+  pozycji (tymczasowa zmiana `p.pos` na czas kryzysu, cofana automatycznie przy kolejnym meczu);
+  minimum na pozycję przy sprzedaży pilnuje `POS_QUOTA` w `openSellModal()` (tactics-playercard.js)
+  — dawny system "kryzysu kadrowego" (rynek awaryjny od AI) usunięty,
 - **przejście do kolejnego tygodnia/meczu**: `handleNextWeek`, `tryOpenMatch`, `advWeekPrep`,
 - **nagłówek gry**: `updateHdr`,
 - zakładki pomocnicze: `matchTab`, `trTab` (uwaga — zobacz sekcja 15, ta definicja jest

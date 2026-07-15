@@ -2,14 +2,14 @@
 // Od wejścia w analizę przedmeczową (tryOpenMatch) aż do zakończenia meczu
 // (patrz match-engine.js) gracz nie może opuścić procesu meczowego żadną
 // ścieżką nawigacji (dashboard, modal klubu, Wstecz przeglądarki/Androida).
-// Faza 'prematch': dozwolony dostęp do taktyki/składu/wolnych agentów, ale
-// ich zamknięcie zawsze wraca do p-match. Faza 'live': żadna nawigacja poza
-// samym p-match nie jest dozwolona.
+// Faza 'prematch': dozwolony dostęp do taktyki/składu, ale ich zamknięcie
+// zawsze wraca do p-match. Faza 'live': żadna nawigacja poza samym p-match
+// nie jest dozwolona.
 function isMatchLockActive(){return !!(G&&G._matchLockActive);}
 function _matchLockAllowedPanel(id){
   if(!isMatchLockActive())return true;
   if(id==='p-match')return true;
-  if(G._matchLockPhase==='prematch'&&(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'))return true;
+  if(G._matchLockPhase==='prematch'&&(id==='p-tactics'||id==='p-squad'))return true;
   // v228: faza 'summary' (ekran podsumowania meczu) — dozwolone tylko dojście do karty
   // zawodnika (klik na MVP), nic innego.
   if(G._matchLockPhase==='summary'&&id==='p-player')return true;
@@ -200,7 +200,7 @@ function closePanel(id){
       el.classList.remove('open');
     }
   }
-  if(id==='p-tactics'||id==='p-squad'||id==='p-freeagents'){
+  if(id==='p-tactics'||id==='p-squad'){
     if(isMatchLockActive()){
       _returnToMatchLock();
     } else {
@@ -210,6 +210,16 @@ function closePanel(id){
   if(id==='p-match'){
     const _ph=document.getElementById('p-history');
     if(_ph&&_ph.classList.contains('open'))setTimeout(fillHistory,50);
+  }
+  // Powrót do karty własnego klubu, jeśli w panel Historii weszliśmy z zakładki Historia karty
+  // klubu (_cmGoToPlayerHistory() — club-modal.js), tak samo jak p-player wraca do modalu klubu.
+  if(id==='p-history'){
+    const _hret=window._historyPanelReturn;
+    window._historyPanelReturn=null;
+    if(_hret&&_hret.clubId!=null){
+      openClubModal(_hret.clubId);
+      if(_hret.tab)cmTab(_hret.tab);
+    }
   }
   // Powrót do briefingu tutorialu jeśli był otwarty
   const _tutPanels=['p-finance','p-training','p-transfers','p-match','p-squad','p-table','p-academy','p-tactics'];
@@ -376,32 +386,47 @@ function advWeekPrep(){
 function tryOpenMatch(){
   if(!G)return;
   if(G.week<3){notif(t('nav_notif_season_not_started'),'err');return;}
-  // Wariant 1: auto-uzupełnij skład z ławki jeśli ktoś kontuzjowany/zawieszony
-  const autoFixed=autoFillSquadFromBench();
-  const crisis=checkSquadCrisis();
-  if(crisis.hasCrisis){
-    openFACrisis(crisis);
-    return;
+  // Uzupełnij skład: najpierw z ławki na tej samej pozycji, awaryjnie z innej pozycji jeśli
+  // trzeba (patrz autoFillSquadFromBench) — mecz zawsze da się rozegrać, bez blokady wejścia
+  // i bez rynku awaryjnego (usunięty system "kryzysu kadrowego" — klub gracza ma teraz
+  // prewencyjną ochronę minimum na pozycji przy sprzedaży, patrz openSellModal).
+  const fill=autoFillSquadFromBench();
+  if(fill.filled.length){
+    notif(t('nav_notif_auto_filled').replace('{names}',fill.filled.join(', ')),'ok');
   }
-  if(autoFixed.length){
-    notif(t('nav_notif_auto_filled').replace('{names}',autoFixed.join(', ')),'ok');
+  if(fill.reassigned.length){
+    notif(t('nav_notif_emergency_reassign').replace('{names}',fill.reassigned.join(', ')),'err');
   }
   openPanel('p-match');
   _engageMatchLock('prematch');
   saveGame('lock',true);
 }
 
+// Uzupełnia skład wyjściowy przed meczem. Krok 1: z ławki na TEJ SAMEJ pozycji (jak dotąd).
+// Krok 2: jeśli to nie wystarczy — np. kontuzje/zawieszenia wybiły całą jedną pozycję mimo
+// pilnowanego minimum POS_QUOTA przy sprzedaży (patrz openSellModal w tactics-playercard.js) —
+// wstaw zdrowego zawodnika z innej pozycji, z tymczasową zmianą p.pos na czas kryzysu
+// (p._tempPosOverride pamięta oryginał, cofane automatycznie na początku kolejnego wywołania).
+// Naturalnie słabszy wynik w tym meczu, bo playerStr()/ocena liczą się wg p.pos, a atrybuty nie
+// są dopasowane do nowej roli — bez ingerencji w silnik meczu (match-engine.js filtruje
+// zawodników po p.pos wszędzie, więc tymczasowa zmiana automatycznie "po prostu działa").
 function autoFillSquadFromBench(){
   const lim=formationLimits();
-  const required=1+lim.OBR+lim.POL+lim.NAP;
   const filled=[];
+  const reassigned=[];
+
+  // Krok 0: cofnij poprzednie awaryjne przekwalifikowania — licz od zera przy każdym meczu,
+  // żeby zawodnik wrócił na swoją prawdziwą pozycję, gdy tylko przestanie być potrzebny gdzie indziej.
+  myPl().forEach(p=>{
+    if(p._tempPosOverride){p.pos=p._tempPosOverride;delete p._tempPosOverride;}
+  });
 
   // Krok 1: usuń ze składu kontuzjowanych i zawieszonych
   myPl().forEach(p=>{
     if(p.starter&&(p.injured||p.suspension>0)){p.starter=false;}
   });
 
-  // Krok 2: dla każdej pozycji uzupełnij do limitu formacji (tylko zdrowi, niezawieszeni)
+  // Krok 2: dla każdej pozycji uzupełnij do limitu formacji (tylko zdrowi, niezawieszeni) z ławki tej samej pozycji
   const posOrder=['GK','OBR','POL','NAP'];
   posOrder.forEach(pos=>{
     const posLimit=lim[pos];
@@ -413,146 +438,22 @@ function autoFillSquadFromBench(){
     candidates.slice(0,need).forEach(p=>{p.starter=true;filled.push(p.name+' ('+POS_SHORT[pos]+')');});
   });
 
-  return filled;
-}
-
-function checkSquadCrisis(){
-  const lim=formationLimits();
-  const required=1+lim.OBR+lim.POL+lim.NAP;
-  const st=mySt();
-  const stCount=st.length;
-  const hasGK=st.some(p=>p.pos==='GK');
-  const issues=[];
-  const healthyPl=myPl().filter(p=>!p.injured&&(!p.suspension||p.suspension===0));
-  const anyGK=healthyPl.filter(p=>p.pos==='GK');
-  // Licz brakujące pozycje względem formacji (spójne z openFACrisis)
-  const needGK=Math.max(0,lim.GK-healthyPl.filter(p=>p.pos==='GK').length);
-  const needOBR=Math.max(0,lim.OBR-healthyPl.filter(p=>p.pos==='OBR').length);
-  const needPOL=Math.max(0,lim.POL-healthyPl.filter(p=>p.pos==='POL').length);
-  const needNAP=Math.max(0,lim.NAP-healthyPl.filter(p=>p.pos==='NAP').length);
-  const totalMissing=needGK+needOBR+needPOL+needNAP;
-  if(!anyGK.length)issues.push(t('nav_crisis_no_gk'));
-  if(totalMissing>0){
-    const haveTotal=lim.GK+lim.OBR+lim.POL+lim.NAP;
-    issues.push(t('nav_crisis_not_enough').replace('{have}',haveTotal-totalMissing).replace('{total}',haveTotal));
-  }
-  return{hasCrisis:issues.length>0,issues,stCount,required,needGK,needOBR,needPOL,needNAP,totalMissing};
-}
-function _faCrisisMissingHtml(crisis){
-  const _miss=[];
-  if((crisis.needGK||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needGK+'× GK</span>');
-  if((crisis.needOBR||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needOBR+'× CB</span>');
-  if((crisis.needPOL||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needPOL+'× MID</span>');
-  if((crisis.needNAP||0)>0)_miss.push('<span style="color:var(--am)">'+crisis.needNAP+'× ST</span>');
-  const _missHtml=_miss.length?'<div style="margin-top:6px;font-size:var(--fs-dense)">'+t('nav_crisis_missing_formation').replace('{formation}','<b>'+G.formation+'</b>').replace('{list}',_miss.join(', '))+'</div>':'';
-  return crisis.issues.map(function(i){return '⚠️ '+i;}).join('<br>')+_missHtml;
-}
-function openFACrisis(crisis){
-  if(!G)return;
-  // Zamknięty świat (js/CLAUDE.md): brak puli FA — konkretne oferty transferu od klubów AI,
-  // które mają NADWYŻKĘ na brakującej pozycji (dawca zostaje z >= POS_QUOTA.min, nie oddaje
-  // chronionego rdzenia — aiCoreProtect, ta sama logika co przy realokacji AI-AI).
-  const lvl=G.myLeague||8;
-  const _ovr4=LEAGUE_OVR[lvl]||[10,20,20,35];const [minO,maxO]=[_ovr4[0],_ovr4[3]];
-  const needPos=['GK','OBR','POL','NAP'].filter(pos=>(crisis['need'+pos]||0)>0);
-  const posList=needPos.length?needPos:['GK','OBR','POL','NAP'];
-  const squadByClub={};
-  G.players.forEach(p=>{if(p.clubId>0)(squadByClub[p.clubId]||(squadByClub[p.clubId]=[])).push(p);});
-  let offers=[];
-  posList.forEach(pos=>{
-    ALL_CLUBS.filter(c=>c.id!==G.myClubId&&c.ai).forEach(c=>{
-      const sq=squadByClub[c.id]||[];
-      const atPos=sq.filter(p=>p.pos===pos);
-      if(!POS_QUOTA[pos]||atPos.length<=POS_QUOTA[pos].min)return; // dawca nie ma nadwyżki
-      const core=aiCoreProtect(c,sq);
-      const cand=atPos.filter(p=>!core.has(p.id)&&ovr(p)>=minO-8&&ovr(p)<=maxO+10).sort((a,b)=>ovr(b)-ovr(a))[0];
-      if(cand)offers.push({p:cand,fromClub:c});
-    });
-  });
-  offers.sort((a,b)=>ovr(b.p)-ovr(a.p));
-  offers=offers.slice(0,12);
-  const info=document.getElementById('fa-crisis-info');
-  if(info)info.innerHTML=_faCrisisMissingHtml(crisis);
-  const list=document.getElementById('fa-list');
-  if(list){
-    if(offers.length){
-      list.innerHTML=offers.map(({p,fromClub})=>{
-        const o=ovr(p);
-        // Cena "kryzysowa" — zakotwiczona w AKTUALNYM budżecie klubu, nie w pełnej wartości
-        // rynkowej: calcValue() dla realnego OVR łatwo przekracza cały budżet niższej ligi
-        // (setki tysięcy vs. kilkanaście tysięcy startowego budżetu). To ratunek, nie
-        // negocjacja — nigdy nie kosztuje więcej niż połowa tego, co klub aktualnie ma.
-        const price=Math.min(Math.round(calcValue(o,p.age)*0.4/1000)*1000,Math.max(0,Math.round((G.budget||0)*0.5/500)*500));
-        p._crisisOfferPrice=price; // ta sama cena przy podpisaniu co na liście
-        return '<div class="tcard" style="margin-bottom:6px">'+
-          '<div style="flex:1"><div class="tname">'+p.name+'</div>'+
-          '<div class="tdet">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l • OVR '+o+' • '+t('fa_salary_lbl').replace('{n}',fmt(p.salary))+'</div>'+
-          '<div class="tdet">'+t('fa_offer_from').replace('{club}',fromClub.n)+' • '+t('fa_offer_price').replace('{n}',fmtVal(price))+'</div></div>'+
-          '<button class="btn-buy" style="background:var(--gb);color:#000" onclick="signFreeAgent('+p.id+')">'+t('fa_sign_btn')+'</button>'+
-        '</div>';
-      }).join('');
-    } else {
-      list.innerHTML='<div style="color:var(--gr);padding:12px;text-align:center">'+t('fa_no_agents')+'</div>';
+  // Krok 3: awaryjnie — pozycja WCIĄŻ ma braki (rzadkie: kontuzje/zawieszenia wybiły całą
+  // pozycję jednocześnie) — wstaw najlepszego zdrowego zawodnika z dowolnej innej pozycji.
+  posOrder.forEach(pos=>{
+    const posLimit=lim[pos];
+    while(myPl().filter(p=>p.starter&&p.pos===pos).length<posLimit){
+      const cand=myPl().filter(p=>!p.starter&&!p.injured&&(!p.suspension||p.suspension===0))
+        .sort((a,b)=>ovr(b)-ovr(a))[0];
+      if(!cand)break; // naprawdę nikt zdrowy nie został w całym klubie — skrajny przypadek
+      cand._tempPosOverride=cand.pos;
+      cand.pos=pos;
+      cand.starter=true;
+      reassigned.push(cand.name+' → '+POS_SHORT[pos]);
     }
-  }
-  closeAllPanels('p-freeagents');
-  openPanel('p-freeagents');
-}
-function signFreeAgent(id){
-  if(!G)return;
-  // Zawodnik należy do konkretnego klubu AI (zamknięty świat, brak puli FA) — transfer
-  // bezpośredni, nie "podpisanie za darmo".
-  const p=G.players.find(x=>x.id===id&&x.clubId>0&&x.clubId!==G.myClubId);
-  if(!p)return;
-  if(myPl().length>=SQUAD_SIZE.max){notif(t('plr_notif_squad_full').replace('{n}',SQUAD_SIZE.max),'err');return;}
-  const fromClub=ALL_CLUBS.find(c=>c.id===p.clubId);
-  if(!fromClub||!fromClub.ai)return;
-  const price=p._crisisOfferPrice!=null?p._crisisOfferPrice
-    :Math.min(Math.round(calcValue(ovr(p),p.age)*0.4/1000)*1000,Math.max(0,Math.round((G.budget||0)*0.5/500)*500));
-  // To ratunek kadrowy, nie zwykły rynek — cena skalowana do budżetu (patrz openFACrisis) nigdy
-  // nie zablokuje transferu; ostrzegamy tylko, gdyby mimo to zszedł poniżej zera.
-  G.budget-=price;
-  if(G.budget<0)notif(t('week_notif_negative_budget'),'err');
-  fromClub.ai.budget=(fromClub.ai.budget||0)+price*0.7;
-  if(!fromClub.ai.transferLog)fromClub.ai.transferLog=[];
-  fromClub.ai.transferLog.unshift({type:'sell',name:p.name,pos:p.pos,ovr:ovr(p),age:p.age,price,season:G.season,playerId:p.id,toClub:G.myClub?G.myClub.n:'?'});
-  if(fromClub.ai.transferLog.length>20)fromClub.ai.transferLog.pop();
-  if(!p.history)p.history=[];
-  fillHistoryGaps(p);
-  const _lastH=p.history[p.history.length-1];
-  if(_lastH&&_lastH.clubId===p.clubId){
-    _lastH.transferOut={type:'buy',toClub:G.myClub?G.myClub.n:'?',toClubId:G.myClubId,price,season:G.season};
-  }
-  if(!p.formerClubs)p.formerClubs=[];
-  const _fc=p.formerClubs.find(x=>x.clubId===fromClub.id);
-  if(_fc)_fc.seasons=(_fc.seasons||0)+1;else p.formerClubs.push({clubId:fromClub.id,clubName:fromClub.n,seasons:1});
-  p.clubId=G.myClubId;p.starter=false;p.status='active';p.isFreeAgent=false;
-  p.contract=2;p.boughtSeason=G.season||1;p.boughtPrice=price;
-  if(!p.trainRate)p.trainRate=1.0;
-  if(!p.trainMatches)p.trainMatches=0;
-  delete p._crisisOfferPrice;
-  assignJerseyNum(p);
-  if(!p.history.find(h=>h._current&&h.season===G.season&&h.clubId===G.myClubId)){
-    p.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
-  }
-  if(!G.fin.transfers)G.fin.transfers=[];
-  G.fin.transfers.push({type:'buy',name:p.name,val:price,season:G.season,week:G.week,id:p.id,buyAge:p.age});
-  G.fin.salaries=myPl().reduce((s,x)=>s+x.salary,0);
-  addNews(t('news_wa_signed').replace('{name}',p.name),'ok');
-  notif(t('nav_notif_fa_signed').replace('{name}',p.name),'ok');
-  const crisis=checkSquadCrisis();
-  if(crisis.hasCrisis){
-    openFACrisis(crisis);
-  } else {
-    closeFACrisis();
-  }
-}
-function closeFACrisis(){
-  closePanel('p-freeagents');
-  const pm=document.getElementById('p-match');
-  if(pm&&pm.classList.contains('open')){fillMatch();}
-  // W przeciwnym razie po prostu wracamy do głównego widoku (bez wymuszania Taktyki),
-  // żeby nie nadpisywać panelu, z którego użytkownik faktycznie przyszedł (np. Tabela).
+  });
+
+  return{filled,reassigned};
 }
 function updateHdr(){if(!G)return;
   const c=document.getElementById('h-club'),s=document.getElementById('h-season'),rn=document.getElementById('h-rnd');
@@ -597,16 +498,7 @@ function fillPanel(id){
   if(id==='p-squad')fillSquad();
   else if(id==='p-tactics'){fillTactics();fillTacSquad();}
   else if(id==='p-match')fillMatch();
-else if(id==='p-table'){
-    ['p-crisis', 'modal-crisis', 'crisis-panel', 'free-agents-crisis', 'p-fa', 'p-free-agents', 'free-agents', 'p-crisis-squad'].forEach(function(crisisId) {
-      const crisisEl = document.getElementById(crisisId);
-      if(crisisEl) {
-        crisisEl.classList.remove('open', 'show', 'active');
-        crisisEl.style.setProperty('display', 'none', 'important');
-      }
-    }); // <-- Zamknięcie pętli .forEach
-    fillTable(); // <-- TO JEST KLUCZOWE! Bez tego tabela się nie wygeneruje
-  } // <-- Zamknięcie bloku else if
+else if(id==='p-table')fillTable();
 
   else if(id==='p-transfers')fillTransfers();
   else if(id==='p-training')fillTraining();

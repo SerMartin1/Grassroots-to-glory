@@ -1625,18 +1625,24 @@ function kronTrigger(){
           // Wzmocnij akademię jeśli istnieje
           if(G.academy){
             if(G.academy.level!==undefined)G.academy.level=Math.min(5,(G.academy.level||0)+1);
-            // Dodaj nowego prospecta jeśli jest miejsce
+            // Dodaj nowego prospecta jeśli jest miejsce — te same pola co generateProspects()
+            // (academy.js), żeby prospekt faktycznie pojawił się na liście Akademia →
+            // Przegląd (filtrowanej po status==='pending') i dał się zaakceptować/odrzucić
+            // przez zwykły acceptProspect()/rejectProspect() zamiast zostać niewidocznym,
+            // niekompletnym wpisem na stałe zajmującym miejsce w puli.
             if(G.academy.prospects&&G.academy.prospects.length<6){
+              const trRoll=Math.random();
+              const trainRate=trRoll<0.10?(50+r(0,30))/100:trRoll<0.45?(81+r(0,29))/100:trRoll<0.75?(110+r(0,40))/100:(150+r(0,50))/100;
               const youngster={
-                id:Date.now()+Math.floor(Math.random()*1000),
-                name:tStr('first')+' '+tStr('last'),
+                id:pid++,
+                name:getUniqueName(),
                 age:15+Math.floor(Math.random()*3),
                 pos:['NAP','POL','OBR'][Math.floor(Math.random()*3)],
+                ovr:r(15,25),
                 potential:60+Math.floor(Math.random()*20),
-                stars:2+Math.floor(Math.random()*2),
-                seasonsInAcademy:0,
-                fromAcademy:true,
-                _dynastyResponse:true
+                trainRate,
+                archetype:['wojownik','techniczny','snajper','lider'][Math.floor(Math.random()*4)],
+                status:'pending'
               };
               G.academy.prospects.push(youngster);
               kron.flags._x04prodigyName=youngster.name;
@@ -1912,66 +1918,6 @@ function kronTrigger(){
      ]},
 
     // ── PRIORYTET 4 — AKADEMIA I DC ─────────────────────────────────────
-
-    {id:'a05_prospect_burnout', category:t('kron_cat_academy'),
-     weight:function(){
-       if(!G.academy||!G.academy.prospects||!G.academy.prospects.length)return 0;
-       const burnout=G.academy.prospects.find(function(p){
-         return (p.potential||0)>=75&&(p.seasonsInAcademy||0)>=2;
-       });
-       return burnout?20:0;
-     },
-     title:t('kron_a05_title'),
-     body:function(){
-       const burnout=(G.academy.prospects||[]).filter(function(p){
-         return (p.potential||0)>=75&&(p.seasonsInAcademy||0)>=2;
-       }).sort(function(a,b){return (b.potential||0)-(a.potential||0);})[0];
-       kron.flags._a05prospectIdx=G.academy.prospects.indexOf(burnout);
-       kron.flags._a05prospectName=burnout?burnout.name:t('kron_a05_fallback_short');
-       kron.flags._a05potential=burnout?(burnout.potential||75):75;
-       return t('kron_a05_body').replace('{name}',burnout?burnout.name:t('kron_a05_fallback_name')).replace('{pot}',burnout?burnout.potential||75:75).replace('{seasons}',burnout?burnout.seasonsInAcademy||2:2);
-     },
-     choices:[
-       {label:t('kron_a05_c1_label'),
-        effect:function(){
-          const p=G.academy.prospects[kron.flags._a05prospectIdx];
-          if(p){p.potential=Math.max(50,(p.potential||75)-2);p._onBreak=true;p._breakWeeks=3;}
-          addNews(t('kron_a05_c1_news').replace('{name}',kron.flags._a05prospectName),'ok');
-          kron.flags._a05result='break';
-        },
-        outcome:function(){
-          return t('kron_a05_c1_outcome').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential-2);
-        }},
-       {label:t('kron_a05_c2_label'),
-        effect:function(){
-          const p=G.academy.prospects[kron.flags._a05prospectIdx];
-          if(Math.random()<0.30&&p){
-            p.potential=Math.max(40,(p.potential||75)-5);
-            addNews(t('kron_a05_c2_news_burnout').replace('{name}',kron.flags._a05prospectName),'err');
-            kron.flags._a05result='burnout';
-          } else {
-            addNews(t('kron_a05_c2_news_survived').replace('{name}',kron.flags._a05prospectName),'club');
-            kron.flags._a05result='survived';
-          }
-        },
-        outcome:function(){
-          if(kron.flags._a05result==='burnout')return t('kron_a05_c2_outcome_burnout').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential-5);
-          return t('kron_a05_c2_outcome_survived').replace('{name}',kron.flags._a05prospectName);
-        }},
-       {label:t('kron_a05_c3_label'),
-        effect:function(){
-          if(G.budget<8000){notif(t('kron_notif_no_budget'),'err');kron.flags._a05result='noBudget';return;}
-          G.budget-=8000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:8000,bal:G.budget,season:G.season,note:t('kron_note_a05_prospect_burnout')});
-          const p=G.academy.prospects[kron.flags._a05prospectIdx];
-          if(p){p.potential=Math.min(99,(p.potential||75)+1);p._psychSupport=true;}
-          addNews(t('kron_a05_c3_news').replace('{name}',kron.flags._a05prospectName),'ok');
-          kron.flags._a05result='psych';
-        },
-        outcome:function(){
-          if(kron.flags._a05result==='noBudget')return t('kron_a05_c3_outcome_nobudget');
-          return t('kron_a05_c3_outcome').replace('{name}',kron.flags._a05prospectName).replace('{pot}',kron.flags._a05potential+1);
-        }},
-     ]},
 
     {id:'dc01_data_breach', category:t('kron_cat_finance'),
      weight:function(){

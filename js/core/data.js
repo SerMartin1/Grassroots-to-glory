@@ -204,7 +204,8 @@ const POS_QUOTA={
 // literały (25/40/22-25 zależnie od miejsca). min = suma POS_QUOTA.min (nigdy nie łamana
 // przez żadną ścieżkę odpływu AI — sprzedaż, wygasły kontrakt), target = preferowany rozmiar
 // przy zwykłych zakupach, max = twardy sufit (AI i gracz, patrz doBuy()/signTalent()/
-// signFreeAgent()/kronTransferIn()).
+// kronTransferIn()). min egzekwowany też przy sprzedaży klubu gracza (POS_QUOTA per pozycja,
+// patrz openSellModal() w tactics-playercard.js) — zastąpiło dawny system "kryzysu kadrowego".
 const SQUAD_SIZE={min:18, target:24, max:30};
 const LEAGUE_BUDGET={1:2000000,2:800000,3:300000,4:120000,5:60000,6:30000,7:18000,8:12000};
 const LEAGUE_SPONSORS={1:20000,2:8000,3:3000,4:1500,5:800,6:500,7:300,8:200};
@@ -682,3 +683,61 @@ const ARCHETYPE_META={
   snajper:{icon:'🔫',name:'Snajper',color:'#ffc107',desc:'Instynkt strzelecki, dla NAP.',mult:{sht:1.6,tec:1.1,pas:1.0,def:1.0,phy:1.0,men:1.0}},
   lider:{icon:'👑',name:'Lider',color:'#9c27b0',desc:'Prowadzi innych w trudnych chwilach.',mult:{men:1.5,tec:1.0,pas:1.0,sht:1.0,def:1.0,phy:1.0}},
 };
+
+// ── LEGENDY ─────────────────────────────────────────────
+// Przeniesione z data-center.js — musi być wczytane przed news-bootstrap.js (zapis gry) i
+// match-post.js (przycinanie G.retiredPlayers co sezon), żeby protectedRetireeIds() niżej
+// mogła z nich korzystać. data-center.js nadal używa LEG_THRESHOLD/legScore/legTrophies
+// (są w globalnym zasięgu, ten sam wzorzec co reszta projektu — brak modułów/importów).
+const LEG_THRESHOLD=200;
+const LEG_W=0.25,LEG_G=0.5,LEG_A=0.3,LEG_M=12,LEG_P=8;
+
+function legScore(stat,trophyCount,cupCount){
+  const pts=
+    Math.min(stat.matches*LEG_W, 75)+
+    Math.min(stat.goals*LEG_G,   50)+
+    Math.min(stat.assists*LEG_A, 30)+
+    trophyCount*LEG_M+
+    cupCount*LEG_P;
+  return Math.round(pts*10)/10;
+}
+
+function legTrophies(playerId){
+  // Mistrzostwa: sprawdź czy zawodnik był w klubie gracza w danym sezonie
+  const h=G.cHist||[];
+  const allPool=[...(G.players||[]),...(G.retiredPlayers||[]),...(G.fa||[])];
+  const p=allPool.find(x=>x.id===playerId);
+  if(!p)return{leagues:0,cups:0};
+  const leagues=(G.trophies||[]).filter(t=>t.type==='league'&&
+    p.history&&p.history.some(ph=>ph.season===t.season&&ph.clubId===G.myClubId)).length;
+  const cups=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===1&&
+    p.history&&p.history.some(ph=>ph.season===t.season&&ph.clubId===G.myClubId)).length;
+  return{leagues,cups};
+}
+
+// Zbiór id zawodników, którzy NIE MOGĄ zniknąć z G.retiredPlayers przez limit "najnowsi N"
+// (match-post.js aiRenewContracts, news-bootstrap.js zapis gry) — legendy klubu (wg tego
+// samego progu co lista w data-center.js) oraz rekordziści (top 5 strzelców/asystentów/
+// liczby meczów, najdroższy sprzedany/kupiony, ta sama pula co renderHistZawodnicy w
+// traits-history.js). G.allTimeStats.players nigdy nie jest przycinane, więc bez tej
+// ochrony wpis rekordu przeżywa, a karta zawodnika (i link do niej) — nie.
+function protectedRetireeIds(){
+  const ids=new Set();
+  const at=G.allTimeStats&&G.allTimeStats.players?G.allTimeStats.players:{};
+  const stats=Object.values(at);
+  if(!stats.length)return ids;
+  stats.forEach(stat=>{
+    if(stat.id==null)return;
+    const{leagues,cups}=legTrophies(stat.id);
+    if(legScore(stat,leagues,cups)>=LEG_THRESHOLD)ids.add(stat.id);
+  });
+  ['goals','assists','matches'].forEach(key=>{
+    stats.filter(s=>s[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5)
+      .forEach(s=>{if(s.id!=null)ids.add(s.id);});
+  });
+  if(G.allTimeStats){
+    if(G.allTimeStats.bestSeller&&G.allTimeStats.bestSeller.id!=null)ids.add(G.allTimeStats.bestSeller.id);
+    if(G.allTimeStats.bestBuyer&&G.allTimeStats.bestBuyer.id!=null)ids.add(G.allTimeStats.bestBuyer.id);
+  }
+  return ids;
+}

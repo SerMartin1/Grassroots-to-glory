@@ -631,10 +631,17 @@ function saveGame(slot,silent){
     sd.fa=(G.fa||[]).slice(0,60).map(slimFull);
 
 
-    // retiredPlayers: tylko Ci co grali u nas, max 80
-    sd.retiredPlayers=(G.retiredPlayers||[])
-      .filter(p=>p.history&&p.history.some(h=>h.clubId===myId))
-      .slice(-80).map(slimFull);
+    // retiredPlayers: tylko Ci co grali u nas, max 80 najnowszych + legendy/rekordziści klubu
+    // zawsze (link do ich karty musi działać na stałe — patrz protectedRetireeIds() w
+    // core/data.js, oni i tak spełniają warunek "grał u nas" bo allTimeStats liczy tylko
+    // zawodników myClubId)
+    const _retiredMine=(G.retiredPlayers||[])
+      .filter(p=>p.history&&p.history.some(h=>h.clubId===myId));
+    const _retiredProtected=protectedRetireeIds();
+    const _retiredRecentIds=new Set(_retiredMine.slice(-80).map(p=>p.id));
+    sd.retiredPlayers=_retiredMine
+      .filter(p=>_retiredRecentIds.has(p.id)||_retiredProtected.has(p.id))
+      .map(slimFull);
 
     // ── STANDINGS ──────────────────────────────────────────────────────
     // Bieżąca tabela — zachowaj całą (potrzebna do wyświetlania wszystkich lig)
@@ -699,7 +706,14 @@ function saveGame(slot,silent){
     // Poziom 1: przytnij pool i historię graczy AI
     if(json.length>4.2*1024*1024){
       console.warn('Zapis za duży ('+total+'KB) — tryb awaryjny L1');
-      sd.retiredPlayers=(sd.retiredPlayers||[]).slice(-40).map(slimAI);
+      // max 40 najnowszych + legendy/rekordziści (te same co przy zwykłym zapisie wyżej) —
+      // nawet w trybie awaryjnym ich link do karty nie może przestać działać
+      sd.retiredPlayers=(function(){
+        const all=sd.retiredPlayers||[];
+        const prot=protectedRetireeIds();
+        const recentIds=new Set(all.slice(-40).map(p=>p.id));
+        return all.filter(p=>recentIds.has(p.id)||prot.has(p.id));
+      })().map(slimAI);
       sd.fa=(G.fa||[]).slice(0,20).map(slimAI);
       // przytnij historię graczy AI do 0 wpisów
       sd.players=sd.players.map(p=>{
@@ -710,7 +724,9 @@ function saveGame(slot,silent){
       // Poziom 2: wywal pool i retired całkowicie
       if(json2.length>4.2*1024*1024){
         console.warn('Zapis za duży ('+KB(json2)+'KB) — tryb awaryjny L2');
-        sd.retiredPlayers=[];
+        // Nawet tu — zbiór legend/rekordzistów jest mały (zwykle <20), więc zachowanie ich
+        // nie zagraża limitowi miejsca, a bez tego ich link do karty przestałby działać na stałe
+        sd.retiredPlayers=(G.retiredPlayers||[]).filter(p=>protectedRetireeIds().has(p.id)).map(slimAI);
         sd.fa=(G.fa||[]).slice(0,10).map(slimAI);
         // przytnij też historię moich graczy do 3 ostatnich sezonów
         sd.players=sd.players.map(p=>{

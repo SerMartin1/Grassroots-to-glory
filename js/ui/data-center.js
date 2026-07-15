@@ -25,7 +25,9 @@ function dcBars(el,data,color,h){
     const col=document.createElement('div');col.className='dc-bar-col';
     const pxH=Math.max(3,Math.round((d.v/mx)*(barH-18)));
     const f=document.createElement('div');f.className='dc-bar-fill';
-    f.style.cssText='background:'+color+';height:'+pxH+'px;width:100%;position:relative;flex-shrink:0;';
+    // sezon w trakcie: przezroczystość + przerywane obramowanie zamiast dopisku w etykiecie (oszczędza miejsce w wąskiej kolumnie)
+    const curStyle=d.cur?'opacity:0.6;border:1px dashed '+color+';box-sizing:border-box;':'';
+    f.style.cssText='background:'+color+';height:'+pxH+'px;width:100%;position:relative;flex-shrink:0;'+curStyle;
     const vl=document.createElement('span');vl.className='dc-bar-val';vl.textContent=d.lbl||d.v;f.appendChild(vl);
     const lb=document.createElement('div');lb.className='dc-bar-lbl';lb.textContent='S'+d.s;
     col.appendChild(f);col.appendChild(lb);el.appendChild(col);
@@ -80,6 +82,70 @@ function dcLegend(parent,items){
   parent.lastChild.appendChild(leg);
 }
 
+// ── Suwak sezonów (współdzielony przez wykresy Wzrostu i Kadry) ─────────
+const DC_HIST_WIN=12; // liczba sezonów widocznych jednocześnie na wykresach dc-bars
+let _dcWzrostCache=null; // {allData,winMaxStart,hasAcademy,acadNow,acadHistArr}
+let _dcKadraCache=null; // {vals,winMaxStart}
+
+function _dcSliderNode(handlerFn,lblId,winStart,winMaxStart,fromSeason,toSeason){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='margin-bottom:10px;padding:6px 8px;background:#0d1f0d;border:1px solid var(--gl)';
+  wrap.innerHTML=
+    '<div style="display:flex;justify-content:space-between;font-size:var(--fs-body);color:var(--gr);margin-bottom:4px">'+
+      '<span>'+t('cm_season_slider_label')+'</span>'+
+      '<span id="'+lblId+'" style="color:var(--am);font-weight:700">S'+fromSeason+'–S'+toSeason+'</span>'+
+    '</div>'+
+    '<input type="range" min="0" max="'+winMaxStart+'" step="1" value="'+winStart+'" oninput="'+handlerFn+'(this.value)" style="width:100%;accent-color:var(--gb)">';
+  return wrap;
+}
+
+// Krótka etykieta kwoty bez symbolu waluty (jednostka jest już w nagłówku wykresu) —
+// przy oknie 12 sezonów pełny fmt()/fmtVal() nachodzi na sąsiednie słupki, ten format się mieści.
+function _dcShortVal(v){
+  const n=(v||0)*curRate();
+  if(n>=1000000){const m=n/1000000;return(m>=10?Math.round(m):m.toFixed(1).replace(/\.0$/,''))+'M';}
+  if(n>=1000)return Math.round(n/1000)+'k';
+  return Math.round(n).toString();
+}
+
+function _dcRepData(items){return items.map(d=>({s:d.season,v:d.reputation||0,lbl:(d.reputation||0),cur:!!d._current}));}
+function _dcStadData(items){return items.map(d=>({s:d.season,v:d.stadiumCap||200,lbl:(d.stadiumCap||200),cur:!!d._current}));}
+function _dcBudgetData(items){return items.map(d=>({s:d.season,v:d._current?(G.budget||0):(d.budget||0),lbl:_dcShortVal(d._current?(G.budget||0):(d.budget||0)),cur:!!d._current}));}
+function _dcAcadData(items,acadNow,acadHistArr){
+  return items.map(d=>{
+    const entry=acadHistArr.find(a=>a.season===d.season);
+    const v=entry?entry.level:(d._current?acadNow:Math.max(0,acadNow-1));
+    return {s:d.season,v,lbl:'L'+v,cur:!!d._current};
+  });
+}
+
+function _dcWzrostSlide(val){
+  const c=_dcWzrostCache;if(!c)return;
+  const start=Math.max(0,Math.min(parseInt(val,10)||0,c.winMaxStart));
+  const win=c.allData.slice(start,start+DC_HIST_WIN);
+  if(!win.length)return;
+  const b1=document.getElementById('dc-wzrost-b1');if(b1)dcBars(b1,_dcRepData(win),'var(--am)');
+  const b2=document.getElementById('dc-wzrost-b2');if(b2)dcBars(b2,_dcStadData(win),'#00bcd4');
+  const b3=document.getElementById('dc-wzrost-b3');if(b3)dcBars(b3,_dcBudgetData(win),'var(--gb)');
+  if(c.hasAcademy){
+    const b4=document.getElementById('dc-wzrost-b4');
+    if(b4)dcBars(b4,_dcAcadData(win,c.acadNow,c.acadHistArr),'#9c27b0',52);
+  }
+  const lbl=document.getElementById('dc-wzrost-slider-lbl');
+  if(lbl)lbl.textContent='S'+win[0].season+'–S'+win[win.length-1].season;
+}
+
+function _dcKadraSlide(val){
+  const c=_dcKadraCache;if(!c)return;
+  const start=Math.max(0,Math.min(parseInt(val,10)||0,c.winMaxStart));
+  const win=c.vals.slice(start,start+DC_HIST_WIN);
+  if(!win.length)return;
+  const b1=document.getElementById('dc-kadra-b1');
+  if(b1)dcBars(b1,win,'#9c27b0',90);
+  const lbl=document.getElementById('dc-kadra-slider-lbl');
+  if(lbl)lbl.textContent='S'+win[0].s+'–S'+win[win.length-1].s;
+}
+
 // ── WZROST ──────────────────────────────────────────────
 function dcRenderWzrost(){
   const el=document.getElementById('dc-wzrost');if(!el||!G)return;
@@ -102,6 +168,18 @@ function dcRenderWzrost(){
     });
   }
 
+  // ── Okno sezonów + suwak (od S1, gdy sezonów dużo) ────
+  const winMaxStart=Math.max(0,allData.length-DC_HIST_WIN);
+  const hasSlider=allData.length>DC_HIST_WIN;
+  const winStart=winMaxStart; // domyślnie: najnowsze sezony, suwak cofa do S1
+  const win=hasSlider?allData.slice(winStart,winStart+DC_HIST_WIN):allData;
+  const hasAcademy=!!(G.academy&&G.academy.level>0);
+  const acadNow=hasAcademy?G.academy.level:0;
+  const acadHistArr=hasAcademy?(G.academy.hist||[]):[];
+  _dcWzrostCache={allData,winMaxStart,hasAcademy,acadNow,acadHistArr};
+
+  if(hasSlider)el.appendChild(_dcSliderNode('_dcWzrostSlide','dc-wzrost-slider-lbl',winStart,winMaxStart,win[0].season,win[win.length-1].season));
+
   // ── Wykres 1: Reputacja ──────────────────────────────
   const sec1=document.createElement('div');sec1.className='dc-sec';
   sec1.style.cssText='color:var(--am);border-color:var(--am)';
@@ -110,12 +188,8 @@ function dcRenderWzrost(){
   const w1=document.createElement('div');w1.className='dc-chart';el.appendChild(w1);
   const l1=document.createElement('div');l1.className='dc-chart-lbl';
   l1.textContent=t('dc_chart_reputation');w1.appendChild(l1);
-  const b1=document.createElement('div');b1.className='dc-bars';b1.style.height='72px';w1.appendChild(b1);
-  dcBars(b1, allData.map(d=>({
-    s: d.season,
-    v: d.reputation||0,
-    lbl: (d.reputation||0)+(d._current?'⏳':'')
-  })), 'var(--am)');
+  const b1=document.createElement('div');b1.className='dc-bars';b1.id='dc-wzrost-b1';b1.style.height='72px';w1.appendChild(b1);
+  dcBars(b1, _dcRepData(win), 'var(--am)');
 
   // ── Wykres 2: Pojemność stadionu ─────────────────────
   const sec2=document.createElement('div');sec2.className='dc-sec';
@@ -125,12 +199,8 @@ function dcRenderWzrost(){
   const w2=document.createElement('div');w2.className='dc-chart';el.appendChild(w2);
   const l2=document.createElement('div');l2.className='dc-chart-lbl';
   l2.textContent=t('dc_chart_stadium_cap');w2.appendChild(l2);
-  const b2=document.createElement('div');b2.className='dc-bars';b2.style.height='72px';w2.appendChild(b2);
-  dcBars(b2, allData.map(d=>({
-    s: d.season,
-    v: d.stadiumCap||200,
-    lbl: (d.stadiumCap||200)+(d._current?'⏳':'')
-  })), '#00bcd4');
+  const b2=document.createElement('div');b2.className='dc-bars';b2.id='dc-wzrost-b2';b2.style.height='72px';w2.appendChild(b2);
+  dcBars(b2, _dcStadData(win), '#00bcd4');
 
   // ── Wykres 3: Budżet końcowy ──────────────────────────
   const sec3=document.createElement('div');sec3.className='dc-sec';
@@ -140,16 +210,11 @@ function dcRenderWzrost(){
   const w3=document.createElement('div');w3.className='dc-chart';el.appendChild(w3);
   const l3=document.createElement('div');l3.className='dc-chart-lbl';
   l3.textContent=t('dc_chart_budget')+' ['+curSym()+']';w3.appendChild(l3);
-  const b3=document.createElement('div');b3.className='dc-bars';b3.style.height='72px';w3.appendChild(b3);
-  const budgetData=allData.map(d=>({
-    s: d.season,
-    v: d._current?(G.budget||0):(d.budget||0),
-    lbl: fmt(d._current?(G.budget||0):(d.budget||0))+(d._current?'⏳':'')
-  }));
-  dcBars(b3, budgetData, 'var(--gb)');
+  const b3=document.createElement('div');b3.className='dc-bars';b3.id='dc-wzrost-b3';b3.style.height='72px';w3.appendChild(b3);
+  dcBars(b3, _dcBudgetData(win), 'var(--gb)');
 
   // ── Wykres 4: Poziom akademii ─────────────────────────
-  if(G.academy&&G.academy.level>0){
+  if(hasAcademy){
     const sec4=document.createElement('div');sec4.className='dc-sec';
     sec4.style.cssText='color:#ce93d8;border-color:#9c27b0';
     sec4.textContent=t('dc_sec_academy_lvl');el.appendChild(sec4);
@@ -157,45 +222,15 @@ function dcRenderWzrost(){
     const w4=document.createElement('div');w4.className='dc-chart';el.appendChild(w4);
     const l4=document.createElement('div');l4.className='dc-chart-lbl';
     l4.textContent=t('dc_chart_academy_lvl');w4.appendChild(l4);
-    const b4=document.createElement('div');b4.className='dc-bars';b4.style.height='52px';w4.appendChild(b4);
-    const acadNow=G.academy.level;
-    // akademia: G.academy.hist[] zawiera {season, level} jeśli istnieje, fallback — bieżący poziom
-    const acadHistArr=G.academy.hist||[];
-    const acadData=allData.map(d=>{
-      const entry=acadHistArr.find(a=>a.season===d.season);
-      const v=entry?entry.level:(d._current?acadNow:Math.max(0,acadNow-1));
-      return {s:d.season,v,lbl:'L'+v};
-    });
-    dcBars(b4, acadData, '#9c27b0', 52);
+    const b4=document.createElement('div');b4.className='dc-bars';b4.id='dc-wzrost-b4';b4.style.height='52px';w4.appendChild(b4);
+    dcBars(b4, _dcAcadData(win,acadNow,acadHistArr), '#9c27b0', 52);
   }
 }
 
 // ── LEGENDY ─────────────────────────────────────────────
-const LEG_THRESHOLD=200;
-const LEG_W=0.25,LEG_G=0.5,LEG_A=0.3,LEG_M=12,LEG_P=8;
-
-function legScore(stat,trophyCount,cupCount){
-  const pts=
-    Math.min(stat.matches*LEG_W, 75)+
-    Math.min(stat.goals*LEG_G,   50)+
-    Math.min(stat.assists*LEG_A, 30)+
-    trophyCount*LEG_M+
-    cupCount*LEG_P;
-  return Math.round(pts*10)/10;
-}
-
-function legTrophies(playerId){
-  // Mistrzostwa: sprawdź czy zawodnik był w klubie gracza w danym sezonie
-  const h=G.cHist||[];
-  const allPool=[...(G.players||[]),...(G.retiredPlayers||[]),...(G.fa||[])];
-  const p=allPool.find(x=>x.id===playerId);
-  if(!p)return{leagues:0,cups:0};
-  const leagues=(G.trophies||[]).filter(t=>t.type==='league'&&
-    p.history&&p.history.some(ph=>ph.season===t.season&&ph.clubId===G.myClubId)).length;
-  const cups=(G.trophies||[]).filter(t=>t.type==='cup'&&t.place===1&&
-    p.history&&p.history.some(ph=>ph.season===t.season&&ph.clubId===G.myClubId)).length;
-  return{leagues,cups};
-}
+// LEG_THRESHOLD / legScore() / legTrophies() przeniesione do core/data.js (musiały się wczytać
+// przed news-bootstrap.js i match-post.js, żeby protectedRetireeIds() mogła z nich korzystać
+// przy przycinaniu G.retiredPlayers). Zostają w globalnym zasięgu, więc kod niżej bez zmian.
 
 function dcRenderLegенды(){
   const el=document.getElementById('dc-legendy');if(!el||!G)return;
@@ -358,16 +393,24 @@ function dcRenderKadra(){
   // Wykres wartości kadry
   const sec1=document.createElement('div');sec1.className='dc-sec';sec1.style.color='#ce93d8';sec1.style.borderColor='#9c27b0';sec1.textContent=t('dc_kadra_value_trend');el.appendChild(sec1);
   if(h.length){
-    const w1=document.createElement('div');w1.className='dc-chart';el.appendChild(w1);
-    const l1=document.createElement('div');l1.className='dc-chart-lbl';l1.textContent=t('dc_kadra_value_chart');w1.appendChild(l1);
-    const b1=document.createElement('div');b1.className='dc-bars';b1.style.height='90px';w1.appendChild(b1);
     const vals=h.map((d,i,arr)=>{
       const v=i===arr.length-1?squadVal:Math.round(squadVal*(d.budget||1)/Math.max(G.budget||1,1));
-      return {s:d.season,v:Math.max(0,v),lbl:fmtVal(v)};
+      return {s:d.season,v:Math.max(0,v),lbl:_dcShortVal(v)};
     });
     // dodaj bieżący jeśli nie ma
-    if(!h.some(d=>d.season===G.season)) vals.push({s:G.season,v:squadVal,lbl:fmtVal(squadVal)+'⏳'});
-    dcBars(b1,vals,'#9c27b0',90);
+    if(!h.some(d=>d.season===G.season)) vals.push({s:G.season,v:squadVal,lbl:_dcShortVal(squadVal),cur:true});
+
+    const winMaxStartK=Math.max(0,vals.length-DC_HIST_WIN);
+    const hasSliderK=vals.length>DC_HIST_WIN;
+    const winStartK=winMaxStartK;
+    const winK=hasSliderK?vals.slice(winStartK,winStartK+DC_HIST_WIN):vals;
+    _dcKadraCache={vals,winMaxStart:winMaxStartK};
+    if(hasSliderK)el.appendChild(_dcSliderNode('_dcKadraSlide','dc-kadra-slider-lbl',winStartK,winMaxStartK,winK[0].s,winK[winK.length-1].s));
+
+    const w1=document.createElement('div');w1.className='dc-chart';el.appendChild(w1);
+    const l1=document.createElement('div');l1.className='dc-chart-lbl';l1.textContent=t('dc_kadra_value_chart')+' ['+curSym()+']';w1.appendChild(l1);
+    const b1=document.createElement('div');b1.className='dc-bars';b1.id='dc-kadra-b1';b1.style.height='90px';w1.appendChild(b1);
+    dcBars(b1,winK,'#9c27b0',90);
   }
 
   // Tabela OVR + potencjał bieżącej kadry

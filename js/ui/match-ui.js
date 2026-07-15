@@ -159,7 +159,6 @@ function fillMatch(){
       t('match_fix_squad_warn').replace('{a}',_validSt.length).replace('{b}',_req3)+'<br>'+
       '<div style="display:flex;gap:6px;margin-top:6px">'+
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" style="flex:1;background:var(--tb);border:1px solid var(--am);color:var(--am);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_btn')+'</button>'+
-        '<button onclick="openFACrisis(checkSquadCrisis())" style="flex:1;background:var(--tb);border:1px solid var(--rd);color:var(--rd);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_free_agents_btn')+'</button>'+
       '</div>'+
     '</div>';
   } else {

@@ -204,7 +204,7 @@ function renderAcadWychowankowie(sub){
     } else {
       graduates.sort((a,b)=>ovr(b)-ovr(a)).forEach(p=>{
         const arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-        html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px;cursor:pointer" onclick="showPlayer('+JSON.stringify(p).replace(/'/g,'\\\'')+')" >'+
+        html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px;cursor:pointer" onclick="showById('+p.id+')" >'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
             '<div>'+
               '<div style="font-size:var(--fs-meta);color:var(--wh)">🎓 '+p.name+'</div>'+
@@ -231,7 +231,7 @@ function renderAcadWychowankowie(sub){
         html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
             '<div>'+
-              '<div style="font-size:var(--fs-meta);color:var(--wh)'+(cur?';cursor:pointer" onclick="showPlayer('+JSON.stringify(cur).replace(/'/g,'\\\'')+')':'"')+'>🎓 '+pl.name+'</div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--wh)'+(cur?';cursor:pointer" onclick="showById('+cur.id+')':'"')+'>🎓 '+pl.name+'</div>'+
               '<div style="font-size:var(--fs-dense);color:var(--gr)">'+pl.pos+(pl.pot?' • Pot: '+pl.pot:'')+'</div>'+
             '</div>'+
             (curOvr?'<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+curOvr+'</div>':'')+
@@ -450,7 +450,7 @@ function renderAcadHistoryTab(p){
         t('acad_hist_matches_n').replace('{n}',h.m||0)+
         (h.g?t('acad_hist_goals_n').replace('{n}',h.g||0):'')+
         ((h.a||0)>0?t('acad_hist_assists_n').replace('{n}',h.a||0):'')+
-        (h.club?' • <span style="color:var(--am)">'+h.club+'</span>':'')+
+        (h.club?' • '+(h.clubId?'<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openClubModal('+h.clubId+')">'+h.club+'</span>':'<span style="color:var(--am)">'+h.club+'</span>'):'')+
       '</div>'+
       (noteIcon?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:3px">'+noteIcon+'</div>':'')+
     '</div>';

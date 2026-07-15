@@ -565,7 +565,11 @@ function renderPlayerHistory(p){
 
   // ── Wiersze ───────────────────────────────────────────────────
   const seasonRows=hist.map((h,i)=>{
-    const ovrC=h.ovr>=70?'var(--gb)':h.ovr>=50?'var(--am)':'var(--rd)';
+    // Wpis bieżącego sezonu (_current) to zamrożony snapshot OVR sprzed np. transferu/debiutu —
+    // w trakcie sezonu zawodnik trenuje i się zmienia, więc pokazuj tu żywy ovr(p), tak jak nagłówek
+    // karty (plr-ovr-val), zamiast nieaktualnej wartości z chwili utworzenia wpisu.
+    const dispOvr=h._current?ovr(p):h.ovr;
+    const ovrC=dispOvr>=70?'var(--gb)':dispOvr>=50?'var(--am)':'var(--rd)';
     const cup=h.cupSt||null;
     var _dispRat, tdFields='';
     if(_hView==='all'){
@@ -603,7 +607,7 @@ function renderPlayerHistory(p){
       (isAcad?'<span style="color:var(--gb)">'+t('plr_academy_badge')+'</span>':'<span style="color:var(--am)">'+t('plr_current_badge')+'</span>')+
     '</td></tr>':'';
     const seasonLabel='<span style="color:var(--am)">'+h.season+'</span>';
-    return sBadge+'<tr'+rowStyle+'><td>'+seasonLabel+'</td>'+clubCell(h)+(_isMyPlayer?'<td style="color:'+ovrC+'">'+(h.ovr||'—')+'</td>':'')+tdFields+'<td>'+ratStr+'</td></tr>'+transferRow(h,nextH);
+    return sBadge+'<tr'+rowStyle+'><td>'+seasonLabel+'</td>'+clubCell(h)+(_isMyPlayer?'<td style="color:'+ovrC+'">'+(dispOvr||'—')+'</td>':'')+tdFields+'<td>'+ratStr+'</td></tr>'+transferRow(h,nextH);
   }).join('');
 
   // ── Wiersz sumy ───────────────────────────────────────────────
@@ -920,11 +924,12 @@ function openSellModal(id){
   if((G.trSoldThisWindow||0)>=3){notif(t('plr_notif_sell_limit'),'err');return;}
   const p=G.players.find(x=>x.id===parseInt(id)||x.id===id);
   if(!p||p.clubId!==G.myClubId)return;
-  // ── LIMIT SKŁADU: min 22 zawodników po sprzedaży ─────────────────────
-  const _sqAfter=myPl().filter(x=>x.id!==p.id);
-  if(_sqAfter.length<22){notif(t('plr_notif_min_squad'),'err');return;}
-  // ── MIN 2 BRAMKARZY ───────────────────────────────────────────────────
-  if(p.pos==='GK'&&_sqAfter.filter(x=>x.pos==='GK').length<2){notif(t('plr_notif_min_gk'),'err');return;}
+  // ── MINIMUM NA POZYCJĘ (POS_QUOTA, ta sama reguła co dla klubów AI w aiEvaluateSale) ──
+  const _quota=POS_QUOTA[p.pos];
+  if(_quota&&myPl().filter(x=>x.pos===p.pos).length<=_quota.min){
+    notif(t('plr_notif_min_pos').replace('{n}',_quota.min).replace('{pos}',POS_SHORT[p.pos]||p.pos),'err');
+    return;
+  }
   window._sellId=p.id;
   const tw=isTransferWindow();
   // Użyj zapamiętanej oferty lub wygeneruj nową (1 oferta na zawodnika)

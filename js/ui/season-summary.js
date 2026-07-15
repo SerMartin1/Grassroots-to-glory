@@ -832,6 +832,10 @@ function fillLeaguesOverview(){
     paneStrzelcy.style.display='none';
     const lgClubs=new Set(lg.clubs.map(c=>c.id));
     const lgPl=G.players.filter(p=>p.clubId>0&&lgClubs.has(p.clubId));
+    // Nazwa klubu pod nazwiskiem w rankingach niżej — cały wiersz linkuje do zawodnika
+    // (onclick="showById"), więc klub dostaje własny link ze stopPropagation, żeby oba
+    // działały niezależnie zamiast klub zawsze otwierał kartę zawodnika.
+    const clubTagHtml=club=>club?('<span style="cursor:pointer;text-decoration:underline" onclick="event.stopPropagation();openClubModal('+club.id+')">'+club.n+'</span>'):'';
     const topG=lgPl.filter(p=>p.st&&p.st.g>0).sort((a,b)=>b.st.g-a.st.g).slice(0,10);
     if(!topG.length){
       paneStrzelcy.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:10px 12px">'+t('tbl_no_data')+'</div>';
@@ -842,7 +846,7 @@ function fillLeaguesOverview(){
           const isMy=p.clubId===G.myClubId;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+clubTagHtml(club)+'</div></div>'+
             '<span style="font-size:var(--fs-body);color:var(--am);font-weight:bold">'+p.st.g+'⚽</span>'+
           '</div>';
         }).join('');
@@ -863,7 +867,7 @@ function fillLeaguesOverview(){
           const isMy=p.clubId===G.myClubId;
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+'</div></div>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+clubTagHtml(club)+'</div></div>'+
             '<span style="font-size:var(--fs-body);color:var(--gb);font-weight:bold">'+p.st.a+'🎯</span>'+
           '</div>';
         }).join('');
@@ -885,7 +889,7 @@ function fillLeaguesOverview(){
           const col=avg>=8?'var(--am)':avg>=7?'var(--gb)':'var(--wh)';
           return '<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid #0d1f0d;'+(isMy?'background:#1a2a00;':'')+'cursor:pointer" onclick="showById('+p.id+')">'+
             '<span style="font-size:var(--fs-meta);color:var(--gr);width:18px">'+(i+1)+'</span>'+
-            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+(club?club.n:'')+' • '+m+'M</div></div>'+
+            '<div style="flex:1"><div style="font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+'">'+p.name+'</div><div style="font-size:var(--fs-dense);color:var(--gr)">'+clubTagHtml(club)+' • '+m+'M</div></div>'+
             '<span style="font-size:var(--fs-body);color:'+col+';font-weight:bold">'+avg.toFixed(1)+'⭐</span>'+
           '</div>';
         }).join('');
@@ -930,6 +934,55 @@ function fillLeaguesOverview(){
   });
 }
 
+// ── Suwak sezonów dla tabeli "miejsca" (drużyna × sezon) w historii ligi ─
+const LG_HIST_WIN=12; // liczba sezonów widocznych jednocześnie w tabeli
+let _lgHistWin={}; // lvl -> {lgHistData,allTeams,winMaxStart}
+
+function _lgHistPosColor(pos,n){
+  if(pos===1)return 'background:#7a5c00;color:#ffd54f';
+  if(pos===2)return 'background:#3a3a3a;color:#ccc';
+  if(pos===3)return 'background:#5c3a1a;color:#d4a574';
+  if(pos<=Math.floor(n*0.25))return 'background:#0d2b0d;color:var(--gb)';
+  if(pos>n-2)return 'background:#2b0d0d;color:var(--rd)';
+  return 'background:#111;color:var(--gr)';
+}
+
+function _lgHistSeasonHdrs(lvl,winData){
+  return winData.map(h=>'<th onclick="showLgSeasonTable('+lvl+','+h.season+')" title="'+t('lg_season_table_title').replace('{n}',h.season)+'" style="width:26px;font-weight:700;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+h.season+'</th>').join('');
+}
+
+function _lgHistTeamRows(winData,allTeams){
+  return [...allTeams.entries()].map(([cid,name])=>{
+    const isMy=cid===G.myClubId;
+    const cells=winData.map(h=>{
+      const row=h.table.find(r=>r.cid===cid);
+      const n=h.table.length;
+      if(!row)return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);color:#333;border:1px solid #0d1f0d">—</td>';
+      const style=_lgHistPosColor(row.pos,n);
+      const label=row.pos===1?'👑':row.pos>n-2?'↓'+row.pos:String(row.pos);
+      return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);font-weight:bold;border:1px solid #0a0a0a;'+style+'">'+label+'</td>';
+    }).join('');
+    return '<tr onclick="openClubModal('+cid+')" style="cursor:pointer;'+(isMy?'outline:1px solid var(--am);':'')+'">'+
+      '<td style="padding:2px 8px;font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
+      cells+
+    '</tr>';
+  }).join('');
+}
+
+// Handler suwaka sezonów (oninput na <input type="range">) — przesuwa okno widoczne w tabeli miejsc
+function _lgHistSlide(lvl,val){
+  const c=_lgHistWin[lvl];if(!c)return;
+  const start=Math.max(0,Math.min(parseInt(val,10)||0,c.winMaxStart));
+  const win=c.lgHistData.slice(start,start+LG_HIST_WIN);
+  if(!win.length)return;
+  const thead=document.getElementById('lg-hist-thead-'+lvl);
+  const tbody=document.getElementById('lg-hist-tbody-'+lvl);
+  if(thead)thead.innerHTML='<th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">'+t('lg_hist_team_col')+'</th>'+_lgHistSeasonHdrs(lvl,win);
+  if(tbody)tbody.innerHTML=_lgHistTeamRows(win,c.allTeams);
+  const lbl=document.getElementById('lg-hist-slider-lbl-'+lvl);
+  if(lbl)lbl.textContent='S'+win[0].season+'–S'+win[win.length-1].season;
+}
+
 function renderHistoria(lvl,sub){
   const pane=document.getElementById('lgpane'+lvl+'_historia');
   if(!pane)return;
@@ -968,32 +1021,24 @@ function renderHistoria(lvl,sub){
   } else {
     const allTeams=new Map();
     lgHistData.forEach(h=>{h.table.forEach(r=>{if(!allTeams.has(r.cid))allTeams.set(r.cid,r.n);});});
-    const seasons=lgHistData.map(h=>h.season);
-    const posColor=(pos,n)=>{
-      if(pos===1)return 'background:#7a5c00;color:#ffd54f';
-      if(pos===2)return 'background:#3a3a3a;color:#ccc';
-      if(pos===3)return 'background:#5c3a1a;color:#d4a574';
-      if(pos<=Math.floor(n*0.25))return 'background:#0d2b0d;color:var(--gb)';
-      if(pos>n-2)return 'background:#2b0d0d;color:var(--rd)';
-      return 'background:#111;color:var(--gr)';
-    };
-    const lg2=G.leagues&&G.leagues.find(l=>l.level===lvl);
-    const teamRows=[...allTeams.entries()].map(([cid,name])=>{
-      const isMy=cid===G.myClubId;
-      const cells=lgHistData.map(h=>{
-        const row=h.table.find(r=>r.cid===cid);
-        const n=h.table.length;
-        if(!row)return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);color:#333;border:1px solid #0d1f0d">—</td>';
-        const style=posColor(row.pos,n);
-        const label=row.pos===1?'👑':row.pos>n-2?'↓'+row.pos:String(row.pos);
-        return '<td style="width:24px;height:20px;text-align:center;font-size:var(--fs-dense);font-weight:bold;border:1px solid #0a0a0a;'+style+'">'+label+'</td>';
-      }).join('');
-      return '<tr onclick="openClubModal('+cid+')" style="cursor:pointer;'+(isMy?'outline:1px solid var(--am);':'')+'">'+
-        '<td style="padding:2px 8px;font-size:var(--fs-meta);color:'+(isMy?'var(--am)':'var(--wh)')+';white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #0d1f0d">'+name+'</td>'+
-        cells+
-      '</tr>';
-    }).join('');
-    const seasonHdrs=seasons.map(s=>'<th onclick="showLgSeasonTable('+lvl+','+s+')" title="'+t('lg_season_table_title').replace('{n}',s)+'" style="width:26px;font-weight:700;font-size:var(--fs-h3);color:var(--am);font-weight:normal;text-align:center;padding:3px 0;cursor:pointer;background:#0a1a0a;border:1px solid var(--gl);border-bottom:2px solid var(--am)">S'+s+'</th>').join('');
+
+    const winMaxStart=Math.max(0,lgHistData.length-LG_HIST_WIN);
+    const hasSlider=lgHistData.length>LG_HIST_WIN;
+    const winStart=winMaxStart; // domyślnie: najnowsze sezony, suwak cofa do S1
+    const winData=hasSlider?lgHistData.slice(winStart,winStart+LG_HIST_WIN):lgHistData;
+    _lgHistWin[lvl]={lgHistData,allTeams,winMaxStart};
+
+    const sliderHtml=hasSlider?
+      '<div style="margin:8px 12px;padding:6px 8px;background:#0d1f0d;border:1px solid var(--gl)">'+
+        '<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+
+          '<span>'+t('cm_season_slider_label')+'</span>'+
+          '<span id="lg-hist-slider-lbl-'+lvl+'" style="color:var(--am);font-weight:700">S'+winData[0].season+'–S'+winData[winData.length-1].season+'</span>'+
+        '</div>'+
+        '<input type="range" min="0" max="'+winMaxStart+'" step="1" value="'+winStart+'" oninput="_lgHistSlide('+lvl+',this.value)" style="width:100%;accent-color:var(--gb)">'+
+      '</div>' : '';
+
+    const teamRows=_lgHistTeamRows(winData,allTeams);
+    const seasonHdrs=_lgHistSeasonHdrs(lvl,winData);
     const legend=
       '<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--gl)">'+
         '<span style="font-size:var(--fs-dense);color:var(--gr)">'+t('lg_hist_legend_label')+'</span>'+
@@ -1003,12 +1048,12 @@ function renderHistoria(lvl,sub){
         '<span style="background:#0d2b0d;color:var(--gb);font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_top25')+'</span>'+
         '<span style="background:#2b0d0d;color:var(--rd);font-size:var(--fs-dense);padding:1px 5px">'+t('lg_hist_legend_relegation')+'</span>'+
       '</div>';
-    pane.innerHTML=subBar+
+    pane.innerHTML=subBar+sliderHtml+
       '<div style="font-size:var(--fs-dense);color:var(--am);padding:5px 12px;background:#0a1a0a;border-bottom:1px solid var(--gl)">'+t('lg_hist_click_hint')+'</div>'+
       '<div style="overflow-x:auto;padding:4px 8px">'+
         '<table style="border-collapse:collapse">'+
-          '<thead><tr><th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">'+t('lg_hist_team_col')+'</th>'+seasonHdrs+'</tr></thead>'+
-          '<tbody>'+teamRows+'</tbody>'+
+          '<thead><tr id="lg-hist-thead-'+lvl+'"><th style="text-align:left;padding:2px 8px;font-size:var(--fs-dense);color:var(--gr);font-weight:normal">'+t('lg_hist_team_col')+'</th>'+seasonHdrs+'</tr></thead>'+
+          '<tbody id="lg-hist-tbody-'+lvl+'">'+teamRows+'</tbody>'+
         '</table>'+
       '</div>'+legend;
   }

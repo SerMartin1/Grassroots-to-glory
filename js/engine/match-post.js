@@ -710,9 +710,14 @@ function aiRenewContracts(){
   // transferów AI (patrz zgłoszenie — "kilkanaście transferów na drużynę na sezon" zamiast
   // kilku wg AI_TYPES.maxAnnualSignings).
 
-  // ── 6. LIMIT EMERYTÓW: zachowaj max 200 (najnowsi) ───────────────────
+  // ── 6. LIMIT EMERYTÓW: zachowaj max 200 najnowszych + legendy/rekordzistów klubu — ich
+  // karta musi być dostępna przez link na stałe, nawet jeśli emeryturę mają za sobą dawno
+  // (patrz protectedRetireeIds() w core/data.js, G.allTimeStats.players nigdy nie jest
+  // przycinane, więc bez tego wyjątku link do rekordzisty stawał się martwy) ────────────
   if(G.retiredPlayers.length>200){
-    G.retiredPlayers=G.retiredPlayers.slice(-200);
+    const _protectedIds=protectedRetireeIds();
+    const _recentIds=new Set(G.retiredPlayers.slice(-200).map(p=>p.id));
+    G.retiredPlayers=G.retiredPlayers.filter(p=>_recentIds.has(p.id)||_protectedIds.has(p.id));
   }
 }
 
@@ -801,9 +806,15 @@ function ensureClubsHaveAI(){
 function fillHistoryGaps(p){
   if(!p||!G||!G.season)return;
   if(!p.history)p.history=[];
-  for(let s=1;s<G.season;s++){
+  // Zawodnik wchodzi do świata dopiero w sezonie swojego pierwszego prawdziwego wpisu (junior
+  // albo pula startowa initGame()) — nie wolno domyślać luk PRZED tym sezonem, inaczej dostaje
+  // fikcyjną przeszłość jako "wolny agent" zanim w ogóle powstał. Patrz zasada zamkniętego świata w CLAUDE.md.
+  const realSeasons=p.history.filter(h=>!h._placeholder).map(h=>h.season);
+  if(!realSeasons.length)return; // brak jeszcze żadnego prawdziwego wpisu — nie ma punktu odniesienia
+  const entrySeason=Math.min.apply(null,realSeasons);
+  for(let s=entrySeason;s<G.season;s++){
     if(!p.history.find(h=>h.season===s)){
-      p.history.push({season:s,clubId:0,club:'Wolny agent',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_placeholder:true});
+      p.history.push({season:s,clubId:0,club:t('plr_free_agent'),m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_placeholder:true});
     }
   }
   p.history.sort((a,b)=>a.season-b.season);

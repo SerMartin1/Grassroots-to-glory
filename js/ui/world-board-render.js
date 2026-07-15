@@ -87,6 +87,12 @@ function renderWorldTransfers(){
     el.innerHTML=`<div style="${F}color:var(--gr);text-align:center;padding:30px">${t('world_no_data')}</div>`;
     return;
   }
+  // Wiersze mają onclick="showById(playerId)" na całym div-ie — link do klubu dostaje
+  // stopPropagation, żeby nie otwierał zamiast tego karty zawodnika.
+  const clubLinkShort=(fullName,shortLabel)=>{
+    const c=ALL_CLUBS.find(x=>x.n===fullName);
+    return c?(`<span style="cursor:pointer" onclick="event.stopPropagation();openClubModal(${c.id})">${shortLabel}</span>`):shortLabel;
+  };
   const top3=list.slice(0,3);
   const rest=list.slice(3);
 
@@ -112,7 +118,7 @@ function renderWorldTransfers(){
     const faceSlot=tr.playerId?`<span class="wt-face-slot" data-pid="${tr.playerId}" data-age="${tr.age||''}" style="display:inline-block;vertical-align:middle;line-height:0;margin-right:4px"></span>`:'';
     h+=`<div ${clickAttr}>
       <div style="${F}color:${c};margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:3px">${faceSlot}#${rank} ${shortName}</div>
-      <div style="${Fs}color:${c}99;margin-bottom:3px">${shortFrom}→${shortTo}</div>
+      <div style="${Fs}color:${c}99;margin-bottom:3px">${clubLinkShort(tr.fromClub,shortFrom)}→${clubLinkShort(tr.toClub,shortTo)}</div>
       <div style="background:${c}18;border:1px solid ${c};border-bottom:none;height:${podiumHeights[col]};display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px">
         <div style="font-size:var(--fs-display)">${podiumMedals[col]}</div>
         <div style="${F}color:${c};margin-top:2px">${fmtVal(tr.price)}</div>
@@ -138,7 +144,7 @@ function renderWorldTransfers(){
       ${faceSlotRow}
       <div style="flex:1;min-width:0">
         <div style="${F}color:var(--wh);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tr.name}${tr.pos?` <span style="color:var(--gr)">${tr.pos}</span>`:''}${myBadge}</div>
-        <div style="${Fs}color:var(--gr)">${shortFrom} → ${shortTo} · S${tr.season}</div>
+        <div style="${Fs}color:var(--gr)">${clubLinkShort(tr.fromClub,shortFrom)} → ${clubLinkShort(tr.toClub,shortTo)} · S${tr.season}</div>
       </div>
       <div style="${F}color:var(--am);text-align:right;flex-shrink:0;margin-left:8px">${fmtVal(tr.price)}</div>
     </div>`;
@@ -790,6 +796,8 @@ function renderBoardCele(){
   const streak=b.streakFailed||0;
   const diffColor={hard:'var(--rd)',medium:'var(--am)',easy:'var(--gb)'};
   const starsHtml=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const deadlinePassed=(G.week||1)>BOARD_GOAL_DEADLINE_WEEK;
+  const deadlineHtml='<div style="background:var(--tb);border:1px solid var(--gl);padding:10px 12px;margin-bottom:6px;font-size:var(--fs-dense);color:var(--gr);text-align:center">'+t('board_deadline_passed')+'</div>';
 
   // Baner PRESJI
   const pressBanner=streak>=2?
@@ -824,6 +832,7 @@ function renderBoardCele(){
       '</div>'+
     '</div>'
   :
+  deadlinePassed?deadlineHtml:
     b.mainOptions.map(g=>{
       const forced=b.pressureForced;
       return '<div style="background:var(--tb);border:1px solid '+(forced?'var(--rd)':'var(--gl)')+';padding:10px 12px;margin-bottom:6px">'+
@@ -854,6 +863,7 @@ function renderBoardCele(){
       '<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('board_opt_penalty').replace('{n}',(b.optGoal.penalty&&b.optGoal.penalty.rep?b.optGoal.penalty.rep:'-8'))+'</div>'+
     '</div>'
   :
+  deadlinePassed?deadlineHtml:
     (b.optOptions||[]).map(g=>
       '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:6px">'+
         '<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:2px">'+g.label+'</div>'+
@@ -870,6 +880,7 @@ function renderBoardCele(){
     '<div style="font-size:var(--fs-meta);color:var(--am);margin-bottom:8px">'+t('board_main_title').replace('{n}',G.season)+'</div>'+
     '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">'+
       (b.mainGoal?t('board_selected_prefix')+'<span style="color:var(--gb)">'+b.mainGoal.label+'</span>':
+       deadlinePassed?'<span style="color:var(--gr)">'+t('board_deadline_passed')+'</span>':
        b.pressureForced?'<span style="color:var(--rd)">'+t('board_forced_no_choice')+'</span>':t('board_choose_one'))+
     '</div>'+mainHtml+
     '<div style="font-size:var(--fs-meta);color:var(--am);margin:10px 0 8px">'+t('board_opt_title')+'</div>'+

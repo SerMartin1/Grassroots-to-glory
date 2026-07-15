@@ -7,6 +7,10 @@
 // ══════════════════════════════════════════════════════════
 // ZARZĄD — CELE SEZONOWE (Wariant 3)
 // ══════════════════════════════════════════════════════════
+// Cele (główny i opcjonalny) można przyjąć tylko do tego tygodnia sezonu włącznie — po
+// terminie gracz zostaje bez celu na dany sezon (checkBoardGoals() już wcześniej poprawnie
+// no-opuje na b.mainGoal===null, więc brak wyboru samo w sobie nie wywołuje kary).
+const BOARD_GOAL_DEADLINE_WEEK=4;
 function genBoardGoals(){
   if(!G)return;
   if(!G.board)G.board={mainGoal:null,optGoal:null,goalsHistory:[],streakFailed:0,lastOptIds:[],transferBudget:0};
@@ -480,6 +484,7 @@ function getBoardPos(){
 function selectMainGoal(id){
   if(!G||!G.board)return;
   if(G.board.mainGoal){notif(t('board_notif_main_already'),'err');return;}
+  if((G.week||1)>BOARD_GOAL_DEADLINE_WEEK){notif(t('board_notif_deadline'),'err');return;}
   const _id=typeof id==='string'?id:(id&&id.dataset?id.dataset.id:id);
   const g=G.board.mainOptions.find(x=>x.id===_id);
   if(!g)return;
@@ -492,6 +497,7 @@ function selectMainGoal(id){
 function selectOptGoal(id){
   if(!G||!G.board)return;
   if(G.board.optGoal){notif(t('board_notif_opt_already'),'err');return;}
+  if((G.week||1)>BOARD_GOAL_DEADLINE_WEEK){notif(t('board_notif_deadline'),'err');return;}
   const _id=typeof id==='string'?id:(id&&id.dataset?id.dataset.id:id);
   const g=G.board.optOptions.find(x=>x.id===_id);
   if(!g)return;
