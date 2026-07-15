@@ -2126,11 +2126,30 @@ function aiSeasonalRefresh(){
       // rozwój młodych/dojrzałych i łagodniejsze starzenie weteranów.
       const _posIdxR=_stR.findIndex(s=>s.cid===c.id);
       const _topHalfR=_posIdxR>=0&&_posIdxR<_stR.length/2;
+      // Mistrzostwo ligi — osobna, wyższa stawka niż "górna połowa tabeli" (audyt stabilności
+      // OVR, 14.07.2026: dziś tytuł był nieodróżnialny od zwykłego miejsca np. 6.). Dotyczy
+      // wyłącznie klubów AI — ta funkcja i tak filtruje G.myClubId wyżej (lg.clubs.filter).
+      const _isChampionR=_posIdxR===0;
       const _wonCupR=_cupWinnerCidR===c.id,_finalCupR=_cupFinalCidR===c.id;
       const _repTierR=(ai.reputation||0)>=500?1.10:(ai.reputation||0)>=250?1.05:(ai.reputation||0)<50?0.95:1.0;
       let _successMultR=1.0;
-      if(_topHalfR)_successMultR+=0.10;
+      // Zmniejszone 14.07.2026 (weryfikacja powdrożeniowa, AUDYT_STABILNOSC_OVR.md sekcja 9):
+      // +0.20 (dwa razy więcej niż +0.10 za samą górną połowę) podbijało wzrost OVR świata w
+      // 5/8 lig zamiast go stabilizować — obniżone do +0.15, wciąż wyraźnie odróżnialne od +0.10.
+      if(_isChampionR)_successMultR+=0.15;else if(_topHalfR)_successMultR+=0.10;
       if(_wonCupR)_successMultR+=0.15;else if(_finalCupR)_successMultR+=0.08;
+      // Tłumienie piętrzenia bonusu sukcesu (audyt stabilności OVR, 14.07.2026): symulacja
+      // 100-sezonowa z realnym Pucharem pokazała, że ten bonus bez mechanizmu wygaszającego
+      // odwraca kierunek dryfu OVR całego świata ze spadku na niekontrolowany wzrost (+17% do
+      // +37% do sezonu 100) — sukces jednego sezonu ułatwia sukces w kolejnym (wyższy OVR →
+      // wyższa pozycja → znów bonus), bez końca. Jednorazowy sukces dostaje pełną stawkę
+      // (streak=0 → dampen=1.0), ale kolejne sezony sukcesu Z RZĘDU tego samego klubu dają
+      // malejący bonus (nigdy nie zerowy — floor przy streak≥10). ai._successStreak persystuje
+      // na club.ai między sezonami, tak jak już robi to np. ai._lastSeasonPos.
+      const _successStreakR=ai._successStreak||0;
+      const _streakDampR=1/(1+0.15*Math.min(10,_successStreakR));
+      _successMultR=1.0+(_successMultR-1.0)*_streakDampR;
+      ai._successStreak=(_isChampionR||_topHalfR||_wonCupR||_finalCupR)?_successStreakR+1:0;
       const clubDevMult=Math.max(0.7,Math.min(1.6,(aiDef.devMult||1.0)*_repTierR*_successMultR));
       const declineMult=Math.max(0.5,Math.min(1.3,2-clubDevMult));
       // 1. Starzenie: zawodnicy 28+ tracą atrybuty (wolniej w dobrze rozwijających klubach)

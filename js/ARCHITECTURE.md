@@ -393,6 +393,26 @@ gdy nie ma meczu), `cup-engine.js` (mecze pucharowe współdzielą silnik)
 ⚠ `state.js` (`calcValue`/`calcSalary` używane przy transferach/kontraktach AI), `data.js`
 (baza klubów przy `aiTransferPlayer`)
 
+**Reputacja per liga (AI) — udokumentowane 14.07.2026, audyt stabilności OVR świata:**
+`initClubAI(club, leagueLevel)` nadaje klubowi AI reputację startową skalowaną poziomem ligi:
+`10+(8-poziom)*30+losowe(0,60)` — liga 1 (Premier Division) startuje z 220-280, liga 8 (VII
+Liga, najniższa) z 10-70. Gracz zawsze startuje z `G.reputation:30` (sztywne w `initGame()`,
+`news-bootstrap.js`), spójne z ligą 8 (gracz zawsze zaczyna tam). Reputacja AI od 14.07.2026 ma
+też wpływ na jakość juniora (`_repJuniorBonus` w `aiTransferSeason()`, ten sam próg co
+`_repTierR` w `aiSeasonalRefresh()`, `kronika.js`) — obok już istniejących ról (tempo rozwoju
+przez `clubDevMult`, cele zarządu).
+
+**`AI_TYPES` — 4 archetypy klubów AI**, wybierane losowo w `initClubAI()` (typ `bogaty`
+wykluczony w ligach 5-8): `akademia` (młodzieżowy — wysoki nabór juniorów, niski `maxBuyAge`),
+`sprzedajacy` (handlowy/spekulacyjny — wysoki `sellRate`, rozwija i sprzedaje), `bogaty`
+(ambitny/zamożny — wysoki budżet i `buyRate`, zero naboru juniorów), `stabilny` (skromny/
+doświadczony — wysoki `maxBuyAge`, niski nabór juniorów, ostrożne zakupy; doprecyzowany
+14.07.2026 w stronę "stawia na doświadczenie"). Każdy typ ma osobne `minUpgradeDelta`/
+`maxAnnualSignings`/`maxAnnualSells`/`coreProtectSize`/`renewChance`, egzekwowane przez
+`aiEvaluateSale`/`aiEvaluateSigning`/`aiSigningCap`/`aiSellingCap`/`aiCoreProtect` (ten plik).
+`LEAGUE_AI_TUNING` (`data.js`) skaluje dodatkowo "szczelność" decyzji per liga, niezależnie od
+typu klubu.
+
 ---
 
 ### 11. `engine/week-progress.js`

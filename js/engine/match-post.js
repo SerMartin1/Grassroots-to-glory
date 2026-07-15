@@ -750,8 +750,12 @@ const AI_TYPES={
   stabilny:{
     icon:'🛡️',label:t('mp_ai_stabilny_label'),
     desc:t('mp_ai_stabilny_desc'),
-    buyRate:0.3,sellRate:0.25,juniors:[1,1],maxBuyAge:30,budgetMult:1.1,devMult:1.0,
-    minUpgradeDelta:1,maxAnnualSignings:3,maxAnnualSells:2,coreProtectSize:4,renewChance:0.70
+    // Doprecyzowane 14.07.2026 (audyt stabilności OVR) — najbliższy typ "stawia na
+    // doświadczenie": wyższy maxBuyAge, rzadszy nabór juniorów, kupuje tylko realnie lepszych,
+    // chętniej przedłuża sprawdzone kontrakty. Tożsamość/nazwa/ikona bez zmian na Twoją prośbę
+    // (doprecyzowanie istniejącego typu zamiast nowego wpisu w AI_TYPES).
+    buyRate:0.3,sellRate:0.25,juniors:[0,1],maxBuyAge:33,budgetMult:1.1,devMult:1.0,
+    minUpgradeDelta:2,maxAnnualSignings:3,maxAnnualSells:2,coreProtectSize:4,renewChance:0.80
   }
 };
 const AI_TYPES_LIST=['akademia','sprzedajacy','bogaty','stabilny'];
@@ -1242,7 +1246,13 @@ function aiTransferSeason(isWinter){
             // świat i podbijało OVR ponad sezon 1), tylko przywrócenie różnicy między klubami.
             const _juniorFloor=Math.max(lgMin-3,avgOvr-25);
             const _juniorCeil=Math.max(lgMin+10,avgOvr-10);
-            const juniorOvr=r(_juniorFloor,_juniorCeil);
+            // Reputacja → jakość juniora (audyt stabilności OVR, 14.07.2026): NOWA, dodatkowa
+            // rola reputacji, obok istniejących (przychody w calcWeeklyIncome, tempo rozwoju w
+            // aiSeasonalRefresh, cele zarządu) — żadna z nich nie jest tu ruszana. Ten sam próg
+            // co _repTierR w aiSeasonalRefresh (kronika.js), żeby nie wprowadzać drugiego wzorca
+            // obok istniejącego.
+            const _repJuniorBonus=(ai.reputation||0)>=500?6:(ai.reputation||0)>=250?3:(ai.reputation||0)<50?-2:0;
+            const juniorOvr=r(_juniorFloor,_juniorCeil)+_repJuniorBonus;
             const junior=mkPlayer(club.id);
             junior.pos=deficitPos.length?pick(deficitPos):pick(openPos);
             junior.age=r(16,18);
