@@ -205,7 +205,6 @@ function renderNews(){
     el.innerHTML='<div style="font-size:var(--fs-dense);color:var(--gr);padding:10px 12px;border-left:3px solid var(--gl)">'+t('news_none')+'</div>';
     return;
   }
-  const prio={err:0,inj:0,budget:1,card:2,premium:3,ok:4,back:4,train:5,scout:5,academy:5,club:6,info:6,rumour:7,contract:8};
   const active=G.news.filter(n=>!n.expires||n.expires>G.week);
   const weeks=[...new Set(active.map(n=>n.week))].sort((a,b)=>b-a);
   const currentWeek=weeks[0];
@@ -222,8 +221,11 @@ function renderNews(){
   ];
 
   // Badge: liczba wiadomości bieżącego tygodnia per zakładka
+  // Kolejność chronologiczna (G.news.unshift = najnowszy pierwszy) — bez resortowania wg
+  // priorytetu typu, żeby komunikat po realizacji akcji z newsa zawsze trafiał na samą górę
+  // zamiast lądować pod starszym newsem "ważniejszego" typu z tego samego tygodnia.
   const curAll=active.filter(n=>n.week===currentWeek);
-  const curFiltered=curAll.filter(n=>_newsTabFilter(_newsTab,n)).sort((a,b)=>(prio[a.type]||9)-(prio[b.type]||9));
+  const curFiltered=curAll.filter(n=>_newsTabFilter(_newsTab,n));
   const prevAll=active.filter(n=>n.week!==currentWeek);
 
   // ── PASEK ZAKŁADEK ────────────────────────────────────────────────────

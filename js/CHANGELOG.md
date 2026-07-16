@@ -34,6 +34,12 @@ Po każdej większej zmianie dopisz kilka krótkich punktów opisujących, co zo
 - Przy wdrożeniu znaleziona i naprawiona literówka: budowanie HTML wiersza terminarza (`_kalRowHtml`) dawało nadmiarowy cudzysłów w atrybucie `class` (`<div class="kal-row"">`) — niepoprawny, choć nieszkodliwy wizualnie HTML; poprawione na jawne budowanie atrybutów `class`/`onclick`.
 - Zweryfikowane w Playwright (prawdziwe kliknięcia, nie wywołania JS z pominięciem UI): panel otwiera się i zamyka poprawnie, pasek znika/wraca tak jak inne panele, 30 meczów ligowych i wstrzyknięty testowo mecz pucharowy renderują się poprawnie z właściwym tagiem i sortowaniem, zero błędów konsoli na całej ścieżce.
 
+5. Naprawa: komunikat po akcji z aktualności nie zawsze trafiał na samą górę listy
+- Zgłoszenie gracza: po wykonaniu jakiegoś działania z aktualności (np. wybór w Kronice, sprzedaż zawodnika, ustawienie planu treningowego) potwierdzający komunikat powinien pojawić się na samej górze listy, ale czasem lądował niżej.
+- Przyczyna: `addNews()` (`ui/news-bootstrap.js`) dopisuje nowy wpis przez `G.news.unshift(...)`, więc sama tablica jest już chronologiczna (najnowszy pierwszy) — ale `renderNews()` resortowało newsy bieżącego tygodnia wg sztywnej tabeli priorytetu typu (`err`/`inj`:0 … `contract`:8), nie wg kolejności dodania. Świeżo dodany komunikat typu np. `ok`/`club`/`train`/`info` lądował pod starszym newsem tego samego tygodnia o „ważniejszym" typie (np. `err`/`budget`), zamiast na górze.
+- Naprawione: usunięte sortowanie wg priorytetu dla listy bieżącego tygodnia (`curFiltered` w `renderNews()`) — newsy renderują się teraz w naturalnej kolejności chronologicznej z `G.news`. Kolor paska/ikona (`barColor`/`icons` w `_newsItemHtml`) nadal wizualnie odróżniają wagę wpisu. Sekcja „poprzednie tygodnie" (`_renderPrevList`) została bez zmian — tam priorytet w ramach zamkniętego historycznego tygodnia nadal ma sens. Przy okazji usunięta stająca się martwą zmienna `prio` w `renderNews()`.
+- Zweryfikowane: `node --check` na `ui/news-bootstrap.js` — zero błędów składni.
+
 
 15.07.2026
 1. Karta klubu — historia od sezonu 1 zamiast tylko ostatnich sezonów, suwak sezonów na wykresach
