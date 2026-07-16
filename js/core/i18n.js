@@ -94,6 +94,16 @@ const T = {
     tile_world:     'ŚWIAT',
     tile_history:   'HISTORIA',
     tile_menu:      'MENU',
+    // ── Wariant B: pasek dolny ──
+    nav_kalendarz:  'KALENDARZ',
+    nav_wiecej:     'WIĘCEJ',
+    // ── Wariant B: Kalendarz ──
+    kal_title:            '📅 KALENDARZ',
+    kal_next_label:       'NAJBLIŻSZY MECZ',
+    kal_schedule_label:   'TERMINARZ',
+    kal_none:             'Brak zaplanowanych meczów.',
+    kal_none_next:        'Brak najbliższego meczu.',
+    kal_cup_tag:          'PUCHAR',
     // ── Faza 2: Modale ogólne ──
     modal_cancel:   'ANULUJ',
     modal_back:     '◀ WRÓĆ',
@@ -135,6 +145,8 @@ const T = {
     cm_tab_news:        'NEWSY',
     // ── Faza 3: Panel Skład ──
     squad_title:        '👥 SKŁAD',
+    squad_seg_squad:    'SKŁAD',
+    squad_tab_lineup:   'SKŁAD MECZOWY',
     squad_tab_stats:    'STATYSTYKI',
     squad_tab_health:   'ZDROWIE',
     squad_tab_contracts:'KONTRAKTY',
@@ -1047,8 +1059,7 @@ const T = {
     news_cup_final_reward:  '🥈 [Puchar] Nagroda za finał: +{cash} zł • +{rep} rep',
     // ── Faza: Panel Taktyka ──
     tac_title:               '📋 TAKTYKA',
-    tac_tab_settings:        'USTAWIENIA',
-    tac_tab_squad:           'SKŁAD',
+    tac_seg_tactics:         'TAKTYKA',
     tac_avg_ovr:             'ŚREDNI OVR SKŁADU: --',
     tac_avg_ovr_camp:        'ŚREDNI OVR: {n}',
     tac_camp_bonus:          '+1 (OBÓZ)',
@@ -2128,6 +2139,7 @@ const T = {
     world_market:            'Rynek',
     // ── Sesja 3: Zarząd (Cele UI + Historia) ──
     board_goals_pending:      'Cele zostaną przydzielone na początku nowego sezonu.',
+    gab_goal_label:           'CEL ZARZĄDU',
     board_pressure_banner:    '⚠️ PRESJA ZARZĄDU — {n}. sezon bez wykonania celu!',
     board_pressure_forced_note: ' Cel narzucony przez zarząd.',
     board_pressure_penalty_note: ' Kary zwiększone ×{mult}.',
@@ -3168,6 +3180,16 @@ const T = {
     tile_world:     'WORLD',
     tile_history:   'HISTORY',
     tile_menu:      'MENU',
+    // ── Wariant B: pasek dolny ──
+    nav_kalendarz:  'CALENDAR',
+    nav_wiecej:     'MORE',
+    // ── Wariant B: Kalendarz ──
+    kal_title:            '📅 CALENDAR',
+    kal_next_label:       'NEXT MATCH',
+    kal_schedule_label:   'FIXTURES',
+    kal_none:             'No fixtures scheduled.',
+    kal_none_next:        'No upcoming match.',
+    kal_cup_tag:          'CUP',
     // ── Faza 2: Modale ogólne ──
     modal_cancel:   'CANCEL',
     modal_back:     '◀ BACK',
@@ -3209,6 +3231,8 @@ const T = {
     cm_tab_news:        'NEWS',
     // ── Faza 3: Panel Skład ──
     squad_title:        '👥 SQUAD',
+    squad_seg_squad:    'SQUAD',
+    squad_tab_lineup:   'STARTING XI',
     squad_tab_stats:    'STATS',
     squad_tab_health:   'HEALTH',
     squad_tab_contracts:'CONTRACTS',
@@ -4121,8 +4145,7 @@ const T = {
     news_cup_final_reward:  '🥈 [Cup] Final reward: +{cash} • +{rep} rep',
     // ── Faza: Panel Taktyka ──
     tac_title:               '📋 TACTICS',
-    tac_tab_settings:        'SETTINGS',
-    tac_tab_squad:           'SQUAD',
+    tac_seg_tactics:         'TACTICS',
     tac_avg_ovr:             'SQUAD AVG OVR: --',
     tac_avg_ovr_camp:        'AVG OVR: {n}',
     tac_camp_bonus:          '+1 (CAMP)',
@@ -5202,6 +5225,7 @@ const T = {
     world_market:            'Market',
     // ── Session 3: Board (Goals UI + History) ──
     board_goals_pending:      'Targets will be assigned at the start of the new season.',
+    gab_goal_label:           'BOARD GOAL',
     board_pressure_banner:    '⚠️ BOARD PRESSURE — {n} season(s) without meeting the target!',
     board_pressure_forced_note: ' Target imposed by the board.',
     board_pressure_penalty_note: ' Penalties increased ×{mult}.',
@@ -6255,13 +6279,14 @@ function applyLang() {
 // Odśwież aktualnie otwarte panele (używane po zmianie języka LUB waluty wyświetlania)
 function _refreshOpenPanels() {
   if(!(typeof G !== 'undefined' && G && G.myClub)) return;
-  if(document.getElementById('p-squad')&&document.getElementById('p-squad').classList.contains('open'))fillSquad();
+  if(document.getElementById('p-squad')&&document.getElementById('p-squad').classList.contains('open')){fillSquad();fillTacSquad();}
   if(document.getElementById('p-transfers')&&document.getElementById('p-transfers').classList.contains('open'))fillTransfers();
   if(document.getElementById('p-training')&&document.getElementById('p-training').classList.contains('open'))fillTraining();
   // ── Faza 4a: Mecz, Tabela, Puchar ──
   if(document.getElementById('p-match')&&document.getElementById('p-match').classList.contains('open'))fillMatch();
-  if(document.getElementById('p-tactics')&&document.getElementById('p-tactics').classList.contains('open')){fillTactics();fillTacSquad();}
+  if(document.getElementById('p-tactics')&&document.getElementById('p-tactics').classList.contains('open')){fillTactics();fillPitch();}
   if(document.getElementById('p-table')&&document.getElementById('p-table').classList.contains('open'))fillTable();
+  if(document.getElementById('p-kalendarz')&&document.getElementById('p-kalendarz').classList.contains('open'))fillKalendarz();
   if(document.getElementById('p-cup')&&document.getElementById('p-cup').classList.contains('open'))fillCup();
   // ── Sesja 1: karta zawodnika ──
   if(document.getElementById('p-player')&&document.getElementById('p-player').classList.contains('open')&&window._plrId){const _pp=G&&G.players&&G.players.find(x=>x.id===window._plrId);if(_pp)showPlayer(_pp);}

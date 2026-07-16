@@ -1,9 +1,15 @@
 function kronShowModal(ev, resolvedBody){
   const modal=document.getElementById('modal-kronika');
   if(!modal)return;
+  // Zapamiętane na wypadek kliknięcia linku zawodnika/klubu w treści — showById()/openClubModal()
+  // zamykają ten modal, żeby karta była widoczna od razu (bez zasłonięcia przez z-index:9995), a
+  // po jej zamknięciu closePanel('p-player') (navigation-squad.js) odtwarza DOKŁADNIE ten sam event
+  // przez ponowne wywołanie kronShowModal(), zamiast go tracić.
+  window._kronCurrentEv=ev;
+  window._kronCurrentBody=resolvedBody;
   document.getElementById('kron-category').textContent=ev.category||t('kron_cat_default');
   document.getElementById('kron-title').textContent=ev.title;
-  document.getElementById('kron-body').innerHTML=resolvedBody||ev.body;
+  document.getElementById('kron-body').innerHTML=linkifyNames(resolvedBody||ev.body);
   const chEl=document.getElementById('kron-choices');
   chEl.innerHTML='';
   ev.choices.forEach(function(ch,idx){
@@ -12,6 +18,8 @@ function kronShowModal(ev, resolvedBody){
     btn.innerHTML='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
     btn.onclick=function(){
       modal.style.display='none';
+      window._kronCurrentEv=null;
+      window._kronCurrentBody=null;
       // Kronika ma dziesiątki gałęzi efektów, każda z własnym clampem G.reputation (0-1000) —
       // zamiast podmieniać każdą z osobna, logujemy deltę centralnie tutaj (jedyne miejsce,
       // przez które przechodzi KAŻDY wybór Kroniki), żeby trafiła do modala ⭐ Rep.

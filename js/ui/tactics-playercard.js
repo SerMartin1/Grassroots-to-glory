@@ -3,17 +3,6 @@ d.innerHTML='<div style="flex:1;min-width:0"><div class="pc2-name-text '+(isSt?'
 (p.pos==='GK'?'📅 <b style="color:var(--wh)">'+p.st.m+'</b> 🛡️ <b style="color:var(--gb)">'+(p.st.cs||0)+'</b> 🔴 <b style="color:var(--rd)">'+(p.st.ga||0)+'</b>':'📅 <b style="color:var(--wh)">'+p.st.m+'</b> ⚽ <b style="color:var(--am)">'+p.st.g+'</b> 🤝 <b style="color:var(--gb)">'+p.st.a+'</b>')+'</div>';
 d.onclick=()=>showPlayer(p);return d;}
 
-function tacTab(tab,btn){
-  document.querySelectorAll('#p-tactics .sq-tab2-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  ['tac-pane-ustawienia','tac-pane-sklad'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.classList.remove('on');
-  });
-  const el=document.getElementById('tac-pane-'+tab);if(el)el.classList.add('on');
-  if(tab==='sklad')fillTacSquad();
-  if(tab==='ustawienia'){fillTactics();fillPitch();}
-}
-
 function calcReadiness(p){
   const o=ovr(p);
   const fm=p.form||75;
@@ -81,7 +70,6 @@ function fillTacSquad(){
   const st=all.filter(p=>p.starter).length;
   const lim=formationLimits();
   const se=document.getElementById('sq-st-count');if(se)se.textContent=st+'/11';
-  const sc2=document.getElementById('tac-sklad-count');if(sc2)sc2.textContent=st+'/11';
   const te=document.getElementById('sq-total-count2');if(te)te.textContent=all.length;
   const slots=[['sq-slot-gk','GK×1'],['sq-slot-cb','OBR×'+lim.OBR],['sq-slot-mid','POL×'+lim.POL],['sq-slot-st','NAP×'+lim.NAP]];
   slots.forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
@@ -223,6 +211,14 @@ function _captureReturnPoint(){
       if(pane&&pane.style.display==='block')_tab=tb;
     });
     return{modalId:'modal-club-ai',extra:{clubId:_cmClubId,tab:_tab}};
+  }
+  const kronM=document.getElementById('modal-kronika');
+  if(kronM&&kronM.style.display==='flex'&&window._kronCurrentEv){
+    return{modalId:'modal-kronika'};
+  }
+  const repM=document.getElementById('modal-reputation');
+  if(repM&&repM.style.display==='flex'){
+    return{modalId:'modal-reputation'};
   }
   const openPanelEl=document.querySelector('.panel.open');
   if(openPanelEl&&openPanelEl.id!=='p-player'){

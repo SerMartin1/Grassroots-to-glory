@@ -705,7 +705,7 @@ function renderHistDynastia(){
           var _clickable=tl.pid!=null;
           var _style='font-size:var(--fs-dense);color:'+(_clickable?'var(--am)':'var(--gr)')+';padding:2px 0;display:flex;gap:5px'+(_clickable?';cursor:pointer':'');
           var _click=_clickable?' onclick="showById('+tl.pid+')"':'';
-          html+='<div style="'+_style+'"'+_click+'><span>'+tl.icon+'</span><span>'+tl.label+(_clickable?' ↗':'')+'</span></div>';
+          html+='<div style="'+_style+'"'+_click+'><span>'+tl.icon+'</span><span>'+linkifyNames(tl.label)+(_clickable?' ↗':'')+'</span></div>';
         });
         html+='</div>';
       }

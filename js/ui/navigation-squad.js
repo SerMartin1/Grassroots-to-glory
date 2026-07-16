@@ -170,6 +170,10 @@ function closePanel(id){
       } else if(_ret&&_ret.modalId==='modal-club-ai'&&_ret.extra){
         openClubModal(_ret.extra.clubId);
         if(_ret.extra.tab)cmTab(_ret.extra.tab);
+      } else if(_ret&&_ret.modalId==='modal-kronika'){
+        if(window._kronCurrentEv)kronShowModal(window._kronCurrentEv,window._kronCurrentBody);
+      } else if(_ret&&_ret.modalId==='modal-reputation'){
+        openRepModal();
       } else if(_ret&&_ret.panelId==='p-match'){
         // v225: TYLKO przywróć widoczność panelu meczu — NIGDY openPanel('p-match')/fillMatch().
         // Treść p-match zostaje cała nietknięta w DOM-ie, gdy karta zawodnika się otwiera
@@ -243,18 +247,6 @@ function handleNextWeek(){
   if(G.week<3){advWeekPrep();return;}
   tryOpenMatch();
 }
-function advWeekPrep(){
-  if(n.pids&&n.pids.length){
-    let m=n.msg;
-    n.pids.forEach(function(id){
-      const px=G.players.find(function(x){return x.id===id;});
-      if(px){const last=px.name.split(' ')[1]||px.name;m=m.replace(last,'<span style="cursor:pointer;text-decoration:underline" data-pid="'+id+'" onclick="showById(parseInt(this.dataset.pid))">'+last+'</span>');}
-    });
-    return m;
-  }
-  return newsClickable(n.msg||'');
-}
-
 function advWeekPrep(){
   if(!G)return;
   G.week++;
@@ -458,6 +450,9 @@ function autoFillSquadFromBench(){
 function updateHdr(){if(!G)return;
   const c=document.getElementById('h-club'),s=document.getElementById('h-season'),rn=document.getElementById('h-rnd');
   if(c)c.textContent=G.myClub.n;
+  const _crestEl=document.getElementById('ghdr-crest-btn');
+  if(_crestEl&&typeof pxCrest==='function'){_crestEl.innerHTML='';_crestEl.appendChild(pxCrest(G.myClubId,2));}
+  if(typeof renderGabinetBoardGoal==='function')renderGabinetBoardGoal();
   if(s)s.textContent=t('hdr_season')+' '+G.season+' • '+(LEAGUE_NAMES[G.myLeague||8]||t('league_fallback'));
   const _re=document.getElementById('h-rep');if(_re)_re.textContent=t('hdr_rep')+' '+(G.reputation||10);
   const _fr=document.getElementById('h-freq');if(_fr)_fr.textContent='👥 '+(G.frequency||40)+'%';
@@ -495,10 +490,11 @@ function updateHdr(){if(!G)return;
 
 function fillPanel(id){
   if(!G)return;
-  if(id==='p-squad')fillSquad();
-  else if(id==='p-tactics'){fillTactics();fillTacSquad();}
+  if(id==='p-squad'){fillSquad();fillTacSquad();}
+  else if(id==='p-tactics'){fillTactics();fillPitch();}
   else if(id==='p-match')fillMatch();
 else if(id==='p-table')fillTable();
+  else if(id==='p-kalendarz')fillKalendarz();
 
   else if(id==='p-transfers')fillTransfers();
   else if(id==='p-training')fillTraining();
@@ -521,18 +517,20 @@ function fillSquad(){
     sumEl.textContent=t('squad_summary').replace('{n}',all.length).replace('{ovr}',_avgOvr).replace('{val}',fmtVal(_totalVal));
   }
   const activeTab=document.querySelector('#p-squad .tab-btn.active');
-  const tabKey=activeTab?activeTab.getAttribute('data-i18n'):'squad_tab_stats';
+  const tabKey=activeTab?activeTab.getAttribute('data-i18n'):'squad_tab_lineup';
   if(tabKey==='squad_tab_stats')renderSquadStats();
   else if(tabKey==='squad_tab_health')renderSquadHealth();
   else if(tabKey==='squad_tab_contracts')renderSquadContracts();
+  else if(tabKey==='squad_tab_lineup'){/* fillTacSquad() już wołane z fillPanel('p-squad') */}
   else renderSquadStats();
 }
 function squadTab(tab,btn){
   document.querySelectorAll('#p-squad .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['statystyki','zdrowie','kontrakty'].forEach(t=>{const e=document.getElementById('squad-'+t);if(e)e.classList.remove('on');});
+  ['meczowy','statystyki','zdrowie','kontrakty'].forEach(t=>{const e=document.getElementById('squad-'+t);if(e)e.classList.remove('on');});
   const e=document.getElementById('squad-'+tab);if(e)e.classList.add('on');
-  if(tab==='statystyki')renderSquadStats();
+  if(tab==='meczowy')fillTacSquad();
+  else if(tab==='statystyki')renderSquadStats();
   else if(tab==='zdrowie')renderSquadHealth();
   else if(tab==='kontrakty')renderSquadContracts();
 }

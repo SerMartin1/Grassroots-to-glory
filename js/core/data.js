@@ -308,6 +308,38 @@ function setCurrentLeague(leagues,level){
   CLUBS_B=[...getLeagueClubs(leagues,level)];
   ALL_CLUBS=[...CLUBS_B];
 }
+// Odnośnik do karty klubu/zawodnika wewnątrz dowolnego tekstu (news, Kronika, historia reputacji,
+// oś czasu) — stopPropagation, bo wpis bywa sam w sobie klikalny (np. n.clubId w world-newsach,
+// tl.pid na osi czasu) — bez tego klik w link wewnątrz tekstu odpalałby zamiast niego akcję całego
+// wiersza.
+function _clubLink(c){
+  return '<span onclick="event.stopPropagation();openClubModal('+c.id+')" style="cursor:pointer;text-decoration:underline">'+c.n+'</span>';
+}
+function _playerLink(p){
+  return '<span onclick="event.stopPropagation();showById('+p.id+')" style="cursor:pointer;text-decoration:underline">'+p.name+'</span>';
+}
+// Zamienia KAŻDE wystąpienie nazwy klubu i pełnego imienia+nazwiska zawodnika w tekście na klikalny
+// link do jego karty (Etap B: każda wzmianka drużyny/zawodnika musi linkować do jej/jego karty).
+// Wołane jedynie przy RENDERZE (news, Kronika, historia reputacji, oś czasu) — surowy tekst w
+// G.news/outcome/timeline zostaje zawsze czystym stringiem, dzięki czemu notif() (jedyne miejsce
+// renderujące przez textContent) nigdy nie dostaje HTML-a i nie wymaga osobnego "odlinkowania".
+// Pomija teksty, które już mają linki (np. zapowiedź sezonu buduje je sama), żeby nie zagnieżdżać
+// <span> w <span>. Sortowanie po długości nazwy — zabezpieczenie przed literalnym podciągiem.
+function linkifyNames(msg){
+  if(!msg||msg.indexOf('openClubModal(')!==-1||msg.indexOf('showById(')!==-1)return msg;
+  const clubs=(ALL_CLUBS||[]).filter(c=>c&&c.n).slice().sort((a,b)=>b.n.length-a.n.length);
+  clubs.forEach(c=>{
+    if(msg.indexOf(c.n)===-1)return;
+    msg=msg.split(c.n).join(_clubLink(c));
+  });
+  const players=[...(typeof G!=='undefined'&&G&&G.players||[]),...(typeof G!=='undefined'&&G&&G.retiredPlayers||[]),...(typeof G!=='undefined'&&G&&G.fa||[])]
+    .filter(p=>p&&p.name).slice().sort((a,b)=>b.name.length-a.name.length);
+  players.forEach(p=>{
+    if(msg.indexOf(p.name)===-1)return;
+    msg=msg.split(p.name).join(_playerLink(p));
+  });
+  return msg;
+}
 const FIRST=["Adam","Bartosz","Cezary","Dariusz","Filip","Grzegorz","Henryk","Jacek","Krzysztof","Leszek","Marek","Paweł","Rafał","Sławomir","Tomasz","Piotr","Michał","Andrzej","Robert","Mariusz","Łukasz","Mateusz","Kamil","Marcin","Sebastian","Wojciech","Damian","Radosław","Janusz","Artur","Hubert","Konrad","Łukasz","Maciej","Norbert","Oskar","Patryk","Ryszard","Stanisław","Tadeusz","Waldemar","Zbigniew","Aleksander","Bernard","Dawid","Edward","Feliks","Gerard","Igor","Jurek"];
 const LAST=[
   "Kowalski",

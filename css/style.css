@@ -102,22 +102,74 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .ph-title{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h2);color:var(--am);letter-spacing:1px;}
 .btn-back{background:none;border:2px solid var(--gb);color:var(--gb);font-family:'JetBrains Mono',monospace;font-size:20px;padding:4px 10px;cursor:pointer;}
 .btn-back:hover{background:var(--gm);color:var(--am);}
-#v-game{background:var(--gd);}
+/* v228→Wariant B: pasek dolny jest position:absolute;bottom:0 wewnątrz tego widoku — musi mieć
+   TWARDĄ wysokość (nie tylko odziedziczone .view{min-height:100vh}), inaczej długa lista newsów
+   rozciąga #v-game ponad jeden ekran, cała STRONA zaczyna się przewijać zamiast #gabinet-pane
+   (jego overflow-y:auto nigdy się nie uruchamia bez ograniczonej wysokości rodzica), a pasek/
+   arkusz "Więcej" (liczone względem tej samej ramki) odjeżdżają poza widoczny obszar. */
+/* position:relative jest tu konieczne, nie tylko kosmetyczne: bez tego .navbar/.navbar-sheet
+   (position:absolute) pozycjonowałyby się względem #app-frame (dziadka, jedyny wcześniejszy
+   przodek z position!=static), a wtedy overflow:hidden powyżej NIC by nie przycinał — dotyczy
+   tylko potomków, których faktyczny kontener pozycjonowania jest w jego wnętrzu. */
+#v-game{background:var(--gd);height:100vh;height:100dvh;overflow:hidden;position:relative;}
 .game-hdr{background:var(--gd);border-bottom:3px solid var(--gb);position:sticky;top:0;z-index:100;overflow:hidden;}
 .ghdr-banner{width:100%;display:block;height:64px;object-fit:cover;object-position:center 28%;}
 .ghdr-info{padding:7px 14px 9px;}
 .ghdr-club{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h1);color:var(--am);letter-spacing:1px;line-height:1.4;}
+.ghdr-crest-btn{width:28px;height:28px;flex-shrink:0;background:var(--tb);border:1px solid var(--gl);border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.ghdr-crest-btn:active{border-color:var(--am);}
 .ghdr-meta{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
 .ghdr-season{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h1);color:var(--gb);letter-spacing:1px;}
 .ghdr-rnd{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h1);color:var(--gr);text-align:right;}
-.btn-next{width:100%;background:var(--am);color:#000;border:none;border-bottom:4px solid var(--ad);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h2);padding:12px;cursor:pointer;}
-.btn-next:active{transform:translateY(3px);border-bottom:1px solid var(--ad);}
+.gab-nextweek{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--tb);border:1px solid var(--gl);border-left:3px solid var(--am);margin:8px 8px 4px;padding:9px 12px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:700;}
+.gab-nextweek:active{border-left-color:var(--ad);}
+.gab-nextweek span#btn-next-week{font-size:var(--fs-micro);color:var(--gr);}
+.gab-nextweek span#btn-next-match-info{font-size:var(--fs-dense);color:var(--am);}
 .tile-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px;flex:1;}
 .tile{background:var(--tb);border:2px solid var(--gl);border-bottom:4px solid #1a2d1a;padding:10px 8px;cursor:pointer;text-align:center;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .tile:hover{background:var(--gm);border-color:var(--am);}
 .tile:active{transform:translateY(3px);border-bottom:1px solid #1a2d1a;}
 .tile-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
 .tile-lbl{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:0.5px;line-height:1.5;}
+
+/* ── Wariant B: Gabinet + pasek dolny + FAB + Więcej ── */
+.gabinet-pane{overflow-y:auto;flex:1;padding-bottom:76px;}
+.gab-goal-card{background:var(--tb);border:1px solid var(--gl);border-radius:4px;margin:8px 8px 4px;padding:10px 12px;cursor:pointer;}
+.gab-goal-card:active{border-color:var(--am);}
+.gab-goal-hdr{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:1px;margin-bottom:4px;}
+.gab-goal-lbl{font-size:var(--fs-dense);color:var(--wh);font-weight:700;margin-bottom:2px;}
+.gab-goal-desc{font-size:var(--fs-dense);color:var(--gr);}
+.gab-goal-pending{font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:10px 12px;margin:8px 8px 4px;}
+
+/* Kalendarz (Wariant B) */
+.kal-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid #0a180a;}
+.kal-row.next{background:rgba(255,193,7,.08);border:1px solid var(--am);border-radius:4px;cursor:pointer;}
+.kal-mid{flex:1;min-width:0;}
+.kal-opp{font-size:var(--fs-dense);color:var(--wh);}
+.kal-venue{font-size:var(--fs-micro);color:var(--gr);}
+.kal-cup-tag{font-size:var(--fs-micro);color:var(--am);font-weight:700;letter-spacing:.5px;}
+.kal-score{font-size:var(--fs-dense);font-weight:700;color:var(--gr);flex-shrink:0;}
+.kal-score.win{color:var(--gb);}
+.kal-score.draw{color:var(--gr);}
+.kal-score.loss{color:var(--rd);}
+.kal-score.next{color:var(--am);}
+.kal-empty{font-size:var(--fs-dense);color:var(--gr);text-align:center;padding:10px 12px;}
+
+.navbar{position:absolute;left:0;right:0;bottom:0;height:58px;background:var(--gm);border-top:1px solid var(--gl);display:flex;z-index:150;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--gr);}
+.nav-btn.active{color:var(--am);}
+.nav-btn span:last-child{font-family:'JetBrains Mono',monospace;font-size:var(--fs-micro);font-weight:700;letter-spacing:.3px;}
+.nav-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
+.nav-fab-slot{flex:1;position:relative;}
+.nav-fab{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:48px;height:48px;border-radius:50%;background:var(--am);border:3px solid var(--gd);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.5);}
+.nav-fab:active{transform:translateX(-50%) translateY(2px);}
+
+.navbar-sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .2s;z-index:151;}
+.navbar-sheet-scrim.show{background:rgba(0,0,0,.6);pointer-events:auto;}
+.navbar-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--gd);border-top:1px solid var(--gl);border-radius:12px 12px 0 0;transform:translateY(100%);transition:transform .25s ease;z-index:152;padding:10px 8px 20px;max-height:70vh;overflow-y:auto;}
+.navbar-sheet.show{transform:translateY(0);}
+.navbar-sheet-handle{width:36px;height:4px;background:var(--gl);border-radius:2px;margin:0 auto 10px;}
+.navbar-sheet-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 .tile.hi{border-color:var(--am);}
 .panel{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--gd);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.2s ease,visibility 0s linear 0.2s;overflow:hidden;visibility:hidden;pointer-events:none;}
 .panel.open{transform:translateX(0);visibility:visible;pointer-events:auto;transition:transform 0.2s ease,visibility 0s linear 0s;}
@@ -203,6 +255,7 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .sq-tabs2{display:flex;border-bottom:2px solid var(--gb);}
 .sq-tab2-btn{flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);padding:12px 4px;cursor:pointer;letter-spacing:2px;}
 .sq-tab2-btn.on{background:var(--gm);color:var(--am);border-bottom:2px solid var(--am);}
+.seg-ico{display:inline-flex;vertical-align:middle;margin-right:5px;width:14px;height:14px;}
 .sq-tab-pane2{display:none;}
 .sq-tab-pane2.on{display:block;}
 .sq-top-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0d1f0d;border-bottom:1px solid var(--gl);}

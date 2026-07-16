@@ -532,27 +532,6 @@ function _oddsPct(odds,clubId){
   const found=odds&&odds.find(o=>o.c.id===clubId);
   return found?found.pct:1;
 }
-// Odnośnik do karty klubu wewnątrz tekstu newsa (news sam nie ma clubId — dotyczy całej ligi).
-// stopPropagation: wpis newsa bywa sam w sobie klikalny (n.clubId, patrz _worldNewsItemHtml) —
-// bez tego klik w link klubu wewnątrz tekstu otwierałby zamiast niego kartę klubu z całego wiersza.
-function _clubLink(c){
-  return '<span onclick="event.stopPropagation();openClubModal('+c.id+')" style="cursor:pointer;text-decoration:underline">'+c.n+'</span>';
-}
-// Zamienia KAŻDE wystąpienie nazwy klubu w tekście newsa na klikalny link do jego karty — dotyczy
-// wszystkich klubów wymienionych w treści (nie tylko tego, do którego news jest przypięty przez
-// n.clubId — np. rywal w wyniku derbów, obie strony transferu, lista klubów w walce o tytuł).
-// Pomija wiadomości, które już mają linki (np. bukmacherska zapowiedź sezonu buduje je sama),
-// żeby nie zagnieżdżać <span> w <span>. Sortowanie po długości nazwy — zabezpieczenie na wypadek,
-// gdyby jedna nazwa klubu była literalnym podciągiem innej.
-function _linkifyClubNames(msg){
-  if(!msg||msg.indexOf('openClubModal(')!==-1)return msg;
-  const clubs=(ALL_CLUBS||[]).filter(c=>c&&c.n).slice().sort((a,b)=>b.n.length-a.n.length);
-  clubs.forEach(c=>{
-    if(msg.indexOf(c.n)===-1)return;
-    msg=msg.split(c.n).join(_clubLink(c));
-  });
-  return msg;
-}
 // Buduje wieloliniowy news ligowy: TOP 3 kandydatów do tytułu/awansu i TOP 3 zagrożonych spadkiem
 // (liga VIII nie ma spadku — reset składu zamiast tego, patrz startNewSeason()).
 function _buildSeasonPreviewMsg(lg){
@@ -770,7 +749,7 @@ function _worldNewsItemHtml(n){
     +'<div style="width:3px;background:'+bar+';flex-shrink:0"></div>'
     +'<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 10px;flex:1">'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.3">'+_linkifyClubNames(n.msg)+'</div>'
+        +'<div style="font-size:var(--fs-dense);color:var(--wh);line-height:1.3">'+linkifyNames(n.msg)+'</div>'
         +'<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('world_news_meta').replace('{s}',n.season).replace('{n}',n.week)+'</div>'
       +'</div>'
     +'</div>'
