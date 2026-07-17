@@ -15,10 +15,15 @@ function openClubModal(clubId){
     _cmClubId=clubId;
     const modal=document.getElementById('modal-club-ai');
     if(!modal)return;
-    const myClub=G.myClub||{n:t('cm_fallback_myclub')};
+    const myClub=G.myClub||{n:t('cm_fallback_myclub'),id:G.myClubId};
     document.getElementById('cm-title').textContent=myClub.n.toUpperCase();
     document.getElementById('cm-subtitle').textContent=t('cm_your_club')+' • '+(LEAGUE_NAMES[G.myLeague]||'');
     var _cmCr=document.getElementById('cm-px-crest');if(_cmCr&&typeof pxCrest==='function'){_cmCr.innerHTML='';_cmCr.appendChild(pxCrest(G.myClubId,4));}
+    // KARTA KLUBU: te same dane co u klubu AI (statystyki, transfery), ale bez losowej
+    // "filozofii" AI — klubem gracza zarządza gracz, więc zamiast typu pokazujemy stałą etykietę.
+    const myAi=Object.assign({},myClub.ai,{reputation:G.reputation||0,transferLog:_myClubTransferLog()});
+    const myDef={icon:'',desc:t('cm_managed_by_you')};
+    _renderClubCard(myClub,myAi,myDef,[]);
     // Pokaż od razu zakładkę SKŁAD
     cmTab('sklad');
     modal.style.zIndex='9999';
@@ -85,6 +90,22 @@ function cmTab(tab){
 
 function clubStarPlayer(squad){
   return squad.length?squad.reduce((b,p)=>ovr(p)>ovr(b)?p:b,squad[0]):null;
+}
+
+// Log transferów gracza (G.fin.transfers) przemapowany do formatu ai.transferLog klubów AI,
+// żeby KARTA KLUBU mogła użyć tego samego renderowania (_renderClubCard) dla własnego klubu.
+function _myClubTransferLog(){
+  const allPl=[...G.players,...(G.retiredPlayers||[]),...(G.fa||[])];
+  return (G.fin&&G.fin.transfers||[]).map(tr=>{
+    const pl=allPl.find(x=>x.id===tr.id);
+    return {
+      type:tr.type,name:tr.name,pos:pl?pl.pos:'',
+      age:tr.buyAge||tr.soldAge||(pl?pl.age:null),
+      price:tr.val||0,season:tr.season,playerId:tr.id,
+      fromClub:tr.type==='buy'?t('world_market'):undefined,
+      toClub:tr.type==='sell'?(tr.club||t('world_market')):undefined
+    };
+  }).slice(-20).reverse();
 }
 
 function _renderClubCard(club,ai,def,lgSt){

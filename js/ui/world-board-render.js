@@ -197,7 +197,7 @@ function renderWorldClubs(sortBy){
       const squadValue=squad.reduce((s,p)=>s+(p.value||0),0);
       const philoMap={akademia:t('world_philo_academy'),sprzedajacy:t('world_philo_seller'),bogaty:t('world_philo_rich'),stabilny:t('world_philo_stable')};
       clubStats.push({name:club.n,id:club.id,isMe,
-        philo:philoMap[ai.type||'stabilny']||t('world_philo_stable'),
+        philo:isMe?t('cm_managed_by_you'):(philoMap[ai.type||'stabilny']||t('world_philo_stable')),
         spent,earned,saldo,buys,sells,lgLevel:lg.level||8,
         squadValue,
         reputation:isMe?(G.reputation||0):(ai.reputation||0)});
