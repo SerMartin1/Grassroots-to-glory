@@ -109,6 +109,9 @@ function simCupRound(){
     const loser=fhG>faG?m.a:m.h;
     G.cup.eliminated[loser.cid]=true;
     m.winnerId=winner.cid;
+    // Zdarzenia meczu (gole/kartki/oceny) — do wspólnej historii (showMatchDetail/openClubModal),
+    // ten sam kształt co G._mHistAI w simOthers() (match-post.js), patrz push niżej.
+    const matchEvtsCup=[],matchCardsCup=[],matchRatingsCup={};
     // Aktualizuj cupSt dla zawodników AI obu drużyn
     [m.h.cid,m.a.cid].forEach(cid=>{
       const isH=cid===m.h.cid;
@@ -126,6 +129,7 @@ function simCupRound(){
         if(!sc.cupSt)sc.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};
         if(!sc.cupSt.g)sc.cupSt.g=0;sc.cupSt.g++;
         if(assP){if(!assP.cupSt)assP.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};if(!assP.cupSt.a)assP.cupSt.a=0;assP.cupSt.a++;}
+        matchEvtsCup.push({m:r(3,88),s:sc.id,a:assP?assP.id:null,h:isH?1:0});
       }
       teamPls.forEach(p=>{
         if(!p.cupSt)p.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};
@@ -140,8 +144,18 @@ function simCupRound(){
         cupRat=Math.max(3.0,Math.min(10.0,Math.round(cupRat*10)/10));
         if(!p.cupSt.ratings)p.cupSt.ratings=[];
         p.cupSt.ratings.push(cupRat);
+        matchRatingsCup[p.id]=cupRat;
+        // Kartki — te same bazowe prawdopodobieństwa co w simOthers() (match-post.js)
+        if(Math.random()<0.05){if(!p.cupSt.yk)p.cupSt.yk=0;p.cupSt.yk++;matchCardsCup.push({m:r(5,85),id:p.id,t:'y'});}
+        if(Math.random()<0.007){if(!p.cupSt.rk)p.cupSt.rk=0;p.cupSt.rk++;matchCardsCup.push({m:r(10,85),id:p.id,t:'r'});}
       });
     });
+    // Zapis do podglądu w karcie klubu (WYNIKI) + linku z widoku Puchar→Drzewko — runtime-only,
+    // ten sam mechanizm co mecze ligowe AI-AI (patrz G._mHistAI w simOthers(), match-post.js).
+    if(!G._mHistAI)G._mHistAI=[];
+    G._mHistAI.push({rnd:CUP_WEEKS[rIdx]||(rIdx*5+5),season:G.season,hn:m.h.name,an:m.a.name,hg:fhG,ag:faG,g:matchEvtsCup,c:matchCardsCup,r:matchRatingsCup,_isCup:true,cupRound:rIdx});
+    m.mHistIdx=G._mHistAI.length-1;
+    m.mHistSrc='ai';
   });
 
   // Mecz gracza — jeśli gracz jest w tej rundzie i jeszcze nie zagrał
@@ -403,13 +417,20 @@ function renderCupDrzewko(){
         const hWin=m.done&&m.winnerId===m.h.cid;
         const aWin=m.done&&m.winnerId===m.a.cid;
         let bdr=isMyMatch?(myWon?'var(--gb)':myLost?'var(--rd)':'var(--am)'):'var(--gl)';
-        html+='<div style="background:var(--tb);border-left:3px solid '+bdr+';padding:6px 14px 6px 16px;border-bottom:1px solid #0d1f0d">';
+        // Link do szczegółów meczu — tylko bieżący sezon (cur.src==='live'): G.mHist/G._mHistAI są
+        // czyszczone na starcie nowego sezonu (season-summary.js), więc dla archiwalnych sezonów
+        // (cupHistory) mHistIdx byłby martwym wskaźnikiem — tam zostają same linki do drużyn.
+        const canOpenMatch=cur.src==='live'&&m.done&&m.mHistIdx!=null&&m.mHistSrc;
+        const rowAttrs=canOpenMatch
+          ?' onclick="showMatchDetail('+m.mHistIdx+',\''+m.mHistSrc+'\')" style="cursor:pointer;background:var(--tb);border-left:3px solid '+bdr+';padding:6px 14px 6px 16px;border-bottom:1px solid #0d1f0d"'
+          :' style="background:var(--tb);border-left:3px solid '+bdr+';padding:6px 14px 6px 16px;border-bottom:1px solid #0d1f0d"';
+        html+='<div'+rowAttrs+'>';
         html+='<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:'+(hWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
-        html+='<span>'+(m.h.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.h.name+'</span>';
+        html+='<span onclick="event.stopPropagation();openClubModal('+m.h.cid+')" style="cursor:pointer;text-decoration:underline">'+(m.h.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.h.name+'</span>';
         html+='<span style="font-weight:700;font-size:var(--fs-micro);color:'+(hWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.hg:'—')+'</span>';
         html+='</div>';
         html+='<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-top:2px;color:'+(aWin?'var(--wh)':m.done?'var(--gr)':'var(--gr)')+'">';
-        html+='<span>'+(m.a.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.a.name+'</span>';
+        html+='<span onclick="event.stopPropagation();openClubModal('+m.a.cid+')" style="cursor:pointer;text-decoration:underline">'+(m.a.cid===myId?'<span style="color:var(--am)">★ </span>':'')+m.a.name+'</span>';
         html+='<span style="font-weight:700;font-size:var(--fs-micro);color:'+(aWin?'var(--am)':'var(--gr)')+'">'+(m.done?m.ag:'—')+'</span>';
         html+='</div>';
         if(!m.done&&isMyMatch)html+='<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-top:3px">'+t('cup_your_match')+'</div>';

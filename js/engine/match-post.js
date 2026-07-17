@@ -465,6 +465,20 @@ function simOthers(){
       const _liteRes=_buildMatchLite(m);
       const hG2=_liteRes.hG,aG2=_liteRes.aG;
       m.done=true;m.hg=hG2;m.ag=aG2;
+      // v: Kontuzje w trakcie meczu (etap 3 symetrii cech) — ten sam wzór co next() w match-engine.js
+      // i devSimMyMatch() (etap 2), teraz też dla meczów AI-AI symulowanych zbiorczo w simOthers().
+      // Bezpiecznik: pomijamy losowanie dla klubu, który ma mniej niż 16 zdrowych (niekontuzjowanych)
+      // zawodników — żeby nie powtórzyć znanego już problemu klubów AI zostających bez obsady na
+      // pozycji (patrz ensureClubGoalkeepers() w core/state.js).
+      [m.h,m.a].forEach(cid=>{
+        const healthyCount=G.players.filter(p=>p.clubId===cid&&!p.injured).length;
+        if(healthyCount<16)return;
+        G.players.filter(p=>p.clubId===cid&&p.starter&&!p.injured).forEach(p=>{
+          const injMult=(p.traits&&p.traits.includes('wytrzymaly'))?0.7:1.0;
+          const chance=0.01*(1+(100-p.phy)/100)*injMult;
+          if(Math.random()<chance)applyInjury(p,true);
+        });
+      });
       // Update standing for this league (liga gracza = G.standing)
       const _lvl=parseInt(lvlNum);const _myLvl=parseInt(G.myLeague||8);const st=_lvl===_myLvl?G.standing:(G.allStandings&&G.allStandings[_lvl]?G.allStandings[_lvl]:null);
       if(!st)return; // pomiń jeśli brak standings
@@ -539,14 +553,22 @@ function simOthers(){
           if(Math.random()<0.007)matchCards2.push({m:r(10,85),id:p.id,t:'r'});
         });
         // v218: Lider/Zimna krew/Nerwowy — te same bonusy formy co w simMatch() (patrz punkt 5b),
-        // teraz też dla klubów AI. Pewny siebie (seria zwycięstw) zostaje pominięty — kluby AI nie
-        // mają dziś licznika winStreak (osobna decyzja, punkt 5c).
+        // teraz też dla klubów AI. Pewny siebie (etap 1 symetrii cech): zamiast osobnego licznika
+        // winStreak (którego kluby AI nie mają), wykorzystujemy już istniejący cai._streak
+        // (dodatni = seria zwycięstw, patrz sekcja "Żywy Świat AI" wyżej w tej pętli rund).
         if(won){
           if(teamPls.some(p=>p.starter&&p.traits&&p.traits.includes('lider')))
             teamPls.forEach(p=>{p.form=Math.min(99,p.form+2);});
+          const _aiClubForStreak=ALL_CLUBS.find(c=>c.id===cid);
+          if(_aiClubForStreak&&_aiClubForStreak.ai&&_aiClubForStreak.ai._streak>=3)
+            teamPls.filter(p=>p.starter&&p.traits&&p.traits.includes('pewny_siebie')).forEach(p=>{p.form=Math.min(99,p.form+2);});
         } else if(lost){
           teamPls.filter(p=>p.starter&&p.traits&&p.traits.includes('zimna_krew')).forEach(p=>{p.form=Math.min(99,p.form+2);});
           teamPls.filter(p=>p.starter&&p.traits&&p.traits.includes('nerwowy')).forEach(p=>{p.form=Math.max(5,p.form-2);});
+          // Kapitan AI: kluby AI nie mają wybieranej opaski jak gracz (G.captainId) — kapitanem
+          // meczu jest po prostu starter z najwyższym MEN, liczony na bieżąco (bez trwałego pola).
+          const _aiCaptain=teamPls.length?teamPls.slice().sort((a,b)=>b.men-a.men)[0]:null;
+          if(_aiCaptain)_aiCaptain.form=Math.min(99,_aiCaptain.form+2);
         }
       });
       matchEvts2.forEach(e=>{const sc=G.players.find(x=>x.id===e.scorerId);if(sc){if(!sc.st.g)sc.st.g=0;sc.st.g++;}const as=e.assistId?G.players.find(x=>x.id===e.assistId):null;if(as){if(!as.st.a)as.st.a=0;as.st.a++;}});

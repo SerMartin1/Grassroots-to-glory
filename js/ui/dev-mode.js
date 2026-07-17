@@ -372,6 +372,14 @@ function devSimMyMatch(m,isCup){
   finalizeSecondHalf();
   const hG=fHG,aG=fAG;
   m.done=true;m.hg=hG;m.ag=aG;
+  // v: Kontuzje w trakcie meczu (etap 2 symetrii cech) — ten sam wzór co next() w match-engine.js
+  // (żywy mecz gracza), dotąd nieobecny w devSimMyMatch(). Obejmuje obie drużyny meczu gracza,
+  // więc "wytrzymały" wreszcie działa też w trybie dev, nie tylko na żywo.
+  G.players.filter(p=>(p.clubId===m.h||p.clubId===m.a)&&p.starter&&!p.injured).forEach(p=>{
+    const injMult=(p.traits&&p.traits.includes('wytrzymaly'))?0.7:1.0;
+    const chance=0.01*(1+(100-p.phy)/100)*injMult;
+    if(Math.random()<chance)applyInjury(p,true);
+  });
   if(!isCup){
   updStand(m.h,m.a,hG,aG);
   // Sync do allSchedules

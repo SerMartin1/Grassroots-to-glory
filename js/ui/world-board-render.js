@@ -1,6 +1,9 @@
 function fillWorld(){
   if(!G)return;
-  renderWorldTransfers();
+  const activeBtn=document.querySelector('#p-world .tab-btn.active');
+  const tab=activeBtn&&activeBtn.id==='world-tab-clubs'?'clubs':'transfers';
+  if(tab==='clubs')renderWorldClubs();
+  else renderWorldTransfers();
 }
 
 function worldTab(tab,btn){

@@ -64,8 +64,27 @@ function mkTacCard(p){
 
 function togSt(id){const p=G.players.find(x=>x.id===id);if(!p)return;if(p.onCamp||p.onIndCamp){notif(t('tac_notif_on_camp').replace('{name}',p.name),'err');return;}if(p.injured){notif(t('tac_notif_injured').replace('{name}',p.name).replace('{type}',p.injuryType).replace('{n}',p.injuryWeeks),'err');return;}if(p.suspension>0){notif(t('tac_notif_suspended').replace('{name}',p.name).replace('{n}',p.suspension),'err');return;}if(p.starter){p.starter=false;}else{const lim=formationLimits();const st=myPl().filter(x=>x.starter);if(st.filter(x=>x.pos===p.pos).length>=lim[p.pos]){notif(t('tac_notif_pos_limit').replace('{pos}',POS_SHORT[p.pos]),'err');return;}if(st.length>=11){notif(t('tac_notif_squad_full'),'err');return;}p.starter=true;}updateHdr();}
 
+// Kapitan drużyny: domyślnie najwyższe MEN wśród starterów, z możliwością ręcznej zmiany (setCaptain).
+// ensureCaptainValid() samonaprawia G.captainId, gdy dotychczasowy kapitan wypadł ze składu
+// (ławka/kontuzja/sprzedaż) — wołane przy każdym renderze fillTacSquad(), więc odznaka zawsze
+// pokazuje aktualny, ważny wybór.
+function ensureCaptainValid(){
+  if(!G)return;
+  const cur=G.captainId?myPl().find(p=>p.id===G.captainId&&p.starter&&!p.injured):null;
+  if(cur)return;
+  const cands=myPl().filter(p=>p.starter&&!p.injured);
+  G.captainId=cands.length?cands.slice().sort((a,b)=>b.men-a.men)[0].id:null;
+}
+function setCaptain(id){
+  if(!G)return;
+  const p=myPl().find(x=>x.id===id&&x.starter);
+  if(!p)return;
+  G.captainId=id;
+  notif(t('tac_captain_set_notif').replace('{name}',p.name),'ok');
+}
 function fillTacSquad(){
   if(!G)return;
+  ensureCaptainValid();
   const all=myPl();
   const st=all.filter(p=>p.starter).length;
   const lim=formationLimits();
@@ -110,6 +129,7 @@ function fillTacSquad(){
           '<span style="color:'+iconCol+';margin-right:4px;font-size:var(--fs-dense)">'+icon+'</span>'+
           '<span style="color:'+(isSt?'var(--wh)':'var(--gr)')+'">'+p.name+'</span>'+
           (isSt?'<span style="color:var(--am);font-size:var(--fs-dense);margin-left:4px">✔</span>':'')+
+          (isSt?'<span onclick="event.stopPropagation();setCaptain('+p.id+');fillTacSquad()" title="'+t('tac_captain_tooltip')+'" style="cursor:pointer;margin-left:6px;font-size:var(--fs-dense);color:'+(p.id===G.captainId?'var(--am)':'var(--gr)')+'">🎖</span>':'')+
         '</td>'+
         '<td style="text-align:right;color:'+ovrCol+'">'+o+'</td>'+
         '<td style="text-align:right;color:'+fmCol+'">'+fm+'%</td>'+
@@ -285,7 +305,8 @@ function showPlayer(p){
     const retiredNote=p.status==='retired'?t('plr_retired_since').replace('{n}',p.retiredSeason||'?'):'';
     const acadBadge=p.fromAcademy?' 🎓':'';
     var _arch6=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
-    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="window._clubModalReturn={modalId:\'p-player\',extra:{pid:'+p.id+'}};closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' '+t('mkcard_age_years')+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+t('arch_'+p.archetype)+'</span>':'');
+    const captainBadge=(isOwn&&G.captainId===p.id)?' <span style="font-size:var(--fs-dense);color:var(--am)">&nbsp;🎖 '+t('plr_captain_badge')+'</span>':'';
+    clubLine.innerHTML=(plrClub?'<span style="cursor:pointer;text-decoration:underline;color:var(--gb)" onclick="window._clubModalReturn={modalId:\'p-player\',extra:{pid:'+p.id+'}};closePanel(\'p-player\');setTimeout(function(){openClubModal('+plrClub.id+');},220);">'+plrClub.n+'</span>':p.status==='retired'?t('plr_retired_label'):t('plr_free_agent'))+' • '+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+' '+t('mkcard_age_years')+acadBadge+retiredNote+(_arch6?' <span style="font-size:var(--fs-dense);color:'+_arch6.color+'">&nbsp;'+_arch6.icon+' '+t('arch_'+p.archetype)+'</span>':'')+captainBadge;
   }
   // TRAITS ICONS - ukryte (przeniesione do CHARAKTER)
   const traitsIcons=document.getElementById('plr-traits-icons');

@@ -10,7 +10,6 @@ const TRAITS={
   twardy:      {id:'twardy',      icon:'😤', name:'Twardy',       desc:'Forma nie spada po kontuzji',        color:'#795548'},
   pewny_siebie:{id:'pewny_siebie',icon:'🦁', name:'Pewny siebie', desc:'OVR +3 przy serii 3+ wygranych',    color:'#ff7043'},
   nerwowy:     {id:'nerwowy',     icon:'😰', name:'Nerwowy',      desc:'Forma spada przy serii porażek',     color:'#78909c'},
-  profesjonalista:{id:'profesjonalista',icon:'📋',name:'Profesjonalista',desc:'Forma utrzymuje się stabilniej',color:'#26c6da'},
   sprinter:    {id:'sprinter',    icon:'🏃', name:'Sprinter',     desc:'PHY efektywnie +5 w meczu',          color:'#66bb6a'},
   artrysta:    {id:'artrysta',    icon:'🎨', name:'Artysta',      desc:'TEC efektywnie +5 w meczu',          color:'#ab47bc'},
   snajper:     {id:'snajper',     icon:'🎯', name:'Snajper',      desc:'SHT efektywnie +5 w meczu (NAP/POL)',color:'#ef5350'},
@@ -22,9 +21,9 @@ function genTraits(p){
   // Każdy zawodnik dostaje 3 losowe cechy (bez powtórzeń)
   // Niektóre cechy są bardziej prawdopodobne per pozycja
   const posWeights={
-    GK:  {mur:3,wytrzymaly:2,zimna_krew:2,profesjonalista:2,twardy:2},
+    GK:  {mur:3,wytrzymaly:2,zimna_krew:2,twardy:2},
     OBR: {mur:3,wytrzymaly:2,twardy:2,lider:2,zimna_krew:1},
-    POL: {artrysta:2,lider:2,profesjonalista:2,pojety:2,pewny_siebie:2},
+    POL: {artrysta:2,lider:2,pojety:2,pewny_siebie:2},
     NAP: {snajper:3,szybki_start:2,pewny_siebie:2,artrysta:2,sprinter:2},
   };
   const weights=posWeights[p.pos]||{};
@@ -58,7 +57,6 @@ function getTraitEffect(p, traitId){
     case 'twardy':       return{injFormKeep:true};
     case 'pewny_siebie': return{streakOvrBonus:3};
     case 'nerwowy':      return{loseStreakPenalty:-2};
-    case 'profesjonalista':return{formStable:true};
     case 'sprinter':     return{phyBonus:5};
     case 'artrysta':     return{tecBonus:5};
     case 'snajper':      return{shtBonus:5};
@@ -146,7 +144,7 @@ function fillHistory(){
   if(G.cHist.length===0&&G.mHist&&G.mHist.length>0){
     const seasons=[...new Set(G.mHist.map(m=>m.season).filter(Boolean))].sort((a,b)=>a-b);
     seasons.forEach(s=>{
-      const mm=G.mHist.filter(m=>m.season===s&&(m.hn===G.myClub.n||m.an===G.myClub.n));
+      const mm=G.mHist.filter(m=>m.season===s&&!m._isCup&&(m.hn===G.myClub.n||m.an===G.myClub.n));
       let w=0,d=0,gf=0,ga=0;
       mm.forEach(m=>{const isH=m.hn===G.myClub.n;const mg=isH?m.hg:m.ag,og=isH?m.ag:m.hg;gf+=mg;ga+=og;if(mg>og)w++;else if(mg===og)d++;});
       if(!G.cHist.find(h=>h.season===s))
@@ -300,7 +298,11 @@ function showMatchDetail(mHistIdx,src){
   // Scoreboard
   let html='<div class="md-ph"><div class="md-ph-title">'+t('ht_match_details_title')+'</div><button class="md-close" onclick="document.getElementById(\'md-overlay\').classList.remove(\'open\')">✕</button></div>';
   html+='<div class="md-scoreboard">';
-  html+='<div class="md-round">'+t('ht_round_season').replace('{rnd}',m.rnd).replace('{season}',m.season||'?')+(m._isCup?t('ht_cup_suffix'):'')+'</div>';
+  // Mecz pucharowy: zamiast surowego numeru kolejki (tydzień w kalendarzu) pokaż nazwę rundy
+  // pucharu (Finał, Ćwierćfinał...) — patrz CUP_ROUND_LABELS w cup-engine.js
+  const _roundLabelKey=(m._isCup&&m.cupRound!=null&&typeof CUP_ROUND_LABELS!=='undefined')?'ht_cup_round_season':'ht_round_season';
+  const _roundLabelVal=(m._isCup&&m.cupRound!=null&&typeof CUP_ROUND_LABELS!=='undefined')?CUP_ROUND_LABELS[m.cupRound]:m.rnd;
+  html+='<div class="md-round">'+t(_roundLabelKey).replace('{rnd}',_roundLabelVal).replace('{season}',m.season||'?')+(m._isCup?t('ht_cup_suffix'):'')+'</div>';
   html+='<div class="md-teams">';
   html+='<div class="md-team home'+(involvesMe&&isMyH?' my':'')+'" '+hClick+'>'+m.hn+'</div>';
   html+='<div class="md-score">'+m.hg+'–'+m.ag+'</div>';

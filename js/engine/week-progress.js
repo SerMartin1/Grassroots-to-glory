@@ -341,9 +341,10 @@ G.stadium.capacity=Math.min(_sMax,(G.stadium.capacity||200)+(b.seats||0));
     renderNews();
   }
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
-  // CECHY: Szybki start / Słaby start (pierwsze 5 kolejek)
+  // CECHY: Szybki start / Słaby start (pierwsze 5 kolejek) — wszystkie kluby (gracz + AI),
+  // nie tylko myPl(), żeby cecha działała tak samo u zawodników AI (etap 1 symetrii cech).
   if(G.round>0&&G.round<=5){
-    myPl().filter(p=>p.starter).forEach(p=>{
+    G.players.filter(p=>p.starter).forEach(p=>{
       if(p.traits&&p.traits.includes('szybki_start'))
         p.form=Math.min(99,p.form+2);
       if(p.traits&&p.traits.includes('slaby_start'))

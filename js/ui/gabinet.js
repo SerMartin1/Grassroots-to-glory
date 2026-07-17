@@ -67,7 +67,7 @@ function _kalBuildRows(){
     if(m.h!==G.myClubId&&m.a!==G.myClubId)return;
     const isHome=m.h===G.myClubId;
     const opp=(ALL_CLUBS||[]).find(c=>c.id===(isHome?m.a:m.h));
-    rows.push({week:m.rnd+2,cup:false,opp:opp?opp.n:'?',isHome,done:m.done,hg:m.hg,ag:m.ag});
+    rows.push({week:m.rnd+2,cup:false,opp:opp?opp.n:'?',oppCid:opp?opp.id:null,isHome,done:m.done,hg:m.hg,ag:m.ag,mHistIdx:m.mHistIdx!=null?m.mHistIdx:null,mHistSrc:'mHist'});
   });
   if(G.cup&&G.cup.rounds&&typeof CUP_WEEKS!=='undefined'){
     G.cup.rounds.forEach((rnd,idx)=>{
@@ -75,7 +75,7 @@ function _kalBuildRows(){
       if(!m)return;
       const isHome=m.h.cid===G.myClubId;
       const opp=isHome?m.a:m.h;
-      rows.push({week:CUP_WEEKS[idx]||(idx*5+5),cup:true,opp:opp.name,isHome,done:m.done,hg:m.hg,ag:m.ag});
+      rows.push({week:CUP_WEEKS[idx]||(idx*5+5),cup:true,opp:opp.name,oppCid:opp.cid,isHome,done:m.done,hg:m.hg,ag:m.ag,mHistIdx:m.mHistIdx!=null?m.mHistIdx:null,mHistSrc:m.mHistSrc||null});
     });
   }
   rows.sort((a,b)=>a.week-b.week);
@@ -89,13 +89,21 @@ function _kalResultClass(r){
 function _kalRowHtml(r,clickable){
   const venue=r.isHome?t('hdr_home'):t('hdr_away');
   const cupTag=r.cup?'<span class="kal-cup-tag">'+t('kal_cup_tag')+'</span> ':'';
+  // Nazwa przeciwnika — zawsze link do karty klubu (openClubModal), niezależnie od tego, czy
+  // mecz jest rozegrany. event.stopPropagation() żeby nie odpalać jednocześnie kliknięcia wiersza.
+  const oppHtml=r.oppCid!=null
+    ?'<span onclick="event.stopPropagation();openClubModal('+r.oppCid+')" style="cursor:pointer;text-decoration:underline">'+r.opp+'</span>'
+    :r.opp;
   const scoreHtml=r.done
     ?'<span class="kal-score '+_kalResultClass(r)+'">'+r.hg+':'+r.ag+'</span>'
     :(clickable?'<span class="kal-score next">▶</span>':'<span class="kal-score">—</span>');
+  // Rozegrany mecz z zapisaną historią (mHistIdx) — cały wiersz linkuje do showMatchDetail()
+  const canOpenMatch=r.done&&r.mHistIdx!=null&&r.mHistSrc;
   const cls=clickable?'kal-row next':'kal-row';
-  const click=clickable?' onclick="handleNextWeek()"':'';
-  return '<div class="'+cls+'"'+click+'>'
-    +'<div class="kal-mid"><div class="kal-opp">'+cupTag+r.opp+'</div><div class="kal-venue">'+venue+'</div></div>'
+  const rowStyle=canOpenMatch?' style="cursor:pointer"':'';
+  const click=clickable?' onclick="handleNextWeek()"':(canOpenMatch?' onclick="showMatchDetail('+r.mHistIdx+',\''+r.mHistSrc+'\')"':'');
+  return '<div class="'+cls+'"'+rowStyle+click+'>'
+    +'<div class="kal-mid"><div class="kal-opp">'+cupTag+oppHtml+'</div><div class="kal-venue">'+venue+'</div></div>'
     +scoreHtml
   +'</div>';
 }

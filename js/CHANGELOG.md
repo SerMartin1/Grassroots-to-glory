@@ -4,6 +4,58 @@ Zasady
 Po każdej większej zmianie dopisz kilka krótkich punktów opisujących, co zostało zmienione wraz z datą.
 
 
+17.07.2026
+1. Kalendarz i Puchar → Drzewko: linki do kart klubów i do wyników rozegranych meczów
+- Życzenie gracza: w Kalendarzu link do rozegranych meczów, w zakładce Puchar → Drzewko linki do drużyn i do wyników meczów.
+- Diagnoza: „karta drużyny"/„wynik meczu" w grze to nie osobne strony/route, tylko modale — `openClubModal(clubId)` (`ui/club-modal.js`) i `showMatchDetail(mHistIdx,src)` (`systems/traits-history.js`), czytający `G.mHist` (mecze gracza) / `G._mHistAI` (mecze AI-AI). Problem: mecze pucharowe NIGDY tam nie trafiały — mecz gracza w pucharze pomijał `G.mHist.push(...)` (`engine/match-engine.js`, warunek `!G._cupMatchActive`), a mecze AI-AI w pucharze (`simCupRound()`, `engine/cup-engine.js`) liczyły tylko zbiorczy wynik, bez strzelców/kartek/ocen. Zapytany o zakres, gracz wybrał pełny wariant: dogenerować kompletne dane meczu pucharowego (jak w lidze), nie tylko goły link do drużyny.
+- Wdrożone: mecz pucharowy gracza (`match-engine.js`) dopisuje wpis do `G.mHist` z KOŃCOWYM wynikiem (po ew. dogrywce/karnych z `resolveCupMyMatch()`, czytanym przez referencję do obiektu meczu, bo `resolveCupMyMatch()` zeruje `G._cupMatchActive` zanim wynik jest znany wywołującemu), oznaczony `_isCup`. Symulacja AI-AI w pucharze (`simCupRound()`, `cup-engine.js`) generuje teraz strzelców/asystentów/kartki/oceny tym samym „lekkim" wzorcem co `simOthers()` dla ligi i zapisuje je do `G._mHistAI`. Oba miejsca zapamiętują `mHistIdx`/`mHistSrc` bezpośrednio na obiekcie meczu w `G.cup.rounds[]`, więc `ui/gabinet.js` (`_kalBuildRows`/`_kalRowHtml` — Kalendarz) i `cup-engine.js` (`renderCupDrzewko()` — Puchar→Drzewko) mogą linkować każdy rozegrany wiersz do `showMatchDetail()` bez własnego wyszukiwania. Nazwa przeciwnika w Kalendarzu i nazwy obu drużyn w Drzewku linkują do `openClubModal()` niezależnie od tego, czy mecz już się odbył. `systems/traits-history.js` (`showMatchDetail()`) pokazuje nazwę rundy pucharu (np. „Finał") zamiast surowego numeru kolejki — nowy klucz i18n `ht_cup_round_season` (PL/EN, `core/i18n.js`).
+- Link do wyniku działa tylko dla bieżącego sezonu (`cur.src==='live'` w Drzewku) — `G.mHist`/`G._mHistAI` są czyszczone na starcie nowego sezonu, więc w archiwum Pucharu (`G.cupHistory`) zostają same linki do drużyn, spójnie z tym samym ograniczeniem już istniejącym dla kart klubów.
+- Przy okazji naprawiona realna niespójność, na jaką trafiono podczas wdrożenia: wyszukiwanie wyniku meczu ligowego po numerze kolejki w `ui/season-summary.js` (ekran podsumowania sezonu) mogło przypadkowo trafić na mecz pucharowy z tego samego tygodnia (obie rundy bywają oznaczone tym samym numerem — `CUP_WEEKS` pokrywa się z numeracją kolejek ligowych) i pokazać zły mecz po kliknięciu; dopisany warunek `!x._isCup` w obu wyszukiwaniach. Analogicznie zabezpieczona rekonstrukcja `G.cHist` ze starych zapisów w `traits-history.js` (`fillHistory()`), żeby nie liczyła goli/punktów meczu pucharowego jako ligowych.
+- Zweryfikowane w Playwright (prawdziwe funkcje UI, nie ominięcia): pełny sezon, setki meczów AI, rozegrany mecz ligowy i mecz pucharowy gracza (przegrana 1:2) — oba poprawnie klikalne w Kalendarzu i w Drzewku, `showMatchDetail()` pokazuje właściwy wynik i etykietę rundy, zero błędów konsoli na całej ścieżce.
+
+2. Ikonka „zagraj mecz" (FAB na pasku dolnym) — 5 zaproponowanych wariantów, wdrożony trójkąt play
+- Życzenie gracza: zaproponować 5 wzorów ikonki meczu, trochę powiększonej na tle pozostałych ikon paska.
+- Zaproponowane w interaktywnym podglądzie (Artifact, prawdziwe barwy/skala paska): piłka z wybitymi plamkami po pięciokątach, gwizdek sędziowski, dwie strzałki „na starcie", boisko z góry (linia środkowa + koło + pola bramkowe), trójkąt play. Gracz wybrał trójkąt play.
+- Wdrożone (`index.html`, `.nav-fab`): ikona podmieniona na `<polygon>` — czysty trójkąt zamiast dotychczasowego pikselowego kształtu; rozmiar SVG podniesiony z 22px do 24px (FAB pozostaje 48px, ikony sąsiednie 20px — bez zmian w CSS).
+- Zweryfikowane zrzutem ekranu w Playwright na realnym pasku po starcie kariery: trójkąt wyśrodkowany, wyraźnie większy od ikon KALENDARZ/SKŁAD/TABELA/WIĘCEJ, zero błędów konsoli.
+
+3. Zakładka Więcej — etykiety kafelków ujednolicone z paskiem dolnym
+- Życzenie gracza: w zakładce Więcej ten sam rozmiar i kolor czcionki etykiet co na dolnym pasku ekranu głównego.
+- Zweryfikowane różnice: `.tile-lbl` (kafelki Więcej) miało `font-size:var(--fs-h3)` (11px) i `color:var(--gb)` (jaskrawa zieleń), a `.nav-btn span:last-child` (etykiety paska) ma `var(--fs-micro)` (10px) i `color:var(--gr)` (przygaszona zieleń-szarość, dziedziczony z `.nav-btn`). Klasa `.tile-lbl` (`css/style.css`) używana jest wyłącznie w zakładce Więcej (dawny `.tile-grid` na dashboardzie jest martwy, zastąpiony paskiem — Wariant B, wpis z 16.07), więc zmiana bezpieczna bez skutków ubocznych gdzie indziej.
+- Naprawione: `.tile-lbl` — `font-size` na `var(--fs-micro)`, `color` na `var(--gr)`.
+- Zweryfikowane zrzutem ekranu w Playwright: etykiety TRANSFERY/FINANSE/AKADEMIA/… wizualnie spójne z KALENDARZ/SKŁAD/TABELA/WIĘCEJ na pasku, zero błędów konsoli.
+
+4. Zakładka Świat → Aktywne kluby — dane nie odświeżały się od razu po wejściu
+- Zgłoszenie gracza: dane w zakładkach Świat/Historia powinny się aktualizować od razu po wejściu do panelu, nie dopiero po przejściu między pod-zakładkami.
+- Diagnoza: `fillHistory()` (`systems/traits-history.js`) poprawnie sprawdza aktywną pod-zakładkę i renderuje właściwe dane — Historia nie miała tego buga. `fillWorld()` (`ui/world-board-render.js`) zawsze renderowała wyłącznie „Rekordowe transfery" (`renderWorldTransfers()`), niezależnie od tego, która pod-zakładka (Transfery/Aktywne kluby) była aktywna przy poprzednim wejściu — stan zakładek nie resetuje się przy zamknięciu panelu (`closePanel()` tylko zdejmuje klasę `.open`).
+- Naprawione: `fillWorld()` sprawdza aktywny przycisk (`#world-tab-clubs`) i woła `renderWorldClubs()` albo `renderWorldTransfers()` odpowiednio, analogicznie do już poprawnej logiki `fillHistory()`.
+
+5. Zakładka Więcej — nowa kolejność kafelków wg grup tematycznych
+- Życzenie gracza: 3 propozycje kolejności kafelków w bottom sheet „Więcej"; wybrany wariant grupowania tematycznego.
+- Wdrożone (`index.html`): TRANSFERY/FINANSE/TRENING → AKADEMIA/STADION/PUCHAR → ŚWIAT/HISTORIA/MENU (kadra i budżet → rozwój klubu i rozgrywki → treści przeglądowe/meta). Zmieniona wyłącznie kolejność istniejących kafelków — te same `onclick`/ikony/etykiety.
+
+6. Audyt cech (traits) zawodnika — aktywne vs martwe w silniku meczowym + usunięcie „profesjonalista"
+- Życzenie gracza: zweryfikować, które z 16 cech (`systems/traits-history.js`, `TRAITS`) realnie wpływają na wynik symulacji meczu, a które są kosmetyczne, i wskazać dokładny mechanizm dla każdej.
+- Diagnoza: 7/16 cech w pełni aktywnych i symetrycznych gracz/AI (sprinter/artysta/snajper/mur — bonus atrybutu w `playerStr()`; lider/nerwowy/zimna_krew — bonus/kara formy post-mecz). 4/16 częściowo martwe: wytrzymały (tylko żywy mecz gracza, brak systemu kontuzji meczowych poza tym), szybki_start/słaby_start (pętla `myPl()` — tylko klub gracza), pewny_siebie (`G.winStreak` istnieje tylko dla klubu gracza). 1/16 w 100% martwa: „profesjonalista" — jedyne odwołanie to nigdy niewołana `getTraitEffect()` (`traits-history.js`). 4/16 poza silnikiem meczowym z zamysłu (pojęty/lojalny/twardy/żądny kasy — aktywne w innych systemach: trening/kontrakty/finanse).
+- Wdrożone na życzenie gracza: cecha „profesjonalista" usunięta z gry — definicja i wpisy w pulach losowania (`traits-history.js`), klucze i18n (`core/i18n.js`), migracja w `loadGame()` (`ui/news-bootstrap.js`) zamieniająca tę cechę na nową losową u zawodników ze starych zapisów, którzy już ją mieli (żeby nie zostać z 2 cechami zamiast 3).
+
+7. Symetria cech AI — Etap 1: szybki_start / słaby_start / pewny_siebie
+- Wdrożone: `week-progress.js` — pętla bonusu/kary formy w pierwszych 5 kolejkach rozszerzona z `myPl()` na `G.players` (wszystkie kluby, nie tylko gracza). `match-post.js` — `pewny_siebie` dla AI wykorzystuje już istniejący per-klubowy licznik serii `cai._streak` (próg `>=3`, ten sam co `G.winStreak` gracza) zamiast tworzenia nowego pola.
+
+8. Symetria cech AI — Etap 2: wytrzymały w trybie dev
+- Wdrożone (`ui/dev-mode.js`, `devSimMyMatch()`): dodany rzut kontuzją pomeczową, ten sam wzór co `next()` w `match-engine.js`, dla obu drużyn meczu gracza — tryb dev do tej pory w ogóle nie miał systemu kontuzji meczowych.
+
+9. Symetria cech AI — Etap 3: wytrzymały dla meczów AI-AI + bezpiecznik kadrowy
+- Wdrożone (`match-post.js`, `simOthers()`): ten sam rzut kontuzją dla wszystkich ~63 meczów AI-AI symulowanych na kolejkę (8 lig × 16 klubów). Bezpiecznik na życzenie gracza: klub z mniej niż 16 zdrowymi (niekontuzjowanymi) zawodnikami jest pomijany w losowaniu — zapobiega powtórce znanego wcześniej problemu klubów AI zostających bez obsady na pozycji (`ensureClubGoalkeepers()`).
+- Koszt wydajnościowy: pomijalny (~1400 dodatkowych `Math.random()` na tydzień) — `_buildMatchLite()` pozostaje jednym przybliżeniem Poissona, zmiana nie wymagała przejścia AI-AI na pełny silnik zdarzeniowy.
+
+10. Nowa funkcja: Kapitan drużyny
+- Życzenie gracza: wybór kapitana + bonus wynikający z roli. Sprawdzone pod kątem istniejących pól w `G` — jedyne odwołania do „kapitana" to lokalna, jednorazowa flaga narracyjna w dwóch zdarzeniach Kroniki (`kron.flags._s02captainId`, `engine/kronika.js`), nie trwały stan gry.
+- Zaproponowane i zatwierdzone przez gracza: domyślny wybór kapitana = najwyższe MEN wśród starterów; bonus = odporność na spadek formy po porażce drużyny.
+- Wdrożone: `ui/tactics-playercard.js` — `ensureCaptainValid()` (domyślny wybór/samonaprawa, gdy dotychczasowy kapitan wypadnie ze składu) i `setCaptain(id)` (ręczna zmiana); odznaka 🎖 w tabeli Skład meczowy (klikalna, tylko przy starterach) i w karcie zawodnika. `match-engine.js`/`match-post.js` — kapitan (gracz: `G.captainId`; AI: starter z najwyższym MEN, liczony na bieżąco, bez trwałego pola) dostaje +2 formy po porażce drużyny — ten sam mechanizm co cecha `zimna_krew`. `initGame()`/`loadGame()` (`ui/news-bootstrap.js`) inicjalizują/migrują `G.captainId`. Nowe klucze i18n PL/EN: `tac_captain_tooltip`, `tac_captain_set_notif`, `plr_captain_badge`. Bez nowych tokenów `--fs-*` — UI reużywa istniejący system typograficzny (`--fs-dense`/`--fs-h3`).
+- Zweryfikowane (pkt. 4-10): `node --check` na wszystkich zmienionych plikach — zero błędów składni. Bez testu w przeglądarce/Playwright w tej sesji.
+
+
 16.07.2026
 1. Etap B — linkowanie klubu/zawodnika w newsach, Kronice, historii reputacji i na osi czasu
 - Życzenie gracza: każda wzmianka drużyny lub zawodnika w tekście gry musi mieć link do jej/jego karty. Audyt: ~193 wywołań `addNews()` + 112+ podstawień `{name}`/`{rival}` w `engine/kronika.js` (plus dziesiątki w `systems/transfers.js`, `engine/week-progress.js`, `ui/tactics-playercard.js`) — za dużo miejsc do ręcznej edycji. Ustalono, że jedyne ujście tekstu bez obsługi HTML to `notif()` (pasek powiadomień, renderuje przez `textContent`) — wszystkie pozostałe (lista newsów, newsy ligowe, treść Kroniki, historia reputacji, oś czasu) renderują przez `innerHTML`.

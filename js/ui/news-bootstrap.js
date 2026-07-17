@@ -532,6 +532,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
   // (jak każdy news z addWorldNewsEvent) i poza cotygodniowym tickiem nikt by go nie opróżnił.
   try{ assignDerbyPairs(); announceDerbies(); announceSeasonPreview(); flushAllWeeklyNews(); }
   catch(e){ console.warn('Żywy Świat AI season 1 init error:',e); }
+  ensureCaptainValid();
 }
 
 function myPl(){return G.players.filter(p=>p.clubId===G.myClubId);}
@@ -883,6 +884,20 @@ function loadGame(slot){try{
     }
     p.history.sort((a,b)=>a.season-b.season);
   });
+  // Migracja: cecha "profesjonalista" usunięta z gry (była martwa — zero wpływu na cokolwiek).
+  // Zawodnicy ze starych zapisów, którzy już ją mieli, dostają w zamian nową losową cechę,
+  // żeby nie zostać z tylko 2 cechami zamiast standardowych 3.
+  _allMigr.forEach(p=>{
+    if(p.traits&&p.traits.includes('profesjonalista')){
+      p.traits=p.traits.filter(tid=>tid!=='profesjonalista');
+      const _repl=TRAIT_KEYS.filter(k=>!p.traits.includes(k));
+      if(_repl.length)p.traits.push(_repl[Math.floor(Math.random()*_repl.length)]);
+    }
+  });
+  // Migracja: kapitan drużyny — G.captainId nie istniał w starych zapisach (lub obecny
+  // kapitan mógł odejść/kontuzjować się od ostatniego zapisu) — samonaprawa wg tego samego
+  // kryterium co przy nowej grze (najwyższe MEN wśród aktualnych starterów).
+  ensureCaptainValid();
   if(!G.trainingCenter)G.trainingCenter={level:0,building:null,profiles:[],profilesLocked:false};
   if(!G.scout)G.scout={level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]};
   initScout();

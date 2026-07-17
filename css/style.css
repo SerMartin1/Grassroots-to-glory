@@ -130,7 +130,7 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .tile:hover{background:var(--gm);border-color:var(--am);}
 .tile:active{transform:translateY(3px);border-bottom:1px solid #1a2d1a;}
 .tile-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
-.tile-lbl{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:0.5px;line-height:1.5;}
+.tile-lbl{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:0.5px;line-height:1.5;}
 
 /* ── Wariant B: Gabinet + pasek dolny + FAB + Więcej ── */
 .gabinet-pane{overflow-y:auto;flex:1;padding-bottom:76px;}

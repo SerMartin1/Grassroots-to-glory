@@ -1271,7 +1271,7 @@ function lgRefreshWyniki(lvl){
         scoreCol=m.done?'var(--am)':'#556655';
         borderLeft=m.done?(myWin?'border-left:3px solid var(--gb);':myDraw?'border-left:3px solid var(--am);':'border-left:3px solid var(--rd);'):'border-left:3px solid #3a6a3a;';
         if(m.done){
-          const mHistIdx=(G.mHist||[]).findIndex(x=>x.rnd===rnd&&x.season===G.season&&((x.hn===hn)||(x.an===hn)));
+          const mHistIdx=(G.mHist||[]).findIndex(x=>!x._isCup&&x.rnd===rnd&&x.season===G.season&&((x.hn===hn)||(x.an===hn)));
           if(mHistIdx>=0){onclk=' onclick="showMatchDetail('+mHistIdx+')"';cursor='cursor:pointer;';}
         }
       } else {
@@ -1279,7 +1279,7 @@ function lgRefreshWyniki(lvl){
         scoreCol=m.done?'var(--gb)':'#1a3a1a';
         borderLeft='border-left:3px solid transparent;';
         if(m.done){
-          const aiHistIdx=(G._mHistAI||[]).findIndex(x=>x.rnd===rnd&&x.season===G.season&&x.hn===hn&&x.an===an);
+          const aiHistIdx=(G._mHistAI||[]).findIndex(x=>!x._isCup&&x.rnd===rnd&&x.season===G.season&&x.hn===hn&&x.an===an);
           if(aiHistIdx>=0){onclk=' onclick="showMatchDetail('+aiHistIdx+',\'ai\')"';cursor='cursor:pointer;';}
         }
       }

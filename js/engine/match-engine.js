@@ -944,6 +944,11 @@ else if(iL){G.frequency=Math.max(10,G.frequency-3);if(G.loseStreak>=3)G.frequenc
   myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('zimna_krew')).forEach(p=>{p.form=Math.min(99,p.form+2);});
   // Nerwowy: dodatkowy spadek
   myPl().filter(p=>p.starter&&p.traits&&p.traits.includes('nerwowy')).forEach(p=>{p.form=Math.max(5,p.form-2);});
+  // Kapitan: odporność na spadek formy po porażce (rola, ten sam mechanizm co zimna_krew)
+  if(G.captainId){
+    const _cap=myPl().find(p=>p.id===G.captainId&&p.starter);
+    if(_cap)_cap.form=Math.min(99,_cap.form+2);
+  }
 }
 else{G.frequency=Math.min(100,G.frequency+1);}
 // v228: delta reputacji/frekwencji z TEGO meczu — czyta ekran podsumowania (postMatch() w match-post.js)
@@ -986,6 +991,7 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
     calcFinalRatings(ratings,iW,iL,fHG,fAG,false);
     G.mHist.push({rnd:m.rnd,season:G.season,hn:hc.n,an:ac.n,hg:fHG,ag:fAG,isMyH:isMyH,g:allEvts.filter(e=>e.type==='goal').map(e=>({m:e.min,s:e.sid,a:e.assisterId,h:e.isH?1:0})),c:allEvts.filter(e=>['yellow','red','red2y'].includes(e.type)).map(e=>({m:e.min,id:e.sid,t:e.type==='yellow'?'y':'r'})),st:[liveStats.hShots||0,liveStats.aShots||0,liveStats.hOn||0,liveStats.aOn||0],r:Object.fromEntries(Object.keys(ratings||{}).map(id=>[id,Math.round(((ratings[id]&&ratings[id].rating)||6)*10)/10]))});
     _myMatchHistIdx=G.mHist.length-1;
+    m.mHistIdx=_myMatchHistIdx; // pozwala kalendarzowi (gabinet.js::_kalBuildRows) linkować do showMatchDetail()
     if(document.getElementById('dc-klub')&&document.getElementById('dc-klub').style.display!=='none')dcRenderKlub();
     postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,false,true);
   }
@@ -1046,7 +1052,13 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
   advWeek();upUI(90,fHG,fAG);btn.style.display='block';btn.textContent=t('match_finished_btn');btn.style.opacity='0.5';matchInProgress=false;G._matchJustFinished=true;// v199: blokuj auto-reload fillMatch
   // ── PUCHAR: rozstrzygnij mecz gracza jeśli aktywny (mecz pucharowy) ──
   const _wasCupMatch=!!(G._cupMatchActive);
+  // Referencja do obiektu meczu w G.cup.rounds[] — przetrwa resolveCupMyMatch() (który zeruje
+  // G._cupMatchActive), potrzebna niżej do zapisu historii z KOŃCOWYM wynikiem (po ew. dogrywce
+  // i losowaniu karnego, patrz resolveCupMyMatch() w cup-engine.js).
+  let _cupMatchRefForHist=null,_cupRIdxForHist=null;
   if(G._cupMatchActive){
+    _cupMatchRefForHist=G._cupMatchActive.match;
+    _cupRIdxForHist=G._cupMatchActive.rIdx;
     const _cmyG=isMyH?fHG:fAG,_coppG=isMyH?fAG:fHG;
     resolveCupMyMatch(_cmyG,_coppG);
     // FIX: finał pucharu rozegrany poza harmonogramem ligi (tydzień 33) — advWeek()
@@ -1083,7 +1095,19 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
   // v228: blokada wyjścia z meczu zostaje aktywna przez ekran podsumowania — zwalniana dopiero
   // przyciskiem "DALEJ" na tym ekranie (continueFromMatchSummary() w match-ui.js), nie tutaj.
   _engageMatchLock('summary');
-  updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);}const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');if(_myMatchHistIdx!=null){G.news[0].action='match_result';G.news[0].actionLabel=t('news_action_view_match');G.news[0].midx=_myMatchHistIdx;renderNews();}notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
+  updateHdr();if(_wasCupMatch){postMatch(hc,ac,fHG,fAG,iW,iL,ratings,hA,aA,true);
+    // Zapis meczu pucharowego gracza do wspólnej historii (showMatchDetail/openClubModal) — ten
+    // sam kształt co mecz ligowy (linia z G.mHist.push wyżej), oznaczony _isCup. Wynik brany z
+    // _cupMatchRefForHist.hg/ag (KOŃCOWY, po ew. dogrywce/karnych z resolveCupMyMatch()) —
+    // fHG/fAG to wynik SPRZED tej korekty. Oceny (ratings) są już finalne — calcFinalRatings
+    // wywołane wewnątrz postMatch() powyżej (patrz _wasCupMatch w calcFinalRatings()).
+    if(_cupMatchRefForHist){
+      G.mHist.push({rnd:(typeof CUP_WEEKS!=='undefined'&&CUP_WEEKS[_cupRIdxForHist]!=null)?CUP_WEEKS[_cupRIdxForHist]:m.rnd,season:G.season,hn:hc.n,an:ac.n,hg:_cupMatchRefForHist.hg,ag:_cupMatchRefForHist.ag,isMyH:isMyH,g:allEvts.filter(e=>e.type==='goal').map(e=>({m:e.min,s:e.sid,a:e.assisterId,h:e.isH?1:0})),c:allEvts.filter(e=>['yellow','red','red2y'].includes(e.type)).map(e=>({m:e.min,id:e.sid,t:e.type==='yellow'?'y':'r'})),st:[liveStats.hShots||0,liveStats.aShots||0,liveStats.hOn||0,liveStats.aOn||0],r:Object.fromEntries(Object.keys(ratings||{}).map(id=>[id,Math.round(((ratings[id]&&ratings[id].rating)||6)*10)/10])),_isCup:true,cupRound:_cupRIdxForHist});
+      _myMatchHistIdx=G.mHist.length-1;
+      _cupMatchRefForHist.mHistIdx=_myMatchHistIdx;
+      _cupMatchRefForHist.mHistSrc='mHist';
+    }
+  }const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');if(_myMatchHistIdx!=null){G.news[0].action='match_result';G.news[0].actionLabel=t('news_action_view_match');G.news[0].midx=_myMatchHistIdx;renderNews();}notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
 const ev=allEvts[idx2++];
       // Inkrementuj liveStats sukcesywnie dla każdego zdarzenia
       const _isH=ev.isH;
