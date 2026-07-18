@@ -144,12 +144,27 @@ function fillHistory(){
   if(G.cHist.length===0&&G.mHist&&G.mHist.length>0){
     const seasons=[...new Set(G.mHist.map(m=>m.season).filter(Boolean))].sort((a,b)=>a-b);
     seasons.forEach(s=>{
+      // Sezon w trakcie (jeszcze nie zakończony) pominąć — prawdziwy wpis doda dla niego
+      // week-progress.js po zakończeniu; w przeciwnym razie zostawałby tu na zawsze zdublowany
+      // wpis "zrekonstruowany" obok późniejszego prawdziwego wpisu dla tego samego sezonu.
+      if(s===G.season&&!G.seasonEnded)return;
       const mm=G.mHist.filter(m=>m.season===s&&!m._isCup&&(m.hn===G.myClub.n||m.an===G.myClub.n));
       let w=0,d=0,gf=0,ga=0;
       mm.forEach(m=>{const isH=m.hn===G.myClub.n;const mg=isH?m.hg:m.ag,og=isH?m.ag:m.hg;gf+=mg;ga+=og;if(mg>og)w++;else if(mg===og)d++;});
       if(!G.cHist.find(h=>h.season===s))
         G.cHist.push({season:s,league:LEAGUE_NAMES[G.myLeague||8],leagueLevel:G.myLeague||8,pos:'?',pts:w*3+d,gf,ga,budget:0,reputation:G.reputation||30,stadiumCap:(G.stadium&&G.stadium.capacity)||200,bonus:0,reconstructed:true});
     });
+  }
+  // Migracja: usuń zduplikowane wpisy tego samego sezonu w zapisach, gdzie powstał wpis
+  // "zrekonstruowany" (patrz wyżej) zanim istniał powyższy warunek pomijający sezon w trakcie —
+  // zachowaj wpis z prawdziwymi danymi zamiast zrekonstruowanego.
+  if(G.cHist.length>1){
+    const bySeason={};
+    G.cHist.forEach(h=>{
+      const prev=bySeason[h.season];
+      if(!prev||(prev.reconstructed&&!h.reconstructed))bySeason[h.season]=h;
+    });
+    G.cHist=Object.values(bySeason).sort((a,b)=>a.season-b.season);
   }
   const activeTab=document.querySelector('#p-history .tab-btn.active');
   const tab=activeTab?activeTab.dataset.tab:'sezony';

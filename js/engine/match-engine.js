@@ -507,8 +507,8 @@ const allPl=G.players.filter(p=>(p.clubId===m.h||p.clubId===m.a)&&p.starter);
 // Derby = rywal w top 3 tabeli LUB duża różnica prestiżu → zmienność wyników
 const _oppClubId=isMyH?m.a:m.h;
 const _oppStanding=G.standing?G.standing.find(s=>s.cid===_oppClubId):null;
-const _oppPos=_oppStanding?([...G.standing].sort((a,b)=>b.pts-a.pts).indexOf(_oppStanding)+1):8;
-const _myPos2=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):8;
+const _oppPos=_oppStanding?([...G.standing].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).indexOf(_oppStanding)+1):8;
+const _myPos2=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).findIndex(s=>s.cid===G.myClubId)+1):8;
 const _isDerby=(_oppPos<=3||_myPos2<=3)||Math.abs(_oppPos-_myPos2)<=1;
 // W derbach: baseShot *1.08 ale saveChance też *1.04 — więcej goli PO OBU stronach
 // Efekt: mecze kończą się wyraźnym wynikiem częściej niż remisem
@@ -900,6 +900,20 @@ if(iW){
 const myG2=m.h===G.myClubId?fHG:fAG,oppG2=m.h===G.myClubId?fAG:fHG;
 const oppClub2=ALL_CLUBS.find(c=>c.id===(m.h===G.myClubId?m.a:m.h));
 if(iW&&(!G.records.bestWin||myG2-oppG2>G.records.bestWin.diff))G.records.bestWin={myG:myG2,oppG:oppG2,diff:myG2-oppG2,opp:oppClub2?oppClub2.n:'?',season:G.season,rnd:m.rnd};
+// ── ODWIECZNY RYWAL: bilans h2h trwały przez całą karierę (G.h2hHistory) — NIE resetowany co
+// sezon (w odróżnieniu od G.mHist niżej), ten sam wzorzec leniwej inicjalizacji co G.records
+// wyżej. Liczy się też mecz pucharowy — to wciąż realne spotkanie z tym przeciwnikiem. Definicja
+// rywala/"dramatyczności" — patrz getNemesisClub()/h2hIsDramaticMatch() w core/state.js.
+if(!G.h2hHistory)G.h2hHistory={};
+if(oppClub2){
+  if(!G.h2hHistory[oppClub2.id])G.h2hHistory[oppClub2.id]={name:oppClub2.n,matches:0,w:0,d:0,l:0,gf:0,ga:0,dramatic:0,lastSeason:0,lastRnd:0,lastMyG:0,lastOppG:0};
+  const h2hEntry=G.h2hHistory[oppClub2.id];
+  h2hEntry.name=oppClub2.n;h2hEntry.matches++;h2hEntry.gf+=myG2;h2hEntry.ga+=oppG2;
+  if(iW)h2hEntry.w++;else if(iL)h2hEntry.l++;else h2hEntry.d++;
+  const _h2hGoals=allEvts.filter(e=>e.type==='goal').map(e=>({min:e.min,isH:e.isH}));
+  if(h2hIsDramaticMatch(fHG,fAG,_h2hGoals))h2hEntry.dramatic++;
+  h2hEntry.lastSeason=G.season;h2hEntry.lastRnd=m.rnd;h2hEntry.lastMyG=myG2;h2hEntry.lastOppG=oppG2;
+}
 if(!G.allTimeStats)G.allTimeStats={players:{},bestSeller:null,bestBuyer:null};
 allEvts.filter(ev=>ev.type==='goal').forEach(ev=>{
   // Gole
@@ -1107,7 +1121,7 @@ window._matchRepDelta=G.reputation-_repBefore0;window._matchFreqDelta=G.frequenc
       _cupMatchRefForHist.mHistIdx=_myMatchHistIdx;
       _cupMatchRefForHist.mHistSrc='mHist';
     }
-  }const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');if(_myMatchHistIdx!=null){G.news[0].action='match_result';G.news[0].actionLabel=t('news_action_view_match');G.news[0].midx=_myMatchHistIdx;renderNews();}notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
+  }const _myPos=G.standing?([...G.standing].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).findIndex(s=>s.cid===G.myClubId)+1):0;const _opp=isMyH?ac.n:hc.n;addNews((iW?t('news_match_win'):iL?t('news_match_loss'):t('news_match_draw')).replace('{score}',fHG+'-'+fAG).replace('{opp}',_opp).replace('{pos}',_myPos),iW?'ok':iL?'err':'info');if(_myMatchHistIdx!=null){G.news[0].action='match_result';G.news[0].actionLabel=t('news_action_view_match');G.news[0].midx=_myMatchHistIdx;renderNews();}notif((iW?t('match_toast_win'):iL?t('match_toast_loss'):t('match_toast_draw'))+' '+fHG+'-'+fAG,iW?'ok':iL?'err':'');return;}
 const ev=allEvts[idx2++];
       // Inkrementuj liveStats sukcesywnie dla każdego zdarzenia
       const _isH=ev.isH;

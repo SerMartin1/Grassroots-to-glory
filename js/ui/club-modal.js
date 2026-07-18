@@ -168,22 +168,13 @@ function _renderClubCard(club,ai,def,lgSt){
   }).join(''):'<div style="color:var(--gr);font-size:var(--fs-dense);padding:8px 0">'+t('tr_no_history')+'</div>';
 
   const isMyClub=club.id===G.myClubId;
-  // ── ŻYWY ŚWIAT AI: bilans bezpośrednich starć z graczem ──────────────
-  // Uwaga: G.mHist zapisuje kluby przez nazwę (hn/an), nie przez id — dopasowanie po nazwie,
-  // spójnie z istniejącym clubLink() w logu transferów poniżej.
-  const h2h=(()=>{
-    if(isMyClub||!G.mHist||!G.mHist.length)return null;
-    const games=G.mHist.filter(m=>m.isMyH?m.an===club.n:m.hn===club.n);
-    if(!games.length)return null;
-    let w=0,d=0,l=0;
-    games.forEach(m=>{
-      const myGoals=m.isMyH?m.hg:m.ag,oppGoals=m.isMyH?m.ag:m.hg;
-      if(myGoals>oppGoals)w++;else if(myGoals<oppGoals)l++;else d++;
-    });
-    const last=games[games.length-1];
-    const lastScore=last.isMyH?(last.hg+':'+last.ag):(last.ag+':'+last.hg);
-    return{w,d,l,lastScore,lastSeason:last.season};
-  })();
+  // ── ODWIECZNY RYWAL: bilans z całej kariery save'a, z G.h2hHistory (trwałe, aktualizowane w
+  // engine/match-engine.js) — zastępuje dawne liczenie z G.mHist, które obejmowało tylko bieżący
+  // sezon (G.mHist jest czyszczone przy starcie nowego sezonu, ui/season-summary.js) i było
+  // zależne od dopasowania po nazwie klubu zamiast po id.
+  const h2hRec=(!isMyClub&&G.h2hHistory)?G.h2hHistory[club.id]:null;
+  const h2h=h2hRec?{w:h2hRec.w,d:h2hRec.d,l:h2hRec.l,lastScore:h2hRec.lastMyG+':'+h2hRec.lastOppG,lastSeason:h2hRec.lastSeason}:null;
+  const isNemesis=(function(){if(isMyClub)return false;const nem=getNemesisClub();return !!(nem&&nem.clubId===club.id);})();
   // ── ŻYWY ŚWIAT AI: cel zarządu na bieżący sezon ───────────────────────
   const goal=ai.boardGoal;
   const goalHtml=(goal&&!isMyClub)?
@@ -197,8 +188,8 @@ function _renderClubCard(club,ai,def,lgSt){
     '</div>'
     :'';
   const h2hHtml=h2h?
-    '<div style="background:var(--tb);border:1px solid var(--gl);padding:8px 12px;margin-bottom:10px">'+
-      '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:1px;margin-bottom:6px">'+t('cm_h2h_title')+'</div>'+
+    '<div style="background:var(--tb);border:1px solid '+(isNemesis?'var(--am)':'var(--gl)')+';padding:8px 12px;margin-bottom:10px">'+
+      '<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);letter-spacing:1px;margin-bottom:6px">'+t('cm_h2h_title')+(isNemesis?' <span style="color:var(--am)">'+t('cm_h2h_nemesis_badge')+'</span>':'')+'</div>'+
       '<div style="display:flex;gap:10px;font-size:var(--fs-dense);margin-bottom:4px">'+
         '<span style="color:var(--gb)">'+t('cm_h2h_wins').replace('{n}',h2h.w)+'</span>'+
         '<span style="color:var(--gr)">'+t('cm_h2h_draws').replace('{n}',h2h.d)+'</span>'+

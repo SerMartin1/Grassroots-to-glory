@@ -392,6 +392,24 @@ function devSimMyMatch(m,isCup){
   // Forma
   const iW=(isMyH&&hG>aG)||(!isMyH&&aG>hG);
   const iL=(isMyH&&hG<aG)||(!isMyH&&aG<hG);
+  // ── ODWIECZNY RYWAL: bilans h2h trwały (G.h2hHistory) — mirror tego samego bloku co
+  // engine/match-engine.js::next(), bo devSimMyMatch() ma własną, równoległą kopię logiki
+  // G.records/G.mHist zamiast dzielić kod z meczem na żywo (ten sam wzorzec co reszta tej
+  // funkcji). Liczy się też mecz pucharowy (isCup) — tak jak w prawdziwym meczu.
+  (function(){
+    const _h2hMyG=isMyH?hG:aG,_h2hOppG=isMyH?aG:hG;
+    const _h2hOppClub=ALL_CLUBS.find(c=>c.id===(isMyH?m.a:m.h));
+    if(!G.h2hHistory)G.h2hHistory={};
+    if(_h2hOppClub){
+      if(!G.h2hHistory[_h2hOppClub.id])G.h2hHistory[_h2hOppClub.id]={name:_h2hOppClub.n,matches:0,w:0,d:0,l:0,gf:0,ga:0,dramatic:0,lastSeason:0,lastRnd:0,lastMyG:0,lastOppG:0};
+      const _h2hEntry=G.h2hHistory[_h2hOppClub.id];
+      _h2hEntry.name=_h2hOppClub.n;_h2hEntry.matches++;_h2hEntry.gf+=_h2hMyG;_h2hEntry.ga+=_h2hOppG;
+      if(iW)_h2hEntry.w++;else if(iL)_h2hEntry.l++;else _h2hEntry.d++;
+      const _h2hGoals=(allEvts||[]).filter(e=>e.type==='goal').map(e=>({min:e.min,isH:e.isH}));
+      if(h2hIsDramaticMatch(hG,aG,_h2hGoals))_h2hEntry.dramatic++;
+      _h2hEntry.lastSeason=G.season;_h2hEntry.lastRnd=m.rnd;_h2hEntry.lastMyG=_h2hMyG;_h2hEntry.lastOppG=_h2hOppG;
+    }
+  })();
   if(!isCup){
   if(!G.reputation)G.reputation=30;if(!G.frequency)G.frequency=50;
   if(iW){G.frequency=Math.min(100,G.frequency+5);G.reputation=G.reputation+1;}

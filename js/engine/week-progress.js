@@ -480,6 +480,8 @@ const name=found?found.name:t('week_fallback_no_candidates');
   if(G.week>=4&&!G.seasonEnded){kronUpdateBenchWeeks();kronTrigger();}
   // ── PAMIĘĆ KIBICÓW — niezależny, rzadki trigger ─────────────────────
   if(G.week>=4&&!G.seasonEnded){fanMemoryTrigger();}
+  // ── NADCHODZĄCE WYDARZENIA — zapowiedzi rocznic/rekordów w Aktualnościach ──
+  if(G.week>=4&&!G.seasonEnded){checkUpcomingEvents();}
   // ── ŻYWY ŚWIAT AI: pensje klubów AI (co 4 tygodnie, jak u gracza) ─────
   // v4: news o kryzysie finansowym usunięty świadomie (decyzja redakcyjna, nie brak danych) —
   // samo naliczanie budżetu zostaje, bo wpływa na zdolność zakupową AI w aiTransferSeason().

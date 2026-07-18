@@ -508,7 +508,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0},
     kronika:{cooldown:0,usedThisSeason:[],flags:{}},
     timeline:[],fanMemory:{cooldown:0,recalled:[]},
-    worldNews:[],_worldNewsNextId:0,repHistory:[]};
+    worldNews:[],_worldNewsNextId:0,repHistory:[],flags:{}};
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
   genWeeklyMarket();assignJerseyNumbers();
   myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};if(!p.value||p.value===0)p.value=calcValue(ovr(p),p.age);});
@@ -912,6 +912,7 @@ function loadGame(slot){try{
     G._worldNewsNextId=_maxWnId+1;
   }
   if(!G.repHistory)G.repHistory=[]; // Historia zmian reputacji gracza (modal ⭐ Rep)
+  if(!G.flags)G.flags={}; // Trwałe (międzysezonowe) kamienie milowe Kroniki — patrz PLAN_KRONIKA_ROZBUDOWA.txt
   // v240: migracja — KUP: w fin.hist mają cost=0, koszt tylko w fin.transfers
   if(G.fin&&G.fin.hist){G.fin.hist.forEach(function(h){if(h.note&&h.note.startsWith('KUP:')&&h.cost>0)h.cost=0;});}
   if(!G.seasonBonus)G.seasonBonus=0;

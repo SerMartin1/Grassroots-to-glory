@@ -25,7 +25,37 @@ function pushTimeline(type,icon,label,opts){
   if(G._tlNextId==null)G._tlNextId=1;
   G.timeline.push({id:G._tlNextId++,season:G.season,week:G.week,type:type,icon:icon,label:label,pid:opts.pid||null,sentiment:opts.sentiment||'neutral',weight:opts.weight!=null?opts.weight:15});
 }
-const KRON_TIMELINE_WORTHY=['x01_first_title','x02_relegation_crisis','x03_promotion_eve','x04_dynasty_threat','h01_hall_of_fame','k04_wantsout_crisis'];
+const KRON_TIMELINE_WORTHY=['x01_first_title','x02_relegation_crisis','x03_promotion_eve','x04_dynasty_threat','h01_hall_of_fame','k04_wantsout_crisis',
+  // Sesja 1 (kron_cat_history): rocznice (hs01-hs08) + jednorazowe osiągnięcia klubowe (hs09, hs11)
+  'hs01_first_title_anniversary','hs02_hall_of_fame_anniversary','hs03_training_upgrade_anniversary','hs04_data_secure_anniversary',
+  'hs05_manager_anniversary','hs06_first_promotion_anniversary','hs07_worst_season_anniversary','hs08_record_signing_anniversary',
+  'hs09_club_museum','hs11_statue_proposal',
+  // Sesja 2 (kron_cat_academy): rocznica pierwszego absolwenta + łańcuch międzysezonowy ac18/ac19
+  'ac01_first_graduate_anniversary','ac18_prospect_scout_interest','ac19_prospect_scout_resolution',
+  // Sesja 3 (kron_cat_sporting): rocznice sportowe (najlepsze zwycięstwo/atak/obrona)
+  'sp10_best_win_anniversary','sp11_best_attack_anniversary','sp12_best_defense_anniversary',
+  // Sesja 5 (kron_cat_transfers): powrót byłego zawodnika do klubu — realny transfer, warty pamięci
+  't16_prodigal_son_returns',
+  // Sesja 7 (kron_cat_club): założenie oficjalnego fanklubu — jednorazowe osiągnięcie klubowe
+  'cl02_fan_club_founding',
+  // Sesja 8 (kron_cat_crisis): kryzysy o skali porównywalnej z już wpisanymi k04/x02 — dramatyczne
+  // momenty warte pamięci, spójnie z istniejącym wzorcem tej kategorii.
+  'cr01_budget_crisis','cr04_board_ultimatum',
+  // Sesja 10 (kron_cat_cup): rocznica zdobycia Pucharu i głęboki bieg pucharowy jako outsider
+  'cp01_cup_winner_anniversary','cp03_giant_slayer_run',
+  // Sesja 11 (PLAN_KRONIKA_ROZBUDOWA.txt pkt 3b/2): tr01/dc01 ustawiają trwałe G.flags.* (czytane
+  // przez hs03/hs04 z Sesji 1), ale dotąd nie trafiały do G.timeline — dodane, żeby fanMemoryTrigger()
+  // też mógł je czasem przypomnieć (osobny, lżejszy mechanizm niż dedykowana rocznica hs03/hs04).
+  'tr01_training_accident','dc01_data_breach',
+  // Sesja 12: 3 nowe przykładowe łańcuchy międzysezonowe (oba etapy każdego, patrz PLAN pkt 4
+  // "Gotowe do Sesji 12") — dodane na wzór ac18/ac19, żeby też stały się materiałem fanMemoryTrigger()
+  't20_captain_loyalty_pledge','t21_captain_loyalty_resolution',
+  'cr09_rival_prediction','cr10_rival_prediction_resolution',
+  'cl10_city_stadium_promise','cl11_city_stadium_promise_resolution',
+  // Sesja 13 (odwieczny rywal na podstawie historii meczów, G.h2hHistory): ogłoszenie tożsamości
+  // rywala to jednorazowe, warte pamięci wydarzenie klubowe — spójnie z cl02/hs09/hs11. rv02
+  // (cykliczna rocznica co 5. spotkanie) świadomie NIE trafia tutaj, bo powtarza się w nieskończoność.
+  'rv01_nemesis_named'];
 const KRON_IGNORED_WORTHY=['s01_party_scandal','k02_injury_streak'];
 function ovr(p){const t=p.tec,pa=p.pas,sh=p.sht,de=p.def,ph=p.phy,me=p.men;if(p.pos==='GK')return Math.round(de*0.35+me*0.35+ph*0.10+pa*0.10+t*0.05+sh*0.05);if(p.pos==='OBR')return Math.round(de*0.35+ph*0.35+me*0.10+pa*0.10+t*0.05+sh*0.05);if(p.pos==='POL')return Math.round(pa*0.35+t*0.35+me*0.10+ph*0.10+de*0.05+sh*0.05);if(p.pos==='NAP')return Math.round(sh*0.35+t*0.35+me*0.10+ph*0.10+pa*0.05+de*0.05);return Math.round((t+pa+sh+de+ph+me)/6);}
 const AGE_MULT={16:2.2,17:2.1,18:2.0,19:1.9,20:1.8,21:1.7,22:1.6,23:1.5,24:1.4,25:1.3,26:1.2,27:1.1,28:1.0,29:0.95,30:0.9,31:0.85,32:0.8,33:0.75,34:0.7,35:0.65,36:0.6,37:0.55};
@@ -149,5 +179,51 @@ function ensureClubGoalkeepers(){
   }));
 }
 
+// ── ODWIECZNY RYWAL — bilans h2h trwały przez całą karierę save'a (G.h2hHistory, patrz
+// engine/match-engine.js, gdzie jest aktualizowany po każdym meczu klubu gracza — ligowym i
+// pucharowym, bo oba to realne spotkania z przeciwnikiem). W odróżnieniu od G.rival (derby
+// losowane od nowa co sezon, ui/world-board-render.js::assignDerbyPairs() — "arbitralne, brak
+// danych geograficznych") ten rywal wynika WYŁĄCZNIE z policzalnej historii pojedynków.
+//
+// Kryteria wyboru — ścisłe sortowanie leksykograficzne, każde kolejne tylko rozstrzyga remis
+// poprzedniego (bez wag wymyślonych na miejscu):
+//  1) najwięcej rozegranych meczów — to dosłowna treść słowa "odwieczny" (częstość/długość
+//     rywalizacji); bez tego jednorazowy dramatyczny mecz z klubem spotkanym raz mógłby
+//     wygrać tytuł wbrew nazwie.
+//  2) przy remisie: najwięcej "dramatycznych" wyników (patrz h2hIsDramaticMatch niżej).
+//  3) przy kolejnym remisie: najbardziej wyrównany bilans (najmniejsze |w-l|) — rywalizacja
+//     to względna równowaga sił, nie jednostronna dominacja.
+// Próg min. 3 spotkań — mniej nie uzasadnia miana "odwieczny".
+function getNemesisClub(){
+  if(!G||!G.h2hHistory)return null;
+  const entries=Object.entries(G.h2hHistory).filter(function(e){return e[1].matches>=3;});
+  if(!entries.length)return null;
+  entries.sort(function(a,b){
+    const ha=a[1],hb=b[1];
+    if(hb.matches!==ha.matches)return hb.matches-ha.matches;
+    if(hb.dramatic!==ha.dramatic)return hb.dramatic-ha.dramatic;
+    return Math.abs(ha.w-ha.l)-Math.abs(hb.w-hb.l);
+  });
+  return {clubId:parseInt(entries[0][0]),hist:entries[0][1]};
+}
+// "Dramatyczny" mecz — dwie policzalne, niezależne reguły z minutowego przebiegu goli (bez
+// trzymania pełnej historii minut na zawsze — liczone raz, w chwili końca meczu):
+//  a) remis wyrównany w doliczonym czasie (ostatni gol meczu pada w min>=90, wynik = remis),
+//  b) odwrócenie wyniku (strona, która w dowolnym momencie meczu prowadziła, kończy mecz
+//     bez zwycięstwa — remisem lub porażką). Spełnienie któregokolwiek liczy się jako 1.
+function h2hIsDramaticMatch(hg,ag,goals){
+  if(!goals||!goals.length)return false;
+  const sorted=goals.slice().sort(function(a,b){return a.min-b.min;});
+  let rh=0,ra=0,everLedH=false,everLedA=false,lastMin=null;
+  sorted.forEach(function(g){
+    if(g.isH)rh++;else ra++;
+    if(rh>ra)everLedH=true;
+    if(ra>rh)everLedA=true;
+    lastMin=g.min;
+  });
+  const lateDraw=hg===ag&&lastMin!=null&&lastMin>=90;
+  const reversal=(everLedH&&hg<=ag)||(everLedA&&ag<=hg);
+  return lateDraw||reversal;
+}
 let G=null,selClubId=null,buyId=null,m_hId=0,m_aId=0,liveStats={},matchSpeed=1500,allEvts=[],matchInProgress=false;
 let NAME_POOL=[],namePoolIdx=0;

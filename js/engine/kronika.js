@@ -70,8 +70,20 @@ function fanMemoryTrigger(){
   if(!chosen)chosen=eligible[eligible.length-1];
   recalled.push(chosen.id);
   G.fanMemory.cooldown=3; // min. 3 tygodnie przerwy między callbackami
+  // Sesja 11 (PLAN_KRONIKA_ROZBUDOWA.txt pkt 3b/1): szablon świadomy TYPU wpisu, nie tylko
+  // sentymentu — każdy type ma dziś stały sentyment przy wypchnięciu (patrz miejsca wołające
+  // pushTimeline), więc rozgałęzienie po type nie traci nic z istniejącego zachowania, tylko
+  // dodaje bogatszą, kontekstową frazę zamiast jednego uniwersalnego szablonu dla wszystkiego.
+  // Fallback na stare zachowanie (sentyment) zostaje nietknięty dla każdego typu spoza listy.
   var tplKey;
-  if(chosen.sentiment==='neg')tplKey=pick(['tl_recall_neg1','tl_recall_neg2']);
+  if(chosen.type&&chosen.type.indexOf('kronika_ignored_')===0)tplKey=pick(['tl_recall_kronika_ignored1','tl_recall_kronika_ignored2']);
+  else if(chosen.type&&chosen.type.indexOf('kronika_')===0)tplKey=pick(['tl_recall_kronika1','tl_recall_kronika2']);
+  else if(chosen.type==='academy_debut')tplKey=pick(['tl_recall_academy1','tl_recall_academy2']);
+  else if(chosen.type==='record_bought')tplKey=pick(['tl_recall_record_bought1','tl_recall_record_bought2']);
+  else if(chosen.type==='record_sold')tplKey=pick(['tl_recall_record_sold1','tl_recall_record_sold2']);
+  else if(chosen.type==='fan_favourite_sold')tplKey=pick(['tl_recall_fan_favourite1','tl_recall_fan_favourite2']);
+  else if(chosen.type==='stadium_expand')tplKey=pick(['tl_recall_stadium1','tl_recall_stadium2']);
+  else if(chosen.sentiment==='neg')tplKey=pick(['tl_recall_neg1','tl_recall_neg2']);
   else if(chosen.sentiment==='pos')tplKey=pick(['tl_recall_pos1','tl_recall_pos2']);
   else tplKey='tl_recall_neutral';
   var seasonsAgo=G.season-chosen.season;
@@ -1994,7 +2006,22 @@ function kronTrigger(){
         }},
      ]},
 
-  ]; // koniec KRON_EVENTS
+  ]; // koniec KRON_EVENTS (core)
+
+  // ── Treść z plików danych per kategoria (Sesja 0: opcja B — bez zmiany
+  // wzorca domknięć; każdy builder liczony na nowo co tydzień, tak jak
+  // powyższa tablica core, patrz PLAN_KRONIKA_ROZBUDOWA.txt pkt 3c) ──
+  if(typeof buildKronHistoryEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronHistoryEvents());
+  if(typeof buildKronAcademyEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronAcademyEvents());
+  if(typeof buildKronSportingEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronSportingEvents());
+  if(typeof buildKronLockerEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronLockerEvents());
+  if(typeof buildKronTransferyEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronTransferyEvents());
+  if(typeof buildKronFinanceEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronFinanceEvents());
+  if(typeof buildKronClubEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronClubEvents());
+  if(typeof buildKronCrisisEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronCrisisEvents());
+  if(typeof buildKronHealthEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronHealthEvents());
+  if(typeof buildKronCupEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronCupEvents());
+  if(typeof buildKronRivalryEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronRivalryEvents());
 
   // ── FILTRUJ dostępne eventy ─────────────────────────────────────────
   const available=KRON_EVENTS.filter(function(ev){
