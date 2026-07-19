@@ -202,8 +202,8 @@ function buildKronAcademyEvents(){
           return t('kron_ac04_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_ac04_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac04_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac04_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac04_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;addNews(t('kron_ac04_c3_news_win'),'academy');G.kronika.flags._ac04result='win';}
@@ -232,8 +232,8 @@ function buildKronAcademyEvents(){
           return t('kron_ac05_c1_outcome');
         }},
        {label:t('kron_ac05_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac05_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac05_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac05_c3_label'),
         effect:function(){
           var pend=acPendingProspects();
@@ -272,8 +272,8 @@ function buildKronAcademyEvents(){
           return t('kron_ac06_c1_outcome');
         }},
        {label:t('kron_ac06_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac06_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac06_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac06_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+4;addNews(t('kron_ac06_c3_news'),'academy');},
         outcome:function(){return t('kron_ac06_c3_outcome').replace('{rep}',G.reputation||0);}},
@@ -350,7 +350,10 @@ function buildKronAcademyEvents(){
           return t('kron_ac09_c1_outcome');
         }},
        {label:t('kron_ac09_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._ac09pid;});
+          if(p)p.form=Math.min(100,(p.form||80)+2);
+        },
         outcome:function(){return t('kron_ac09_c2_outcome');}},
        {label:t('kron_ac09_c3_label'),
         effect:function(){
@@ -445,8 +448,8 @@ function buildKronAcademyEvents(){
           return t('kron_ac12_c1_outcome');
         }},
        {label:t('kron_ac12_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac12_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac12_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac12_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+4;G.kronika.flags._ac12result='win';}
@@ -586,8 +589,8 @@ function buildKronAcademyEvents(){
         effect:function(){G.reputation=(G.reputation||30)+6;addNews(t('kron_ac16_c1_news'),'academy');},
         outcome:function(){return t('kron_ac16_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac16_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac16_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac16_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac16_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+3;G.kronika.flags._ac16result='win';}
@@ -739,8 +742,8 @@ function buildKronAcademyEvents(){
         effect:function(){G.reputation=(G.reputation||30)+5;addNews(t('kron_ac20_c1_news'),'academy');},
         outcome:function(){return t('kron_ac20_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac20_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_ac20_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac20_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_ac20_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+4;G.kronika.flags._ac20result='win';}

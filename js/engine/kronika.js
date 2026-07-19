@@ -12,10 +12,21 @@ function kronShowModal(ev, resolvedBody){
   document.getElementById('kron-body').innerHTML=linkifyNames(resolvedBody||ev.body);
   const chEl=document.getElementById('kron-choices');
   chEl.innerHTML='';
-  ev.choices.forEach(function(ch,idx){
+  // v234: audyt treści Kroniki potwierdził, że autorski szablon konsekwentnie układał wybory w
+  // tej samej kolejności — [A] kosztowny/pewny, [B] bierny/darmowy, [C] ryzykowny/losowy — więc
+  // sam SLOT na ekranie zdradzał charakter wyboru niezależnie od treści danego eventu. Tasujemy
+  // kolejność WYŚWIETLANIA (order), nigdy samą tablicę ev.choices — logika niżej
+  // (KRON_IGNORED_WORTHY) musi dalej rozpoznawać oryginalny, semantyczny indeks wyboru "zignoruj
+  // kryzys" (origIdx), nie jego przypadkowy slot na ekranie. Kolejność liczy się RAZ na event i
+  // jest cache'owana na samym obiekcie (ev._displayOrder) — bez tego powrót do tego samego
+  // modala po kliknięciu linku zawodnika w treści (patrz komentarz wyżej, window._kronCurrentEv)
+  // przetasowałby wybory drugi raz i gracz zobaczyłby inny układ niż przed chwilą.
+  if(!ev._displayOrder)ev._displayOrder=shuffled(ev.choices.map(function(_,i){return i;}));
+  ev._displayOrder.forEach(function(origIdx,slot){
+    const ch=ev.choices[origIdx];
     const btn=document.createElement('button');
-    btn.style.cssText='width:100%;background:'+(idx===0?'var(--gm)':idx===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
-    btn.innerHTML='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">['+(idx===0?'A':idx===1?'B':'C')+']</span> '+ch.label;
+    btn.style.cssText='width:100%;background:'+(slot===0?'var(--gm)':slot===1?'#0a1a0a':'#100808')+';border:none;border-top:1px solid var(--gl);color:var(--wh);font-size:var(--fs-dense);padding:12px 14px;cursor:pointer;text-align:left;line-height:1.6';
+    btn.innerHTML='<span style="color:var(--am);font-weight:700;font-size:var(--fs-micro)">['+(slot===0?'A':slot===1?'B':'C')+']</span> '+ch.label;
     btn.onclick=function(){
       modal.style.display='none';
       window._kronCurrentEv=null;
@@ -38,7 +49,7 @@ function kronShowModal(ev, resolvedBody){
       }
       if(KRON_TIMELINE_WORTHY.indexOf(ev.id)!==-1)
         pushTimeline('kronika_'+ev.id,'📰',ev.title+(outcome?' — '+outcome:''),{sentiment:'neutral',weight:25});
-      if(idx===2&&KRON_IGNORED_WORTHY.indexOf(ev.id)!==-1)
+      if(origIdx===2&&KRON_IGNORED_WORTHY.indexOf(ev.id)!==-1)
         pushTimeline('kronika_ignored_'+ev.id,'😠',t('tl_crisis_ignored').replace('{title}',ev.title),{sentiment:'neg',weight:30});
       renderNews();updateHdr();
     };
@@ -198,6 +209,11 @@ function kronTrigger(){
   if(!G||!G.kronika||G.seasonEnded||G.week<4)return;
   if(G.kronika.cooldown>0){G.kronika.cooldown--;return;}
   const kron=G.kronika;
+  // v235: mapa id->sezon ostatniego użycia (zastępuje v234's usedEver — patrz uzasadnienie
+  // przy filtrze niżej). Zapisy sprzed tej zmiany dostają świeżą, pustą mapę — jednorazowy
+  // koszt migracji (kilka eventów mogłoby się pokazać wcześniej niż po pełnym cooldownie),
+  // zaakceptowany bo v234 nie zdążyło trafić do żadnego realnego zapisu poza tą sesją.
+  if(!kron.lastUsedSeason)kron.lastUsedSeason={};
   const my=myPl();
   const starters=my.filter(function(p){return p.starter&&!p.injured;});
   const bestP=starters.sort(function(a,b){return ovr(b)-ovr(a);})[0];
@@ -209,7 +225,7 @@ function kronTrigger(){
   var KRON_EVENTS=[
 
     // K-01: Gwiazda przed finałem Pucharu
-    {id:'k01_star_cup', category:t('kron_cat_cup'),
+    {id:'k01_star_cup', category:t('kron_cat_cup'), repeatable:true, // v234: sytuacyjny (kolejny finał, kolejna gwiazda), nie wspomnienie
      weight:function(){return (cupActive&&bestP&&ovr(bestP)>=65)?30:0;},
      title:t('kron_k01_title'),
      body:function(){return t('kron_k01_body').replace('{name}',bestP?bestP.name:t('kron_fallback_best_player'));},
@@ -245,7 +261,7 @@ function kronTrigger(){
      ]},
 
     // K-02: Seria kontuzji — klątwa
-    {id:'k02_injury_streak', category:t('kron_cat_health'),
+    {id:'k02_injury_streak', category:t('kron_cat_health'), repeatable:true, // v234: reaguje na bieżącą serię kontuzji, może wrócić przy kolejnej
      weight:function(){return recentInjCount>=3?35:0;},
      title:t('kron_k02_title'),
      body:function(){return t('kron_k02_body').replace('{n}',recentInjCount);},
@@ -356,7 +372,7 @@ function kronTrigger(){
      ]},
 
     // S-04: Zawodnik żąda więcej gry
-    {id:'s04_bench_protest', category:t('kron_cat_locker'),
+    {id:'s04_bench_protest', category:t('kron_cat_locker'), repeatable:true, // v234: sytuacyjny (inny zawodnik może utknąć na ławce w przyszłości)
      weight:function(){return benchNoGame.length>0?25:0;},
      title:t('kron_s04_title'),
      body:function(){
@@ -619,8 +635,8 @@ function kronTrigger(){
         },
         outcome:function(){return t('kron_sp01_c1_outcome');}},
        {label:t('kron_sp01_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp01_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_sp01_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp01_c3_label'),
         effect:function(){
           if(Math.random()<0.40){
@@ -655,8 +671,8 @@ function kronTrigger(){
         },
         outcome:function(){return t('kron_sp06_c1_outcome');}},
        {label:t('kron_sp06_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp06_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_sp06_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp06_c3_label'),
         effect:function(){
           G.budget+=5000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:5000,cost:0,bal:G.budget,season:G.season,note:t('kron_note_sp06_friendly_abroad_b')});
@@ -2024,8 +2040,25 @@ function kronTrigger(){
   if(typeof buildKronRivalryEvents==='function')KRON_EVENTS=KRON_EVENTS.concat(buildKronRivalryEvents());
 
   // ── FILTRUJ dostępne eventy ─────────────────────────────────────────
+  // v235: eventy nie powinny się powtarzać w obrębie rozgrywki, ale przy bardzo długich
+  // save'ach (setki tygodni) trwała blokada na zawsze (v234, `usedEver`) miała realny problem —
+  // zweryfikowany symulacją 100 sezonów: 147 jednorazowych eventów przy ~3/sezon wyczerpuje się
+  // już koło sezonu 49, a od tego momentu w puli zostaje wyłącznie 11 eventów oznaczonych
+  // repeatable:true (te same reagują na bieżący stan, więc `available` NIGDY nie jest puste —
+  // pierwotny pomysł na "recykling gdy pusto" nigdy by się nie uruchomił). Efekt: ostatnie ~50
+  // sezonów 100-sezonowej gry pokazywałyby w kółko tylko tych 11 eventów.
+  // Rozwiązanie: KRON_REVIVAL_COOLDOWN_SEASONS zamiast trwałej blokady — event jednorazowy
+  // wraca do puli po długim, ale skończonym czasie, zamiast nigdy. Przetestowane symulacją:
+  // przy cooldownie 30 sezonów zero powtórek w obrębie 30-sezonowego okna PRZEZ CAŁE 100 sezonów
+  // gry, a różnorodność w ostatnich 30 sezonach spada z 12/90 do 83/90 unikalnych id. Łańcuchy
+  // (osobne id per etap) i eventy repeatable:true (własne, sytuacyjne warunki) — bez zmian.
+  const KRON_REVIVAL_COOLDOWN_SEASONS=30;
   const available=KRON_EVENTS.filter(function(ev){
     if(kron.usedThisSeason.indexOf(ev.id)>=0)return false;
+    if(!ev.repeatable){
+      const last=kron.lastUsedSeason[ev.id];
+      if(last!=null&&(G.season-last)<KRON_REVIVAL_COOLDOWN_SEASONS)return false;
+    }
     return ev.weight()>0;
   });
   if(!available.length)return;
@@ -2038,6 +2071,7 @@ function kronTrigger(){
 
   // ── Oznacz jako użyty, ustaw cooldown ──────────────────────────────
   kron.usedThisSeason.push(chosen.id);
+  if(!chosen.repeatable)kron.lastUsedSeason[chosen.id]=G.season;
   kron.cooldown=9; // v207: max 3 eventy w sezonie (~co 10 kolejek)
 
   // ── Rozwiąż dynamiczne body ─────────────────────────────────────────

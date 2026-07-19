@@ -21,7 +21,7 @@ function buildKronFinanceEvents(){
   return [
 
     // FN-01: Cierpliwość zarządu na wyczerpaniu (cele zarządu — patrz systems/board-goals.js)
-    {id:'fn01_board_pressure_streak', category:t('kron_cat_finance'),
+    {id:'fn01_board_pressure_streak', category:t('kron_cat_finance'), repeatable:true, // v234: reaguje na bieżącą presję zarządu, może wrócić przy kolejnej serii niepowodzeń
      weight:function(){return ((G.board&&G.board.streakFailed||0)>=2)?22:0;},
      title:t('kron_fn01_title'),
      body:function(){return t('kron_fn01_body').replace('{n}',(G.board&&G.board.streakFailed)||0);},
@@ -30,8 +30,8 @@ function buildKronFinanceEvents(){
         effect:function(){G.reputation=(G.reputation||30)+5;},
         outcome:function(){return t('kron_fn01_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn01_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_fn01_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_fn01_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn01_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._fn01result='win';}
@@ -86,7 +86,7 @@ function buildKronFinanceEvents(){
         },
         outcome:function(){return t('kron_fn03_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn03_c2_label'),
-        effect:function(){},
+        effect:function(){G.budget+=800;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:800,cost:0,bal:G.budget,season:G.season,note:t('kron_note_fn03_ticket_price_debate')});},
         outcome:function(){return t('kron_fn03_c2_outcome');}},
        {label:t('kron_fn03_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+5;},
@@ -146,7 +146,7 @@ function buildKronFinanceEvents(){
           return t('kron_fn05_c1_outcome');
         }},
        {label:t('kron_fn05_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_fn05_c2_outcome');}},
        {label:t('kron_fn05_c3_label'),
         effect:function(){
@@ -275,8 +275,8 @@ function buildKronFinanceEvents(){
         },
         outcome:function(){return t('kron_fn09_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn09_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_fn09_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_fn09_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn09_c3_label'),
         effect:function(){
           G.budget-=Math.min(G.budget,6000);
@@ -296,8 +296,8 @@ function buildKronFinanceEvents(){
         effect:function(){G.reputation=(G.reputation||30)+5;},
         outcome:function(){return t('kron_fn10_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn10_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_fn10_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_fn10_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_fn10_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+3;addNews(t('kron_fn10_c3_news').replace('{val}',fmtVal((G.board&&G.board.transferBudget)||0)),'budget');},
         outcome:function(){return t('kron_fn10_c3_outcome').replace('{rep}',G.reputation||0);}},
@@ -356,7 +356,7 @@ function buildKronFinanceEvents(){
           return t('kron_fn12_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_fn12_c2_label'),
-        effect:function(){},
+        effect:function(){G.budget+=600;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:600,cost:0,bal:G.budget,season:G.season,note:t('kron_note_fn12_season_ticket_renewal_drive')});},
         outcome:function(){return t('kron_fn12_c2_outcome');}},
        {label:t('kron_fn12_c3_label'),
         effect:function(){

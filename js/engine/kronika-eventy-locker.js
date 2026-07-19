@@ -66,8 +66,8 @@ function buildKronLockerEvents(){
           return t('kron_s08_c1_outcome');
         }},
        {label:t('kron_s08_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_s08_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_s08_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_s08_c3_label'),
         effect:function(){
           var pids=G.kronika.flags._s08pids||[];
@@ -103,7 +103,7 @@ function buildKronLockerEvents(){
         },
         outcome:function(){return t('kron_s09_c1_outcome');}},
        {label:t('kron_s09_c2_label'),
-        effect:function(){},
+        effect:function(){lkStarters().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_s09_c2_outcome');}},
        {label:t('kron_s09_c3_label'),
         effect:function(){
@@ -134,7 +134,7 @@ function buildKronLockerEvents(){
           return t('kron_s10_c1_outcome');
         }},
        {label:t('kron_s10_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_s10_c2_outcome');}},
        {label:t('kron_s10_c3_label'),
         effect:function(){
@@ -208,7 +208,7 @@ function buildKronLockerEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});},
         outcome:function(){return t('kron_s13_c1_outcome');}},
        {label:t('kron_s13_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_s13_c2_outcome');}},
        {label:t('kron_s13_c3_label'),
         effect:function(){
@@ -299,8 +299,8 @@ function buildKronLockerEvents(){
           return t('kron_s16_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_s16_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_s16_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_s16_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_s16_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._s16result='win';}
@@ -366,7 +366,10 @@ function buildKronLockerEvents(){
         },
         outcome:function(){return t('kron_s18_c1_outcome');}},
        {label:t('kron_s18_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var vet=G.players.find(function(x){return x.id===G.kronika.flags._s18vetId;});
+          if(vet)vet.form=Math.min(100,(vet.form||80)+3);
+        },
         outcome:function(){return t('kron_s18_c2_outcome');}},
        {label:t('kron_s18_c3_label'),
         effect:function(){
@@ -380,7 +383,7 @@ function buildKronLockerEvents(){
      ]},
 
     // S-19: Rytuał przesądny formuje się w szatni
-    {id:'s19_superstition_ritual', category:t('kron_cat_locker'),
+    {id:'s19_superstition_ritual', category:t('kron_cat_locker'), repeatable:true, // v234: reaguje na bieżącą serię, może wrócić przy każdej kolejnej
      weight:function(){return (G.winStreak||0)>=2?16:0;},
      title:t('kron_s19_title'),
      body:function(){return t('kron_s19_body');},
@@ -389,7 +392,7 @@ function buildKronLockerEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});},
         outcome:function(){return t('kron_s19_c1_outcome');}},
        {label:t('kron_s19_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_s19_c2_outcome');}},
        {label:t('kron_s19_c3_label'),
         effect:function(){
@@ -420,7 +423,10 @@ function buildKronLockerEvents(){
         },
         outcome:function(){return t('kron_s20_c1_outcome');}},
        {label:t('kron_s20_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._s20pid;});
+          if(p)p.form=Math.max(50,(p.form||80)-2);
+        },
         outcome:function(){return t('kron_s20_c2_outcome');}},
        {label:t('kron_s20_c3_label'),
         effect:function(){

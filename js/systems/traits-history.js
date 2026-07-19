@@ -539,44 +539,213 @@ function renderHistRekordy(){
         row(t('ht_max_conceded_season'),ch.length?(rMaxGa+(sMaxGa?' (S'+sMaxGa+')':'')):'?','var(--rd)');
     })();
 }
+// Szukaj we wszystkich pulach: aktywni (wszystkie kluby), FA, pool, emeryci — zamknięty świat
+// zawodników (patrz js/CLAUDE.md), więc poza przycięciem G.retiredPlayers (match-post.js) każdy,
+// kto kiedykolwiek grał, jest tu do znalezienia.
+function plrLink(p){
+  const allPool=[
+    ...(G.players||[]),
+    ...(G.fa||[]),
+    ...(G.retiredPlayers||[])
+  ];
+  const found=p.id!=null
+    ? allPool.find(x=>x.id===p.id)
+    : allPool.find(x=>x.name===p.name);
+  if(found){
+    const isRetired=!!(G.retiredPlayers&&G.retiredPlayers.some(x=>x.id===found.id));
+    return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+found.id+')">'+p.name+'</span>'
+      +(isRetired?' <span style="font-size:var(--fs-meta);color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">'+t('ht_retired_tag')+'</span>':'');
+  }
+  // Naprawdę brak obiektu (wpisy bez id ze starszych wersji) — szukaj jeszcze po nazwie w players
+  const byName=(G.players||[]).find(x=>x.name===p.name);
+  if(byName){
+    return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+byName.id+')">'+p.name+'</span>';
+  }
+  return '<span style="color:var(--am);opacity:0.5">'+p.name+'</span>';
+}
+
+// ── DRZEWO DZIEDZICTWA — Najlepsza XI, rekordy per pozycja, zawodnicy którzy odeszli ──────────
+// Wszystko liczone "na żywo" przy renderze z istniejących struktur (G.allTimeStats.players,
+// legScore()/legTrophies() z core/data.js, p.history, p.formerClubs) — bez nowego stanu w G.
+function _legacyPool(){
+  return [...(G.players||[]),...(G.fa||[]),...(G.retiredPlayers||[])];
+}
+// "S{pierwszy}–S{ostatni}" (albo "–dziś") sezonów spędzonych w NASZYM klubie, z p.history.
+function _legacySeasonRange(obj){
+  const hist=(obj.history||[]).filter(h=>h.clubId===G.myClubId);
+  if(!hist.length)return '';
+  const seasons=hist.map(h=>h.season);
+  const min=Math.min(...seasons),max=Math.max(...seasons);
+  const stillHere=obj.clubId===G.myClubId&&obj.status!=='retired';
+  return 'S'+min+'–'+(stillHere?t('ht_legacy_today'):('S'+max));
+}
+// Gdzie jest dziś zawodnik, który już opuścił klub — emerytura / inny klub / wolny agent.
+function _legacyStatusLine(obj){
+  if(obj.status==='retired')return t('ht_legacy_status_retired').replace('{n}',obj.retiredSeason!=null?obj.retiredSeason:'?');
+  if(obj.clubId>0){
+    const c=ALL_CLUBS.find(x=>x.id===obj.clubId);
+    return t('ht_legacy_status_now_at').replace('{club}',c?c.n:'?');
+  }
+  return t('plr_free_agent');
+}
+// Najlepsza XI wszech czasów: stałe 4-4-2 (GK1/OBR4/POL4/NAP2 — domyślna formacja gry,
+// news-bootstrap.js:540), niezależne od aktualnej taktyki gracza. Kandydaci: ≥LEGACY_XI_MIN_MATCHES
+// meczów w G.allTimeStats.players, ranking przez istniejącą legScore() (ta sama co G.legends/DATA→LEGENDY).
+const LEGACY_XI_MIN_MATCHES=30;
+function _legacyBestXI(){
+  const at=(G.allTimeStats&&G.allTimeStats.players)||{};
+  const pool=_legacyPool();
+  const SHAPE={GK:1,OBR:4,POL:4,NAP:2};
+  const byPos={GK:[],OBR:[],POL:[],NAP:[]};
+  Object.values(at).forEach(stat=>{
+    if((stat.matches||0)<LEGACY_XI_MIN_MATCHES||stat.id==null)return;
+    const obj=pool.find(x=>x.id===stat.id);
+    if(!obj||!byPos[obj.pos])return;
+    const{leagues,cups}=legTrophies(stat.id);
+    byPos[obj.pos].push({stat,obj,score:legScore(stat,leagues,cups)});
+  });
+  const xi={};
+  Object.keys(SHAPE).forEach(pos=>{
+    xi[pos]=byPos[pos].sort((a,b)=>b.score-a.score).slice(0,SHAPE[pos]);
+  });
+  return xi;
+}
+function _legacyXIHtml(xi){
+  const total=Object.keys(xi).reduce((n,k)=>n+xi[k].length,0);
+  if(!total)return '<div style="color:var(--gr);font-size:var(--fs-dense);padding:8px 0">'+t('ht_legacy_xi_empty')+'</div>';
+  const ROW_ORDER=['NAP','POL','OBR','GK'];
+  const rowsHtml=ROW_ORDER.map(pos=>{
+    const grp=xi[pos];
+    if(!grp.length)return '';
+    const slots=grp.map(e=>
+      '<div class="pp'+(pos==='GK'?' gk':'')+'" onclick="showById('+e.obj.id+')">'+
+        '<span class="pp-name">'+e.obj.name.split(' ')[1].substring(0,8)+'</span>'+
+        '<span class="pp-rat" style="color:var(--gr)">'+_legacySeasonRange(e.obj)+'</span>'+
+      '</div>'
+    ).join('');
+    return '<div class="pitch-row">'+slots+'</div>';
+  }).join('');
+  return '<div class="pitch-wrap" style="margin:0 0 4px">'+
+    '<div class="pitch-ovr">'+t('ht_legacy_xi_title')+'</div>'+
+    '<div class="pitch-field">'+rowsHtml+'</div>'+
+  '</div>';
+}
+// Rekordy klubowe — kariera w barwach klubu, ≥10 meczów, DOWOLNA pozycja może trzymać dowolny
+// rekord (np. jeśli obrońca strzeli najwięcej goli w klubowej historii, to on jest rekordzistą
+// bramkowym — bez wymuszania "ten rekord = ta pozycja"). Czyste konta i tak w praktyce trafią
+// tylko do bramkarza, bo cs/ga są w tej grze liczone WYŁĄCZNIE dla GK (match-engine.js:822-828)
+// — to fakt o danych, nie filtr, który tu narzucamy.
+function _legacyPosRecords(){
+  const at=(G.allTimeStats&&G.allTimeStats.players)||{};
+  const pool=_legacyPool();
+  const withObj=Object.values(at)
+    .filter(s=>(s.matches||0)>=10&&s.id!=null)
+    .map(s=>{const o=pool.find(x=>x.id===s.id);return o?{stat:s,obj:o}:null;})
+    .filter(Boolean);
+  function topBy(key){
+    const l=withObj.filter(e=>(e.stat[key]||0)>0).sort((a,b)=>b.stat[key]-a.stat[key]);
+    return l.length?l[0]:null;
+  }
+  function topCS(){
+    const l=withObj.map(e=>{
+      let cs=(e.obj.history||[]).filter(h=>h.clubId===G.myClubId).reduce((s,h)=>s+(h.cs||0),0);
+      if(e.obj.clubId===G.myClubId&&e.obj.status!=='retired')cs+=(e.obj.st&&e.obj.st.cs)||0;
+      return{stat:e.stat,obj:e.obj,cs};
+    }).filter(e=>e.cs>0).sort((a,b)=>b.cs-a.cs);
+    return l.length?l[0]:null;
+  }
+  return[
+    {entry:topBy('goals'),val:e=>e.stat.goals,labelKey:'ht_legacy_rec_nap',suffixKey:'ht_goals_suffix'},
+    {entry:topBy('assists'),val:e=>e.stat.assists,labelKey:'ht_legacy_rec_pol',suffixKey:'ht_assists_suffix'},
+    {entry:topBy('matches'),val:e=>e.stat.matches,labelKey:'ht_legacy_rec_obr',suffixKey:'ht_matches_suffix'},
+    {entry:topCS(),val:e=>e.cs,labelKey:'ht_legacy_rec_gk',suffixKey:'ht_legacy_cs_suffix'}
+  ];
+}
+function _legacyRecordsHtml(){
+  const recs=_legacyPosRecords();
+  const items=recs.map((r,i)=>{
+    const isLast=i===recs.length-1;
+    let body;
+    if(!r.entry){
+      body='<div style="font-size:var(--fs-body);color:var(--wh);font-weight:700">'+t(r.labelKey)+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+t('ht_legacy_rec_empty')+'</div>';
+    }else{
+      const posTag=r.entry.obj.pos?'<span style="color:var(--am);font-size:var(--fs-dense);border:1px solid var(--am);padding:0 3px;margin-right:5px">'+POS_SHORT[r.entry.obj.pos]+'</span>':'';
+      const rng=_legacySeasonRange(r.entry.obj);
+      body='<div style="font-size:var(--fs-body);color:var(--wh);font-weight:700">'+t(r.labelKey)+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+posTag+plrLink({id:r.entry.stat.id,name:r.entry.stat.name})+
+        ' — <span style="color:var(--wh);font-weight:700">'+r.val(r.entry)+' '+t(r.suffixKey)+'</span>'+(rng?' ('+rng+')':'')+'</div>';
+    }
+    return '<div class="dyn-item"><div class="dyn-dot-col"><div class="dyn-dot normal" style="border-color:#9b59b6;background:#0a001a;color:#9b59b6"></div>'+(isLast?'':'<div class="dyn-line"></div>')+'</div><div class="dyn-content">'+body+'</div></div>';
+  }).join('');
+  return '<div class="dyn-tl" style="padding:0">'+items+'</div>';
+}
+// Zawodnicy (wychowankowie lub kupieni), którzy rozegrali ≥VETERAN_MATCHES_THRESHOLD meczów w
+// barwach klubu i dziś już w nim nie grają. Wyklucza zawodników już pokazanych w Najlepszej XI
+// (xiIds), żeby nie powtarzać tego samego nazwiska dwa razy. VETERAN_MATCHES_THRESHOLD chroni
+// tych zawodników przed przycięciem G.retiredPlayers (core/data.js::protectedRetireeIds()) —
+// "ślad zaginął" niżej jest więc zabezpieczeniem na wszelki wypadek, nie oczekiwanym stanem.
+function _legacyDeparted(xiIds){
+  const at=(G.allTimeStats&&G.allTimeStats.players)||{};
+  const pool=_legacyPool();
+  return Object.values(at)
+    .filter(s=>(s.matches||0)>=VETERAN_MATCHES_THRESHOLD&&s.id!=null&&!xiIds.has(s.id))
+    .map(s=>{
+      const obj=pool.find(x=>x.id===s.id);
+      if(!obj)return{stat:s,obj:null};
+      const departed=obj.status==='retired'||obj.clubId!==G.myClubId;
+      return departed?{stat:s,obj}:null;
+    })
+    .filter(Boolean)
+    .sort((a,b)=>(b.stat.matches||0)-(a.stat.matches||0));
+}
+function _legacyDepartedHtml(xiIds){
+  const list=_legacyDeparted(xiIds);
+  if(!list.length)return '<div style="color:var(--gr);font-size:var(--fs-dense);padding:4px 0">'+t('ht_legacy_departed_empty').replace('{n}',VETERAN_MATCHES_THRESHOLD)+'</div>';
+  const items=list.map((e,i)=>{
+    const isLast=i===list.length-1;
+    const nameHtml=plrLink({id:e.stat.id,name:e.stat.name});
+    let body;
+    if(!e.obj){
+      body='<div style="font-size:var(--fs-body);color:var(--wh);font-weight:700">'+nameHtml+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+e.stat.matches+' '+t('ht_matches_suffix')+' — <span style="color:var(--gl);font-style:italic">'+t('ht_legacy_status_unknown')+'</span></div>';
+    }else{
+      const isOurAcademy=e.obj.fromAcademy&&e.obj.history&&e.obj.history[0]&&e.obj.history[0].clubId===G.myClubId;
+      const posTag=e.obj.pos?POS_SHORT[e.obj.pos]+' — ':'';
+      const rng=_legacySeasonRange(e.obj);
+      body='<div style="font-size:var(--fs-body);color:var(--wh);font-weight:700">'+nameHtml+(isOurAcademy?' 🎓':'')+'</div>'+
+        '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+posTag+e.stat.matches+' '+t('ht_matches_suffix')+(rng?', '+rng:'')+' → <span style="color:var(--gb)">'+_legacyStatusLine(e.obj)+'</span></div>';
+    }
+    return '<div class="dyn-item"><div class="dyn-dot-col"><div class="dyn-dot normal"></div>'+(isLast?'':'<div class="dyn-line"></div>')+'</div><div class="dyn-content">'+body+'</div></div>';
+  }).join('');
+  return '<div class="dyn-tl" style="padding:0">'+items+'</div>';
+}
+
 function renderHistZawodnicy(){
   const el=document.getElementById('hist-zawodnicy');if(!el||!G)return;
   const players=Object.values((G.allTimeStats&&G.allTimeStats.players)||{});
-  function plrLink(p){
-    // Szukaj we wszystkich pulach: aktywni (wszystkie kluby), FA, pool, emeryci
-    const allPool=[
-      ...(G.players||[]),
-      ...(G.fa||[]),
-      ...(G.retiredPlayers||[])
-    ];
-    const found=p.id!=null
-      ? allPool.find(x=>x.id===p.id)
-      : allPool.find(x=>x.name===p.name);
-    if(found){
-      const isRetired=!!(G.retiredPlayers&&G.retiredPlayers.some(x=>x.id===found.id));
-      return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+found.id+')">'+p.name+'</span>'
-        +(isRetired?' <span style="font-size:var(--fs-meta);color:var(--gr);background:#1a1a1a;border:1px solid var(--gr);padding:0 3px">'+t('ht_retired_tag')+'</span>':'');
-    }
-    // Naprawdę brak obiektu (wpisy bez id ze starszych wersji) — szukaj jeszcze po nazwie w players
-    const byName=(G.players||[]).find(x=>x.name===p.name);
-    if(byName){
-      return '<span style="color:var(--am);cursor:pointer;text-decoration:underline" onclick="showById('+byName.id+')">'+p.name+'</span>';
-    }
-    return '<span style="color:var(--am);opacity:0.5">'+p.name+'</span>';
-  }
   function top5(key,icon){
     const s=players.filter(p=>p[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5);
     if(!s.length)return '<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('ht_no_data')+'</div>';
     return s.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense)"><span><span style="color:var(--gr)">'+(i+1)+'. </span>'+plrLink(p)+'</span><span style="color:var(--am)">'+p[key]+' '+icon+'</span></div>').join('');
   }
   const at=G.allTimeStats||{};
+  const xi=_legacyBestXI();
+  const xiIds=new Set();
+  Object.keys(xi).forEach(pos=>xi[pos].forEach(e=>xiIds.add(e.obj.id)));
   el.innerHTML=
-    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin-bottom:8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_top_scorer')+'</div>'+top5('goals',t('ht_goals_suffix'))+
+    _legacyXIHtml(xi)+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:14px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_legacy_records_title')+'</div>'+
+    _legacyRecordsHtml()+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:14px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_top_scorer')+'</div>'+top5('goals',t('ht_goals_suffix'))+
     '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_top_assister')+'</div>'+top5('assists',t('ht_assists_suffix'))+
     '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_most_matches')+'</div>'+top5('matches',t('ht_matches_suffix'))+
     '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:12px 0 8px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_transfer_records')+'</div>'+
     (at.bestSeller?'<div style="font-size:var(--fs-dense);padding:5px 0;border-bottom:1px solid #0d1f0d"><span style="color:var(--gr)">'+t('ht_sold_label')+'</span>'+plrLink({id:at.bestSeller.id,name:at.bestSeller.name})+' <span style="color:var(--gb)">'+fmt(at.bestSeller.val)+'</span> <span style="color:var(--gr)">(S'+at.bestSeller.season+')</span></div>':'<div style="color:var(--gr);font-size:var(--fs-dense)">'+t('ht_no_data')+'</div>')+
-    (at.bestBuyer?'<div style="font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">'+t('ht_bought_label')+'</span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'');
+    (at.bestBuyer?'<div style="font-size:var(--fs-dense);padding:5px 0"><span style="color:var(--gr)">'+t('ht_bought_label')+'</span>'+plrLink({id:at.bestBuyer.id,name:at.bestBuyer.name})+' <span style="color:var(--rd)">'+fmt(at.bestBuyer.val)+'</span> <span style="color:var(--gr)">(S'+at.bestBuyer.season+')</span></div>':'')+
+    '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);margin:14px 0 2px;border-left:3px solid var(--am);padding-left:8px">'+t('ht_legacy_departed_title')+'</div>'+
+    '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">'+t('ht_legacy_departed_sub').replace('{n}',VETERAN_MATCHES_THRESHOLD)+'</div>'+
+    _legacyDepartedHtml(xiIds);
 }
 function renderHistDynastia(){
   const el=document.getElementById('hist-dynastia');if(!el||!G)return;

@@ -85,8 +85,8 @@ function buildKronTransferyEvents(){
           return t('kron_t08_c1_outcome').replace('{name}',G.kronika.flags._t08name||t('kron_fallback_player'));
         }},
        {label:t('kron_t08_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t08_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_t08_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t08_c3_label'),
         effect:function(){
           var p=G.players.find(function(x){return x.id===G.kronika.flags._t08pid;});
@@ -149,8 +149,8 @@ function buildKronTransferyEvents(){
           return t('kron_t09_c1_outcome').replace('{name}',G.kronika.flags._t09name||t('kron_fallback_player'));
         }},
        {label:t('kron_t09_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t09_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_t09_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t09_c3_label'),
         effect:function(){
           var p=G.players.find(function(x){return x.id===G.kronika.flags._t09pid;});
@@ -212,8 +212,8 @@ function buildKronTransferyEvents(){
           return t('kron_t10_c1_outcome').replace('{ours}',G.kronika.flags._t10oursName||t('kron_fallback_player')).replace('{theirs}',G.kronika.flags._t10theirsName||t('kron_fallback_player'));
         }},
        {label:t('kron_t10_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t10_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_t10_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t10_c3_label'),
         effect:function(){
           var ours=G.players.find(function(x){return x.id===G.kronika.flags._t10oursId;});
@@ -259,8 +259,8 @@ function buildKronTransferyEvents(){
           return t('kron_t11_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_t11_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t11_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_t11_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t11_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+6;G.kronika.flags._t11result='win';}
@@ -338,8 +338,8 @@ function buildKronTransferyEvents(){
         effect:function(){G.reputation=(G.reputation||30)+4;},
         outcome:function(){return t('kron_t13_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t13_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t13_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_t13_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t13_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._t13result='win';}
@@ -361,8 +361,8 @@ function buildKronTransferyEvents(){
         effect:function(){G.reputation=(G.reputation||30)+3;},
         outcome:function(){return t('kron_t14_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t14_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_t14_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_t14_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_t14_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+2;},
         outcome:function(){return t('kron_t14_c3_outcome');}},
@@ -390,7 +390,10 @@ function buildKronTransferyEvents(){
           return t('kron_t15_c1_outcome');
         }},
        {label:t('kron_t15_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._t15pid;});
+          if(p)p.form=Math.max(50,(p.form||80)-2);
+        },
         outcome:function(){return t('kron_t15_c2_outcome');}},
        {label:t('kron_t15_c3_label'),
         effect:function(){
@@ -470,7 +473,10 @@ function buildKronTransferyEvents(){
           return t('kron_t17_c1_outcome');
         }},
        {label:t('kron_t17_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._t17pid;});
+          if(p)p.form=Math.max(50,(p.form||80)-2);
+        },
         outcome:function(){return t('kron_t17_c2_outcome');}},
        {label:t('kron_t17_c3_label'),
         effect:function(){

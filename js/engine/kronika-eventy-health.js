@@ -41,7 +41,10 @@ function buildKronHealthEvents(){
           return t('kron_hl01_c1_outcome');
         }},
        {label:t('kron_hl01_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._hl01pid;});
+          if(p)p.fatigue=Math.min(100,(p.fatigue||0)+10);
+        },
         outcome:function(){return t('kron_hl01_c2_outcome');}},
        {label:t('kron_hl01_c3_label'),
         effect:function(){
@@ -78,7 +81,7 @@ function buildKronHealthEvents(){
           return t('kron_hl02_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_hl02_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.fatigue=Math.max(0,(p.fatigue||0)-5);});},
         outcome:function(){return t('kron_hl02_c2_outcome');}},
        {label:t('kron_hl02_c3_label'),
         effect:function(){
@@ -110,7 +113,7 @@ function buildKronHealthEvents(){
           return t('kron_hl03_c1_outcome');
         }},
        {label:t('kron_hl03_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_hl03_c2_outcome');}},
        {label:t('kron_hl03_c3_label'),
         effect:function(){
@@ -140,8 +143,8 @@ function buildKronHealthEvents(){
           return t('kron_hl04_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_hl04_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hl04_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_hl04_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hl04_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._hl04result='win';}
@@ -193,8 +196,8 @@ function buildKronHealthEvents(){
         effect:function(){G.reputation=(G.reputation||30)+3;},
         outcome:function(){return t('kron_hl06_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hl06_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hl06_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_hl06_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hl06_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+4;G.kronika.flags._hl06result='win';}
@@ -223,7 +226,7 @@ function buildKronHealthEvents(){
           return t('kron_hl07_c1_outcome');
         }},
        {label:t('kron_hl07_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_hl07_c2_outcome');}},
        {label:t('kron_hl07_c3_label'),
         effect:function(){

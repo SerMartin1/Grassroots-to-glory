@@ -128,7 +128,7 @@ function buildKronCrisisEvents(){
           return t('kron_cr03_c1_outcome');
         }},
        {label:t('kron_cr03_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().filter(function(p){return !p.injured;}).forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});},
         outcome:function(){return t('kron_cr03_c2_outcome');}},
        {label:t('kron_cr03_c3_label'),
         effect:function(){
@@ -142,7 +142,7 @@ function buildKronCrisisEvents(){
      ]},
 
     // CR-04: Ultimatum zarządu (patrz systems/board-goals.js: G.board.streakFailed)
-    {id:'cr04_board_ultimatum', category:t('kron_cat_crisis'),
+    {id:'cr04_board_ultimatum', category:t('kron_cat_crisis'), repeatable:true, // v234: reaguje na bieżącą presję zarządu, może wrócić przy kolejnej serii niepowodzeń
      weight:function(){return ((G.board&&G.board.streakFailed||0)>=3)?32:0;},
      title:t('kron_cr04_title'),
      body:function(){return t('kron_cr04_body').replace('{n}',(G.board&&G.board.streakFailed)||0);},

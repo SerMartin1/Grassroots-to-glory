@@ -723,6 +723,11 @@ const ARCHETYPE_META={
 // (są w globalnym zasięgu, ten sam wzorzec co reszta projektu — brak modułów/importów).
 const LEG_THRESHOLD=200;
 const LEG_W=0.25,LEG_G=0.5,LEG_A=0.3,LEG_M=12,LEG_P=8;
+// Próg "weterana" — Historia klubu→Zawodnicy, sekcja "Zawodnicy, którzy odeszli" (traits-history.js).
+// 100 meczów w barwach klubu bez goli/asyst/tytułów daje tylko 25/200 pkt legScore, więc bez
+// osobnej ochrony taki zawodnik mógłby wypaść z limitu G.retiredPlayers mimo spełniania progu tej
+// listy — patrz protectedRetireeIds() niżej.
+const VETERAN_MATCHES_THRESHOLD=100;
 
 function legScore(stat,trophyCount,cupCount){
   const pts=
@@ -749,10 +754,11 @@ function legTrophies(playerId){
 
 // Zbiór id zawodników, którzy NIE MOGĄ zniknąć z G.retiredPlayers przez limit "najnowsi N"
 // (match-post.js aiRenewContracts, news-bootstrap.js zapis gry) — legendy klubu (wg tego
-// samego progu co lista w data-center.js) oraz rekordziści (top 5 strzelców/asystentów/
+// samego progu co lista w data-center.js), rekordziści (top 5 strzelców/asystentów/
 // liczby meczów, najdroższy sprzedany/kupiony, ta sama pula co renderHistZawodnicy w
-// traits-history.js). G.allTimeStats.players nigdy nie jest przycinane, więc bez tej
-// ochrony wpis rekordu przeżywa, a karta zawodnika (i link do niej) — nie.
+// traits-history.js) oraz weterani (VETERAN_MATCHES_THRESHOLD+ meczów — sekcja "Zawodnicy,
+// którzy odeszli" w tym samym pliku). G.allTimeStats.players nigdy nie jest przycinane, więc
+// bez tej ochrony wpis rekordu/weterana przeżywa, a karta zawodnika (i link do niej) — nie.
 function protectedRetireeIds(){
   const ids=new Set();
   const at=G.allTimeStats&&G.allTimeStats.players?G.allTimeStats.players:{};
@@ -767,6 +773,8 @@ function protectedRetireeIds(){
     stats.filter(s=>s[key]>0).sort((a,b)=>b[key]-a[key]).slice(0,5)
       .forEach(s=>{if(s.id!=null)ids.add(s.id);});
   });
+  stats.filter(s=>(s.matches||0)>=VETERAN_MATCHES_THRESHOLD)
+    .forEach(s=>{if(s.id!=null)ids.add(s.id);});
   if(G.allTimeStats){
     if(G.allTimeStats.bestSeller&&G.allTimeStats.bestSeller.id!=null)ids.add(G.allTimeStats.bestSeller.id);
     if(G.allTimeStats.bestBuyer&&G.allTimeStats.bestBuyer.id!=null)ids.add(G.allTimeStats.bestBuyer.id);

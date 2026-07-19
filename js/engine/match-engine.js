@@ -827,6 +827,17 @@ function next(){if(idx2>=allEvts.length){m.done=true;m.hg=fHG;m.ag=fAG;if(!m._is
     const oppGA=isMyH?fHG:fAG;
     oppGK.st.ga+=oppGA;if(oppGA===0)oppGK.st.cs++;
   }
+  // v233: komentarz wyżej mówił "for both teams", ale kod liczył wyłącznie bramkarza
+  // przeciwnika — mój własny bramkarz nigdy nie dostawał st.cs/st.ga z rozgrywanych na żywo
+  // meczów (ligowych ani pucharowych), więc "Rekordy" w Historia→Zawodnicy i cele zarządu
+  // oparte na czystych kontach (board-goals.js) były nie do zdobycia mimo realnie zerowych
+  // strat bramkowych.
+  const myGK=myPl().find(p=>p.pos==='GK'&&p.starter);
+  if(myGK){
+    if(!myGK.st.ga)myGK.st.ga=0;if(!myGK.st.cs)myGK.st.cs=0;
+    const myGA=isMyH?fAG:fHG;
+    myGK.st.ga+=myGA;if(myGA===0)myGK.st.cs++;
+  }
   // Match skill growth: one random attr from active focus, age-based chance
   {
     const _matchGrowths=[];

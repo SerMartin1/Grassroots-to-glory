@@ -115,8 +115,8 @@ function buildKronClubEvents(){
           return t('kron_cl03_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_cl03_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl03_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_cl03_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl03_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._cl03result='win';}
@@ -145,8 +145,8 @@ function buildKronClubEvents(){
           return t('kron_cl04_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_cl04_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl04_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_cl04_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl04_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._cl04result='win';}
@@ -168,8 +168,8 @@ function buildKronClubEvents(){
         effect:function(){G.reputation=(G.reputation||30)+6;},
         outcome:function(){return t('kron_cl05_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl05_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl05_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+3;},
+        outcome:function(){return t('kron_cl05_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl05_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+4;},
         outcome:function(){return t('kron_cl05_c3_outcome').replace('{rep}',G.reputation||0);}},
@@ -192,8 +192,8 @@ function buildKronClubEvents(){
           return t('kron_cl06_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_cl06_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl06_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_cl06_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl06_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+8;G.kronika.flags._cl06result='win';}
@@ -215,8 +215,8 @@ function buildKronClubEvents(){
         effect:function(){G.reputation=(G.reputation||30)+5;},
         outcome:function(){return t('kron_cl07_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl07_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl07_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_cl07_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl07_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+6;G.kronika.flags._cl07result='win';}
@@ -262,8 +262,8 @@ function buildKronClubEvents(){
         effect:function(){G.reputation=(G.reputation||30)+4;},
         outcome:function(){return t('kron_cl09_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl09_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cl09_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_cl09_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cl09_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._cl09result='win';}

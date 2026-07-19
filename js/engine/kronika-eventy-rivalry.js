@@ -53,7 +53,7 @@ function buildKronRivalryEvents(){
 
     // RV-02: Kamień milowy rywalizacji — co 5. spotkanie z odwiecznym rywalem (5, 10, 15…).
     // `lastMilestone` na wpisie h2hHistory pilnuje jednorazowego świętowania każdego progu.
-    {id:'rv02_rivalry_milestone', category:t('kron_cat_rivalry'),
+    {id:'rv02_rivalry_milestone', category:t('kron_cat_rivalry'), repeatable:true, // v234: cykliczny co 5. spotkanie — patrz komentarz wyżej
      weight:function(){
        var nem=rvNemesis();
        if(!nem||nem.hist.matches<5||nem.hist.matches%5!==0)return 0;

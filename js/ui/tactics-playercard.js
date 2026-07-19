@@ -82,9 +82,55 @@ function setCaptain(id){
   G.captainId=id;
   notif(t('tac_captain_set_notif').replace('{name}',p.name),'ok');
 }
+
+// Panel kapitana nad listą składu: zawsze widoczny (nie trzeba przewijać tabeli),
+// pokazuje MENTALNOŚĆ (p.men) — atrybut, wg którego ensureCaptainValid() dobiera
+// domyślnego kapitana — żeby wybór był świadomy, nie tylko po nazwisku/OVR.
+let _capPickerOpen=false;
+function menCol(v){return v>=70?'var(--gb)':v>=40?'var(--am)':'var(--rd)';}
+function toggleCaptainPicker(){_capPickerOpen=!_capPickerOpen;renderCaptainPanel();}
+function renderCaptainPanel(){
+  if(!G)return;
+  const el=document.getElementById('sq-captain-panel');
+  if(!el)return;
+  const cap=G.captainId?myPl().find(p=>p.id===G.captainId):null;
+  const cands=myPl().filter(p=>p.starter&&!p.injured).slice().sort((a,b)=>(b.men||0)-(a.men||0));
+  let h='<div style="margin:0 12px 8px;border:1px solid var(--am);background:#1a1400">'+
+    '<div style="padding:5px 10px;border-bottom:1px solid var(--am);background:rgba(255,193,7,0.08);font-size:var(--fs-dense);letter-spacing:1px;color:var(--am);font-weight:700">🎖 '+t('tac_captain_panel_title')+'</div>'+
+    '<div style="padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">';
+  if(cap){
+    h+='<div style="min-width:0">'+
+      '<div style="font-size:var(--fs-body);font-weight:700;color:var(--wh)">'+cap.name+'</div>'+
+      '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:2px">'+(POS_SHORT[cap.pos]||cap.pos)+' • OVR '+ovr(cap)+' • <span style="color:'+menCol(cap.men||0)+'">🧠 '+t('attr_men')+' '+(cap.men||0)+'</span></div>'+
+    '</div>';
+  }else{
+    h+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('tac_captain_none')+'</div>';
+  }
+  h+='<button onclick="toggleCaptainPicker()" style="font-size:var(--fs-dense);font-weight:700;color:var(--am);background:transparent;border:1px solid var(--am);padding:5px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0">'+t('tac_captain_change_btn')+(_capPickerOpen?' ▴':' ▾')+'</button>'+
+  '</div>';
+  if(_capPickerOpen){
+    h+='<div style="border-top:1px solid var(--am)">';
+    if(!cands.length){
+      h+='<div style="padding:8px 10px;font-size:var(--fs-dense);color:var(--gr)">'+t('tac_captain_none')+'</div>';
+    }else{
+      h+=cands.map(p=>{
+        const on=p.id===G.captainId;
+        return '<div onclick="setCaptain('+p.id+');_capPickerOpen=false;fillTacSquad();" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;cursor:pointer;border-bottom:1px solid #0d1f0d;'+(on?'background:rgba(255,193,7,0.10)':'')+'">'+
+          '<span style="font-size:var(--fs-dense);color:'+(on?'var(--am)':'var(--wh)')+'">'+(on?'🎖 ':'')+p.name+'</span>'+
+          '<span style="font-size:var(--fs-dense);color:var(--gr);white-space:nowrap">'+(POS_SHORT[p.pos]||p.pos)+' • OVR '+ovr(p)+' • <span style="color:'+menCol(p.men||0)+'">🧠 '+(p.men||0)+'</span></span>'+
+        '</div>';
+      }).join('');
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
 function fillTacSquad(){
   if(!G)return;
   ensureCaptainValid();
+  renderCaptainPanel();
   const all=myPl();
   const st=all.filter(p=>p.starter).length;
   const lim=formationLimits();
@@ -129,7 +175,7 @@ function fillTacSquad(){
           '<span style="color:'+iconCol+';margin-right:4px;font-size:var(--fs-dense)">'+icon+'</span>'+
           '<span style="color:'+(isSt?'var(--wh)':'var(--gr)')+'">'+p.name+'</span>'+
           (isSt?'<span style="color:var(--am);font-size:var(--fs-dense);margin-left:4px">✔</span>':'')+
-          (isSt?'<span onclick="event.stopPropagation();setCaptain('+p.id+');fillTacSquad()" title="'+t('tac_captain_tooltip')+'" style="cursor:pointer;margin-left:6px;font-size:var(--fs-dense);color:'+(p.id===G.captainId?'var(--am)':'var(--gr)')+'">🎖</span>':'')+
+          (p.id===G.captainId?'<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--am);color:#1a1400;font-size:8px;font-weight:800;margin-left:5px;vertical-align:middle">C</span>':'')+
         '</td>'+
         '<td style="text-align:right;color:'+ovrCol+'">'+o+'</td>'+
         '<td style="text-align:right;color:'+fmCol+'">'+fm+'%</td>'+
@@ -359,7 +405,7 @@ function showPlayer(p){
   const _potLbl=document.getElementById('plr-pot-label');if(_potLbl)_potLbl.textContent=t('plr_pot_title');
   const _formLbl=document.getElementById('plr-form-label');if(_formLbl)_formLbl.textContent=t('plr_form_title');
   const _charLbl=document.getElementById('plr-charakter-label');if(_charLbl)_charLbl.textContent=t('plr_charakter_label');
-  const _histSznLbl=document.getElementById('plr-hist-season-lbl');if(_histSznLbl)_histSznLbl.textContent=t('plr_hist_season_label');
+  const _histSznLbl=document.getElementById('plr-hist-season-lbl');if(_histSznLbl)_histSznLbl.textContent=p.status==='retired'?t('plr_hist_last_season_label'):t('plr_hist_season_label');
   const _histSeasonLbl=document.getElementById('plr-hist-seasons-lbl');if(_histSeasonLbl)_histSeasonLbl.textContent=t('plr_hist_seasons_label');
   const posLine=document.getElementById('plr-pos-line');
   if(posLine)posLine.textContent=p.retiring?t('plr_retiring_soon'):'';
@@ -488,10 +534,18 @@ function renderPlayerHistory(p){
   const _isMyPlayer=p.clubId===G.myClubId||(G.myClub&&p.clubId===G.myClub.id);
   const _cur=document.getElementById('plr-cur-stats');
   if(_cur){
-    const _cst={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,...(p.st||{})};
-    const _cup=p.cupSt||{m:0,g:0,a:0,cs:0,ga:0,yk:0,rk:0,ratings:[]};
-    const _seasonRatings=p.seasonRatings||[];
-    const _avgRat=_seasonRatings.length?Math.round(_seasonRatings.reduce((s,r)=>s+r,0)/_seasonRatings.length*10)/10:null;
+    // Emeryt nie ma "bieżącego sezonu" — p.st/p.cupSt/p.seasonRatings są dla niego trwale
+    // wyzerowane przez coroczny reset w season-summary.js (dzieje się PRZED przeniesieniem
+    // zawodnika do G.retiredPlayers, patrz season-summary.js:501-505 vs 559-573). Realne dane
+    // ostatniego sezonu przeżyły w p.history (zapisane wcześniej, przy końcu sezonu) — dla
+    // emeryta budujemy więc ten panel z ostatniego wpisu historii zamiast z p.st.
+    const _lastHist=(p.status==='retired'&&hist.length)?hist[hist.length-1]:null;
+    const _cst=_lastHist
+      ?{m:_lastHist.m||0,g:_lastHist.g||0,a:_lastHist.a||0,yk:_lastHist.yk||0,rk:_lastHist.rk||0,cs:_lastHist.cs||0,ga:_lastHist.ga||0}
+      :{m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,...(p.st||{})};
+    const _cup=_lastHist?(_lastHist.cupSt||{m:0,g:0,a:0,cs:0,ga:0,yk:0,rk:0,ratings:[]}):(p.cupSt||{m:0,g:0,a:0,cs:0,ga:0,yk:0,rk:0,ratings:[]});
+    const _seasonRatings=_lastHist?[]:(p.seasonRatings||[]);
+    const _avgRat=_lastHist&&_lastHist.avgRat!=null?_lastHist.avgRat:(_seasonRatings.length?Math.round(_seasonRatings.reduce((s,r)=>s+r,0)/_seasonRatings.length*10)/10:null);
     const _last5=_seasonRatings.slice(-5);
     const _ratCol=r=>r>=8?'var(--am)':r>=7?'var(--gb)':r>=6?'var(--wh)':'var(--rd)';
     const _last5str=_last5.length?_last5.map(r=>'<span style="color:'+_ratCol(r)+'">'+r.toFixed(1)+'</span>').join('<span style="color:var(--gr)">-</span>'):'<span style="color:var(--gr)">—</span>';

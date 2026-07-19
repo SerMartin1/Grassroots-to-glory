@@ -102,8 +102,8 @@ function buildKronSportingEvents(){
         effect:function(){G.reputation=(G.reputation||30)+6;addNews(t('kron_sp11_c1_news'),'ok');},
         outcome:function(){return t('kron_sp11_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp11_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp11_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_sp11_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp11_c3_label'),
         effect:function(){
           if(G.budget<4000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._sp11result='noBudget';return;}
@@ -130,8 +130,8 @@ function buildKronSportingEvents(){
         effect:function(){G.reputation=(G.reputation||30)+6;addNews(t('kron_sp12_c1_news'),'ok');},
         outcome:function(){return t('kron_sp12_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp12_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp12_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_sp12_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp12_c3_label'),
         effect:function(){
           if(G.budget<4000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._sp12result='noBudget';return;}
@@ -146,7 +146,7 @@ function buildKronSportingEvents(){
      ]},
 
     // SP-13: Presja mediów podczas serii zwycięstw
-    {id:'sp13_win_streak_pressure', category:t('kron_cat_sporting'),
+    {id:'sp13_win_streak_pressure', category:t('kron_cat_sporting'), repeatable:true, // v234: reaguje na bieżącą serię, może wrócić przy kolejnej
      weight:function(){return (G.winStreak||0)>=5?22:0;},
      title:t('kron_sp13_title'),
      body:function(){return t('kron_sp13_body').replace('{n}',G.winStreak);},
@@ -155,7 +155,7 @@ function buildKronSportingEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});},
         outcome:function(){return t('kron_sp13_c1_outcome');}},
        {label:t('kron_sp13_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_sp13_c2_outcome');}},
        {label:t('kron_sp13_c3_label'),
         effect:function(){
@@ -169,7 +169,7 @@ function buildKronSportingEvents(){
      ]},
 
     // SP-14: Medialna panika podczas serii porażek
-    {id:'sp14_lose_streak_media_panic', category:t('kron_cat_sporting'),
+    {id:'sp14_lose_streak_media_panic', category:t('kron_cat_sporting'), repeatable:true, // v234: reaguje na bieżącą serię, może wrócić przy kolejnej
      weight:function(){return (G.loseStreak||0)>=4?24:0;},
      title:t('kron_sp14_title'),
      body:function(){return t('kron_sp14_body').replace('{n}',G.loseStreak);},
@@ -210,7 +210,7 @@ function buildKronSportingEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+4);});},
         outcome:function(){return t('kron_sp15_c1_outcome');}},
        {label:t('kron_sp15_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_sp15_c2_outcome');}},
        {label:t('kron_sp15_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+5;addNews(t('kron_sp15_c3_news').replace('{rival}',G.rival.n),'club');},
@@ -259,7 +259,7 @@ function buildKronSportingEvents(){
      ]},
 
     // SP-17: Cecha zawodnika w centrum uwagi podczas serii zwycięstw
-    {id:'sp17_trait_spotlight', category:t('kron_cat_sporting'),
+    {id:'sp17_trait_spotlight', category:t('kron_cat_sporting'), repeatable:true, // v234: reaguje na bieżącą serię, może wrócić przy kolejnej
      weight:function(){return ((G.winStreak||0)>=3&&spTraitStarter('pewny_siebie'))?20:0;},
      title:t('kron_sp17_title'),
      body:function(){
@@ -275,7 +275,10 @@ function buildKronSportingEvents(){
         },
         outcome:function(){return t('kron_sp17_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp17_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=spTraitStarter('pewny_siebie');
+          if(p)p.form=Math.min(100,(p.form||80)+2);
+        },
         outcome:function(){return t('kron_sp17_c2_outcome');}},
        {label:t('kron_sp17_c3_label'),
         effect:function(){
@@ -293,7 +296,7 @@ function buildKronSportingEvents(){
      ]},
 
     // SP-18: Przesąd o ustawieniu podczas serii zwycięstw
-    {id:'sp18_formation_superstition', category:t('kron_cat_sporting'),
+    {id:'sp18_formation_superstition', category:t('kron_cat_sporting'), repeatable:true, // v234: reaguje na bieżącą serię, może wrócić przy kolejnej
      weight:function(){return (G.winStreak||0)>=3?18:0;},
      title:t('kron_sp18_title'),
      body:function(){return t('kron_sp18_body').replace('{formation}',G.formation||'4-4-2');},
@@ -331,7 +334,10 @@ function buildKronSportingEvents(){
           return t('kron_sp19_c1_outcome');
         }},
        {label:t('kron_sp19_c2_label'),
-        effect:function(){},
+        effect:function(){
+          var p=G.players.find(function(x){return x.id===G.kronika.flags._sp19pid;});
+          if(p)p.form=Math.min(100,(p.form||80)+2);
+        },
         outcome:function(){return t('kron_sp19_c2_outcome');}},
        {label:t('kron_sp19_c3_label'),
         effect:function(){
@@ -366,7 +372,7 @@ function buildKronSportingEvents(){
           return t('kron_sp20_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_sp20_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_sp20_c2_outcome');}},
        {label:t('kron_sp20_c3_label'),
         effect:function(){
@@ -393,7 +399,7 @@ function buildKronSportingEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});},
         outcome:function(){return t('kron_sp21_c1_outcome');}},
        {label:t('kron_sp21_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+1);});},
         outcome:function(){return t('kron_sp21_c2_outcome');}},
        {label:t('kron_sp21_c3_label'),
         effect:function(){
@@ -434,7 +440,7 @@ function buildKronSportingEvents(){
           return t('kron_sp22_c1_outcome');
         }},
        {label:t('kron_sp22_c2_label'),
-        effect:function(){},
+        effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+2);});},
         outcome:function(){return t('kron_sp22_c2_outcome');}},
        {label:t('kron_sp22_c3_label'),
         effect:function(){
@@ -455,8 +461,8 @@ function buildKronSportingEvents(){
         effect:function(){G.reputation=(G.reputation||30)+4;addNews(t('kron_sp23_c1_news'),'ok');},
         outcome:function(){return t('kron_sp23_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp23_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp23_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_sp23_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp23_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._sp23result='win';}
@@ -478,8 +484,8 @@ function buildKronSportingEvents(){
         effect:function(){G.reputation=(G.reputation||30)+3;},
         outcome:function(){return t('kron_sp24_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp24_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_sp24_c2_outcome');}},
+        effect:function(){G.reputation=Math.max(0,(G.reputation||30)-1);},
+        outcome:function(){return t('kron_sp24_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_sp24_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._sp24result='win';}

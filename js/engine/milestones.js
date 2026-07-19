@@ -57,15 +57,19 @@ function checkUpcomingEvents(){
   });
 
   // ── B) Zbliżanie się do klubowych rekordów (przeliczane co tydzień) ──
-  _ueCheckRecordProximity(seen,'goals',function(name,gap,rec){
-    addNews(t('news_ue_record_goals').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
-  });
-  _ueCheckRecordProximity(seen,'assists',function(name,gap,rec){
-    addNews(t('news_ue_record_assists').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
-  });
-  _ueCheckRecordProximity(seen,'matches',function(name,gap,rec){
-    addNews(t('news_ue_record_matches').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
-  });
+  // Dopiero od 2. sezonu: w sezonie 1 rekord (max z G.allTimeStats.players) jest
+  // z natury śladowy (np. 2 gole), więc "zbliża się do rekordu" byłoby absurdalne.
+  if(G.season>=2){
+    _ueCheckRecordProximity(seen,'goals',function(name,gap,rec){
+      addNews(t('news_ue_record_goals').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
+    });
+    _ueCheckRecordProximity(seen,'assists',function(name,gap,rec){
+      addNews(t('news_ue_record_assists').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
+    });
+    _ueCheckRecordProximity(seen,'matches',function(name,gap,rec){
+      addNews(t('news_ue_record_matches').replace('{name}',name).replace('{n}',gap).replace('{rec}',rec),'academy');
+    });
+  }
 
   // ── C) Rozbudowa stadionu — konkretny, tygodniowy odliczany próg ──
   if(G.stadium&&G.stadium.building){

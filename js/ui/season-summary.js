@@ -41,6 +41,108 @@ function calcSeasonValuations(){
   });
 }
 
+// ── Kronika Klubu: Rozdział sezonu + List do kibiców ────────────────────────
+// buildSeasonFacts() zbiera fakty bieżącego sezonu z danych już liczonych w
+// showSeasonSummary() (pos/sorted/myS/lastGoals/topScorer) + G.mHist/G.allTimeStats —
+// zero nowych trwałych pól w G. Zwraca tablicę posortowaną malejąco wg weight;
+// facts[0] to pojedynczy fakt na pasmo rozdziału (zawsze dokładnie jeden, nawet
+// przy niskiej wadze — decyzja: cichy sezon nie skleja dwóch faktów w jedno zdanie).
+// Priorytet (ustalony z graczem): mistrzostwo > awans > spadek > utrzymanie
+// (zdecydowane wynikiem ostatniej kolejki) > rekord klubowy > kryzys celu zarządu >
+// transfer rekordowy > cel zarządu spełniony > top strzelec > neutralny fallback
+// (zawsze obecny — gwarantuje, że facts nigdy nie jest puste).
+const MSS_CH_ICON={champion:'🏆',promotion:'📈',relegation:'⬇️',survival:'⚠️',record:'🎯',
+  crisis:'📰',transfer:'💸',board_met:'✅',top_scorer:'⚽',neutral:'📊'};
+function _mssRoman(n){
+  const map=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let out='',v=n||0;
+  map.forEach(([val,sym])=>{while(v>=val){out+=sym;v-=val;}});
+  return out||String(n);
+}
+function _mssFill(str,vars){
+  Object.keys(vars||{}).forEach(k=>{str=str.split('{'+k+'}').join(vars[k]);});
+  return str;
+}
+// Ostatni mecz LIGOWY tego sezonu z G.mHist (mecze pucharowe mają _isCup:true —
+// patrz engine/match-engine.js — i celowo są tu pomijane, liczy się tylko liga).
+function _mssLastLeagueMatch(){
+  const list=(G.mHist||[]).filter(m=>m.season===G.season&&!m._isCup);
+  if(!list.length)return null;
+  return list.reduce((a,b)=>(b.rnd>a.rnd?b:a));
+}
+// Seria meczów ligowych bez porażki, licząc od końca sezonu wstecz.
+function _mssTrailingUnbeatenStreak(){
+  const list=(G.mHist||[]).filter(m=>m.season===G.season&&!m._isCup).sort((a,b)=>a.rnd-b.rnd);
+  let streak=0;
+  for(let i=list.length-1;i>=0;i--){
+    const m=list[i];
+    const myG=m.isMyH?m.hg:m.ag,oppG=m.isMyH?m.ag:m.hg;
+    if(myG>=oppG)streak++;else break;
+  }
+  return streak;
+}
+function buildSeasonFacts(pos,totalClubs,sorted,myS,lastGoals,topScorer){
+  const facts=[];
+  const leagueLevel=G.myLeague||8;
+  const streak=_mssTrailingUnbeatenStreak();
+  // ── status sportowy: dokładnie jeden z czterech, wzajemnie wykluczające się ──
+  if(pos===1){
+    facts.push({catKey:'champion',weight:100,category:'sporting',vars:{league:LEAGUE_NAMES[leagueLevel]||'',n:String(streak)}});
+  } else if(pos===2&&leagueLevel>1){
+    facts.push({catKey:'promotion',weight:90,category:'sporting',vars:{league:LEAGUE_NAMES[leagueLevel-1]||'',n:String(streak)}});
+  } else if(pos>=totalClubs-1&&leagueLevel<8){
+    facts.push({catKey:'relegation',weight:85,category:'sporting',vars:{league:LEAGUE_NAMES[leagueLevel+1]||'',pos:String(pos)}});
+  } else if(leagueLevel<8){
+    // Próg „utrzymania" (zdecydowane z graczem): zdejmij z tabeli wynik ostatniej
+    // kolejki — jeśli bez niego klub spadał, a z nim jest bezpieczny, ogłoś survival.
+    const last=_mssLastLeagueMatch();
+    if(last){
+      const myG=last.isMyH?last.hg:last.ag,oppG=last.isMyH?last.ag:last.hg;
+      const ptsDelta=myG>oppG?3:myG===oppG?1:0;
+      const without={pts:myS.pts-ptsDelta,gf:myS.gf-myG,ga:myS.ga-oppG};
+      const hypo=sorted.map(s=>s.cid===G.myClubId?Object.assign({},s,without):s)
+        .sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
+      const hypoPos=hypo.findIndex(s=>s.cid===G.myClubId)+1;
+      if(hypoPos>=totalClubs-1){
+        facts.push({catKey:'survival',weight:80,category:'sporting',vars:{league:LEAGUE_NAMES[leagueLevel]||'',pos:String(pos)}});
+      }
+    }
+  }
+  // ── rekord klubowy pobity w tym sezonie (nowy rekordzista — nie tylko "blisko",
+  // patrz engine/milestones.js dla mechanizmu "zbliża się") ──
+  const at=(G.allTimeStats&&G.allTimeStats.players)||{};
+  const atEntries=Object.values(at);
+  if(atEntries.length){
+    [['goals','g','mss_stat_goals'],['assists','a','mss_stat_assists'],['matches','m','mss_stat_matches']].forEach(([statKey,stKey,labelKey])=>{
+      const priorMax=Math.max(0,...atEntries.map(s=>{
+        const p=G.players.find(pp=>pp.id===s.id)||(G.retiredPlayers||[]).find(pp=>pp.id===s.id);
+        const seasonContrib=(p&&p.st&&p.st[stKey])||0;
+        return (s[statKey]||0)-seasonContrib;
+      }));
+      const currentMax=Math.max(0,...atEntries.map(s=>s[statKey]||0));
+      if(currentMax>priorMax){
+        const holder=atEntries.find(s=>(s[statKey]||0)===currentMax);
+        if(holder)facts.push({catKey:'record',weight:70,category:'sporting',vars:{name:holder.name||'',n:String(currentMax),rec:t(labelKey)}});
+      }
+    });
+  }
+  // ── cel zarządu: kryzys / spełniony ──
+  if(lastGoals){
+    if(lastGoals.mainDone===false)facts.push({catKey:'crisis',weight:65,category:'club',vars:{pos:String(pos)}});
+    else if(lastGoals.mainDone===true)facts.push({catKey:'board_met',weight:45,category:'club',vars:{pos:String(pos)}});
+  }
+  // ── transfer rekordowy tego sezonu (G.allTimeStats.bestBuyer — ustawiane tylko
+  // przy realnym pobiciu rekordu, patrz systems/transfers.js) ──
+  const bb=G.allTimeStats&&G.allTimeStats.bestBuyer;
+  if(bb&&bb.season===G.season)facts.push({catKey:'transfer',weight:55,category:'club',vars:{name:bb.name||'',val:fmtVal(bb.val)}});
+  // ── top strzelec sezonu ──
+  if(topScorer&&topScorer.st&&(topScorer.st.g||0)>0)facts.push({catKey:'top_scorer',weight:35,category:'sporting',vars:{name:topScorer.name||'',n:String(topScorer.st.g)}});
+  // ── fallback neutralny — zawsze obecny, gwarantuje niepuste facts ──
+  facts.push({catKey:'neutral',weight:20,category:'sporting',vars:{pos:String(pos),league:LEAGUE_NAMES[leagueLevel]||''}});
+  facts.sort((a,b)=>b.weight-a.weight);
+  return facts;
+}
+
 function showSeasonSummary(){
   if(!G)return;
   const modal=document.getElementById('modal-season-summary');
@@ -51,6 +153,10 @@ function showSeasonSummary(){
   const badge=document.getElementById('mss-league-badge');
   if(lbl)lbl.textContent=t('mss_season_label').replace('{n}',G.season||1);
   if(badge)badge.textContent=(G.leagues&&G.leagues.find(l=>l.level===G.myLeague)&&G.leagues.find(l=>l.level===G.myLeague).name)||(LEAGUE_NAMES[G.myLeague||8]||'');
+
+  // Kronika Klubu — pasmo rozdziału (numer, patrz niżej dla treści zdania)
+  const chNum=document.getElementById('mss-chapter-num');
+  if(chNum)chNum.textContent=t('mss_chapter_label').replace('{n}',_mssRoman(G.season||1));
 
   // Zbierz dane
   const sorted=[...G.standing].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
@@ -77,6 +183,19 @@ function showSeasonSummary(){
     const br=b.seasonRatings.reduce((s,r)=>s+r,0)/b.seasonRatings.length;
     return br-ar;
   })[0];
+
+  // Kronika Klubu — fakty sezonu, rozdział + list do kibiców
+  const _mssFacts=buildSeasonFacts(pos,totalClubs,sorted,myS,lastGoals,topScorer);
+  const _mssTopFact=_mssFacts[0];
+  const chTitleEl=document.getElementById('mss-chapter-title');
+  if(chTitleEl){
+    const _chSentence=_mssFill(t('mss_ch_'+_mssTopFact.catKey+r(1,10)),_mssTopFact.vars);
+    chTitleEl.innerHTML='<span style="margin-right:5px">'+(MSS_CH_ICON[_mssTopFact.catKey]||'')+'</span>'+_chSentence;
+  }
+  const _mssSportFact=_mssFacts.find(f=>f.category==='sporting');
+  const _mssClubFact=_mssFacts.find(f=>f.category==='club');
+  const _mssSportLine=_mssSportFact?_mssFill(t('mss_letter_'+_mssSportFact.catKey+r(1,3)),_mssSportFact.vars):'';
+  const _mssClubLine=_mssClubFact?_mssFill(t('mss_letter_'+_mssClubFact.catKey+r(1,3)),_mssClubFact.vars):t('mss_letter_club_fallback'+r(1,3));
 
   // Finanse bieżącego sezonu
   const budgetStart=G._budgetSeasonStart!=null?G._budgetSeasonStart:null;
@@ -135,6 +254,11 @@ function showSeasonSummary(){
       <span style="font-size:var(--fs-dense);color:var(--gb)">${topRating.name} <span style='font-size:var(--fs-dense)'>↗</span></span>
       <span style="font-size:var(--fs-dense);color:var(--gb)">${(topRating.seasonRatings.reduce((s,r)=>s+r,0)/topRating.seasonRatings.length).toFixed(1)} avg</span>
     </div>`:''}
+    <div style="border-left:3px solid var(--am);background:rgba(255,193,7,0.06);padding:10px 12px;margin-top:6px">
+      <div style="font-size:var(--fs-micro);letter-spacing:1px;color:var(--am);text-transform:uppercase;margin-bottom:6px">${t('mss_letter_title')}</div>
+      <div style="font-size:var(--fs-dense);color:var(--wh)">${_mssSportLine}</div>
+      <div style="font-size:var(--fs-dense);color:var(--wh);margin-top:6px">${_mssClubLine}</div>
+    </div>
   `;
 
   // ── TAB: CELE ──────────────────────────────────────────────
@@ -406,8 +530,12 @@ function startNewSeason(){
     }
   }
   G._letnieClosed=false;G._deadlineDone=false;G._zimoweClosed=false;G._deadlineZimDone=false;
-  // Kronika Klubu — reset na nowy sezon
-  if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],flags:{}};
+  // Kronika Klubu — reset na nowy sezon. lastUsedSeason NIE jest tu czyszczone — to mapa
+  // id->sezon ostatniego użycia, na podstawie której kronTrigger() liczy 30-sezonowy cooldown
+  // odnowienia (v235), w odróżnieniu od usedThisSeason/cooldown/flags, które dotyczą wyłącznie
+  // bieżącego sezonu.
+  if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],lastUsedSeason:{},flags:{}};
+  if(!G.kronika.lastUsedSeason)G.kronika.lastUsedSeason={};
   G.kronika.usedThisSeason=[];G.kronika.cooldown=0;G.kronika.flags={};
   // rumourPool NIE resetujemy — zawodnicy czekają na okno letnie nowego sezonuG.trainFocusLock=0;G.completedFocuses=0;G.contractWarned={};G.noFocusWeeks=0;G.transferMarket=[];G.listedPlayers=[];G.pendingOffers=[];G.trBoughtThisWindow=0;G.trSoldThisWindow=0;G._sellOffers={};
   if(!G.reputation)G.reputation=10;
@@ -712,6 +840,7 @@ function startNewSeason(){
     }
   }
   genBoardGoals();
+  checkBoardMemory();
   if(!G.news)G.news=[];
   G.news.unshift({msg:t('startnews_summer_window'),type:'budget',week:1,season:G.season,expires:3,action:'transfers',actionLabel:t('tile_transfers')});
   G.news.unshift({msg:t('startnews_sponsor'),type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:t('fin_tab_contracts')});

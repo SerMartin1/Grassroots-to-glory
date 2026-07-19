@@ -82,8 +82,8 @@ function buildKronCupEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});},
         outcome:function(){return t('kron_cp02_c1_outcome');}},
        {label:t('kron_cp02_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_cp02_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_cp02_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_cp02_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=(G.reputation||30)+4;G.kronika.flags._cp02result='win';}

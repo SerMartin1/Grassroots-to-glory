@@ -443,6 +443,14 @@ function devSimMyMatch(m,isCup){
     if(!G.allTimeStats.players[p.id])G.allTimeStats.players[p.id]={id:p.id,name:p.name,goals:0,assists:0,matches:0};
     if(!isCup){G.allTimeStats.players[p.id].matches++;G.allTimeStats.players[p.id].name=p.name;}
     if(!isCup){p.st.m++;if(!p.trainMatches)p.trainMatches=0;p.trainMatches++;}
+    // v233: brakujące st.cs/st.ga dla ligi — ten sam błąd co w match-engine.js::next(), tu
+    // osobno bo devSimMyMatch() ma własną, równoległą kopię tej logiki (patrz komentarz niżej
+    // przy cupSt.cs). Bez tego czyste konta z sezonów rozegranych w trybie dev nigdy nie liczyły
+    // się mojemu bramkarzowi.
+    if(!isCup&&p.pos==='GK'){
+      if(!p.st.ga)p.st.ga=0;if(!p.st.cs)p.st.cs=0;
+      p.st.ga+=oppG3;if(oppG3===0)p.st.cs++;
+    }
     if(isCup){
       if(!p.cupSt)p.cupSt={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ratings:[]};
       p.cupSt.m++;

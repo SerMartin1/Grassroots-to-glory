@@ -112,8 +112,8 @@ function buildKronHistoryEvents(){
           return t('kron_hs02_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_hs02_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hs02_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_hs02_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs02_c3_label'),
         effect:function(){
           if(G.budget<10000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._hs02result='noBudget2';return;}
@@ -291,8 +291,8 @@ function buildKronHistoryEvents(){
         effect:function(){G.reputation=(G.reputation||30)+8;addNews(t('kron_hs07_c1_news'),'ok');},
         outcome:function(){return t('kron_hs07_c1_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs07_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hs07_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_hs07_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs07_c3_label'),
         effect:function(){
           if(Math.random()<0.45){
@@ -455,8 +455,8 @@ function buildKronHistoryEvents(){
         effect:function(){myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+3);});addNews(t('kron_hs12_c1_news'),'club');},
         outcome:function(){return t('kron_hs12_c1_outcome');}},
        {label:t('kron_hs12_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hs12_c2_outcome');}},
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_hs12_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs12_c3_label'),
         effect:function(){G.reputation=(G.reputation||30)+4;addNews(t('kron_hs12_c3_news'),'ok');},
         outcome:function(){return t('kron_hs12_c3_outcome').replace('{rep}',G.reputation||0);}},
@@ -480,8 +480,8 @@ function buildKronHistoryEvents(){
           return t('kron_hs13_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_hs13_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hs13_c2_outcome');}},
+        effect:function(){G.reputation=Math.max(0,(G.reputation||30)-2);},
+        outcome:function(){return t('kron_hs13_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs13_c3_label'),
         effect:function(){
           if(Math.random()<0.5){G.reputation=Math.max(0,(G.reputation||30)-5);addNews(t('kron_hs13_c3_news_lose'),'err');G.kronika.flags._hs13result='lose';}
@@ -511,8 +511,8 @@ function buildKronHistoryEvents(){
           return t('kron_hs14_c1_outcome').replace('{rep}',G.reputation||0);
         }},
        {label:t('kron_hs14_c2_label'),
-        effect:function(){},
-        outcome:function(){return t('kron_hs14_c2_outcome');}},
+        effect:function(){G.reputation=Math.max(0,(G.reputation||30)-1);},
+        outcome:function(){return t('kron_hs14_c2_outcome').replace('{rep}',G.reputation||0);}},
        {label:t('kron_hs14_c3_label'),
         effect:function(){
           myPl().forEach(function(p){p.form=Math.min(100,(p.form||80)+5);});

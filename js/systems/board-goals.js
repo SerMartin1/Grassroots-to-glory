@@ -576,8 +576,70 @@ function checkBoardGoals(){
     streakAfter:b.streakFailed,
     optGoal:b.optGoal?b.optGoal.label:null,
     optDone:b.optGoal?optDone:null,
+    // v233: waga celu w chwili ustawienia — potrzebna checkBoardMemory() niżej, żeby ocenić czy
+    // stary cel był wystarczająco stawkowy do przywołania. Wpisy sprzed tej zmiany nie mają tego
+    // pola (undefined) i po prostu nigdy się nie zakwalifikują — brak zmyślania wartości wstecz.
+    stars:b.mainGoal.stars||3,
   });
   b.mainGoal=null;b.optGoal=null;
+}
+
+// ── PAMIĘĆ ZARZĄDU — eskalacja narracyjna ────────────────────────────────────
+// Zarząd może przywołać starszy cel (spełniony lub nie) z G.board.goalsHistory, jeśli jest
+// tematycznie powiązany z pulą aktualnie oferowaną w tym sezonie (G.board.mainOptions, już
+// zbudowane przez poprzedzające wywołanie genBoardGoals()). Woła się WYŁĄCZNIE przy realnej
+// zmianie sezonu (season-summary.js::startNewSeason(), zaraz po genBoardGoals()) — NIE przy
+// regeneracji obiektów celu po wczytaniu zapisu (news-bootstrap.js::loadGame()), bo to
+// wywoływałoby fałszywe przypomnienie przy każdym wczytaniu tego samego zapisu.
+const BOARD_MEMORY_MIN_STARS=3;
+const BOARD_GOAL_FAMILIES={
+  promotion:['promotion','promotion_direct','return'],
+  title:['top1','defend','dominate','double','first_title'],
+  top:['top3','top5','top2'],
+  cup:['cup_win','cup_final','back2back_cup'],
+  survival:['stay','mid','no_relegation'],
+};
+function _boardGoalFamily(id){
+  for(const k in BOARD_GOAL_FAMILIES)if(BOARD_GOAL_FAMILIES[k].includes(id))return k;
+  return null;
+}
+// Polska odmiana "sezony"/"sezonów" — w tym miejscu n jest zawsze >=2 (patrz hist.slice(0,-1)
+// niżej), więc forma "1 sezon" nigdy nie jest potrzebna.
+function _boardMemorySeasonWord(n){
+  const mod10=n%10,mod100=n%100;
+  const few=mod10>=2&&mod10<=4&&!(mod100>=12&&mod100<=14);
+  return t(few?'board_memory_season_word_a':'board_memory_season_word_b');
+}
+function checkBoardMemory(){
+  if(!G||!G.board)return;
+  const hist=G.board.goalsHistory||[];
+  if(hist.length<2)return; // potrzeba co najmniej jednego wpisu STARSZEGO niż dopiero zakończony sezon
+  const currentFamilies=new Set((G.board.mainOptions||[]).map(g=>_boardGoalFamily(g.id)).filter(Boolean));
+  if(!currentFamilies.size)return;
+
+  const older=hist.slice(0,-1); // pomiń ostatni wpis — to dopiero co zakończony sezon, nie "wspomnienie"
+  function repeatFailCount(id){return older.filter(x=>x.mainGoalId===id&&x.mainDone===false).length;}
+  const candidates=older.filter(h=>
+    !h._referenced&&
+    (h.stars||0)>=BOARD_MEMORY_MIN_STARS&&
+    currentFamilies.has(_boardGoalFamily(h.mainGoalId))
+  );
+  if(!candidates.length)return;
+
+  candidates.sort((a,b)=>
+    (a.mainDone===false?0:1)-(b.mainDone===false?0:1)|| // porażki przed sukcesami
+    repeatFailCount(b.mainGoalId)-repeatFailCount(a.mainGoalId)|| // powtarzające się porażki wyżej
+    b.season-a.season // nowsze wspomnienie wyżej
+  );
+  const picked=candidates[0];
+  const seasonsAgo=G.season-picked.season;
+  const goalLabel=t('board_'+picked.mainGoalId+'_label');
+  const word=_boardMemorySeasonWord(seasonsAgo);
+  const isRepeatFail=picked.mainDone===false&&repeatFailCount(picked.mainGoalId)>=2;
+  const msgKey=isRepeatFail?'board_memory_failed_repeat':picked.mainDone===false?'board_memory_failed':'board_memory_fulfilled';
+  const msg=t(msgKey).replace('{n}',seasonsAgo).replace('{word}',word).replace('{goal}',goalLabel);
+  picked._referenced=true; // nie przywołuj tego samego wspomnienia drugi raz
+  addNews(msg,'club');
 }
 
 function boardTab(tab,btn){

@@ -506,7 +506,7 @@ function initGame(mgrName,clubId,startLeague,preLeagues){
     allTimeStats:{players:{},bestSeller:null,bestBuyer:null},
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0,gasBonus:0,modules:{},hist:[]},
     stadium:{capacity:200,shopMult:1,adsMult:1,vipWeekly:0},
-    kronika:{cooldown:0,usedThisSeason:[],flags:{}},
+    kronika:{cooldown:0,usedThisSeason:[],lastUsedSeason:{},flags:{}},
     timeline:[],fanMemory:{cooldown:0,recalled:[]},
     worldNews:[],_worldNewsNextId:0,repHistory:[],flags:{}};
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
@@ -901,7 +901,8 @@ function loadGame(slot){try{
   if(!G.trainingCenter)G.trainingCenter={level:0,building:null,profiles:[],profilesLocked:false};
   if(!G.scout)G.scout={level:'free',modeA:[],modeB:{active:false,roundsLeft:0},observed:[],discovered:[],clubReports:[]};
   initScout();
-  if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],flags:{}}; // v207: Kronika Klubu
+  if(!G.kronika)G.kronika={cooldown:0,usedThisSeason:[],lastUsedSeason:{},flags:{}}; // v207: Kronika Klubu
+  if(!G.kronika.lastUsedSeason)G.kronika.lastUsedSeason={}; // v235: migracja zapisów sprzed cooldownu odnowienia
   if(!G.timeline)G.timeline=[]; // v266: Oś czasu klubu — milestone'y pozaligowe
   if(!G.fanMemory)G.fanMemory={cooldown:0,recalled:[]}; // v266: Pamięć kibiców
   if(!G.worldTopTransfers)G.worldTopTransfers=[]; // Rekord transferowy świata AI — cała historia kariery
