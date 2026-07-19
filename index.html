@@ -136,59 +136,62 @@
 <div id="v-setup" class="view">
   <div class="ph"><div class="ph-title" id="setup-ph-title">⚽ NOWA KARIERA</div><button class="btn-back" onclick="go('v-menu')" id="setup-ph-back">◀ WRÓĆ</button></div>
   <div class="setup-body">
-    <label class="setup-label" id="setup-mgr-label">TWOJE IMIĘ I NAZWISKO</label>
-    <input class="setup-input" id="mgr-name" type="text" value="Jan Kowalski" maxlength="24">
+   <div id="setup-step0">
+    <div style="font-weight:700;font-size:var(--fs-h3);color:var(--wh);margin-bottom:4px" id="setup-intro-title">Zanim zaczniesz...</div>
+    <div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:14px" id="setup-intro-sub">Nazwij siebie, klub i wybierz herb, pod którym zaczynasz karierę.</div>
+
+    <label class="setup-label" id="setup-mgr-label">MANAGER</label>
+    <input class="setup-input" id="mgr-name" type="text" value="Jan Kowalski" maxlength="24" oninput="_updateSetupPreview()">
     <input type="hidden" id="start-league-sel" value="8">
 
-    <!-- Karta losowanego klubu -->
-    <div id="club-card-box" style="background:var(--tb);border:1px solid var(--gl);padding:12px;margin:10px 0">
-      <div id="setup-club-hdr" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:8px">TWÓJ LOSOWY KLUB — VII LIGA</div>
+    <label class="setup-label" id="setup-club-name-label" style="margin-top:14px">NAZWA KLUBU</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span id="setup-club-crest" style="display:inline-flex;flex-shrink:0"></span>
+      <span style="font-size:var(--fs-body);color:var(--am);flex:1" id="setup-club-name">—</span>
+      <button id="btn-reroll-slim" onclick="rerollClub()" title="Losuj inny klub" style="font-size:var(--fs-body);background:var(--gm);border:1px solid var(--am);color:var(--am);padding:4px 12px;cursor:pointer">🎲</button>
+    </div>
+    <input id="setup-club-name-input" type="text" maxlength="24"
+      style="display:none;font-size:var(--fs-body);background:var(--gm);border:1px solid var(--am);color:var(--wh);padding:4px 8px;width:100%;box-sizing:border-box;margin-bottom:6px"
+      onblur="saveClubName()" onkeydown="if(event.key==='Enter')saveClubName()">
+    <div onclick="editClubName()" id="setup-change-name-lbl" style="font-size:var(--fs-dense);color:var(--gr);cursor:pointer;margin-bottom:14px">✏️ ZMIEŃ NAZWĘ</div>
 
-      <!-- Nazwa z edycją -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:var(--fs-body);color:var(--am)" id="setup-club-name">—</span>
-        <button id="setup-club-change" onclick="editClubName()" style="font-size:var(--fs-dense);background:var(--gm);border:1px solid var(--gl);color:var(--gr);padding:2px 8px;cursor:pointer">✏️ ZMIEŃ</button>
+    <label class="setup-label" id="setup-crest-label">HERB KLUBU</label>
+    <div id="setup-crest-note" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:14px">Zmienia się tylko razem z rerollem klubu.</div>
+
+    <div id="setup-preview" style="border:1px solid var(--gl);background:var(--tb);padding:9px 12px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <span id="setup-preview-crest" style="display:inline-flex;flex-shrink:0"></span>
+      <div style="font-size:var(--fs-body);color:var(--wh)">
+        <span id="setup-preview-name">—</span>
+        <span id="setup-preview-mgr" style="display:block;font-size:var(--fs-dense);color:var(--gr)">trener: —</span>
       </div>
-      <input id="setup-club-name-input" type="text" maxlength="24"
-        style="display:none;font-size:var(--fs-body);background:var(--gm);border:1px solid var(--am);color:var(--wh);padding:4px 8px;width:100%;box-sizing:border-box;margin-bottom:8px"
-        onblur="saveClubName()" onkeydown="if(event.key==='Enter')saveClubName()">
+    </div>
+   </div>
 
-      <!-- OVR bar -->
-      <div id="setup-ovr-label" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:3px">SIŁA SKŁADU</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="flex:1;height:8px;background:#0d1f0d;border:1px solid var(--gl)">
-          <div id="setup-ovr-bar" style="height:100%;background:var(--am);width:30%"></div>
+    <!-- ═══ KROK 1: TALENT / WIEK + LOSOWANIE (jeden ekran) ═══ -->
+    <div id="panel-philosophy" style="display:none">
+      <div id="setup-talent-label" style="font-size:var(--fs-dense);color:var(--gr);margin:4px 0 6px">TALENT</div>
+      <div class="club-grid">
+        <div class="club-opt sel" data-group="talent" onclick="selectTalent('star',this)"><span class="opt-radio"></span><span id="setup-talent-star-lbl">★ GWIAZDA</span><small id="setup-talent-star-desc">1 zawodnik wyraźnie ponad resztę, losowa pozycja</small></div>
+        <div class="club-opt" data-group="talent" onclick="selectTalent('foundation',this)"><span class="opt-radio"></span><span id="setup-talent-foundation-lbl">▦ FUNDAMENT</span><small id="setup-talent-foundation-desc">2 solidnych zawodników, różne pozycje</small></div>
+      </div>
+      <div id="setup-age-label" style="font-size:var(--fs-dense);color:var(--gr);margin:14px 0 6px">WIEK</div>
+      <div class="club-grid">
+        <div class="club-opt sel" data-group="age" onclick="selectAge('young',this)"><span class="opt-radio"></span><span id="setup-age-young-lbl">🌱 MŁODZIEŻOWA</span><small id="setup-age-young-desc">niżej dziś, duży zapas do potencjału</small></div>
+        <div class="club-opt" data-group="age" onclick="selectAge('veteran',this)"><span class="opt-radio"></span><span id="setup-age-veteran-lbl">🎖 DOŚWIADCZONA</span><small id="setup-age-veteran-desc">wysoko od razu, mały zapas</small></div>
+      </div>
+
+      <div id="setup-roll-hint" style="font-size:var(--fs-dense);color:var(--gr);margin:16px 0 8px">Jedno losowanie. Reszta składu może wypaść lepiej lub gorzej niż zakładano.</div>
+      <button id="btn-roll-squad" onclick="rollNaturalnySzum()" style="width:100%;font-size:var(--fs-meta);background:#1a1a00;border:1px solid var(--am);color:var(--am);padding:8px;cursor:pointer;margin-bottom:10px">🎲 LOSUJ SKŁAD (JEDNORAZOWO)</button>
+      <div id="squad-roll-chart" style="background:var(--tb);border:1px solid var(--gl);padding:8px;margin-bottom:10px;display:none">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:86px" id="squad-roll-bars"></div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr);margin-top:6px">
+          <span>najsłabszy</span><span id="squad-roll-avg">śr. —</span><span>najsilniejszy</span>
         </div>
-        <span id="setup-ovr-val" style="font-size:var(--fs-meta);color:var(--am);min-width:40px">OVR ?</span>
       </div>
-
-      <!-- Statystyki -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:var(--fs-dense);margin-bottom:10px">
-        <div><span id="setup-budget-label" style="color:var(--gr)">Budżet:</span> <span id="setup-budget" style="color:var(--wh)">—</span></div>
-        <div><span id="setup-league-label" style="color:var(--gr)">Liga:</span> <span id="setup-league-val" style="color:var(--wh)">VII Liga</span></div>
-      </div>
-
-      <!-- Przełącznik waluty wyświetlania -->
-      <div style="margin-bottom:4px">
-        <div id="setup-currency-label" style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:6px">WALUTA WYŚWIETLANIA</div>
-        <div style="display:flex;gap:6px">
-          <button id="cur-btn-usd" onclick="setCurrency('USD')"
-            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">$ USD</button>
-          <button id="cur-btn-eur" onclick="setCurrency('EUR')"
-            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:2px solid var(--am);color:var(--am)">€ EUR</button>
-          <button id="cur-btn-pln" onclick="setCurrency('PLN')"
-            style="flex:1;font-weight:700;font-size:var(--fs-micro);padding:5px 0;background:var(--tb);cursor:pointer;letter-spacing:1px;border:1px solid var(--gr);color:var(--gr)">zł PLN</button>
-        </div>
-      </div>
-
-      <!-- Prze-losuj -->
-      <button id="btn-reroll" onclick="rerollClub()" style="width:100%;font-size:var(--fs-meta);background:#1a1a00;border:1px solid var(--am);color:var(--am);padding:6px;cursor:pointer;margin-bottom:4px">
-        🎲 PRZE-LOSUJ KLUB (<span id="reroll-left">3</span> <span id="reroll-left-lbl">pozostały</span>)
-      </button>
-      <div id="setup-reroll-hint" style="font-size:var(--fs-dense);color:var(--gr);text-align:center">Możesz prze-losować max 3 razy</div>
+      <button class="btn-start" id="btn-final-start" onclick="confirmSeasonStart()" disabled style="opacity:0.4;margin-top:6px">▶ ROZPOCZNIJ SEZON</button>
     </div>
 
-    <button class="btn-start" id="setup-start-btn" onclick="startGame()">▶ PRZYJMIJ I ROZPOCZNIJ</button>
+    <button class="btn-start" id="setup-start-btn" onclick="goToPhilosophyStep()">▶ PRZYJMIJ I ROZPOCZNIJ</button>
   </div>
 </div>
 

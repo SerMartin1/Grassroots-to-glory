@@ -29,7 +29,6 @@ function doDel(s){delSave(s);goSaves();}
   });
 })();
 
-let _rerollsLeft=3;
 
 function resumeGame(){
   if(!G)return;
@@ -74,7 +73,6 @@ function goSetup(){
 }
 function _startNewGameFlow(){
   const tmpLeagues=initLeagues();window._setupLeagues=tmpLeagues;
-  _rerollsLeft=3;
   CURRENT_CURRENCY='EUR';
   _syncCurrencyButtons();
   go('v-setup');
@@ -137,6 +135,9 @@ function drawRandomClub(){
   window._customClubName=null; // reset niestandardowej nazwy przy prze-losowaniu
   const nameEl=document.getElementById('setup-club-name');
   if(nameEl)nameEl.textContent=c.n;
+  const crestEl=document.getElementById('setup-club-crest');
+  if(crestEl&&typeof pxCrest==='function'){crestEl.innerHTML='';crestEl.appendChild(pxCrest(c.id,3));}
+  _updateSetupPreview();
   const barEl=document.getElementById('setup-ovr-bar');
   if(barEl)barEl.style.width=Math.round(avgOvr/99*100)+'%';
   const valEl=document.getElementById('setup-ovr-val');
@@ -148,16 +149,10 @@ function drawRandomClub(){
   const worstEl=document.getElementById('setup-worst');
   if(worstEl)worstEl.textContent=worstName+' ('+ovr(worst)+')';
 
-  const rlEl=document.getElementById('reroll-left');
-  if(rlEl)rlEl.textContent=_rerollsLeft;
   _updateRerollBtn();
-  const btnRl=document.getElementById('btn-reroll');
-  if(btnRl)btnRl.style.opacity=_rerollsLeft>0?'1':'0.4';
 }
 
 function rerollClub(){
-  if(_rerollsLeft<=0){notif(t('notif_no_rerolls'),'err');return;}
-  _rerollsLeft--;
   drawRandomClub();
 }
 
@@ -182,11 +177,227 @@ function saveClubName(){
   }
   inp.style.display='none';
   nameEl.style.display='';
+  _updateSetupPreview();
 }
 
 function selClub(id,el){document.querySelectorAll('.club-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');selClubId=id;}
 
-function startGame(){const name=(document.getElementById('mgr-name')||{value:t('setup_mgr_default')}).value.trim()||t('setup_mgr_default');if(!selClubId){notif(t('setup_no_club_err'),'err');return;}const startLg=parseInt(document.getElementById('start-league-sel')?.value||'8');initGame(name,selClubId,startLg,window._setupLeagues);if(window._customClubName&&G&&G.myClub){G.myClub.n=window._customClubName;const mc=G.leagues&&G.leagues.flatMap(l=>l.clubs).find(c=>c.id===G.myClubId);if(mc)mc.n=window._customClubName;const sc=G.standing&&G.standing.find(s=>parseInt(s.cid)===G.myClubId);if(sc)sc.n=window._customClubName;window._customClubName=null;}go('v-game');updateHdr();notif(t('setup_welcome').replace('{club}',G.myClub.n).replace('{league}',LEAGUE_NAMES[G.myLeague]),'ok');G.news=[
+// ── FILOZOFIA SKŁADU (Talent/Wiek) + NATURALNY SZUM — Krok 1/2 przed startem sezonu ──
+let _philTalent='star', _philAge='young', _philChosenIds=[], _squadRolled=false;
+
+function goToPhilosophyStep(){
+  if(!selClubId){notif(t('setup_no_club_err'),'err');return;}
+  document.getElementById('setup-step0').style.display='none';
+  document.getElementById('setup-start-btn').style.display='none';
+  document.getElementById('panel-philosophy').style.display='block';
+}
+
+// Podgląd na żywo (nazwa managera + nazwa/herb klubu) w Kroku 0 — wołane przy wpisywaniu
+// nazwy managera (oninput na #mgr-name) oraz przy losowaniu/zmianie nazwy klubu.
+function _updateSetupPreview(){
+  const mgrEl=document.getElementById('mgr-name');
+  const mgrVal=mgrEl?mgrEl.value.trim():'';
+  const nameEl=document.getElementById('setup-preview-name');
+  if(nameEl){
+    const clubNameEl=document.getElementById('setup-club-name');
+    nameEl.textContent=(clubNameEl?clubNameEl.textContent:'—')||'—';
+  }
+  const mgrPreview=document.getElementById('setup-preview-mgr');
+  if(mgrPreview)mgrPreview.textContent='trener: '+(mgrVal||'—');
+  const crestEl=document.getElementById('setup-preview-crest');
+  if(crestEl&&selClubId&&typeof pxCrest==='function'){crestEl.innerHTML='';crestEl.appendChild(pxCrest(selClubId,2));}
+}
+
+function selectTalent(value,el){
+  if(_squadRolled)return; // zablokowane po losowaniu — nie da się już zmienić Talentu
+  el.parentElement.querySelectorAll('.club-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  _philTalent=value;
+}
+function selectAge(value,el){
+  if(_squadRolled)return; // zablokowane po losowaniu — nie da się już zmienić Wieku
+  el.parentElement.querySelectorAll('.club-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  _philAge=value;
+}
+
+// Wspólny punkt wejścia do initGame() dla nowego flow — idempotentny (bezpieczny, gdyby
+// startGame() zostało kiedyś wywołane bez przejścia przez Krok 1/2 Talent/Wiek/Losowanie).
+function _ensureCareerInitialized(){
+  if(G)return true;
+  const name=(document.getElementById('mgr-name')||{value:t('setup_mgr_default')}).value.trim()||t('setup_mgr_default');
+  if(!selClubId){notif(t('setup_no_club_err'),'err');return false;}
+  const startLg=parseInt(document.getElementById('start-league-sel')?.value||'8');
+  initGame(name,selClubId,startLg,window._setupLeagues);
+  return true;
+}
+
+// Przesuwa OVR 1 (Gwiazda) lub 2 (Fundament) losowych zawodników składu gracza w górę,
+// kompensując resztę w dół — suma OVR całego 24-osobowego składu się nie zmienia (dodanie
+// stałej delty do wszystkich 6 atrybutów przesuwa ovr() dokładnie o tę deltę, bo wagi w ovr()
+// sumują się do 1). Wiek wzmocnionego zawodnika zawężony wg Wieku (Młodzieżowa 17-20 /
+// Doświadczona 29-33) — calcPotential() już dziś różnicuje sufit rozwoju po wieku, nic tu nie
+// trzeba dublować, wystarczy podstawić inny wiek.
+function applySquadPhilosophy(){
+  if(!G)return;
+  const squad=myPl();
+  if(!squad.length)return;
+  const n=_philTalent==='star'?1:2;
+  const boostEach=_philTalent==='star'?(_philAge==='veteran'?14:8):(_philAge==='veteran'?7:4);
+  const ageRange=_philAge==='veteran'?[29,33]:[17,20];
+  const pool=shuffled(squad);
+  const chosen=[];
+  pool.forEach(p=>{
+    if(chosen.length>=n)return;
+    if(n===2&&chosen.length===1&&chosen[0].pos===p.pos)return; // Fundament: wymuś różne pozycje
+    chosen.push(p);
+  });
+  if(chosen.length<n)return;
+  const attrs=['tec','pas','sht','def','phy','men'];
+  const totalBoost=boostEach*chosen.length;
+  chosen.forEach(p=>{
+    p.age=r(ageRange[0],ageRange[1]);
+    attrs.forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(p[a]+boostEach)));});
+    p.potential=calcPotential(p,G.myLeague||8);
+    p.value=calcValue(ovr(p),p.age);
+    p.salary=calcSalary(p.value,G.myLeague||8,ovr(p));
+  });
+  const rest=squad.filter(p=>chosen.indexOf(p)===-1);
+  if(rest.length){
+    const perPlayer=totalBoost/rest.length;
+    rest.forEach(p=>{
+      attrs.forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(p[a]-perPlayer)));});
+      p.potential=calcPotential(p,G.myLeague||8);
+      p.value=calcValue(ovr(p),p.age);
+      p.salary=calcSalary(p.value,G.myLeague||8,ovr(p));
+    });
+  }
+  _philChosenIds=chosen.map(p=>p.id);
+  myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};});
+  G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
+}
+
+let _squadRollZone='mid';
+
+// Naturalny Szum — jeden wspólny czynnik -10%/+15% na CAŁĄ resztę składu (bez zawodników
+// wzmocnionych filozofią) naraz, nie osobno per zawodnik — korelowane, więc nie znosi się
+// przez uśrednianie. Jednorazowe: druga i kolejne próby nic nie robią (_squadRolled). Kształt
+// i Wiek muszą być już wybrane na tym samym ekranie — dopiero to jedno kliknięcie inicjalizuje
+// karierę (jeśli jeszcze nie), stosuje filozofię składu i losuje wariancję razem.
+function rollNaturalnySzum(){
+  if(_squadRolled)return;
+  if(!_ensureCareerInitialized())return;
+  applySquadPhilosophy();
+  const squad=myPl();
+  const chosenSet=new Set(_philChosenIds);
+  const factor=0.90+Math.random()*0.25;
+  _squadRollZone=factor<0.97?'low':factor>1.06?'high':'mid';
+  const attrs=['tec','pas','sht','def','phy','men'];
+  squad.forEach(p=>{
+    if(chosenSet.has(p.id))return;
+    attrs.forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(p[a]*factor)));});
+    p.potential=calcPotential(p,G.myLeague||8);
+    p.value=calcValue(ovr(p),p.age);
+    p.salary=calcSalary(p.value,G.myLeague||8,ovr(p));
+  });
+  myPl().forEach(p=>{p.seasonStartOvr=ovr(p);p.seasonStartAttrs={tec:p.tec,pas:p.pas,sht:p.sht,def:p.def,phy:p.phy,men:p.men};});
+  G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
+  _squadRolled=true;
+  document.querySelectorAll('#panel-philosophy .club-grid').forEach(g=>g.classList.add('locked'));
+  const rollBtn=document.getElementById('btn-roll-squad');
+  rollBtn.disabled=true;rollBtn.style.opacity='0.5';rollBtn.textContent=t('setup_roll_done_btn');
+  const finalBtn=document.getElementById('btn-final-start');
+  finalBtn.disabled=false;finalBtn.style.opacity='1';
+  _renderSquadRollChart();
+}
+
+function _renderSquadRollChart(){
+  if(!G)return;
+  const squad=[...myPl()].sort((a,b)=>ovr(b)-ovr(a));
+  const chosenSet=new Set(_philChosenIds);
+  const maxScale=Math.max(42,...squad.map(p=>ovr(p)));
+  const bars=document.getElementById('squad-roll-bars');
+  bars.innerHTML=squad.map(p=>{
+    const isHi=chosenSet.has(p.id);
+    const ov=ovr(p);
+    const h=Math.round((ov/maxScale)*78)+18; // 18% zarezerwowane na podpis liczbowy nad słupkiem
+    return '<div style="flex:1;min-width:3px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">'
+      +'<span style="font-size:6.5px;line-height:1;color:'+(isHi?'var(--am)':'var(--gr)')+';margin-bottom:2px">'+ov+'</span>'
+      +'<div style="width:100%;height:'+h+'%;background:'+(isHi?'var(--am)':'var(--gb)')+';opacity:'+(isHi?1:0.55)+'"></div>'
+    +'</div>';
+  }).join('');
+  const avg=squad.reduce((s,p)=>s+ovr(p),0)/squad.length;
+  document.getElementById('squad-roll-avg').textContent='śr. '+avg.toFixed(1);
+  document.getElementById('squad-roll-chart').style.display='block';
+}
+
+function _posLabelForPress(pos){
+  const map={GK:'pos_label_gk',OBR:'pos_label_obr',POL:'pos_label_pol',NAP:'pos_label_nap'};
+  return t(map[pos]||'pos_label_obr');
+}
+
+// Średnia OVR ligi wynikająca wprost z LEAGUE_OVR[lvl] ([botMin,botMax,topMin,topMax]) —
+// średnia środka dołu tabeli i środka szczytu tabeli, ta sama formuła którą liczyłem ręcznie
+// przy diagnozie VII Ligi (band 8/20/28/42 → 24.5).
+function _leagueAvgOvr(lvl){
+  const b=LEAGUE_OVR[lvl]||LEAGUE_OVR[8];
+  return ((b[0]+b[1])/2+(b[2]+b[3])/2)/2;
+}
+
+function confirmSeasonStart(){
+  if(!_squadRolled)return;
+  showPressModal(function(){startGame();});
+}
+
+// Modal "Prasa przed sezonem" — ten sam wzorzec co showBriefingModal() (dynamicznie tworzony
+// overlay, bez osobnego pliku HTML). Tekst losowany z puli 10 wariantów na kombinację
+// Talent×Wiek oraz osobno 10 na próg wyniku Naturalnego Szumu (press_* w core/i18n.js).
+function showPressModal(onClose){
+  const existing=document.getElementById('modal-press');
+  if(existing)existing.remove();
+  const comboKey='press_'+_philTalent+'_'+_philAge+'_';
+  const comboText=t(comboKey+r(1,10));
+  const rollKey='press_roll_'+_squadRollZone+'_';
+  const rollText=t(rollKey+r(1,10));
+  const chosen=(G.players||[]).filter(p=>_philChosenIds.indexOf(p.id)!==-1);
+  const shapeIcon=_philTalent==='star'?'★':'▦';
+  const playersHtml=chosen.map(p=>
+    '<div style="display:flex;align-items:center;gap:10px;border-left:2px solid var(--am);background:var(--tb);padding:8px 10px;margin-bottom:6px">'
+    +'<span class="press-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:var(--gm);border:1px solid var(--am);display:flex;align-items:center;justify-content:center;flex-shrink:0"></span>'
+    +'<div style="font-size:var(--fs-dense)"><b style="color:var(--am)">'+shapeIcon+' '+p.name+'</b><br>'
+    +'<span style="color:var(--gr)">'+_posLabelForPress(p.pos)+' · OVR '+ovr(p)+'</span></div></div>'
+  ).join('');
+  const clubDisplay=(G.myClub&&G.myClub.n)||'—';
+  const squadAvg=myPl().reduce((s,p)=>s+ovr(p),0)/(myPl().length||1);
+  const delta=Math.round(squadAvg-_leagueAvgOvr(G.myLeague||8));
+  const deltaCol=delta>0?'var(--gb)':delta<0?'var(--rd)':'var(--gr)';
+  const deltaTxt=(delta>0?'+':'')+delta+' OVR';
+  const mgrDisplay=(G.mgrName||'').trim()||t('setup_mgr_default');
+  const m=document.createElement('div');
+  m.id='modal-press';
+  m.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:10150;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML='<div style="width:100%;max-width:380px;border:2px solid var(--gb);background:#0a130a;padding:16px">'
+    +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);text-align:center;margin-bottom:12px">'+t('press_modal_title')+'</div>'
+    +'<div id="press-club-crest" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px"><b style="color:var(--am);font-size:var(--fs-body)">'+clubDisplay+'</b></div>'
+    +'<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;font-style:italic">🎲 '+rollText+'</div>'
+    +'<div style="font-size:var(--fs-dense);color:var(--wh);text-align:center;background:var(--tb);border:1px solid var(--gl);padding:6px 8px;margin-bottom:12px">Średnia OVR składu: <b style="color:var(--wh)">'+squadAvg.toFixed(1)+'</b> (<b style="color:'+deltaCol+'">'+deltaTxt+'</b> od średniej ligi)</div>'
+    +'<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:12px;font-style:italic">📰 '+comboText+'</div>'
+    +playersHtml
+    +'<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0">👔 '+t('press_mgr_line').replace('{mgr}',mgrDisplay).replace('{club}',clubDisplay)+'</div>'
+    +'<button class="btn-start" style="margin-top:4px" id="btn-press-close">'+t('press_modal_close')+'</button>'
+    +'</div>';
+  document.body.appendChild(m);
+  const crestSlot=document.getElementById('press-club-crest');
+  if(crestSlot&&typeof pxCrest==='function'&&G.myClubId){const cv=pxCrest(G.myClubId,2);crestSlot.insertBefore(cv,crestSlot.firstChild);}
+  if(typeof pxFace==='function'){
+    m.querySelectorAll('.press-face-slot').forEach(function(sl){
+      sl.appendChild(pxFace(parseInt(sl.dataset.pid),2,parseInt(sl.dataset.age)||undefined));
+    });
+  }
+  document.getElementById('btn-press-close').addEventListener('click',function(){m.remove();if(onClose)onClose();});
+}
+
+function startGame(){if(!_ensureCareerInitialized())return;if(window._customClubName&&G&&G.myClub){G.myClub.n=window._customClubName;const mc=G.leagues&&G.leagues.flatMap(l=>l.clubs).find(c=>c.id===G.myClubId);if(mc)mc.n=window._customClubName;const sc=G.standing&&G.standing.find(s=>parseInt(s.cid)===G.myClubId);if(sc)sc.n=window._customClubName;window._customClubName=null;}go('v-game');updateHdr();notif(t('setup_welcome').replace('{club}',G.myClub.n).replace('{league}',LEAGUE_NAMES[G.myLeague]),'ok');G.news=[
   {msg:t('startnews_training_focus'),type:'train',week:G.week,season:G.season,expires:G.week+1,action:'training_plan',actionLabel:t('startnews_action_plan')},
   {msg:t('startnews_camp'),type:'train',week:G.week,season:G.season,expires:3,action:'camp',actionLabel:t('startnews_action_camp')},
   {msg:t('startnews_sponsor'),type:'club',week:G.week||1,season:G.season,action:'finance_contracts',actionLabel:t('fin_tab_contracts')},
