@@ -16,51 +16,9 @@ function fillMatch(){
     }
   }
 
-  // ── PUCHAR: jeśli aktywny mecz pucharowy — zawsze pokaż go ──────────────
-  if(G._cupMatchActive){
-    const _cm=G._cupMatchActive;
-    const _myId=G.myClubId;
-    const _hCid=_cm.match.h.cid,_aCid=_cm.match.a.cid;
-    const _hClub=ALL_CLUBS.find(c=>c.id===_hCid)||{n:_cm.match.h.name,id:_hCid};
-    const _aClub=ALL_CLUBS.find(c=>c.id===_aCid)||{n:_cm.match.a.name,id:_aCid};
-    const _isHome=_hCid===_myId;
-    // Reset UI
-    const _rc=id=>document.getElementById(id);
-    const mlog=_rc('mlog');if(mlog)mlog.innerHTML='';
-    const relDiv=_rc('m-relacja');if(relDiv){relDiv.classList.add('on');}
-    const ocenyDiv=_rc('m-oceny');if(ocenyDiv){ocenyDiv.classList.remove('on');}
-    const _rh2=_rc('m-rat-home');if(_rh2)_rh2.innerHTML='';
-    const _ra2=_rc('m-rat-away');if(_ra2)_ra2.innerHTML='';
-    const mstats=_rc('m-live-stats');if(mstats)mstats.style.display='none';
-    const mtabs=_rc('m-tabs');if(mtabs)mtabs.style.display='none';
-    const mspb=_rc('m-speed-btns');if(mspb)mspb.style.display='none';
-    const mtbl=_rc('m-stat-table');if(mtbl)mtbl.innerHTML='';
-    const _ec2=_rc('ls-events-chips');if(_ec2)_ec2.innerHTML='';
-    const _tb2=_rc('ls-tactic-box');if(_tb2)_tb2.style.display='none';
-    const _ml2=_rc('ls-mom-label');if(_ml2){_ml2.textContent=t('match_momentum_even');_ml2.style.color='var(--gr)';}
-    const _mn2=_rc('ls-mom-needle');if(_mn2){_mn2.style.left='50%';_mn2.style.background='var(--am)';}
-    const pr=document.getElementById('m-progress');if(pr)pr.style.width='0%';
-    const mi=document.getElementById('m-minute');if(mi)mi.textContent="0'";
-    const mls=document.getElementById('m-live-score');if(mls)mls.textContent='0 - 0';
-    document.getElementById('m-attendance-bar')&&(document.getElementById('m-attendance-bar').style.display='none');
-    const hn=document.getElementById('m-home-name');if(hn){hn.innerHTML=_teamChip(_hClub.n+(_isHome?' ⭐':''),_isHome);hn.style.cursor='default';hn.onclick=null;}
-    const an=document.getElementById('m-away-name');if(an){an.innerHTML=_teamChip((_isHome?'':' ⭐')+_aClub.n,!_isHome);an.style.cursor='default';an.onclick=null;}
-    const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_cup_info').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);
-    const _cupBanner=document.getElementById('m-cup-banner');
-    if(_cupBanner){_cupBanner.style.display='block';_cupBanner.textContent=t('match_cup_banner').replace('{round}',CUP_ROUND_LABELS[_cm.rIdx]);}
-    const bb4=document.getElementById('btn-match-back');if(bb4)bb4.style.display='none';
-    const ln2=document.getElementById('m-lock-note');if(ln2){ln2.textContent=t('match_lock_note');ln2.style.cssText='display:block;background:#1a1300;border-top:2px solid var(--am);color:var(--am);padding:6px 14px;font-size:var(--fs-dense);text-align:center';}
-    const btn=document.getElementById('btn-sim');
-    if(btn){btn.style.display='block';btn.textContent=t('match_play_cup_btn');btn.disabled=false;btn.style.opacity='1';}
-    const pre=document.getElementById('m-prematch');if(pre)pre.style.display='none';
-    // Pokaż przycisk taktyki przed meczem pucharowym
-    const _cupTacBtn=document.getElementById('cup-tac-btn');
-    if(_cupTacBtn)_cupTacBtn.style.display='block';
-    // Ustaw _cupFakeMatch żeby simMatch wiedział że to puchar
-    G._cupFakeMatch={h:_hCid,a:_aCid,rnd:0,done:false,hg:0,ag:0,_isCup:true};
-    return;
-  }
-
+  // v234: mecz pucharowy nie ma już osobnej, uproszczonej ścieżki — leci tą samą
+  // analizą przedmeczową co liga (nextMatch() sam tworzy G._cupFakeMatch w tym samym
+  // kształcie {h,a,rnd,done} co mecz ligowy, więc dalszy kod obsługuje oba przypadki).
   const m=nextMatch();
   // Ukryj przycisk taktyki pucharowej dla normalnych meczy
   const _ctbH=document.getElementById('cup-tac-btn');if(_ctbH)_ctbH.style.display='none';
@@ -118,6 +76,7 @@ function fillMatch(){
   ['ls-poss','ls-shots','ls-on','ls-fouls'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
   const btn=document.getElementById('btn-sim');
   const pre=document.getElementById('m-prematch');
+  const _scbar=document.getElementById('m-scorebar');
   if(!m){
     if(_scbar)_scbar.style.display='block'; // przywróć scorebar — brak meczu = po meczu
     const hn=document.getElementById('m-home-name');if(hn)hn.textContent=t('match_no_match');
@@ -126,13 +85,28 @@ function fillMatch(){
   }
   const isHome=m.h===G.myClubId;
   if(typeof _setBoiskoSideLabels==='function')_setBoiskoSideLabels(isHome);
-  const hc=ALL_CLUBS.find(c=>c.id===m.h),ac=ALL_CLUBS.find(c=>c.id===m.a);
+  // v234: rywal pucharowy bywa spoza ALL_CLUBS (puchar łączy kluby z różnych lig,
+  // a ALL_CLUBS to tylko 16 klubów AKTUALNEJ ligi gracza) — wtedy nazwa/id spada
+  // na dane wbudowane w sam mecz pucharowy (G._cupMatchActive.match.h/.a.name).
+  let hc,ac;
+  if(G._cupMatchActive){
+    const _cmM=G._cupMatchActive.match;
+    hc=ALL_CLUBS.find(c=>c.id===m.h)||{id:m.h,n:_cmM.h.name};
+    ac=ALL_CLUBS.find(c=>c.id===m.a)||{id:m.a,n:_cmM.a.name};
+  } else {
+    hc=ALL_CLUBS.find(c=>c.id===m.h);ac=ALL_CLUBS.find(c=>c.id===m.a);
+  }
   // v222: nazwa drużyny jako "chip" w tych samych barwach co pasek jej akcji w relacji
   // (--am-bar/--gb-bar) — wyraźne powiązanie kolorystyczne góra↔relacja, nie tylko kolor tekstu
   const hn=document.getElementById('m-home-name');if(hn){hn.innerHTML=_teamChip(hc.n+(isHome?' ⭐':''),isHome);hn.style.cursor='pointer';hn.onclick=()=>{if(isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.h);}}
   const an=document.getElementById('m-away-name');if(an){an.innerHTML=_teamChip((isHome?'':' ⭐')+ac.n,!isHome);an.style.cursor='pointer';an.onclick=()=>{if(!isHome){fillSquad();openPanel('p-squad');}else openClubModal(m.a);}}
   const ls2=document.getElementById('m-live-score');if(ls2)ls2.textContent='0 - 0';
-  const inf=document.getElementById('m-info2');if(inf)inf.textContent=t('match_round').replace('{n}',m.rnd)+(isHome?(' '+t('match_home_label')):(' '+t('match_away_label')));
+  const inf=document.getElementById('m-info2');
+  if(inf){
+    inf.textContent=G._cupMatchActive?
+      t('match_cup_info').replace('{round}',CUP_ROUND_LABELS[G._cupMatchActive.rIdx]):
+      t('match_round').replace('{n}',m.rnd)+(isHome?(' '+t('match_home_label')):(' '+t('match_away_label')));
+  }
   // ── PUCHAR: banner jeśli to mecz pucharowy ────────────────────────────
   const _cupBanner=document.getElementById('m-cup-banner');
   if(G._cupMatchActive&&_cupBanner){
@@ -146,7 +120,7 @@ function fillMatch(){
   const _validSt=mySt().filter(function(p){return !p.injured&&(!p.suspension||p.suspension<=0);});
   const _lim3=formationLimits();const _req3=1+_lim3.OBR+_lim3.POL+_lim3.NAP;
   const _canPlay=_validSt.length>=_req3;
-  if(btn){btn.style.display='block';btn.textContent=_canPlay?t('match_play_btn'):t('match_incomplete').replace('{a}',_validSt.length).replace('{b}',_req3);btn.disabled=!_canPlay;btn.style.opacity=_canPlay?'1':'0.45';btn.style.background=_canPlay?'var(--am)':'#555';btn.style.color=_canPlay?'#000':'#aaa';}
+  if(btn){const _playLbl=G._cupMatchActive?t('match_play_cup_btn'):t('match_play_btn');btn.style.display='block';btn.textContent=_canPlay?_playLbl:t('match_incomplete').replace('{a}',_validSt.length).replace('{b}',_req3);btn.disabled=!_canPlay;btn.style.opacity=_canPlay?'1':'0.45';btn.style.background=_canPlay?'var(--am)':'#555';btn.style.color=_canPlay?'#000':'#aaa';}
   // Gdy skład niekompletny — pokaż WRÓĆ i linki do uzupełnienia
   const bb3=document.getElementById('btn-match-back');
   if(bb3)bb3.style.display=_canPlay?'none':'block';
@@ -168,8 +142,6 @@ function fillMatch(){
 
   // Pre-match analysis
   // PRZED meczem: pokaż prematch, ukryj relację i tabs
-  const _scbar=document.getElementById('m-scorebar');
-
   if(pre){
     pre.style.display='block';
     if(_scbar)_scbar.style.display='none'; // ukryj tylko gdy prematch
@@ -196,7 +168,7 @@ function fillMatch(){
     const oppForm=oppTac.formation||'4-4-2';
     const oppStyle=oppTac.style||'Zrównoważony';
     const oppTempo=oppTac.tempo||'Normalne';
-    const styleIcon={'Defensywny':'🛡','Zrównoważony':'⚖️','Ofensywny':'⚔️'}[oppStyle]||'⚖️';
+    const _styleIcon=s=>({'Defensywny':'🛡','Zrównoważony':'⚖️','Ofensywny':'⚔️'}[s]||'⚖️');
     // Siły obu drużyn
     // Lewa = gospodarz, prawa = gość (jak w scorebar)
     const homeS=hS, awayS=aS;
@@ -212,12 +184,6 @@ function fillMatch(){
       {k:'balans',lbl:'⚖️ '+t('match_mood_balance'), sub:''},
       {k:'atak',  lbl:'⚔️ '+t('match_mood_attack'),   sub:''}
     ];
-    // Skład
-    const stCount=mySt().length;
-    const lim2=formationLimits();
-    const req2=1+lim2.OBR+lim2.POL+lim2.NAP;
-    const squadOk=stCount>=req2;
-
     // ── SZANSE z uwzględnieniem mood (poprawka 5) ───────────────
     // Szanse — stałe, bez wpływu nastawienia (żeby nie sugerować wyboru)
     const _myPow2=(mySt2.total*(1+(isHome?7:0)/100))*(mySt2.form/100);
@@ -244,143 +210,84 @@ function fillMatch(){
       }).join('');
     }
 
-    // ── MINIBAR ──────────────────────────────────────────────────
-    const BMAX=Math.max(mySt2.atk,mySt2.mid,mySt2.def,oppSt.atk,oppSt.mid,oppSt.def,1);
-    function miniBar(val,col){
-      const w=Math.round(val/BMAX*100);
-      return '<div style="height:4px;background:var(--gm);border-radius:1px;margin-top:2px;overflow:hidden">'+
-             '<div style="height:100%;width:'+w+'%;background:'+col+';border-radius:1px"></div></div>';
-    }
-
-    // ── WIERSZ STAT w karcie ─────────────────────────────────────
-    function cardStatRow(lbl,myVal,oppVal){
-      const better=myVal>oppVal,equal=myVal===oppVal;
-      const myC=better?'var(--gb)':equal?'var(--wh)':'var(--am)';
-      const triC=better?'var(--gb)':equal?'var(--gr)':'var(--am)';
-      const triCh=better?'▲':equal?'':'▽';
-      const mw=Math.round(myVal/BMAX*100);
+    // ── BELKA PORÓWNAWCZA ATK/MID/DEF (v232) — jeden pasek na statystykę,
+    // podzielony na 2 (gospodarz|gość), zamiast dwóch osobnych kart z paskami —
+    // przewaga widoczna jako długość segmentu, bez czytania dwóch kolumn liczb.
+    function statRow2(lbl,hVal,aVal){
       return(
-        '<div style="margin-bottom:6px">'+
-          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
-          '<div style="display:flex;justify-content:space-between;align-items:center">'+
-            '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-right:6px">'+
-              '<div style="height:100%;width:'+mw+'%;background:'+myC+';border-radius:1px"></div>'+
-            '</div>'+
-            '<span style="font-size:var(--fs-body);color:'+myC+'">'+myVal+'</span>'+
-            '<span style="font-size:var(--fs-body);color:'+triC+';margin-left:2px">'+triCh+'</span>'+
-          '</div>'+
-        '</div>'
-      );
-    }
-    function cardStatRowOpp(lbl,oppVal,myVal){
-      const stronger=oppVal>myVal,equal=oppVal===myVal;
-      const opC=stronger?'var(--rd)':equal?'var(--wh)':'var(--gr)';
-      const triCh2=stronger?'▲':equal?'':'▽';
-      const ow=Math.round(oppVal/BMAX*100);
-      const barC=stronger?'var(--rd)':equal?'var(--gl)':'var(--gm)';
-      return(
-        '<div style="margin-bottom:6px">'+
-          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:1px">'+lbl+'</div>'+
-          '<div style="display:flex;justify-content:space-between;align-items:center">'+
-            '<span style="font-size:var(--fs-body);color:'+opC+';margin-right:2px">'+triCh2+'</span>'+
-            '<span style="font-size:var(--fs-body);color:'+opC+'">'+oppVal+'</span>'+
-            '<div style="flex:1;height:4px;background:var(--gm);border-radius:1px;overflow:hidden;margin-left:6px;display:flex;justify-content:flex-end">'+
-              '<div style="height:100%;width:'+ow+'%;background:'+barC+';border-radius:1px"></div>'+
-            '</div>'+
+        '<div style="margin-bottom:8px">'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.3px;margin-bottom:3px">'+lbl+'</div>'+
+          '<div style="display:flex;height:18px;border-radius:1px;overflow:hidden">'+
+            '<div style="flex:'+hVal+';background:var(--gb);color:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro)">'+hVal+'</div>'+
+            '<div style="flex:'+aVal+';background:var(--am);color:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro)">'+aVal+'</div>'+
           '</div>'+
         '</div>'
       );
     }
 
     pre.innerHTML=
-      // ── POPRAWKA 2: Nagłówek z OVR i Formą (zamiast wyniku) ────
-      '<div style="background:#000;border-bottom:2px solid var(--gb);padding:8px 12px 6px">'+
-        '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">'+
+      // ── v232: karty klubów (herb-monogram, OVR, forma, kropki formy, pozycja) —
+      // gospodarz lewo / gość prawo, każdy fakt o drużynie pokazany dokładnie raz.
+      '<div style="background:#000;border-bottom:2px solid var(--gb);padding:10px 12px 8px">'+
+        '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:6px">'+
           // LEWA = gospodarz
-          '<div>'+
+          '<div style="text-align:center">'+
+            '<div class="pm-crest-slot" data-cid="'+homeId+'" style="display:flex;justify-content:center;margin-bottom:4px"></div>'+
             '<div style="font-size:var(--fs-body);color:var(--gb);line-height:1.1;'+(isHome?'cursor:pointer;text-decoration:underline':'')+'" onclick="'+(isHome?'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}':'openClubModal('+homeId+')')+'">'+
               (isHome?'⭐ ':'')+homeClub.n+
             '</div>'+
-            '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
-              'OVR '+homeS.total+' • '+t('match_form_label')+' '+Math.round(homeS.formRaw||75)+'%'+
+            '<div style="font-size:var(--fs-body);font-weight:800;color:var(--wh);line-height:1;margin-top:3px">'+homeS.total+
+              '<span style="font-size:9px;font-weight:700;color:var(--gr);letter-spacing:.1em;margin-left:3px">OVR</span>'+
             '</div>'+
-            '<div style="display:flex;gap:3px;margin-top:4px">'+formDots(homeId)+'</div>'+
+            '<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('match_form_label')+' '+Math.round(homeS.formRaw||75)+'%</div>'+
+            '<div style="display:flex;gap:3px;justify-content:center;margin-top:5px">'+formDots(homeId)+'</div>'+
             // v228: pozycja w tabeli TEJ konkretnej drużyny — pod jej własną kolumną, nie w osobnym pasku
-            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:3px">'+
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:4px">'+
               (isHome?t('match_you_pos').replace('{pos}',_myPos):t('match_rival_pos').replace('{pos}',_oppPos))+
             '</div>'+
           '</div>'+
           // Środek VS
-          '<div style="text-align:center">'+
+          '<div style="text-align:center;padding-top:14px">'+
             '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr)">'+t('match_vs')+'</div>'+
             '<div style="font-size:var(--fs-meta);color:'+(isHome?'var(--gb)':'var(--gr)')+'">'+
               (isHome?t('match_home_tag'):t('match_away_tag'))+
             '</div>'+
           '</div>'+
           // PRAWA = gość
-          '<div style="text-align:right">'+
+          '<div style="text-align:center">'+
+            '<div class="pm-crest-slot" data-cid="'+awayId+'" style="display:flex;justify-content:center;margin-bottom:4px"></div>'+
             '<div style="font-size:var(--fs-body);color:var(--am);line-height:1.1;cursor:pointer;text-decoration:underline" onclick="'+(isHome?'openClubModal('+awayId+')':'fillSquad();var sqp=document.getElementById(\'p-squad\');if(sqp){sqp.classList.add(\'open\');}')+'">'+
               awayClub.n+(isHome?'':' ⭐')+
             '</div>'+
-            '<div style="font-size:var(--fs-dense);color:var(--gr);margin-top:1px">'+
-              'OVR '+awayS.total+' • '+t('match_form_label')+' '+Math.round(awayS.formRaw||75)+'%'+
+            '<div style="font-size:var(--fs-body);font-weight:800;color:var(--wh);line-height:1;margin-top:3px">'+awayS.total+
+              '<span style="font-size:9px;font-weight:700;color:var(--gr);letter-spacing:.1em;margin-left:3px">OVR</span>'+
             '</div>'+
-            '<div style="display:flex;gap:3px;justify-content:flex-end;margin-top:4px">'+formDots(awayId)+'</div>'+
-            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:3px">'+
+            '<div style="font-size:var(--fs-micro);color:var(--gr);margin-top:2px">'+t('match_form_label')+' '+Math.round(awayS.formRaw||75)+'%</div>'+
+            '<div style="display:flex;gap:3px;justify-content:center;margin-top:5px">'+formDots(awayId)+'</div>'+
+            '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-top:4px">'+
               (isHome?t('match_rival_pos').replace('{pos}',_oppPos):t('match_you_pos').replace('{pos}',_myPos))+
             '</div>'+
           '</div>'+
         '</div>'+
       '</div>'+
 
-      // ── POPRAWKA 4: Dwie oddzielne karty TY | RYWAL ─────────────
-      '<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--gl)">'+
-        // Karta LEWA — GOSPODARZ
-        '<div style="padding:8px 10px;border-right:1px solid var(--gl)">'+
-          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gb);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px">'+(isHome?t('match_you_label'):t('match_host_label'))+' 🏠</div>'+
-          cardStatRow('ATK',homeS.atk,awayS.atk)+
-          cardStatRow('MID',homeS.mid,awayS.mid)+
-          cardStatRow('DEF',homeS.def,awayS.def)+
-          '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
-            '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?G.formation:oppForm)+'</span>'+
-            '</div>'+
-            '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:var(--gb)">'+(isHome?_styleLabel(G.style||'Zrównoważony'):_styleLabel(oppStyle))+'</span>'+
-            '</div>'+
-            (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
-                (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+
-              '</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:var(--rd)">'+(homeS.atk<=homeS.def?'⚠ ATK':'⚠ DEF')+'</span></div>')+
-          '</div>'+
+      // ── v232: belka porównawcza ATK/MID/DEF — jeden pasek, podzielony na 2
+      // (gospodarz|gość), nie na 2 osobne karty z paskami dla każdej drużyny.
+      '<div style="padding:10px 14px 4px">'+
+        statRow2('ATK',homeS.atk,awayS.atk)+
+        statRow2('MID',homeS.mid,awayS.mid)+
+        statRow2('DEF',homeS.def,awayS.def)+
+      '</div>'+
+      // Taktyka + styl obu drużyn jako zwarte plakietki (skład/słabość pokazuje
+      // już baner "uzupełnij skład" nad ekranem — nie trzeba tego powtarzać tutaj)
+      '<div style="display:flex;justify-content:space-between;gap:8px;padding:2px 14px 10px;border-bottom:1px solid var(--gl)">'+
+        '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+          '<span style="font-size:var(--fs-micro);font-weight:700;padding:2px 7px;border-radius:3px;background:var(--gm);color:var(--gr)">'+(isHome?G.formation:oppForm)+'</span>'+
+          '<span style="font-size:var(--fs-micro);font-weight:700;padding:2px 7px;border-radius:3px;background:var(--gm);color:var(--gr)">'+(isHome?_styleIcon(G.style||'Zrównoważony')+' '+_styleLabel(G.style||'Zrównoważony'):_styleIcon(oppStyle)+' '+_styleLabel(oppStyle))+'</span>'+
         '</div>'+
-        // Karta PRAWA — GOŚĆ
-        '<div style="padding:8px 10px">'+
-          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--am);border-bottom:1px solid var(--gm);padding-bottom:3px;margin-bottom:6px;text-align:right">'+(isHome?t('match_rival_label'):t('match_you_label_r'))+' ✈</div>'+
-          cardStatRowOpp('ATK',awayS.atk,homeS.atk)+
-          cardStatRowOpp('MID',awayS.mid,homeS.mid)+
-          cardStatRowOpp('DEF',awayS.def,homeS.def)+
-          '<div style="border-top:1px solid var(--gm);margin-top:5px;padding-top:5px">'+
-            '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_tactic_lbl')+'</span>'+
-              '<span style="font-weight:700;font-size:var(--fs-h3);color:var(--wh)">'+(isHome?oppForm:G.formation)+'</span>'+
-            '</div>'+
-            '<div style="display:flex;justify-content:space-between;margin-bottom:2px">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_style_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+(isHome?styleIcon+' '+_styleLabel(oppStyle):_styleLabel(G.style||'Zrównoważony'))+'</span>'+
-            '</div>'+
-            (isHome?'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_weakness_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:var(--rd)">'+(awayS.atk<=awayS.def?'⚠ ATK':'⚠ DEF')+'</span></div>':'<div style="display:flex;justify-content:space-between">'+
-              '<span style="font-size:var(--fs-meta);color:var(--gr)">'+t('match_squad_lbl')+'</span>'+
-              '<span style="font-size:var(--fs-meta);color:'+(squadOk?'var(--gb)':'var(--rd)')+'">'+
-                (squadOk?'✅ '+stCount+'/'+req2:'⚠ '+stCount+'/'+req2)+'</span></div>')+
-          '</div>'+
+        '<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">'+
+          '<span style="font-size:var(--fs-micro);font-weight:700;padding:2px 7px;border-radius:3px;background:var(--gm);color:var(--gr)">'+(isHome?oppForm:G.formation)+'</span>'+
+          '<span style="font-size:var(--fs-micro);font-weight:700;padding:2px 7px;border-radius:3px;background:var(--gm);color:var(--gr)">'+(isHome?_styleIcon(oppStyle)+' '+_styleLabel(oppStyle):_styleIcon(G.style||'Zrównoważony')+' '+_styleLabel(G.style||'Zrównoważony'))+'</span>'+
         '</div>'+
       '</div>'+
 
@@ -388,15 +295,27 @@ function fillMatch(){
       // Segmenty paska są podpisane wprost (WYGRANA/REMIS/PRZEG.), więc
       // kolor jednoznacznie odpowiada wynikowi z perspektywy gracza —
       // nie trzeba go kojarzyć z gwiazdką przy nazwie klubu w nagłówku.
-      '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
-        '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
-        '<div style="display:flex;height:20px;border-radius:1px;overflow:hidden;margin-bottom:4px">'+
-          '<div style="flex:'+myWin+';background:var(--gb);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:#000">'+t('match_chance_win').replace('{n}',myWin)+'</div>'+
-          '<div style="flex:'+draw+';background:var(--gl);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:var(--wh)">'+t('match_chance_draw').replace('{n}',draw)+'</div>'+
-          '<div style="flex:'+oppWin+';background:var(--rd);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:#fff">'+t('match_chance_loss').replace('{n}',oppWin)+'</div>'+
-        '</div>'+
-        '<div style="font-size:var(--fs-dense);color:var(--gb)">'+(isHome?homeClub.n:awayClub.n)+' '+t('match_odds_you_suffix')+'</div>'+
-      '</div>'+
+      // v231: pozycja segmentów podąża za gospodarz=lewo/gość=prawo (jak reszta
+      // ekranu), a nie zawsze user=lewo — kolor/etykieta nadal opisują usera.
+      // v232: nazwy drużyn nad paskiem — jasne, którego zespołu dotyczy dany koniec.
+      (function(){
+        const myLbl=t('match_chance_win').replace('{n}',myWin);
+        const oppLbl=t('match_chance_loss').replace('{n}',oppWin);
+        const leftPct=isHome?myWin:oppWin, leftLbl=isHome?myLbl:oppLbl, leftBg=isHome?'var(--gb)':'var(--rd)', leftFg=isHome?'#000':'#fff';
+        const rightPct=isHome?oppWin:myWin, rightLbl=isHome?oppLbl:myLbl, rightBg=isHome?'var(--rd)':'var(--gb)', rightFg=isHome?'#fff':'#000';
+        return '<div style="padding:8px 12px;border-bottom:1px solid var(--gl)">'+
+          '<div style="font-weight:700;font-size:var(--fs-micro);color:var(--gr);margin-bottom:4px;letter-spacing:.3px">'+t('match_chances_title')+'</div>'+
+          '<div style="display:flex;justify-content:space-between;font-size:var(--fs-micro);font-weight:700;margin-bottom:3px">'+
+            '<span style="color:var(--gb)">'+homeClub.n+'</span>'+
+            '<span style="color:var(--am)">'+awayClub.n+'</span>'+
+          '</div>'+
+          '<div style="display:flex;height:20px;border-radius:1px;overflow:hidden">'+
+            '<div style="flex:'+leftPct+';background:'+leftBg+';display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:'+leftFg+'">'+leftLbl+'</div>'+
+            '<div style="flex:'+draw+';background:var(--gl);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:var(--wh)">'+t('match_chance_draw').replace('{n}',draw)+'</div>'+
+            '<div style="flex:'+rightPct+';background:'+rightBg+';display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-weight:700;font-size:var(--fs-micro);color:'+rightFg+'">'+rightLbl+'</div>'+
+          '</div>'+
+        '</div>';
+      })()+
 
       // ── NASTAWIENIE ──────────────────────────────────────────────
       '<div style="padding:6px 12px;border-bottom:1px solid var(--gl)">'+
@@ -422,6 +341,15 @@ function fillMatch(){
         '<button onclick="fillPanel(\'p-tactics\');openPanel(\'p-tactics\');" '+
           'style="flex:1;background:var(--tb);border:1px solid var(--gl);color:var(--gb);font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('match_tactics_link')+'</button>'+
       '</div>';
+    // v233: prawdziwe herby (pixelart.js::pxCrest, ten sam generator co karta klubu
+    // i tabela ligowa) zamiast monogramu — hydratacja po wstawieniu innerHTML,
+    // jak w club-modal.js/season-summary.js.
+    if(typeof pxCrest==='function'){
+      pre.querySelectorAll('.pm-crest-slot').forEach(function(sl){
+        const cid=parseInt(sl.dataset.cid)||0;
+        sl.appendChild(pxCrest(cid,3));
+      });
+    }
   }
 }
 function nextMatch(){
@@ -543,10 +471,16 @@ function matchBackBtnClick(){
 function openMatchSummary(){
   const s=window._lastMatchSummary;if(!s)return;
   const _s=id=>document.getElementById(id);
+  // v231: lewa strona = gospodarz, prawa = gość — zgodnie z analizą przedmeczową,
+  // scorebarem live i zakładką BOISKO (patrz match-post.js::postMatch, isHome=_myIsH).
+  const isHome=s.isHome;
+  const leftName=isHome?s.myClubName:s.oppClubName, rightName=isHome?s.oppClubName:s.myClubName;
+  const leftGoals=isHome?s.myGoals:s.oppGoals, rightGoals=isHome?s.oppGoals:s.myGoals;
+  const leftScorers=isHome?s.myScorers:s.oppScorers, rightScorers=isHome?s.oppScorers:s.myScorers;
   const myNameEl=_s('ms-my-name'),oppNameEl=_s('ms-opp-name');
-  if(myNameEl)myNameEl.innerHTML=_teamChip(s.myClubName,true);
-  if(oppNameEl)oppNameEl.innerHTML=_teamChip(s.oppClubName,false);
-  const scoreEl=_s('ms-score');if(scoreEl)scoreEl.textContent=s.myGoals+' - '+s.oppGoals;
+  if(myNameEl)myNameEl.innerHTML=_teamChip(leftName,isHome);
+  if(oppNameEl)oppNameEl.innerHTML=_teamChip(rightName,!isHome);
+  const scoreEl=_s('ms-score');if(scoreEl)scoreEl.textContent=leftGoals+' - '+rightGoals;
   const resTxt=s.iW?t('mp_result_win'):s.iL?t('mp_result_lose'):t('mp_result_draw');
   const resCol=s.iW?'var(--gb)':s.iL?'var(--rd)':'var(--wh)';
   const rl=_s('ms-result-label');if(rl){rl.textContent=resTxt;rl.style.color=resCol;}
@@ -554,8 +488,8 @@ function openMatchSummary(){
   const commentEl=_s('ms-comment');if(commentEl)commentEl.textContent='💬 '+s.comment;
 
   const myLbl=_s('ms-scorers-my-label'),oppLbl=_s('ms-scorers-opp-label');
-  if(myLbl)myLbl.textContent='⚽ '+s.myClubName;
-  if(oppLbl)oppLbl.textContent='⚽ '+s.oppClubName;
+  if(myLbl)myLbl.textContent='⚽ '+leftName;
+  if(oppLbl)oppLbl.textContent='⚽ '+rightName;
   function _scorersHtml(list){
     if(!list||!list.length)return '<div style="font-size:var(--fs-meta);color:var(--gr)">—</div>';
     return list.map(function(g){
@@ -567,8 +501,8 @@ function openMatchSummary(){
     }).join('');
   }
   const myScEl=_s('ms-scorers-my'),oppScEl=_s('ms-scorers-opp');
-  if(myScEl)myScEl.innerHTML=_scorersHtml(s.myScorers);
-  if(oppScEl)oppScEl.innerHTML=_scorersHtml(s.oppScorers);
+  if(myScEl)myScEl.innerHTML=_scorersHtml(leftScorers);
+  if(oppScEl)oppScEl.innerHTML=_scorersHtml(rightScorers);
 
   function _deltaHtml(v,suffix){
     const sign=v>0?'▲ +':v<0?'▼ ':'— ';

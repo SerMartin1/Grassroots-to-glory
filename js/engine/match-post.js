@@ -387,6 +387,7 @@ function postMatch(hc,ac,hG,aG,iW,iL,ratings,hA,aA,_wasCupMatch,_skipCalc){
     }
     const _mvpR=_momId?ratings[_momId]:null;
     window._lastMatchSummary={
+      isHome:_myIsH,
       myClubName:G.myClub?G.myClub.n:'',
       oppClubName:(_myIsH?ac:hc).n,
       myGoals:_myGoals,oppGoals:_oppGoals,iW:iW,iL:iL,
