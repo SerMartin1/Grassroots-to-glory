@@ -58,7 +58,7 @@
     <div id="ng-title" style="font-size:var(--fs-body);color:var(--am);margin-bottom:8px">⚠️ NIEZAPISANA GRA</div>
     <div id="ng-body" style="font-size:var(--fs-meta);color:var(--wh);margin-bottom:16px">Masz aktywną grę bez zapisu.<br>Czy na pewno chcesz zacząć nową karierę?</div>
     <div style="display:flex;gap:8px">
-      <button id="ng-confirm" onclick="document.getElementById('modal-newgame').style.display='none';_startNewGameFlow();" style="flex:1;font-size:var(--fs-meta);background:#1a0000;border:1px solid var(--rd);color:var(--rd);padding:8px;cursor:pointer">TAK, ZACZNIJ NOWĄ</button>
+      <button id="ng-confirm" onclick="document.getElementById('modal-newgame').style.display='none';G=null;_startNewGameFlow();" style="flex:1;font-size:var(--fs-meta);background:#1a0000;border:1px solid var(--rd);color:var(--rd);padding:8px;cursor:pointer">TAK, ZACZNIJ NOWĄ</button>
       <button id="ng-cancel" onclick="document.getElementById('modal-newgame').style.display='none';" style="flex:1;font-size:var(--fs-meta);background:var(--gm);border:1px solid var(--gl);color:var(--wh);padding:8px;cursor:pointer">ANULUJ</button>
     </div>
   </div>
@@ -185,7 +185,7 @@
       <div id="squad-roll-chart" style="background:var(--tb);border:1px solid var(--gl);padding:8px;margin-bottom:10px;display:none">
         <div style="display:flex;align-items:flex-end;gap:3px;height:86px" id="squad-roll-bars"></div>
         <div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--gr);margin-top:6px">
-          <span>najsłabszy</span><span id="squad-roll-avg">śr. —</span><span>najsilniejszy</span>
+          <span id="setup-roll-strongest-lbl">najsilniejszy</span><span id="squad-roll-avg">śr. —</span><span id="setup-roll-weakest-lbl">najsłabszy</span>
         </div>
       </div>
       <button class="btn-start" id="btn-final-start" onclick="confirmSeasonStart()" disabled style="opacity:0.4;margin-top:6px">▶ ROZPOCZNIJ SEZON</button>

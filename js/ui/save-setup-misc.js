@@ -75,8 +75,34 @@ function _startNewGameFlow(){
   const tmpLeagues=initLeagues();window._setupLeagues=tmpLeagues;
   CURRENT_CURRENCY='EUR';
   _syncCurrencyButtons();
+  _resetPhilosophyStep();
   go('v-setup');
   setTimeout(()=>drawRandomClub(),50);
+}
+
+// Przywraca ekran Talent/Wiek/Losowanie do stanu początkowego — wołane przy każdym wejściu
+// w _startNewGameFlow(), żeby próba #2 (po WRÓĆ do menu i ponownym "Nowa Kariera") zaczynała
+// od Kroku 0 (nazwa drużyny), a nie od miejsca, w którym poprzednia próba została przerwana.
+function _resetPhilosophyStep(){
+  _philTalent='star';_philAge='young';_philChosenIds=[];_squadRolled=false;
+  const step0=document.getElementById('setup-step0');
+  const philPanel=document.getElementById('panel-philosophy');
+  const startBtn=document.getElementById('setup-start-btn');
+  if(step0)step0.style.display='';
+  if(philPanel)philPanel.style.display='none';
+  if(startBtn)startBtn.style.display='';
+  document.querySelectorAll('#panel-philosophy .club-grid').forEach(g=>g.classList.remove('locked'));
+  document.querySelectorAll('#panel-philosophy .club-opt').forEach(e=>e.classList.remove('sel'));
+  const talentDefault=document.querySelector('#panel-philosophy .club-opt[data-group="talent"]');
+  if(talentDefault)talentDefault.classList.add('sel');
+  const ageDefault=document.querySelector('#panel-philosophy .club-opt[data-group="age"]');
+  if(ageDefault)ageDefault.classList.add('sel');
+  const rollBtn=document.getElementById('btn-roll-squad');
+  if(rollBtn){rollBtn.disabled=false;rollBtn.style.opacity='';rollBtn.textContent=t('setup_roll_btn');}
+  const finalBtn=document.getElementById('btn-final-start');
+  if(finalBtn){finalBtn.disabled=true;finalBtn.style.opacity='0.4';}
+  const chartEl=document.getElementById('squad-roll-chart');
+  if(chartEl)chartEl.style.display='none';
 }
 
 // Przełącznik waluty wyświetlania — niezależny od wyboru języka.
@@ -203,7 +229,7 @@ function _updateSetupPreview(){
     nameEl.textContent=(clubNameEl?clubNameEl.textContent:'—')||'—';
   }
   const mgrPreview=document.getElementById('setup-preview-mgr');
-  if(mgrPreview)mgrPreview.textContent='trener: '+(mgrVal||'—');
+  if(mgrPreview)mgrPreview.textContent=t('setup_preview_mgr_prefix')+' '+(mgrVal||'—');
   const crestEl=document.getElementById('setup-preview-crest');
   if(crestEl&&selClubId&&typeof pxCrest==='function'){crestEl.innerHTML='';crestEl.appendChild(pxCrest(selClubId,2));}
 }
@@ -277,8 +303,6 @@ function applySquadPhilosophy(){
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
 }
 
-let _squadRollZone='mid';
-
 // Naturalny Szum — jeden wspólny czynnik -10%/+15% na CAŁĄ resztę składu (bez zawodników
 // wzmocnionych filozofią) naraz, nie osobno per zawodnik — korelowane, więc nie znosi się
 // przez uśrednianie. Jednorazowe: druga i kolejne próby nic nie robią (_squadRolled). Kształt
@@ -291,7 +315,6 @@ function rollNaturalnySzum(){
   const squad=myPl();
   const chosenSet=new Set(_philChosenIds);
   const factor=0.90+Math.random()*0.25;
-  _squadRollZone=factor<0.97?'low':factor>1.06?'high':'mid';
   const attrs=['tec','pas','sht','def','phy','men'];
   squad.forEach(p=>{
     if(chosenSet.has(p.id))return;
@@ -313,7 +336,7 @@ function rollNaturalnySzum(){
 
 function _renderSquadRollChart(){
   if(!G)return;
-  const squad=[...myPl()].sort((a,b)=>ovr(b)-ovr(a));
+  const squad=[...myPl()].sort((a,b)=>ovr(b)-ovr(a)); // malejąco: najsilniejszy z lewej, najsłabszy z prawej — zgodnie z etykietami pod wykresem
   const chosenSet=new Set(_philChosenIds);
   const maxScale=Math.max(42,...squad.map(p=>ovr(p)));
   const bars=document.getElementById('squad-roll-bars');
@@ -327,7 +350,7 @@ function _renderSquadRollChart(){
     +'</div>';
   }).join('');
   const avg=squad.reduce((s,p)=>s+ovr(p),0)/squad.length;
-  document.getElementById('squad-roll-avg').textContent='śr. '+avg.toFixed(1);
+  document.getElementById('squad-roll-avg').textContent=t('setup_roll_avg_prefix')+' '+avg.toFixed(1);
   document.getElementById('squad-roll-chart').style.display='block';
 }
 
@@ -350,28 +373,33 @@ function confirmSeasonStart(){
 }
 
 // Modal "Prasa przed sezonem" — ten sam wzorzec co showBriefingModal() (dynamicznie tworzony
-// overlay, bez osobnego pliku HTML). Tekst losowany z puli 10 wariantów na kombinację
-// Talent×Wiek oraz osobno 10 na próg wyniku Naturalnego Szumu (press_* w core/i18n.js).
+// overlay, bez osobnego pliku HTML). comboText losowany z puli 10 wariantów na kombinację
+// Talent×Wiek (wybór gracza); tierText osobno z puli 10 na tier jakości finalnego składu
+// względem średniej ligi (delta vs _leagueAvgOvr(), próg ±3 OVR — patrz komentarz przy tierKey)
+// (press_* w core/i18n.js).
 function showPressModal(onClose){
   const existing=document.getElementById('modal-press');
   if(existing)existing.remove();
   const comboKey='press_'+_philTalent+'_'+_philAge+'_';
   const comboText=t(comboKey+r(1,10));
-  const rollKey='press_roll_'+_squadRollZone+'_';
-  const rollText=t(rollKey+r(1,10));
+  const clubDisplay=(G.myClub&&G.myClub.n)||'—';
+  const squadAvg=myPl().reduce((s,p)=>s+ovr(p),0)/(myPl().length||1);
+  const delta=Math.round(squadAvg-_leagueAvgOvr(G.myLeague||8));
+  const deltaCol=delta>0?'var(--gb)':delta<0?'var(--rd)':'var(--gr)';
+  const deltaTxt=(delta>0?'+':'')+delta+' OVR';
+  // Próg ±3 OVR: 1/3 rzeczywistego rozstępu ligi VII (dół tabeli ~14 OVR, szczyt ~35 OVR wg
+  // mkLeaguePlayers()/LEAGUE_OVR[8], patrz _leagueAvgOvr()) — dzieli spread 21 pkt na trzy
+  // równe pasma po 7 pkt zamiast wymyślonej wartości.
+  const tierKey='press_tier_'+(delta<-3?'weak':delta>3?'strong':'mid')+'_';
+  const tierText=t(tierKey+r(1,10));
   const chosen=(G.players||[]).filter(p=>_philChosenIds.indexOf(p.id)!==-1);
   const shapeIcon=_philTalent==='star'?'★':'▦';
   const playersHtml=chosen.map(p=>
     '<div style="display:flex;align-items:center;gap:10px;border-left:2px solid var(--am);background:var(--tb);padding:8px 10px;margin-bottom:6px">'
     +'<span class="press-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:var(--gm);border:1px solid var(--am);display:flex;align-items:center;justify-content:center;flex-shrink:0"></span>'
     +'<div style="font-size:var(--fs-dense)"><b style="color:var(--am)">'+shapeIcon+' '+p.name+'</b><br>'
-    +'<span style="color:var(--gr)">'+_posLabelForPress(p.pos)+' · OVR '+ovr(p)+'</span></div></div>'
+    +'<span style="color:var(--gr)">'+_posLabelForPress(p.pos)+' · '+p.age+t('tr_age_suffix')+' · OVR '+ovr(p)+'</span></div></div>'
   ).join('');
-  const clubDisplay=(G.myClub&&G.myClub.n)||'—';
-  const squadAvg=myPl().reduce((s,p)=>s+ovr(p),0)/(myPl().length||1);
-  const delta=Math.round(squadAvg-_leagueAvgOvr(G.myLeague||8));
-  const deltaCol=delta>0?'var(--gb)':delta<0?'var(--rd)':'var(--gr)';
-  const deltaTxt=(delta>0?'+':'')+delta+' OVR';
   const mgrDisplay=(G.mgrName||'').trim()||t('setup_mgr_default');
   const m=document.createElement('div');
   m.id='modal-press';
@@ -379,8 +407,8 @@ function showPressModal(onClose){
   m.innerHTML='<div style="width:100%;max-width:380px;border:2px solid var(--gb);background:#0a130a;padding:16px">'
     +'<div style="font-weight:700;font-size:var(--fs-h3);color:var(--gb);text-align:center;margin-bottom:12px">'+t('press_modal_title')+'</div>'
     +'<div id="press-club-crest" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px"><b style="color:var(--am);font-size:var(--fs-body)">'+clubDisplay+'</b></div>'
-    +'<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;font-style:italic">🎲 '+rollText+'</div>'
-    +'<div style="font-size:var(--fs-dense);color:var(--wh);text-align:center;background:var(--tb);border:1px solid var(--gl);padding:6px 8px;margin-bottom:12px">Średnia OVR składu: <b style="color:var(--wh)">'+squadAvg.toFixed(1)+'</b> (<b style="color:'+deltaCol+'">'+deltaTxt+'</b> od średniej ligi)</div>'
+    +'<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:8px;font-style:italic">🎯 '+tierText+'</div>'
+    +'<div style="font-size:var(--fs-dense);color:var(--wh);text-align:center;background:var(--tb);border:1px solid var(--gl);padding:6px 8px;margin-bottom:12px">'+t('press_squad_avg_label')+' <b style="color:var(--wh)">'+squadAvg.toFixed(1)+'</b> (<b style="color:'+deltaCol+'">'+deltaTxt+'</b> '+t('press_squad_avg_vs_league')+')</div>'
     +'<div style="font-size:var(--fs-dense);color:var(--wh);margin-bottom:12px;font-style:italic">📰 '+comboText+'</div>'
     +playersHtml
     +'<div style="font-size:var(--fs-dense);color:var(--gr);margin:10px 0">👔 '+t('press_mgr_line').replace('{mgr}',mgrDisplay).replace('{club}',clubDisplay)+'</div>'
