@@ -853,7 +853,8 @@ function loadGame(slot){try{
   G.players.forEach(p=>{if(!p.jerseyNum||p.jerseyNum===0)assignJerseyNum(p);});
   if(!G.allTimeStats)G.allTimeStats={players:{},bestSeller:null,bestBuyer:null};
   if(!G.records)G.records={maxWinStreak:0,maxUnbeatenStreak:0,maxLoseStreak:0,unbeatenStreak:0,bestWin:null,maxGoalsSeason:0,minConcededSeason:99};
-  if(!G.academy)G.academy={level:0,prospects:[],hist:[]};
+  if(!G.academy)G.academy={level:0,prospects:[],hist:[],trainees:[]};
+  if(G.academy&&!G.academy.trainees)G.academy.trainees=[]; // kompatybilność ze starymi zapisami sprzed fazy trainee w akademii
   if(!G.cHist)G.cHist=[];
   if(!G.frequency)G.frequency=40;
   if(!G.winStreak)G.winStreak=0;

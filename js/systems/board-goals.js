@@ -309,7 +309,7 @@ function genBoardGoals(){
     pool=[ALL_MAIN.first_title,ALL_MAIN.top1,ALL_MAIN.top3,ALL_MAIN.cup_win,ALL_MAIN.rep500];
     G.board.pressureForced=false;
   } else if(lvl>=6){
-    pool=[ALL_MAIN.mid,ALL_MAIN.top3,ALL_MAIN.stay,ALL_MAIN.cup_final];
+    pool=[ALL_MAIN.mid,ALL_MAIN.top3,lvl===8?ALL_MAIN.top8:ALL_MAIN.stay,ALL_MAIN.cup_final];
     G.board.pressureForced=false;
   } else {
     pool=lvl===8

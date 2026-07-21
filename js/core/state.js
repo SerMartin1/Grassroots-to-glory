@@ -55,7 +55,10 @@ const KRON_TIMELINE_WORTHY=['x01_first_title','x02_relegation_crisis','x03_promo
   // Sesja 13 (odwieczny rywal na podstawie historii meczów, G.h2hHistory): ogłoszenie tożsamości
   // rywala to jednorazowe, warte pamięci wydarzenie klubowe — spójnie z cl02/hs09/hs11. rv02
   // (cykliczna rocznica co 5. spotkanie) świadomie NIE trafia tutaj, bo powtarza się w nieskończoność.
-  'rv01_nemesis_named'];
+  'rv01_nemesis_named',
+  // Sesja 14 (Akademia Wariant B — faza trainee, kronika-eventy-academy.js): promocja z treningu
+  // w akademii do kadry seniorskiej to duży, jednorazowy moment na zawodnika, spójnie z ac01.
+  'ac28_trainee_graduation'];
 const KRON_IGNORED_WORTHY=['s01_party_scandal','k02_injury_streak'];
 function ovr(p){const t=p.tec,pa=p.pas,sh=p.sht,de=p.def,ph=p.phy,me=p.men;if(p.pos==='GK')return Math.round(de*0.35+me*0.35+ph*0.10+pa*0.10+t*0.05+sh*0.05);if(p.pos==='OBR')return Math.round(de*0.35+ph*0.35+me*0.10+pa*0.10+t*0.05+sh*0.05);if(p.pos==='POL')return Math.round(pa*0.35+t*0.35+me*0.10+ph*0.10+de*0.05+sh*0.05);if(p.pos==='NAP')return Math.round(sh*0.35+t*0.35+me*0.10+ph*0.10+pa*0.05+de*0.05);return Math.round((t+pa+sh+de+ph+me)/6);}
 const AGE_MULT={16:2.2,17:2.1,18:2.0,19:1.9,20:1.8,21:1.7,22:1.6,23:1.5,24:1.4,25:1.3,26:1.2,27:1.1,28:1.0,29:0.95,30:0.9,31:0.85,32:0.8,33:0.75,34:0.7,35:0.65,36:0.6,37:0.55};

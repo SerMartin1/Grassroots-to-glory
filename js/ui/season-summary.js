@@ -810,6 +810,11 @@ function startNewSeason(){
   try{ aiTransferSeason(false); }catch(e){ console.warn('aiTransferSeason error:',e); }
   updateHdr();
   notif(t('mss_notif_new_season').replace('{n}',G.season),'ok');
+  // ── AKADEMIA: rozliczenie sezonu treningowego trainees + promocje wiekowe ──
+  // Kolejność celowa: najpierw rozlicz przyrost atrybutów z minionego sezonu (wpływa na ovr()),
+  // potem sprawdź progi promocji — tak samo jak reszta tego bloku, po already-incremented G.season.
+  try{ applyTraineeFocusGains(); }catch(e){ console.warn('applyTraineeFocusGains error:',e); }
+  try{ autoPromoteTrainees(); }catch(e){ console.warn('autoPromoteTrainees error:',e); }
   generateProspects();
   // ── RAPORT ROCZNIKA AKADEMII ─────────────────────────────────────────
   if(G.academy&&G.academy.level>0&&G.season>1){

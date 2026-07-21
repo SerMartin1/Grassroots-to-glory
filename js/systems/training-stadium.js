@@ -218,6 +218,7 @@ function fillCampPanel(){
     return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #0d1f0d;font-size:var(--fs-dense);cursor:pointer;opacity:'+(disabled?'0.4':'1')+'" onclick="toggleIndCamp('+p.id+')">'+
       '<span style="color:'+(sel?'var(--am)':'var(--gr)')+'">['+(sel?'✔':' ')+']</span>'+
       '<span style="color:var(--wh)">'+p.name+'</span>'+
+      (p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+
       '<span style="color:var(--gr);margin-left:auto">OVR '+ovr(p)+'</span>'+
       '</div>';
   }).join('');
@@ -315,7 +316,7 @@ function fillProgressPanel(){
     }).join('');
     const rc='showById('+p.id+')';
     return '<tr style="cursor:pointer" onclick="'+rc+'">'+
-      '<td style="font-size:var(--fs-dense);color:var(--am);cursor:pointer" onclick="'+rc+'">'+p.name.split(' ')[1]+'</td>'+
+      '<td style="font-size:var(--fs-dense);color:var(--am);cursor:pointer" onclick="'+rc+'">'+p.name.split(' ')[1]+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       attrCells+
       '<td style="text-align:center;color:'+ovrCol+';cursor:pointer" onclick="'+rc+'">'+(ovrDiff>0?'+':'')+ovrDiff+'</td>'+
     '</tr>';

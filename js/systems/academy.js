@@ -59,12 +59,14 @@ function acadTab(tab,btn){
 }
 function fillAcademy(){
   if(!G)return;
-  if(!G.academy)G.academy={level:0,prospects:[],hist:[]};
+  if(!G.academy)G.academy={level:0,prospects:[],hist:[],trainees:[]};
+  if(!G.academy.trainees)G.academy.trainees=[];
   renderAcadPrzeglad();
 }
 function renderAcadPrzeglad(){
   const el=document.getElementById('acad-przeglad');if(!el||!G)return;
-  if(!G.academy)G.academy={level:0,prospects:[],hist:[]};
+  if(!G.academy)G.academy={level:0,prospects:[],hist:[],trainees:[]};
+  if(!G.academy.trainees)G.academy.trainees=[];
   const lvl=getAcadLvl();
   const acad=ACADEMY.levels[lvl-1];
   const prospects=(G.academy.prospects||[]).filter(p=>p.status==='pending');
@@ -185,18 +187,54 @@ function _renderAcadRozbudowaInPrzeglad(){
 }
 function renderAcadWychowankowie(sub){
   const el=document.getElementById('acad-wychowankowie');if(!el||!G||!G.academy)return;
-  const activeSub=sub||el.dataset.sub||'current';
+  if(!G.academy.trainees)G.academy.trainees=[];
+  const activeSub=sub||el.dataset.sub||'trainees';
   el.dataset.sub=activeSub;
 
   // Podzakładki
   const mkSub=(id,lbl)=>'<button onclick="renderAcadWychowankowie(\''+id+'\')" style="flex:1;padding:7px 4px;background:none;border:none;border-bottom:2px solid '+(activeSub===id?'var(--gb)':'transparent')+';font-size:var(--fs-micro);color:'+(activeSub===id?'var(--gb)':'var(--gr)')+';cursor:pointer">'+lbl+'</button>';
   let html='<div style="display:flex;border-bottom:1px solid var(--gl);margin-bottom:10px">'+
+    mkSub('trainees',t('acad_sub_trainees'))+
     mkSub('current',t('acad_sub_current'))+
     mkSub('history',t('acad_sub_history'))+
     mkSub('rejected',t('acad_sub_rejected'))+
   '</div>';
 
-  if(activeSub==='current'){
+  if(activeSub==='trainees'){
+    // Wychowankowie w trakcie treningu w akademii (jeszcze nie w kadrze seniorskiej)
+    const trainees=G.academy.trainees||[];
+    if(!trainees.length){
+      html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_no_trainees')+'</div>';
+    } else {
+      trainees.slice().sort((a,b)=>ovr(b)-ovr(a)).forEach(p=>{
+        const arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
+        const normalEligible=(p.age||16)>=19||((p.age||16)>=18&&(p.academySeasons||0)>=1);
+        html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
+            '<div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--wh)">🎓 '+p.name+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+' • '+p.age+'l'+(p.potential?' • Pot: '+p.potential:'')+' • '+t('acad_trainee_seasons').replace('{n}',p.academySeasons||0)+'</div>'+
+            '</div>'+
+            '<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+ovr(p)+'</div>'+
+          '</div>'+
+          (arch?'<div style="font-size:var(--fs-dense);color:'+arch.color+';margin-bottom:6px">'+arch.icon+' '+arch.name+'</div>':'')+
+          '<div style="font-size:var(--fs-dense);color:var(--gr);margin-bottom:4px">'+t('acad_trainee_focus_label')+'</div>'+
+          '<div style="display:flex;gap:4px;margin-bottom:8px">'+
+            Object.keys(TRAINEE_FOCUS_ATTRS).map(function(fk){
+              const active=p.academyFocus===fk;
+              return '<button onclick="setTraineeFocus('+p.id+',\''+fk+'\')" style="flex:1;background:'+(active?'var(--gb)':'var(--gm)')+';color:'+(active?'#000':'var(--wh)')+';border:1px solid var(--gl);font-size:var(--fs-dense);padding:6px 2px;cursor:pointer">'+t('acad_trainee_focus_'+fk)+'</button>';
+            }).join('')+
+          '</div>'+
+          '<div style="display:flex;gap:6px">'+
+            '<button onclick="promoteTrainee('+p.id+','+(!normalEligible)+')" style="flex:1;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(normalEligible?t('acad_trainee_promote_btn'):t('acad_trainee_promote_early_btn'))+'</button>'+
+            '<button onclick="releaseTrainee('+p.id+')" style="flex:1;background:var(--gm);color:var(--rd);border:1px solid var(--rd);font-size:var(--fs-meta);padding:8px;cursor:pointer">'+t('acad_trainee_release_btn')+'</button>'+
+          '</div>'+
+          (!normalEligible?'<div style="font-size:var(--fs-dense);color:var(--am);margin-top:6px">'+t('acad_trainee_promote_early_warn')+'</div>':'')+
+        '</div>';
+      });
+    }
+
+  } else if(activeSub==='current'){
     // Wychowankowie aktualnie w składzie
     const graduates=myPl().filter(p=>p.fromAcademy);
     if(!graduates.length){
@@ -218,32 +256,36 @@ function renderAcadWychowankowie(sub){
     }
 
   } else if(activeSub==='history'){
-    // Wszyscy wychowankowie przez historię
-    const hist=(G.academy.hist||[]).filter(h=>!h.isRejected);
-    if(!hist.length){
+    // Wszyscy wychowankowie już promowani choć raz do kadry seniorskiej — oś czasu budowana z
+    // p.history[] (to samo, już poprawnie zasilane źródło co renderAcadHistoryTab() na karcie
+    // zawodnika), NIE z martwych pól G.academy.hist (h.ovr/h.m/h.g/h.a/h.club nigdy nie były
+    // tam ustawiane — patrz diagnoza prompt #8, pkt 4 ustaleń).
+    const joinedPids=[...new Set((G.academy.hist||[]).filter(h=>!h.isRejected&&h.pid&&(h.action==='Joined squad')).map(h=>h.pid))];
+    const pool=(G.players||[]).concat(G.retiredPlayers||[]);
+    const players=joinedPids.map(pid=>pool.find(p=>p.id===pid)).filter(Boolean);
+    if(!players.length){
       html+='<div style="font-size:var(--fs-dense);color:var(--gr);padding:12px">'+t('acad_grad_none')+'</div>';
     } else {
-      const byPlayer={};
-      hist.forEach(h=>{if(!h.pid)return;if(!byPlayer[h.pid])byPlayer[h.pid]={name:h.name,pos:h.pos,seasons:[],startOvr:h.startOvr,pot:h.pot,archetype:h.archetype};byPlayer[h.pid].seasons.push(h);});
-      Object.values(byPlayer).forEach(pl=>{
-        const cur=G.players.find(p=>p.fromAcademy&&p.name===pl.name);
+      players.forEach(p=>{
+        const cur=G.players.find(x=>x.id===p.id);
         const curOvr=cur?ovr(cur):null;
+        const allHist=(p.history||[]).filter(h=>!h._placeholder).sort((a,b)=>a.season-b.season);
         html+='<div style="background:var(--tb);border:1px solid var(--gb);padding:10px 12px;margin-bottom:8px">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
             '<div>'+
-              '<div style="font-size:var(--fs-meta);color:var(--wh)'+(cur?';cursor:pointer" onclick="showById('+cur.id+')':'"')+'>🎓 '+pl.name+'</div>'+
-              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+pl.pos+(pl.pot?' • Pot: '+pl.pot:'')+'</div>'+
+              '<div style="font-size:var(--fs-meta);color:var(--wh)'+(cur?';cursor:pointer" onclick="showById('+cur.id+')':'"')+'>🎓 '+p.name+'</div>'+
+              '<div style="font-size:var(--fs-dense);color:var(--gr)">'+(POS_SHORT[p.pos]||p.pos)+(p.potential?' • Pot: '+p.potential:'')+'</div>'+
             '</div>'+
             (curOvr?'<div style="font-size:var(--fs-body);color:var(--gb)">OVR '+curOvr+'</div>':'')+
           '</div>';
-        pl.seasons.forEach((h,idx)=>{
-          const prevH=pl.seasons[idx-1];
+        allHist.forEach((h,idx)=>{
+          const prevH=allHist[idx-1];
           const ovrGrowth=prevH&&h.ovr&&prevH.ovr?h.ovr-prevH.ovr:0;
           const isFirst=idx===0;
           const isHighlight=ovrGrowth>=5||h.g>=5;
           const borderCol=isHighlight?'var(--gb)':'var(--gl)';
           let noteIcon='';
-          if(isFirst&&h.fromAcademy)noteIcon=t('acad_grad_joined');
+          if(isFirst)noteIcon=t('acad_grad_joined');
           else if(h.m>0&&prevH&&(prevH.m||0)===0)noteIcon=t('acad_grad_debut');
           else if(h.g>=5)noteIcon=t('acad_grad_goals');
           else if(ovrGrowth>=10)noteIcon=t('acad_grad_growth').replace('{n}',ovrGrowth);
@@ -322,7 +364,8 @@ function renderAcadRozbudowa(){
 }
 function buildAcademy(levelIdx){
   if(!G)return;
-  if(!G.academy)G.academy={level:0,prospects:[],hist:[]};
+  if(!G.academy)G.academy={level:0,prospects:[],hist:[],trainees:[]};
+  if(!G.academy.trainees)G.academy.trainees=[];
   const a=ACADEMY.levels[levelIdx];if(!a)return;
   if(a.ekstraOnly&&(G.myLeague||8)!==1){notif(t('acad_masters_only'),'err');return;}
   const _cst=acadCost(levelIdx);
@@ -339,21 +382,102 @@ function buildAcademy(levelIdx){
 }
 function acceptProspect(pid){
   if(!G||!G.academy)return;
+  if(!G.academy.trainees)G.academy.trainees=[];
   const pr=G.academy.prospects.find(x=>x.id===pid);if(!pr)return;
   pr.status='accepted';
+  // v: prospekt NIE trafia od razu do G.players — ląduje w G.academy.trainees na fazę treningu
+  // w akademii (setTraineeFocus/promoteTrainee), zanim wejdzie do kadry seniorskiej. p.history
+  // celowo pusty na tym etapie: trainee nie gra meczów klubowych, pierwszy wpis history powstaje
+  // dopiero przy promoteTrainee() (ten sam idiom co transfer wchodzący, kronika.js:200-206).
   const p=mkPlayer(G.myClubId);
   p.id=pr.id;p.name=pr.name;p.last=pr.name.split(' ')[1]||pr.name;
   p.pos=pr.pos;p.age=pr.age;p.trainRate=pr.trainRate;p.trainMatches=0;
   p.potential=pr.potential;p.fromAcademy=true;p.archetype=pr.archetype||null;
   ['tec','pas','sht','def','phy','men'].forEach(a=>{p[a]=Math.max(1,Math.min(99,Math.round(pr.ovr+r(-5,5))));});
   p.value=calcValue(ovr(p),p.age);p.salary=calcSalary(p.value,G.myLeague,ovr(p));
-  p.contract=3;p.starter=false;
-  assignJerseyNum(p);
-  G.players.push(p);
-  G.academy.hist.push({pid:p.id,season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Joined squad',joinedSeason:G.season,archetype:pr.archetype||null,startOvr:pr.ovr,pot:pr.potential});
+  p.history=[];
+  p.academyFocus=null;p.academySeasons=0;p.academyJoinedSeason=G.season;
+  G.academy.trainees.push(p);
+  G.academy.hist.push({pid:p.id,season:G.season,name:pr.name,pos:POS_SHORT[pr.pos]||pr.pos,action:'Joined academy',joinedSeason:G.season,archetype:pr.archetype||null,startOvr:pr.ovr,pot:pr.potential});
   addNews(t('news_academy_joined').replace('{name}',pr.name).replace('{pot}',pr.potential),'academy');
   notif(t('acad_notif_accept').replace('{name}',pr.name),'ok');
   renderAcadPrzeglad();renderAcadWychowankowie();
+}
+const TRAINEE_FOCUS_ATTRS={ATK:['sht','tec'],POL:['pas','men'],OBR:['def','phy'],BAL:['tec','pas','sht','def','phy','men']};
+function setTraineeFocus(pid,focusKey){
+  if(!G||!G.academy)return;
+  const p=(G.academy.trainees||[]).find(x=>x.id===pid);if(!p)return;
+  if(!TRAINEE_FOCUS_ATTRS[focusKey])return;
+  p.academyFocus=focusKey;
+  notif(t('acad_notif_focus_set').replace('{name}',p.name).replace('{focus}',t('acad_trainee_focus_'+focusKey)),'ok');
+  renderAcadWychowankowie();
+}
+// Rozliczenie sezonowego fokusu — wołane raz na koniec sezonu (season-summary.js, obok
+// generateProspects()), NIE co tydzień — świadomy kompromis Wariantu B, patrz PROMPTY_ROZWOJOWE.
+function applyTraineeFocusGains(){
+  if(!G||!G.academy||!G.academy.trainees)return;
+  G.academy.trainees.forEach(p=>{
+    // Trainees siedzą poza G.players, więc nie łapie ich żadna z dwóch istniejących pętli
+    // starzenia (season-summary.js myPl().forEach dla klubu gracza, match-post.js dla AI) —
+    // bez tego trainee nigdy nie osiągnąłby progu autoPromoteTrainees() i utknąłby w akademii
+    // na zawsze, chyba że gracz ręcznie go promuje wcześniej.
+    p.age=(p.age||16)+1;
+    p.academySeasons=(p.academySeasons||0)+1;
+    const focusAttrs=TRAINEE_FOCUS_ATTRS[p.academyFocus]||TRAINEE_FOCUS_ATTRS.BAL;
+    const arch=p.archetype&&ARCHETYPE_META[p.archetype]?ARCHETYPE_META[p.archetype]:null;
+    focusAttrs.forEach(attr=>{
+      const tr=p.trainRate||1.0;
+      const archM=arch?(arch.mult[attr]||1.0):1.0;
+      const baseGain=r(3,6);
+      const gain=Math.max(1,Math.round(baseGain*tr*archM));
+      const before=p[attr];
+      p[attr]=Math.min(99,p[attr]+gain);
+      if(ovr(p)>=p.potential)p[attr]=before;
+    });
+  });
+}
+function promoteTrainee(pid,early){
+  if(!G||!G.academy||!G.academy.trainees)return;
+  const idx=G.academy.trainees.findIndex(x=>x.id===pid);if(idx===-1)return;
+  const p=G.academy.trainees[idx];
+  if(early){
+    // Kara za przedwczesną promocję: ucięcie części niewykorzystanego zapasu potencjału
+    p.potential=Math.max(ovr(p)+3,p.potential-10);
+  }
+  G.academy.trainees.splice(idx,1);
+  p.clubId=G.myClubId;p.starter=false;p.status='active';p.isFreeAgent=false;p._seasonsAtClub=0;
+  p.contract=3;
+  p.value=calcValue(ovr(p),p.age);p.salary=calcSalary(p.value,G.myLeague,ovr(p));
+  if(!p.history.find(h=>h._current&&h.season===G.season&&h.clubId===G.myClubId)){
+    p.history.push({season:G.season,clubId:G.myClubId,club:G.myClub?G.myClub.n:'?',m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0,ovr:ovr(p),avgRat:null,_current:true});
+  }
+  assignJerseyNum(p);
+  G.players.push(p);
+  const histEntry=G.academy.hist.find(h=>h.pid===p.id&&h.action==='Joined academy');
+  // joinedSeason przestawiony na sezon PROMOCJI (nie akceptacji do akademii) — acFreshGraduate()/
+  // acFirstGraduateEntry() w kronika-eventy-academy.js zakładają, że to sezon wejścia do kadry.
+  if(histEntry){histEntry.action='Joined squad';histEntry.joinedSeason=G.season;}
+  addNews(t('news_academy_joined').replace('{name}',p.name).replace('{pot}',p.potential),'academy');
+  notif(t(early?'acad_notif_promote_early':'acad_notif_promote').replace('{name}',p.name),'ok');
+  renderAcadPrzeglad();renderAcadWychowankowie();
+}
+function releaseTrainee(pid){
+  if(!G||!G.academy||!G.academy.trainees)return;
+  const idx=G.academy.trainees.findIndex(x=>x.id===pid);if(idx===-1)return;
+  const p=G.academy.trainees[idx];
+  G.academy.trainees.splice(idx,1);
+  G.academy.hist.push({season:G.season,name:p.name,pos:POS_SHORT[p.pos]||p.pos,action:'Released (trainee)',releaseOvr:ovr(p),pot:p.potential,archetype:p.archetype||null,isRejected:true});
+  notif(t('acad_notif_reject').replace('{name}',p.name),'ok');
+  renderAcadWychowankowie();
+}
+// Promocja automatyczna — wołana raz na koniec sezonu (season-summary.js, obok
+// generateProspects()). Wiek>=19: promocja wymuszona. Wiek>=18 i co najmniej 1 pełny sezon w
+// akademii: promocja domyślna (gracz mógł przyspieszyć ręcznie wcześniej przez UI).
+function autoPromoteTrainees(){
+  if(!G||!G.academy||!G.academy.trainees)return;
+  [...G.academy.trainees].forEach(p=>{
+    if((p.age||16)>=19||((p.age||16)>=18&&(p.academySeasons||0)>=1))promoteTrainee(p.id,false);
+  });
 }
 function rejectProspect(pid){
   if(!G||!G.academy)return;

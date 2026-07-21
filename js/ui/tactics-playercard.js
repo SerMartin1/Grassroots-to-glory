@@ -174,6 +174,7 @@ function fillTacSquad(){
         '<td style="padding:5px 14px">'+
           '<span style="color:'+iconCol+';margin-right:4px;font-size:var(--fs-dense)">'+icon+'</span>'+
           '<span style="color:'+(isSt?'var(--wh)':'var(--gr)')+'">'+p.name+'</span>'+
+          (p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+
           (isSt?'<span style="color:var(--am);font-size:var(--fs-dense);margin-left:4px">✔</span>':'')+
           (p.id===G.captainId?'<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--am);color:#1a1400;font-size:8px;font-weight:800;margin-left:5px;vertical-align:middle">C</span>':'')+
         '</td>'+
@@ -208,7 +209,7 @@ function fillPitch(){if(!G)return;const st=myPl().filter(p=>p.starter).sort((a,b
     } else {
       po.textContent=t('tac_avg_ovr_camp').replace('{n}',avg);
     }
-  }const field=document.getElementById('pitch-field');if(!field)return;field.innerHTML='';if(!st.length){field.innerHTML='<div style="color:var(--gr);text-align:center;padding:20px;font-size:var(--fs-dense)">'+t('tac_no_players')+'</div>';return;}function row(pl,cls,lbl){if(!pl.length)return;const ld=document.createElement('div');ld.style.cssText="text-align:center;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px";ld.textContent=lbl;field.appendChild(ld);const rd=document.createElement('div');rd.className='pitch-row';pl.forEach(p=>{const el=document.createElement('div');el.className='pp '+(cls||'');el.style.cursor='pointer';el.innerHTML='<span class="pp-name">'+p.name.split(' ')[1].substring(0,8)+'</span><span class="pp-ovr">OVR '+ovr(p)+'</span>';el.onclick=()=>showPlayer(p);rd.appendChild(el);});field.appendChild(rd);}
+  }const field=document.getElementById('pitch-field');if(!field)return;field.innerHTML='';if(!st.length){field.innerHTML='<div style="color:var(--gr);text-align:center;padding:20px;font-size:var(--fs-dense)">'+t('tac_no_players')+'</div>';return;}function row(pl,cls,lbl){if(!pl.length)return;const ld=document.createElement('div');ld.style.cssText="text-align:center;font-size:var(--fs-dense);color:rgba(255,255,255,0.3);margin-top:4px";ld.textContent=lbl;field.appendChild(ld);const rd=document.createElement('div');rd.className='pitch-row';pl.forEach(p=>{const el=document.createElement('div');el.className='pp '+(cls||'');el.style.cursor='pointer';el.innerHTML='<span class="pp-name">'+p.name.split(' ')[1].substring(0,8)+'</span><span class="pp-ovr">OVR '+ovr(p)+'</span>'+(p.fromAcademy?'<span class="pp-acad-badge">🎓</span>':'');el.onclick=()=>showPlayer(p);rd.appendChild(el);});field.appendChild(rd);}
 row(st.filter(p=>p.pos==='NAP'),'',t('tac_row_strikers'));row(st.filter(p=>p.pos==='POL'),'',t('tac_row_mids'));row(st.filter(p=>p.pos==='OBR'),'',t('tac_row_defs'));row(st.filter(p=>p.pos==='GK'),'gk',t('tac_row_gk'));}
 
 function _styleLabel(s){

@@ -72,6 +72,36 @@ function buildKronAcademyEvents(){
     return totalRounds-played;
   }
 
+  // ── Helpery fazy trainee (Wariant B — trening w akademii przed promocją do kadry) ──
+  function acTraineeList(){return (G.academy&&G.academy.trainees)||[];}
+  function acFreshTrainee(){
+    return acTraineeList().find(function(p){return p.academyJoinedSeason===G.season;});
+  }
+  function acUnfocusedTrainee(){
+    return acTraineeList().find(function(p){return !p.academyFocus;});
+  }
+  function acSettledTrainee(){
+    return acTraineeList().find(function(p){return p.academyFocus&&(p.academySeasons||0)===0;});
+  }
+  function acTraineeGrowthLeap(){
+    return acTraineeList().find(function(p){return (p.trainRate||1)>=1.5&&(p.academySeasons||0)>=1;});
+  }
+  function acStuckUnfocusedTrainee(){
+    return acTraineeList().find(function(p){return (p.academySeasons||0)>=1&&!p.academyFocus;});
+  }
+  function acNormalPromoEligible(p){
+    return (p.age||16)>=19||((p.age||16)>=18&&(p.academySeasons||0)>=1);
+  }
+  function acEarlyPromoCandidate(){
+    return acTraineeList().find(function(p){return (p.age||16)>=17&&!acNormalPromoEligible(p);});
+  }
+  function acStuckTrainee(){
+    return acTraineeList().find(function(p){return (p.academySeasons||0)>=3;});
+  }
+  function acTraineeWatchCandidate(){
+    return acTraineeList().find(function(p){return ((p.potential||0)-ovr(p))>=15;});
+  }
+
   return [
 
     // AC-01: 5 lat od pierwszego absolwenta akademii (rocznica)
@@ -753,6 +783,494 @@ function buildKronAcademyEvents(){
           if(G.kronika.flags._ac20result==='win')return t('kron_ac20_c3_outcome_win').replace('{rep}',G.reputation||0);
           return t('kron_ac20_c3_outcome_lose').replace('{rep}',G.reputation||0);
         }},
+     ]},
+
+    // ══════════════════════════════════════════════════════════════════════
+    // AC-21..33: faza TRAINEE (Wariant B — trening w akademii przed promocją,
+    // patrz systems/academy.js: G.academy.trainees). Pokrywają łuk fabularny
+    // MIĘDZY przyjęciem do akademii a promocją do kadry, gdzie ac01-ac20 już
+    // pokrywają fazę PO promocji.
+    // ══════════════════════════════════════════════════════════════════════
+
+    // AC-21: Nowy wychowanek zaczyna trening w akademii
+    {id:'ac21_trainee_admission', category:t('kron_cat_academy'),
+     weight:function(){return acFreshTrainee()?20:0;},
+     title:t('kron_ac21_title'),
+     body:function(){
+       var p=acFreshTrainee();
+       return t('kron_ac21_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac21_c1_label'),
+        effect:function(){
+          if(G.budget<1500){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac21result='noBudget';return;}
+          G.budget-=1500;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:1500,bal:G.budget,season:G.season,note:t('kron_note_ac21_trainee_admission')});
+          G.reputation=(G.reputation||30)+4;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac21result==='noBudget')return t('kron_ac21_c1_outcome_nobudget');
+          return t('kron_ac21_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac21_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac21_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac21_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._ac21result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-2);G.kronika.flags._ac21result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac21result==='win')return t('kron_ac21_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac21_c3_outcome_lose');
+        }},
+     ]},
+
+    // AC-22: Sztab czeka na wybór fokusu treningowego wychowanka
+    {id:'ac22_trainee_focus_choice', category:t('kron_cat_academy'),
+     weight:function(){return acUnfocusedTrainee()?18:0;},
+     title:t('kron_ac22_title'),
+     body:function(){
+       var p=acUnfocusedTrainee();
+       return t('kron_ac22_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac22_c1_label'),
+        effect:function(){
+          if(G.budget<1000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac22result='noBudget';return;}
+          G.budget-=1000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:1000,bal:G.budget,season:G.season,note:t('kron_note_ac22_trainee_focus_choice')});
+          G.reputation=(G.reputation||30)+3;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac22result==='noBudget')return t('kron_ac22_c1_outcome_nobudget');
+          return t('kron_ac22_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac22_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac22_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac22_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+3;G.kronika.flags._ac22result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-2);G.kronika.flags._ac22result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac22result==='win')return t('kron_ac22_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac22_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-23: Debiut wychowanka w meczu rezerw akademii
+    {id:'ac23_trainee_reserve_debut', category:t('kron_cat_academy'),
+     weight:function(){return acSettledTrainee()?16:0;},
+     title:t('kron_ac23_title'),
+     body:function(){
+       var p=acSettledTrainee();
+       G.kronika.flags._ac23pid=p?p.id:-1;
+       return t('kron_ac23_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac23_c1_label'),
+        effect:function(){
+          if(G.budget<1200){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac23result='noBudget';return;}
+          G.budget-=1200;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:1200,bal:G.budget,season:G.season,note:t('kron_note_ac23_trainee_reserve_debut')});
+          var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac23pid;});
+          if(p)p.form=Math.min(100,(p.form||100)+3);
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac23result==='noBudget')return t('kron_ac23_c1_outcome_nobudget');
+          return t('kron_ac23_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac23_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac23_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac23_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+4;G.kronika.flags._ac23result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-3);G.kronika.flags._ac23result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac23result==='win')return t('kron_ac23_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac23_c3_outcome_lose');
+        }},
+     ]},
+
+    // AC-24: Nagły skok rozwoju wychowanka w akademii
+    {id:'ac24_trainee_growth_leap', category:t('kron_cat_academy'),
+     weight:function(){return acTraineeGrowthLeap()?20:0;},
+     title:t('kron_ac24_title'),
+     body:function(){
+       var p=acTraineeGrowthLeap();
+       G.kronika.flags._ac24pid=p?p.id:-1;
+       return t('kron_ac24_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac24_c1_label'),
+        effect:function(){
+          if(G.budget<3000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac24result='noBudget';return;}
+          G.budget-=3000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:3000,bal:G.budget,season:G.season,note:t('kron_note_ac24_trainee_growth_leap')});
+          var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac24pid;});
+          if(p)p.trainRate=Math.min(2.5,(p.trainRate||1)+0.05);
+          G.reputation=(G.reputation||30)+5;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac24result==='noBudget')return t('kron_ac24_c1_outcome_nobudget');
+          return t('kron_ac24_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac24_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac24_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac24_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+6;G.kronika.flags._ac24result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-3);G.kronika.flags._ac24result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac24result==='win')return t('kron_ac24_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac24_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-25: Wychowanek bez ustalonego fokusu popada w kryzys motywacji
+    {id:'ac25_trainee_crisis', category:t('kron_cat_academy'),
+     weight:function(){return acStuckUnfocusedTrainee()?18:0;},
+     title:t('kron_ac25_title'),
+     body:function(){
+       var p=acStuckUnfocusedTrainee();
+       G.kronika.flags._ac25pid=p?p.id:-1;
+       return t('kron_ac25_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac25_c1_label'),
+        effect:function(){
+          if(G.budget<2000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac25result='noBudget';return;}
+          G.budget-=2000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2000,bal:G.budget,season:G.season,note:t('kron_note_ac25_trainee_crisis')});
+          G.reputation=(G.reputation||30)+4;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac25result==='noBudget')return t('kron_ac25_c1_outcome_nobudget');
+          return t('kron_ac25_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac25_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac25_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac25_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+2;G.kronika.flags._ac25result='win';}
+          else{
+            var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac25pid;});
+            if(p)p.trainRate=Math.max(0.5,(p.trainRate||1)-0.1);
+            G.reputation=Math.max(0,(G.reputation||30)-3);
+            G.kronika.flags._ac25result='lose';
+          }
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac25result==='win')return t('kron_ac25_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac25_c3_outcome_lose');
+        }},
+     ]},
+
+    // AC-26: Drobny uraz na treningu w akademii
+    {id:'ac26_trainee_injury_scare', category:t('kron_cat_academy'),
+     weight:function(){return acTraineeList().length?14:0;},
+     title:t('kron_ac26_title'),
+     body:function(){
+       var p=acTraineeList()[0];
+       G.kronika.flags._ac26pid=p?p.id:-1;
+       return t('kron_ac26_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac26_c1_label'),
+        effect:function(){
+          if(G.budget<1500){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac26result='noBudget';return;}
+          G.budget-=1500;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:1500,bal:G.budget,season:G.season,note:t('kron_note_ac26_trainee_injury_scare')});
+          G.reputation=(G.reputation||30)+3;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac26result==='noBudget')return t('kron_ac26_c1_outcome_nobudget');
+          return t('kron_ac26_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac26_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac26_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac26_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+1;G.kronika.flags._ac26result='win';}
+          else{
+            var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac26pid;});
+            if(p)p.form=Math.max(50,(p.form||100)-15);
+            G.reputation=Math.max(0,(G.reputation||30)-4);
+            G.kronika.flags._ac26result='lose';
+          }
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac26result==='win')return t('kron_ac26_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac26_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-27: Sztab pierwszej drużyny pyta o wcześniejszą promocję wychowanka
+    {id:'ac27_trainee_early_promotion_temptation', category:t('kron_cat_academy'),
+     weight:function(){return acEarlyPromoCandidate()?18:0;},
+     title:t('kron_ac27_title'),
+     body:function(){
+       var p=acEarlyPromoCandidate();
+       G.kronika.flags._ac27pid=p?p.id:-1;
+       return t('kron_ac27_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac27_c1_label'),
+        effect:function(){
+          var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac27pid;});
+          if(p&&typeof promoteTrainee==='function'){promoteTrainee(p.id,true);G.kronika.flags._ac27name=p.name;}
+        },
+        outcome:function(){
+          if(!G.kronika.flags._ac27name)return t('kron_ac27_c1_outcome_noplayer');
+          return t('kron_ac27_c1_outcome').replace('{name}',G.kronika.flags._ac27name);
+        }},
+       {label:t('kron_ac27_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac27_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac27_c3_label'),
+        effect:function(){
+          var p=acTraineeList().find(function(x){return x.id===G.kronika.flags._ac27pid;});
+          if(Math.random()<0.5){
+            if(p&&typeof promoteTrainee==='function'){promoteTrainee(p.id,true);G.kronika.flags._ac27name2=p.name;}
+            G.kronika.flags._ac27result='win';
+          } else {
+            G.reputation=(G.reputation||30)+1;
+            G.kronika.flags._ac27result='lose';
+          }
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac27result==='win')return t('kron_ac27_c3_outcome_win').replace('{name}',G.kronika.flags._ac27name2||t('kron_fallback_player'));
+          return t('kron_ac27_c3_outcome_lose');
+        }},
+     ]},
+
+    // AC-28: Promocja wychowanka do kadry seniorskiej (duży moment — timeline-worthy)
+    {id:'ac28_trainee_graduation', category:t('kron_cat_academy'),
+     weight:function(){return acFreshGraduate()?24:0;},
+     title:t('kron_ac28_title'),
+     body:function(){
+       var p=acFreshGraduate();
+       return t('kron_ac28_body').replace('{name}',p?p.name:t('kron_fallback_player'));
+     },
+     choices:[
+       {label:t('kron_ac28_c1_label'),
+        effect:function(){
+          if(G.budget<3000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac28result='noBudget';return;}
+          G.budget-=3000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:3000,bal:G.budget,season:G.season,note:t('kron_note_ac28_trainee_graduation')});
+          G.reputation=(G.reputation||30)+8;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac28result==='noBudget')return t('kron_ac28_c1_outcome_nobudget');
+          return t('kron_ac28_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac28_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+3;},
+        outcome:function(){return t('kron_ac28_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac28_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._ac28result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-2);G.kronika.flags._ac28result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac28result==='win')return t('kron_ac28_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac28_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-29: Wychowanek przetrzymywany zbyt długo bez promocji traci cierpliwość
+    {id:'ac29_trainee_lost_prospect', category:t('kron_cat_academy'),
+     weight:function(){return acStuckTrainee()?16:0;},
+     title:t('kron_ac29_title'),
+     body:function(){
+       var p=acStuckTrainee();
+       G.kronika.flags._ac29pid=p?p.id:-1;
+       G.kronika.flags._ac29name=p?p.name:t('kron_fallback_player');
+       return t('kron_ac29_body').replace('{name}',G.kronika.flags._ac29name).replace('{n}',p?(p.academySeasons||0):'?');
+     },
+     choices:[
+       {label:t('kron_ac29_c1_label'),
+        effect:function(){
+          if(G.budget<2000){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac29result='noBudget';return;}
+          G.budget-=2000;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2000,bal:G.budget,season:G.season,note:t('kron_note_ac29_trainee_lost_prospect')});
+          G.reputation=(G.reputation||30)+5;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac29result==='noBudget')return t('kron_ac29_c1_outcome_nobudget');
+          return t('kron_ac29_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac29_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac29_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac29_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+3;G.kronika.flags._ac29result='win';}
+          else{
+            var pid=G.kronika.flags._ac29pid;
+            if(pid>=0&&typeof releaseTrainee==='function')releaseTrainee(pid);
+            G.reputation=Math.max(0,(G.reputation||30)-6);
+            G.kronika.flags._ac29result='lose';
+          }
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac29result==='win')return t('kron_ac29_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac29_c3_outcome_lose').replace('{name}',G.kronika.flags._ac29name);
+        }},
+     ]},
+
+    // AC-30: Kilku wychowanków trenuje jednocześnie — "fabryka talentów"
+    {id:'ac30_trainee_pipeline_pride', category:t('kron_cat_academy'),
+     weight:function(){return acTraineeList().length>=3?16:0;},
+     title:t('kron_ac30_title'),
+     body:function(){return t('kron_ac30_body').replace('{n}',acTraineeList().length);},
+     choices:[
+       {label:t('kron_ac30_c1_label'),
+        effect:function(){
+          if(G.budget<2500){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac30result='noBudget';return;}
+          G.budget-=2500;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2500,bal:G.budget,season:G.season,note:t('kron_note_ac30_trainee_pipeline_pride')});
+          G.reputation=(G.reputation||30)+6;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac30result==='noBudget')return t('kron_ac30_c1_outcome_nobudget');
+          return t('kron_ac30_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac30_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+2;},
+        outcome:function(){return t('kron_ac30_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac30_c3_label'),
+        effect:function(){
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+5;G.kronika.flags._ac30result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-3);G.kronika.flags._ac30result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac30result==='win')return t('kron_ac30_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac30_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-31: Skauci rywala węszą wokół akademii (ŁAŃCUCH — start, patrz ac32)
+    {id:'ac31_trainee_scout_poaching', category:t('kron_cat_academy'),
+     weight:function(){
+       if(G.flags&&G.flags.traineeWatch)return 0;
+       return (G.rival&&acTraineeWatchCandidate())?22:0;
+     },
+     title:t('kron_ac31_title'),
+     body:function(){
+       var p=acTraineeWatchCandidate();
+       return t('kron_ac31_body').replace('{name}',p?p.name:t('kron_fallback_player')).replace('{rival}',G.rival?G.rival.n:t('kron_fallback_rival'));
+     },
+     choices:[
+       {label:t('kron_ac31_c1_label'),
+        effect:function(){
+          var p=acTraineeWatchCandidate();
+          G.flags=G.flags||{};
+          if(p){
+            if(G.budget>=2500){
+              G.budget-=2500;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:2500,bal:G.budget,season:G.season,note:t('kron_note_ac31_trainee_scout_poaching')});
+              G.flags.traineeWatch={pid:p.id,name:p.name,season:G.season,reaction:'signed'};
+            } else {
+              notif(t('kron_notif_no_budget'),'err');
+              G.flags.traineeWatch={pid:p.id,name:p.name,season:G.season,reaction:'ignored'};
+            }
+          }
+        },
+        outcome:function(){
+          if(!G.flags.traineeWatch)return t('kron_ac31_c1_outcome_noplayer');
+          if(G.flags.traineeWatch.reaction==='signed')return t('kron_ac31_c1_outcome').replace('{name}',G.flags.traineeWatch.name);
+          return t('kron_ac31_c1_outcome_nobudget');
+        }},
+       {label:t('kron_ac31_c2_label'),
+        effect:function(){
+          var p=acTraineeWatchCandidate();
+          G.flags=G.flags||{};
+          if(p)G.flags.traineeWatch={pid:p.id,name:p.name,season:G.season,reaction:'ignored'};
+        },
+        outcome:function(){
+          if(!G.flags.traineeWatch)return t('kron_ac31_c2_outcome_noplayer');
+          return t('kron_ac31_c2_outcome').replace('{name}',G.flags.traineeWatch.name);
+        }},
+       {label:t('kron_ac31_c3_label'),
+        effect:function(){
+          var p=acTraineeWatchCandidate();
+          G.flags=G.flags||{};
+          if(p)G.flags.traineeWatch={pid:p.id,name:p.name,season:G.season,reaction:'hyped'};
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._ac31result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-4);G.kronika.flags._ac31result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac31result==='win')return t('kron_ac31_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac31_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-32: Rozstrzygnięcie obserwacji wychowanka (ŁAŃCUCH — zakończenie ac31)
+    {id:'ac32_trainee_scout_poaching_resolution', category:t('kron_cat_academy'),
+     weight:function(){
+       if(!G.flags||!G.flags.traineeWatch)return 0;
+       return (G.season-G.flags.traineeWatch.season)>=1?26:0;
+     },
+     title:t('kron_ac32_title'),
+     body:function(){
+       var w=G.flags.traineeWatch;
+       var stillTrainee=acTraineeList().find(function(p){return p.id===w.pid;});
+       var p=acFindAnywhere(w.pid);
+       var seasonsAgo=G.season-w.season;
+       var status;
+       if(stillTrainee)status='training';
+       else if(!p)status='unknown';
+       else if(G.retiredPlayers&&G.retiredPlayers.some(function(x){return x.id===w.pid;}))status='retired';
+       else if(p.clubId===G.myClubId)status='promoted';
+       else status='left';
+       G.kronika.flags._ac32status=status;
+       G.kronika.flags._ac32name=w.name;
+       if(status==='training')return t('kron_ac32_body_training').replace('{name}',w.name).replace('{n}',seasonsAgo);
+       if(status==='promoted')return t('kron_ac32_body_promoted').replace('{name}',w.name).replace('{n}',seasonsAgo);
+       if(status==='left')return t('kron_ac32_body_left').replace('{name}',w.name).replace('{n}',seasonsAgo).replace('{club}',p.clubId?(ALL_CLUBS.find(function(c){return c.id===p.clubId;})||{}).n||t('kron_fallback_rival'):t('kron_fallback_rival'));
+       if(status==='retired')return t('kron_ac32_body_retired').replace('{name}',w.name).replace('{n}',seasonsAgo);
+       return t('kron_ac32_body_unknown').replace('{name}',w.name).replace('{n}',seasonsAgo);
+     },
+     choices:[
+       {label:t('kron_ac32_c1_label'),
+        effect:function(){G.flags.traineeWatch=null;G.reputation=(G.reputation||30)+5;},
+        outcome:function(){return t('kron_ac32_c1_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac32_c2_label'),
+        effect:function(){G.flags.traineeWatch=null;},
+        outcome:function(){return t('kron_ac32_c2_outcome');}},
+       {label:t('kron_ac32_c3_label'),
+        effect:function(){
+          G.flags.traineeWatch=null;
+          if(Math.random()<0.5){G.reputation=(G.reputation||30)+7;G.kronika.flags._ac32result='win';}
+          else{G.reputation=Math.max(0,(G.reputation||30)-4);G.kronika.flags._ac32result='lose';}
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac32result==='win')return t('kron_ac32_c3_outcome_win').replace('{rep}',G.reputation||0);
+          return t('kron_ac32_c3_outcome_lose').replace('{rep}',G.reputation||0);
+        }},
+     ]},
+
+    // AC-33: Rodzice wychowanka dopytują o tempo rozwoju
+    {id:'ac33_trainee_parent_pressure', category:t('kron_cat_academy'),
+     weight:function(){return (G.academy&&G.academy.level>=1&&acTraineeList().length>=1&&(G.season||1)>=2)?14:0;},
+     title:t('kron_ac33_title'),
+     body:function(){return t('kron_ac33_body');},
+     choices:[
+       {label:t('kron_ac33_c1_label'),
+        effect:function(){
+          if(G.budget<1500){notif(t('kron_notif_no_budget'),'err');G.kronika.flags._ac33result='noBudget';return;}
+          G.budget-=1500;if(!G.fin.hist)G.fin.hist=[];G.fin.hist.push({w:G.week,inc:0,cost:1500,bal:G.budget,season:G.season,note:t('kron_note_ac33_trainee_parent_pressure')});
+          G.reputation=(G.reputation||30)+4;
+        },
+        outcome:function(){
+          if(G.kronika.flags._ac33result==='noBudget')return t('kron_ac33_c1_outcome_nobudget');
+          return t('kron_ac33_c1_outcome').replace('{rep}',G.reputation||0);
+        }},
+       {label:t('kron_ac33_c2_label'),
+        effect:function(){G.reputation=(G.reputation||30)+1;},
+        outcome:function(){return t('kron_ac33_c2_outcome').replace('{rep}',G.reputation||0);}},
+       {label:t('kron_ac33_c3_label'),
+        effect:function(){G.reputation=Math.max(0,(G.reputation||30)-3);},
+        outcome:function(){return t('kron_ac33_c3_outcome').replace('{rep}',G.reputation||0);}},
      ]},
 
   ];

@@ -299,13 +299,16 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .pitch-ovr{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);color:var(--am);text-align:center;background:#000;padding:6px;border:1px solid var(--am);margin-bottom:8px;}
 .pitch-field{display:flex;flex-direction:column;gap:8px;}
 .pitch-row{display:flex;justify-content:space-around;gap:4px;}
-.pp{background:#2d7d32;border:1px solid var(--gb);padding:3px 4px;font-size:var(--fs-dense);color:var(--wh);text-align:center;min-width:50px;max-width:62px;font-family:'JetBrains Mono',monospace;line-height:1.2;cursor:pointer;}
+.pp{position:relative;background:#2d7d32;border:1px solid var(--gb);padding:3px 4px;font-size:var(--fs-dense);color:var(--wh);text-align:center;min-width:50px;max-width:62px;font-family:'JetBrains Mono',monospace;line-height:1.2;cursor:pointer;}
 .pp:hover{background:#3d8d42;}
 .pp.gk{background:#1565c0;border-color:#64b5f6;}
 .pp-jersey{font-size:var(--fs-dense);color:rgba(255,255,255,0.5);display:block;line-height:1;}
 .pp-name{font-size:var(--fs-dense);display:block;white-space:nowrap;overflow:hidden;max-width:58px;}
 .pp-ovr{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);color:var(--am);display:block;font-weight:bold;}
 .pp-rat{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);display:block;text-align:center;margin-top:1px;}
+/* Wychowanek na karcie boiska (.pp) — narożny znaczek zamiast tekstu w .pp-name, bo ta ma
+   max-width:58px/overflow:hidden i nazwisko jest już ucięte do 8 znaków (ryzyko obcięcia emoji). */
+.pp-acad-badge{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:#9c27b0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1;border:1px solid #2b0a3d;box-shadow:0 1px 3px rgba(0,0,0,0.5);}
 /* ── Wariant 1: pasek sterowania meczem (wolniej/szybciej/wynik/zmiany) ── */
 .cb1-row4{display:flex;}
 .cb1-row4 button{flex:1;background:var(--tb);border:none;border-right:1px solid var(--gl);color:var(--gr);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-micro);padding:8px 2px;cursor:pointer;letter-spacing:.02em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}

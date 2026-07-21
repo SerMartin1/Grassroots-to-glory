@@ -39,14 +39,6 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 
 # 🟢 POZIOM 1 — Drobne poprawki (bug, jedna funkcja, jedna sesja)
 
-☐ **Bug: zakładka Wyniki resetuje się po zamknięciu meczu**
-  Otwarcie i zamknięcie meczu z zakładki Wyniki powinno wracać do zakładki Wyniki, a nie
-  przełączać widoku. [prompt: #7]
-
-☐ **Bug: cel zarządu "nie spadnij z ligi" możliwy w VII lidze**
-  VII liga to najniższa liga — z niej nie ma gdzie spadać, więc taki cel nie powinien się
-  losować. `systems/board-goals.js`. [prompt: #6]
-
 ☐ **Karta zawodnika — numer zawodnika**
   Dodać/poprawić wyświetlanie numeru na karcie. (część większego zadania #9 poniżej —
   jeśli chcesz to zrobić osobno i szybko, wydziel tylko tę część)
@@ -65,18 +57,12 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 
 # 🟡 POZIOM 2 — Małe zadania (jeden plik/moduł, ograniczony zakres)
 
-☐ **Losowa drużyna przy tworzeniu kariery**
-  Poprawić mechanizm losowania (`drawRandomClub` / `rerollClub`) w ekranie startu.
-  [prompt: #17]
-
 ☐ **Kontrakty — natychmiastowy update po akceptacji**
   UI ma się odświeżać od razu po zaakceptowaniu warunków.
 
 ☐ **Kontrakty — info w aktualnościach + kolor dla wygasających**
   Po przedłużeniu kontraktu: news w kategorii "klub". Zawodnicy z kończącym się kontraktem
   wyróżnieni innym kolorem na liście. [prompt: #5, część A]
-
-☐ **Więzi zawodników — UI poprawa + ekspozycja**
 
 ☐ **Trening 30+**
   Wiek 30+ → wolniejszy progres atrybutów.
@@ -144,17 +130,15 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
   Rotacja zawodników (weekly), dynamiczny popyt → cena, "zarezerwuj zainteresowanie",
   wskaźnik rywalizacji na karcie.
 
-☐ **Kapitan drużyny — wybór i bonus**
-  Wybór kapitana przez gracza + bonus (np. wpływ na innych zawodników / rating meczowy).
-  [prompt: #11]
+☐ **Rynek transferowy — okna transferowe**
+  Przeglądanie/negocjowanie/kupno/sprzedaż możliwe w każdej kolejce, ale zawodnik
+  faktycznie przechodzi do/z klubu tylko w oknach (np. kolejki 1–2 i 16–17). Wymaga
+  osobnego stanu "oferta w toku, czeka na okno" i dotyka przepływu danych całego
+  systemu transferowego (gracz + AI). [prompt: #22]
 
 ☐ **Wzrost i waga zawodnika — wpływ na grę**
   Fizyczność (gra powietrzna, pojedynki barkowe, stałe fragmenty) jako realny czynnik
   w silniku meczowym. [prompt: #12]
-
-☐ **Cechy gracza (traits) — weryfikacja wpływu na mecz**
-  Sprawdzić, czy traity faktycznie są odczytywane w symulacji, czy część to martwy kod
-  (jak dawny `a05`). [prompt: #16]
 
 ☐ **Więcej budynków infrastruktury**
   Nowe budynki (np. ośrodek medyczny, centrum analityczne) z jasnym efektem mechanicznym,
@@ -180,9 +164,12 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 ☐ **Legacy profile**
   Statystyki menedżera, historia klubów po zakończeniu kariery.
 
-☐ **Akademia — pełna rozbudowa** *(diagnoza już napisana — patrz załącznik na końcu pliku)*
-  Rekrutacja od 15. roku życia + indywidualny trening/rozwój wychowanka w ramach akademii,
-  promocja do kadry seniorskiej z eventem w Kronice.
+☐ **Akademia — reszta rozbudowy (wiek 15 lat + wypożyczenia)** *(Wariant B już wdrożony —
+  patrz ZREALIZOWANE niżej: trening w akademii, promocja, łuki fabularne ac21-ac33)*
+  Zostały dwie świadomie odłożone części z pierwotnej diagnozy: (1) rekrutacja od 15. roku
+  życia (dziś zostaje 16-17, wymaga osobnej mini-diagnozy wpływu na loterię emerytalną/
+  populację świata), (2) wypożyczenie wychowanka do klubu AI w trakcie treningu i powrót
+  (Wariant C z diagnozy — realnie osobny system, którego dziś w ogóle nie ma w kodzie).
 
 ---
 
@@ -221,6 +208,19 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 - LOCALIZATION / LANGUAGE SYSTEM — obecnie pusta
 - HISTORY / LEGACY SYSTEM — obecnie pusta (patrz też Legacy profile w Poziomie 4)
 - DATA / LOCALIZATION CLEANUP — obecnie pusta (patrz też optymalizacja w Poziomie 3)
+
+---
+
+# ✅ ZREALIZOWANE
+
+☑ Losowa drużyna przy tworzeniu kariery (`drawRandomClub` / `rerollClub`) — było: prompt #17
+☑ Więzi zawodników — UI poprawa + ekspozycja
+☑ Kapitan drużyny — wybór i bonus — było: prompt #11
+☑ Cechy gracza (traits) — weryfikacja wpływu na mecz — było: prompt #16
+☑ Bug: zakładka Wyniki resetuje się po zamknięciu meczu — było: prompt #7
+☑ Bug: cel zarządu "nie spadnij z ligi" możliwy w VII lidze (`systems/board-goals.js`) — było: prompt #6
+☑ Akademia — Wariant B: trening w akademii przed promocją do kadry, sezonowy fokus, 13 nowych eventów Kroniki (`ac21-ac33`) — było: prompt #8 (częściowo, patrz punkt wyżej w Poziomie 4)
+☑ Oznaczenie wychowanków (🎓) w Składzie → Meczowy, na boisku meczowym/taktycznym i w Treningu
 
 ---
 
@@ -295,6 +295,24 @@ systemu wychowanków: zawodnicy trafiający do akademii już od 15. roku życia,
 z możliwością ich indywidualnego treningu/rozwoju w ramach akademii (nie tylko
 przez ogólny training-stadium.js), zanim trafią do kadry seniorskiej.
 
+Dodatkowo: akademia ma stać się jednym z filarów retencji, nie tylko generatorem
+zawodników. Chcę, żeby każdy wychowanek miał prosty łuk fabularny — kilka
+zdefiniowanych "etapów" jego historii w klubie (np. debiut, pierwszy poważny kryzys
+formy/kontuzja, przełomowy sezon, ewentualny odjazd na wypożyczenie, powrót,
+osiągnięcie statusu gwiazdy albo rozczarowanie i zejście z radaru), które generują
+wpisy w Kronice Klubu i budują przywiązanie gracza do konkretnego zawodnika — a nie
+tylko traktują wychowanka jako kolejny zestaw liczb OVR/potencjał. Łuk ma być prosty
+(kilka etapów, nie rozgałęziona fabuła) i mechanicznie tani we wdrożeniu — cel to
+częstsze, drobne momenty emocjonalne rozłożone w czasie, a nie jeden duży system.
+
+Dodatkowo chcę, żeby samo szkolenie juniora w akademii było ciekawym mechanizmem samym
+w sobie, a nie tylko biernym "poczekaj N sezonów aż wyrośnie OVR" — coś, co daje graczowi
+realne, powtarzalne decyzje do podjęcia (np. wybór ścieżki rozwoju/fokusu, kompromis
+między szybszym rozwojem a ryzykiem, elastyczność zależna od zaangażowania gracza) i
+samo w sobie zachęca do regularnego wracania do zakładki akademii — to osobny czynnik
+retencji obok łuków fabularnych, więc w diagnozie i propozycjach potraktuj go jako
+odrębny wymóg, nie tylko przy okazji.
+
 KROK 1 — DIAGNOZA (przed jakimkolwiek kodem)
 Przeanalizuj i opisz obecny stan, w szczególności:
 1. `systems/academy.js` — jak dziś działa `generateProspects`, `acceptProspect`,
@@ -317,6 +335,10 @@ Przeanalizuj i opisz obecny stan, w szczególności:
 5. Powiąż z zasadą stabilności OVR (max -1%/10 sezonów AI, +brak górnego
    limitu) — nowy system treningu młodzieży w akademii NIE może zaburzać
    tej równowagi dla świata AI, tylko dla klubu gracza.
+6. `engine/kronika.js` — jak dziś działa `kronTrigger()` i `buildKron<Category>Events()`,
+   czy istnieje już mechanizm śledzenia stanu pojedynczego zawodnika na przestrzeni
+   sezonów (podobny do `G.flags.<name>` dla chain eventów), na którym dałoby się
+   oprzeć prosty łuk fabularny wychowanka bez budowania nowego systemu od zera.
 
 KROK 2 — 3 PROPOZYCJE ROZWOJU AKADEMII
 Na bazie diagnozy przedstaw 3 różne koncepcyjnie propozycje (nie warianty
@@ -327,15 +349,29 @@ kosmetyczne, tylko odrębne podejścia do mechaniki), z uwzględnieniem:
 - osobnego, aktywnego treningu wychowanka W RAMACH akademii (nie w training-
   stadium.js z resztą kadry) — np. indywidualne programy rozwoju, fokusy
   treningowe specyficzne dla wieku 15-18 lat, ryzyko kontuzji/wypalenia,
+- ciekawy mechanizm samego szkolenia jako osobny czynnik retencji: nie bierne
+  czekanie na wzrost OVR, tylko regularne, powtarzalne decyzje gracza (np. wybór
+  fokusu na dany okres, kompromis szybszy rozwój/większe ryzyko, elastyczne
+  dostosowanie planu do formy/wieku wychowanka) — coś, co samo w sobie zachęca
+  do częstego wracania do zakładki akademii,
 - momentu i warunków "promocji" wychowanka do kadry seniorskiej (automat
   po osiągnięciu wieku? decyzja gracza? wpływ na Kronikę Klubu — nowy typ
   eventu kronTrigger() dla debiutu wychowanka?),
 - kosztu/zasobów: czy trening w akademii kosztuje osobny budżet, czy zależy
   od poziomu akademii (`getAcadLvl`), czy koliduje z limitami Centrum
-  Treningowego.
+  Treningowego,
+- prosty łuk fabularny wychowanka jako czynnik retencji: zaproponuj konkretne
+  etapy łuku (ile, jakie, w jakiej kolejności/warunkach się odblokowują),
+  które z nich powinny trafiać na whitelistę timeline (`G.timeline[]`) a które
+  zostają lokalnym newsem, i jak uniknąć tego, żeby łuk stał się kolejnym
+  martwym mechanizmem (patrz dead event pattern / dawny `a05`) — każdy etap
+  musi mieć konkretną konsekwencję mechaniczną lub przynajmniej trwały wpis
+  w historii wychowanka, nie tylko tekst.
 
 Dla każdej z 3 propozycji podaj: na czym polega, jakie pliki/funkcje by
-dotknęła, główne ryzyka/koszty wdrożenia, i czy wymaga migawki/snapshotu
+dotknęła, główne ryzyka/koszty wdrożenia, jak podchodzi do łuku fabularnego
+wychowanków, jak wygląda sam mechanizm szkolenia (na czym polegają decyzje
+gracza i dlaczego mają być angażujące), i czy wymaga migawki/snapshotu
 podobnego do systemu skautingu (Transfery), czy raczej ciągłego stanu.
 
 STANDARDOWE ZASADY OBOWIĄZUJĄCE W TYM PROJEKCIE

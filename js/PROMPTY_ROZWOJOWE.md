@@ -7,6 +7,18 @@ inline w JS, brak wymyślonych wartości liczbowych (tylko z istniejącego kodu)
 
 ---
 
+## ✅ ZREALIZOWANE (nie uruchamiać ponownie)
+- #6 Cele zarządu — usunięcie "nie spadnij z ligi" w VII lidze
+- #7 Bug — zakładka Wyniki resetuje się po zamknięciu meczu
+- #8 Akademia — Wariant B (trening w akademii + łuk fabularny) *(częściowo — patrz notatka przy prompcie, wiek 15/wypożyczenia nadal otwarte)*
+- #11 Kapitan drużyny — wybór i bonus
+- #16 Cechy gracza (traits) — weryfikacja wpływu na mecz
+- #17 Losowa drużyna przy starcie nowej gry
+- Więzi zawodników — UI poprawa + ekspozycja *(zrobione bez osobnego promptu w tym zbiorze)*
+- Oznaczenie wychowanków (🎓) w Składzie/Meczu/Treningu *(zrobione bez osobnego promptu w tym zbiorze)*
+
+---
+
 ## 1. Finanse i Infrastruktura — diagnoza rozbudowy
 
 ```
@@ -108,7 +120,9 @@ Raport + pytania, bez kodu.
 
 ---
 
-## 6. Cele zarządu — usunięcie "nie spadnij z ligi" w VII lidze
+## 6. ✅ ZREALIZOWANE — Cele zarządu — usunięcie "nie spadnij z ligi" w VII lidze
+
+*(zostawione jako zapis historyczny — wdrożone, nie uruchamiaj tego promptu ponownie)*
 
 ```
 Bug/logika: w VII lidze (najniższa liga) zarząd nie powinien móc wygenerować celu
@@ -122,7 +136,9 @@ zaproponować dokładny diff do zatwierdzenia, ale nie wdrażaj bez mojego OK).
 
 ---
 
-## 7. Bug — zakładka Wyniki resetuje się po zamknięciu meczu
+## 7. ✅ ZREALIZOWANE — Bug — zakładka Wyniki resetuje się po zamknięciu meczu
+
+*(zostawione jako zapis historyczny — wdrożone, nie uruchamiaj tego promptu ponownie)*
 
 ```
 Bug: gdy jestem w zakładce "Wyniki" i otworzę mecz, po jego zamknięciu powinienem wrócić do
@@ -136,17 +152,37 @@ lokalizacją problemu, bez implementacji.
 
 ---
 
-## 8. Akademia — rekrutacja od 15. roku życia + rozwój juniorów
+## 8. ✅ ZREALIZOWANE CZĘŚCIOWO (Wariant B) — Akademia — rekrutacja od 15. roku życia + rozwój juniorów + proste łuki fabularne
+
+*(diagnoza + 3 warianty wykonane, wdrożony Wariant B: `G.academy.trainees[]`, sezonowy fokus
+treningowy, promocja automatyczna/wczesna, 13 nowych eventów Kroniki `ac21-ac33`. Świadomie
+POZA zakresem, ustalone z graczem: wiek startowy zostaje 16-17 (nie 15), wypożyczenia trainee
+do klubu AI — to nadal otwarte, kandydat na osobną sesję (Wariant C z diagnozy). Nie uruchamiaj
+tego promptu ponownie dla części już zrobionej — jeśli wracasz do wieku 15/wypożyczeń, napisz
+nowy, węższy prompt tylko na tę resztę.)*
 
 ```
 Diagnoza rozbudowy akademii: rekrutacja zawodników już od 15. roku życia oraz indywidualny
-rozwój/trening w akademii, z eventami debiutu w Kronice.
+rozwój/trening w akademii, z eventami debiutu w Kronice. Dodatkowo: akademia ma być jednym
+z filarów retencji — każdy wychowanek ma mieć prosty łuk fabularny (kilka etapów, np. debiut,
+kryzys formy/kontuzja, przełomowy sezon, ewentualne wypożyczenie i powrót, status gwiazdy albo
+rozczarowanie), generujący wpisy w Kronice Klubu, a nie tylko surowe liczby OVR/potencjał.
+Osobno: samo szkolenie juniora ma być ciekawym mechanizmem samym w sobie, nie biernym
+czekaniem na wzrost OVR — regularne, powtarzalne decyzje gracza (fokus rozwoju, kompromis
+szybszy rozwój/większe ryzyko, dostosowanie planu do formy/wieku), które same w sobie
+zachęcają do częstego wracania do zakładki akademii.
 
-Sprawdź systems/academy.js i powiązania z engine/kronika.js. Zaproponuj 3 warianty
-rozwiązania (np. różniące się poziomem złożoności/mikrozarządzania: lekki automat vs.
-częściowa kontrola ręczna vs. pełne indywidualne plany treningowe), z plusami/minusami
-każdego pod kątem "depth over polish" i sesji krótkich/płynnych. Raport + pytania,
-bez kodu.
+Sprawdź systems/academy.js i powiązania z engine/kronika.js (w tym czy istnieje już
+mechanizm śledzenia stanu zawodnika na przestrzeni sezonów, podobny do G.flags.<name> dla
+chain eventów, na którym dałoby się oprzeć łuk fabularny bez budowania nowego systemu od
+zera). Zaproponuj 3 warianty rozwiązania (np. różniące się poziomem złożoności/
+mikrozarządzania: lekki automat vs. częściowa kontrola ręczna vs. pełne indywidualne plany
+treningowe), z plusami/minusami każdego pod kątem "depth over polish", sesji krótkich/
+płynnych, oraz tego, jak każdy wariant realizuje (a) łuk fabularny wychowanka (ile etapów,
+kiedy się odblokowują, co trafia na whitelistę timeline a co zostaje lokalnym newsem —
+pamiętaj o dead event pattern, każdy etap musi mieć konkretną konsekwencję, nie tylko
+tekst) i (b) sam mechanizm szkolenia (na czym polegają decyzje gracza i dlaczego mają być
+angażujące). Raport + pytania, bez kodu.
 ```
 
 ---
@@ -180,7 +216,9 @@ Sprawdź systems/transfers.js i ui odpowiadające za tę zakładkę. Wskaż obec
 
 ---
 
-## 11. Kapitan drużyny — wybór i bonus
+## 11. ✅ ZREALIZOWANE — Kapitan drużyny — wybór i bonus
+
+*(zostawione jako zapis historyczny — funkcja już wdrożona, nie uruchamiaj tego promptu ponownie)*
 
 ```
 Diagnoza nowej mechaniki: wybór kapitana drużyny przez gracza + bonus dla kapitana (np.
@@ -246,7 +284,9 @@ poziomu ligi. Wskaż źródło ewentualnej nadprodukcji przychodu. Raport, bez k
 
 ---
 
-## 16. Cechy gracza (traits) — czy realnie wpływają na mecz
+## 16. ✅ ZREALIZOWANE — Cechy gracza (traits) — czy realnie wpływają na mecz
+
+*(zostawione jako zapis historyczny — zweryfikowane/wdrożone, nie uruchamiaj tego promptu ponownie)*
 
 ```
 Diagnoza: zweryfikuj, czy cechy/traity zawodnika faktycznie są odczytywane i mają wpływ na
@@ -258,7 +298,9 @@ statusem (używany/martwy), bez kodu.
 
 ---
 
-## 17. Losowa drużyna przy starcie nowej gry
+## 17. ✅ ZREALIZOWANE — Losowa drużyna przy starcie nowej gry
+
+*(zostawione jako zapis historyczny — funkcja już wdrożona, nie uruchamiaj tego promptu ponownie)*
 
 ```
 Diagnoza: dodać opcję losowego wyboru klubu startowego (zamiast tylko ręcznego wyboru) w
@@ -353,6 +395,37 @@ ARCHITEKTONICZNY, nie zwykłą funkcję gry:
 
 Standing rules jak wyżej. To kandydat na najdłuższą diagnostykę z całej listy — potraktuj
 priorytetowo dokładność raportu nad szybkością.
+```
+
+---
+
+## 22. Rynek transferowy — okna transferowe (negocjacje cały czas, transfer finalizuje się tylko w oknach)
+
+```
+Diagnoza przebudowy mechaniki rynku transferowego: chcę móc przeglądać, negocjować,
+kupować i sprzedawać zawodników w każdej kolejce sezonu, ale sam transfer (fizyczne
+przejście zawodnika do/z klubu) ma się finalizować tylko w dwóch oknach transferowych —
+np. kolejki 1–2 (letnie) i kolejki 16–17 (zimowe).
+
+Sprawdź (read-only):
+- systems/transfers.js — jak dziś działa cały cykl oferta → akceptacja → transfer
+  zawodnika (czy transfer jest natychmiastowy zaraz po akceptacji, czy już istnieje
+  jakiekolwiek opóźnienie/kolejkowanie)
+- engine/match-post.js — aiTransferPlayer/aiTransferSeason — czy AI też powinno
+  respektować okna, czy ma inny rytm
+- core/state.js / G.season — jak liczona jest kolejka (skoro prompt #19 dotyczy
+  wyświetlania numeru kolejki, sprawdź czy to ta sama liczba, na której można oprzeć
+  logikę okien) i czy sezon ma stałą liczbę kolejek we wszystkich ligach (czy okna
+  16–17 mają sens uniwersalnie, czy trzeba to liczyć proporcjonalnie do długości ligi)
+- co się dzieje dziś z ofertą złożoną/negocjowaną poza oknem — czy ma czekać w
+  "kolejce oczekujących" do najbliższego okna, czy wygasać
+
+Zaproponuj: strukturę stanu dla ofert "w toku, czeka na okno" vs "sfinalizowana",
+miejsce w UI informujące gracza kiedy transfer faktycznie wejdzie w życie, oraz czy
+okna powinny być identyczne dla wszystkich 8 lig czy skalowane wg długości sezonu.
+Zaznacz ryzyka dla stabilności AI (Zasada: incremental over wholesale — to zmiana
+przepływu danych w całym systemie transferowym, nie tylko UI). Raport + pytania,
+bez kodu.
 ```
 
 ---

@@ -139,6 +139,7 @@ function renderRatingsPitch(players, ratings, containerId, globalMomId, matchEvt
           _evBlock+
           '<span class="pp-rat" style="color:'+col+'">'+ratDisp+'</span>'+
           mvpTag+
+          (p.fromAcademy?'<span class="pp-acad-badge">🎓</span>':'')+
         '</div>';
       }).join('')+'</div>';
   }
