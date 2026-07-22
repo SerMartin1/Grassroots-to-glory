@@ -25,6 +25,7 @@ function mkTacCard(p){
   const barCol=ready>=70?'var(--gb)':ready>=50?'var(--am)':'var(--rd)';
   const fmCol=fm>=80?'var(--gb)':fm>=65?'var(--am)':'var(--rd)';
   const fatCol=fat>70?'var(--rd)':fat>50?'var(--am)':'var(--gb)';
+  const fatOvrPts=Math.round(o*fatigueOvrPenalty(p.fatigue));
 
   const d=document.createElement('div');
   d.className='pcard2 '+(isSt?'st':'bn');
@@ -40,6 +41,7 @@ function mkTacCard(p){
           '<div class="pc2-name-text '+(isSt?'':'bn')+'">'+p.name+'</div>'+
           '<div style="font-size:var(--fs-dense);color:var(--gr)">'+
             (POS_SHORT[p.pos]||p.pos)+' • '+p.age+t('tr_age_suffix')+' • OVR '+o+
+          (fatOvrPts>0?' <span style="color:var(--rd)">(-'+fatOvrPts+' '+t('tac_fat_ovr_suffix')+')</span>':'')+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -164,6 +166,7 @@ function fillTacSquad(){
       const isSt=p.starter;const susp=p.suspension>0;
       const fmCol=fm>=80?'var(--gb)':fm>=65?'var(--am)':'var(--rd)';
       const fatCol=fat>70?'var(--rd)':fat>50?'var(--am)':'var(--gb)';
+      const fatOvrPts2=Math.round(o*fatigueOvrPenalty(p.fatigue));
       const ovrCol=o>=70?'var(--gb)':o>=50?'var(--am)':'var(--wh)';
       const rowBg=p.injured||susp?'#1a0000':fat>70||fm<50?'#1a1000':'';
       const icon=p.injured?'[K]':susp?'[Z]':fat>70?'[P]':fat>50||fm<65?'[!]':'[OK]';
@@ -178,7 +181,7 @@ function fillTacSquad(){
           (isSt?'<span style="color:var(--am);font-size:var(--fs-dense);margin-left:4px">✔</span>':'')+
           (p.id===G.captainId?'<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--am);color:#1a1400;font-size:8px;font-weight:800;margin-left:5px;vertical-align:middle">C</span>':'')+
         '</td>'+
-        '<td style="text-align:right;color:'+ovrCol+'">'+o+'</td>'+
+        '<td style="text-align:right;color:'+ovrCol+'">'+o+(fatOvrPts2>0?' <span style="color:var(--rd);font-size:9px">-'+fatOvrPts2+'</span>':'')+'</td>'+
         '<td style="text-align:right;color:'+fmCol+'">'+fm+'%</td>'+
         '<td style="text-align:right;color:'+fatCol+';padding-right:6px">'+fat+'%</td>'+
         '<td style="text-align:center;padding-right:10px">'+

@@ -79,7 +79,7 @@ function renderTCPanel(){
   if(tc.building){
     return '<div style="border:1px solid var(--am);padding:10px;margin-top:10px">'+
       '<div style="color:var(--am);font-size:var(--fs-dense);margin-bottom:4px">'+t('train_tc_building')+'</div>'+
-      '<div style="color:var(--gr);font-size:var(--fs-dense)">'+tc.building.name+' — '+t('train_tc_done_in').replace('{n}',tc.building.weeksLeft)+'</div>'+
+      '<div style="color:var(--gr);font-size:var(--fs-dense)">'+_tcLvlName(tc.building)+' — '+t('train_tc_done_in').replace('{n}',tc.building.weeksLeft)+'</div>'+
       '<div style="background:#000;height:6px;margin-top:6px"><div style="height:100%;background:var(--am);width:'+Math.round((1-(tc.building.weeksLeft/tc.building.totalWeeks))*100)+'%"></div></div>'+
     '</div>';
   }
@@ -104,7 +104,7 @@ function renderTCPanel(){
   const changeCost=TRAINING_CENTER.changeCost[lvl-1]||5000;
   let html='<div style="border:1px solid var(--gb);padding:10px;margin-top:10px">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-  html+='<div style="color:var(--gb);font-size:var(--fs-dense)">'+t('train_tc_name_hdr').replace('{name}',((tcDef&&tcDef.name)||'').toUpperCase())+'</div>';
+  html+='<div style="color:var(--gb);font-size:var(--fs-dense)">'+t('train_tc_name_hdr').replace('{name}',_tcLvlName(tcDef).toUpperCase())+'</div>';
   html+='<div style="font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_slots').replace('{a}',activeP.length).replace('{m}',maxP)+'</div>';
   html+='</div>';
   // Profil sloty
@@ -124,7 +124,7 @@ function renderTCPanel(){
   if(lvl<3){
     const nc=tcCost(lvl);const nu=tcUpkeep(lvl);const nd=TRAINING_CENTER.levels[lvl];
     const canUp=G.budget>=nc&&(G.reputation||0)>=(nd.req.rep||0)&&((G.stadium&&G.stadium.capacity)||0)>=(nd.req.stad||0);
-    html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px;font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_upgrade_line').replace('{name}',nd.name).replace('{cost}',fmt(nc)).replace('{upk}',fmt(nu)).replace('{rep}',nd.req.rep).replace('{stad}',nd.req.stad)+'</div>';
+    html+='<div style="border-top:1px solid var(--gl);margin-top:8px;padding-top:8px;font-size:var(--fs-dense);color:var(--gr)">'+t('train_tc_upgrade_line').replace('{name}',_tcLvlName(nd)).replace('{cost}',fmt(nc)).replace('{upk}',fmt(nu)).replace('{rep}',nd.req.rep).replace('{stad}',nd.req.stad)+'</div>';
     if(canUp)html+='<button onclick="buildTC('+lvl+')" style="width:100%;margin-top:6px;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:6px;cursor:pointer">'+t('train_tc_upgrade_btn').replace('{n}',fmt(nc))+'</button>';
   }
   html+='</div>';
@@ -140,10 +140,10 @@ function buildTC(lvlIdx){
   if(((G.stadium&&G.stadium.capacity)||0)<(def.req.stad||0)){notif(t('train_req_stad').replace('{n}',def.req.stad),'err');return;}
   G.budget-=cost;
   if(!G.fin.hist)G.fin.hist=[];
-  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_tc_built').replace('{name}',def.name)});
-  G.trainingCenter.building={levelIdx:lvlIdx+1,name:def.name,weeksLeft:def.buildWeeks,totalWeeks:def.buildWeeks};
-  addNews(t('news_tc_build_started').replace('{name}',def.name).replace('{n}',def.buildWeeks),'club');
-  notif(t('train_tc_notif').replace('{name}',def.name).replace('{n}',def.buildWeeks),'ok');
+  G.fin.hist.push({w:G.week,inc:0,cost:cost,bal:G.budget,season:G.season,note:t('stad_note_tc_built').replace('{name}',_tcLvlName(def))});
+  G.trainingCenter.building={levelIdx:lvlIdx+1,key:def.key,weeksLeft:def.buildWeeks,totalWeeks:def.buildWeeks};
+  addNews(t('news_tc_build_started').replace('{name}',_tcLvlName(def)).replace('{n}',def.buildWeeks),'club');
+  notif(t('train_tc_notif').replace('{name}',_tcLvlName(def)).replace('{n}',def.buildWeeks),'ok');
   fillTraining();
 }
 function toggleTCProfile(id){
@@ -195,6 +195,15 @@ function setIntensity(k){if(!G)return;G.trainIntensity=k;fillTraining();
 }
 function fillCampPanel(){
   if(!G)return;
+  // Odswiez etykiety kosztow obozow (skalowane costMult ligi) - ta sama logika co w applyLang(),
+  // zeby byly poprawne od razu po otwarciu zakladki, nie tylko po przelaczeniu jezyka.
+  const _campCm=ACADEMY.costMult[G.myLeague||8]||1;
+  const _campCostNor=Math.round(4000*_campCm), _campCostPro=Math.round(6000*_campCm), _campCostElite=Math.round(9000*_campCm);
+  const _campNormalBtn=document.getElementById('tr-camp-normal-btn'); if(_campNormalBtn)_campNormalBtn.innerHTML=t('train_camp_normal_full').replace('{cost}',fmt(_campCostNor));
+  const _campProBtn=document.getElementById('tr-camp-pro-btn'); if(_campProBtn)_campProBtn.innerHTML=t('train_camp_pro_full').replace('{cost}',fmt(_campCostPro));
+  const _campEliteBtn=document.getElementById('tr-camp-elite-btn'); if(_campEliteBtn)_campEliteBtn.innerHTML=t('train_camp_elite_full').replace('{cost}',fmt(_campCostElite));
+  const _campCostInfo=document.getElementById('tr-camp-ind-cost-info'); if(_campCostInfo)_campCostInfo.innerHTML=t('train_camp_ind_cost_prefix')+'<span style="color:var(--am)">'+t('train_camp_ind_cost_amount').replace('{cost}',fmt(_campCostNor))+'</span>'+t('train_camp_ind_cost_suffix');
+  const _campSendBtn=document.getElementById('tr-camp-ind-send-btn'); if(_campSendBtn)_campSendBtn.textContent=t('train_camp_send_btn').replace('{cost}',fmt(_campCostNor));
   const cs=document.getElementById('camp-status');
   if(cs){
     // Safety: auto-end camp if somehow still active after week 2
@@ -234,7 +243,10 @@ function startTeamCamp(type){
   if(!G)return;
   if(G.week>2){notif(t('train_camp_only_week'),'err');return;}
   if(G.campActive){notif(t('train_camp_active'),'err');return;}
-  const campTypes={NOR:{cost:2000,rounds:4},PRO:{cost:3000,rounds:7},ELITE:{cost:4500,rounds:10}};
+  // Koszt skalowany z liga (jak akademia/CT), zamiast plaskiej stawki — inaczej ten sam obóz
+  // kosztowałby tyle samo w Premier Division co w VII Lidze, mimo zupełnie innej skali budżetu.
+  const _campCm=ACADEMY.costMult[G.myLeague||8]||1;
+  const campTypes={NOR:{cost:Math.round(4000*_campCm),rounds:4},PRO:{cost:Math.round(6000*_campCm),rounds:7},ELITE:{cost:Math.round(9000*_campCm),rounds:10}};
   const ct=campTypes[type]||campTypes.NOR;
   const players=myPl();
   const total=ct.cost*players.length;
@@ -257,7 +269,7 @@ function sendIndCamp(){
   if(!G||!G.indCampSelected||!G.indCampSelected.length){notif(t('train_ind_select'),'err');return;}
   if(!G.indCampUsed)G.indCampUsed=0;
   if(G.indCampUsed+G.indCampSelected.length>4){notif(t('train_ind_max').replace('{n}',4-G.indCampUsed),'err');return;}
-  const cost=G.indCampSelected.length*2000;
+  const cost=G.indCampSelected.length*Math.round(4000*(ACADEMY.costMult[G.myLeague||8]||1));
   if(G.budget<cost){notif(t('train_ind_no_funds').replace('{n}',fmt(cost)),'err');return;}
   G.budget-=cost;
   if(!G.fin.transfers)G.fin.transfers=[];
@@ -344,9 +356,9 @@ function fillProgressPanel(){
 // ══════════════════════════════════════════════════════════
 const STAD={
   costPerSeat(cap){
-    if(cap<500)return 80;if(cap<2000)return 150;
-    if(cap<5000)return 280;if(cap<15000)return 500;
-    if(cap<30000)return 900;return 1600;
+    if(cap<500)return 160;if(cap<2000)return 300;
+    if(cap<5000)return 560;if(cap<15000)return 1000;
+    if(cap<30000)return 1800;return 3200;
   },
   buildTime(n){
     if(n<=100)return 4;if(n<=500)return 8;if(n<=2000)return 14;
@@ -361,27 +373,27 @@ const STAD={
 };
 const STAD_MODULES={
   vip:{name:'Loże VIP',icon:'🎭',levels:[
-    {cost:25000,effect:'+800 zł/tyg',vipWeekly:800,buildWeeks:4,req:{capacity:1000,rep:80}},
-    {cost:120000,effect:'+3 000 zł/tyg',vipWeekly:3000,buildWeeks:6,req:{capacity:1000}},
-    {cost:500000,effect:'+10 000 zł/tyg',vipWeekly:10000,buildWeeks:10,req:{capacity:3000}},
-    {cost:2000000,effect:'+35 000 zł/tyg',vipWeekly:35000,buildWeeks:16,req:{capacity:8000}}
+    {cost:50000,effect:'+1 600 zł/tyg',vipWeekly:1600,buildWeeks:4,req:{capacity:1000,rep:80}},
+    {cost:240000,effect:'+6 000 zł/tyg',vipWeekly:6000,buildWeeks:6,req:{capacity:1000}},
+    {cost:1000000,effect:'+20 000 zł/tyg',vipWeekly:20000,buildWeeks:10,req:{capacity:3000}},
+    {cost:4000000,effect:'+70 000 zł/tyg',vipWeekly:70000,buildWeeks:16,req:{capacity:8000}}
   ]},
   gastro:{name:'Gastronomia',icon:'🍔',levels:[
-    {cost:8000,effect:'Bilety +8%',gasBonus:0.08,buildWeeks:2,req:{capacity:800}},
-    {cost:45000,effect:'Bilety +20%',gasBonus:0.20,buildWeeks:5,req:{capacity:1200}},
-    {cost:180000,effect:'Bilety +40%',gasBonus:0.40,buildWeeks:8,req:{capacity:2500}}
+    {cost:16000,effect:'Bilety +8%',gasBonus:0.08,buildWeeks:2,req:{capacity:800}},
+    {cost:90000,effect:'Bilety +20%',gasBonus:0.20,buildWeeks:5,req:{capacity:1200}},
+    {cost:360000,effect:'Bilety +40%',gasBonus:0.40,buildWeeks:8,req:{capacity:2500}}
   ]},
   shop:{name:'Sklep klubowy',icon:'🛍',levels:[
-    {cost:10000,effect:'Gadżety x1.5',shopMult:1.5,buildWeeks:2,req:{rep:50}},
-    {cost:55000,effect:'Gadżety x2.5',shopMult:2.5,buildWeeks:4,req:{capacity:600,rep:100}},
-    {cost:220000,effect:'Gadżety x4.0',shopMult:4.0,buildWeeks:6,req:{capacity:2000,rep:200}}
+    {cost:20000,effect:'Gadżety x1.5',shopMult:1.5,buildWeeks:2,req:{rep:50}},
+    {cost:110000,effect:'Gadżety x2.5',shopMult:2.5,buildWeeks:4,req:{capacity:600,rep:100}},
+    {cost:440000,effect:'Gadżety x4.0',shopMult:4.0,buildWeeks:6,req:{capacity:2000,rep:200}}
   ]},
   light:{name:'Oświetlenie',icon:'💡',levels:[
-    {cost:20000,effect:'Frekwencja +5%',freqBonus:5,buildWeeks:5,req:{capacity:1500,rep:120}},
-    {cost:100000,effect:'Frekwencja +10%, Rep +30',freqBonus:10,repBonus:30,buildWeeks:9,req:{capacity:2500}}
+    {cost:40000,effect:'Frekwencja +5%',freqBonus:5,buildWeeks:5,req:{capacity:1500,rep:120}},
+    {cost:200000,effect:'Frekwencja +10%, Rep +30',freqBonus:10,repBonus:30,buildWeeks:9,req:{capacity:2500}}
   ]},
   board:{name:'Tablica świetlna',icon:'📺',levels:[
-    {cost:35000,effect:'Reklamy +15%, Rep +20',adsMult:1.15,repBonus:20,buildWeeks:6,req:{capacity:2000,light:1,rep:150}}
+    {cost:70000,effect:'Reklamy +15%, Rep +20',adsMult:1.15,repBonus:20,buildWeeks:6,req:{capacity:2000,light:1,rep:150}}
   ]}
 };
 function getModuleLvl(key){return(G.stadium&&G.stadium.modules&&G.stadium.modules[key])||0;}

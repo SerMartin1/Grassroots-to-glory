@@ -66,11 +66,11 @@ function ageMult(age){return AGE_MULT[age]!==undefined?AGE_MULT[age]:(age<=15?2.
 // ── SYSTEM SKAUTÓW ───────────────────────────────────────────────────
 const SCOUTS_DEF=[
   {id:'free',    name:'Skaut amator',      cost:0,      hireCost:0,      minLeague:8, modeA_slots:1, modeB_range:1, modeB_minAge:17, modeB_maxPot:72, time:6},
-  {id:'local',   name:'Skaut lokalny',     cost:5000,   hireCost:5000,   minLeague:8, modeA_slots:2, modeB_range:2, modeB_minAge:16, modeB_maxPot:78, time:4},
-  {id:'regional',name:'Skaut regionalny',  cost:18000,  hireCost:18000,  minLeague:6, modeA_slots:2, modeB_range:2, modeB_minAge:16, modeB_maxPot:84, time:4},
-  {id:'national',name:'Skaut krajowy',     cost:50000,  hireCost:50000,  minLeague:4, modeA_slots:3, modeB_range:3, modeB_minAge:15, modeB_maxPot:90, time:3},
-  {id:'pro',     name:'Skaut profesjonalny',cost:120000,hireCost:120000, minLeague:2, modeA_slots:3, modeB_range:3, modeB_minAge:14, modeB_maxPot:95, time:3},
-  {id:'elite',   name:'Skaut elitarny',    cost:300000, hireCost:300000, minLeague:1, modeA_slots:4, modeB_range:0, modeB_minAge:14, modeB_maxPot:99, time:3},
+  {id:'local',   name:'Skaut lokalny',     cost:10000,  hireCost:10000,  minLeague:8, modeA_slots:2, modeB_range:2, modeB_minAge:16, modeB_maxPot:78, time:4},
+  {id:'regional',name:'Skaut regionalny',  cost:36000,  hireCost:36000,  minLeague:6, modeA_slots:2, modeB_range:2, modeB_minAge:16, modeB_maxPot:84, time:4},
+  {id:'national',name:'Skaut krajowy',     cost:100000, hireCost:100000, minLeague:4, modeA_slots:3, modeB_range:3, modeB_minAge:15, modeB_maxPot:90, time:3},
+  {id:'pro',     name:'Skaut profesjonalny',cost:240000,hireCost:240000, minLeague:2, modeA_slots:3, modeB_range:3, modeB_minAge:14, modeB_maxPot:95, time:3},
+  {id:'elite',   name:'Skaut elitarny',    cost:600000, hireCost:600000, minLeague:1, modeA_slots:4, modeB_range:0, modeB_minAge:14, modeB_maxPot:99, time:3},
 ];
 function getScoutDef(){
   if(!G||!G.scout)return SCOUTS_DEF[0];
@@ -123,33 +123,30 @@ function calcValueDynamic(p){
   return Math.round(base*calcDynamicValueMult(p)/1000)*1000||base;
 }
 function calcValue(o,age){
-  if(o<=0)return 500;
+  if(o<=0)return 50;
   const m=ageMult(age);
-  let v=Math.pow(o/99,4.5)*25000000*m;
-  v=Math.max(500,v);
+  let v=Math.pow(o/99,4.5)*2500000*m;
+  v=Math.max(50,v);
   // Zaokrąglenie do czytelnych progów
-  if(v<5000)v=Math.round(v/500)*500;
-  else if(v<50000)v=Math.round(v/1000)*1000;
+  if(v<500)v=Math.round(v/50)*50;
+  else if(v<5000)v=Math.round(v/100)*100;
+  else if(v<50000)v=Math.round(v/500)*500;
   else if(v<500000)v=Math.round(v/5000)*5000;
-  else if(v<5000000)v=Math.round(v/50000)*50000;
-  else v=Math.round(v/500000)*500000;
+  else v=Math.round(v/50000)*50000;
   return v;
 }
+// Pensja = bezpośrednia proporcja wartości (stała krotność value/salary per liga), zamiast
+// niezależnej tabeli SAL_MIN/SAL_MAX — poprzedni dwuparametrowy projekt dawał krotność wahającą
+// się od 3x do 2800x w obrębie jednej ligi (liniowa interpolacja nie nadążała za wykładniczą
+// krzywą calcValue). WAGE_MULT kalibrowane tak, by krotność value/salary (opłata transferowa ÷
+// miesięczna pensja) odpowiadała realnym proporcjom czołowych klubów świata (Neymar/Ronaldo/
+// Haaland itd.: rząd wielkości 30x-100x) — 50x w Premier Division rosnąco do 70x w VII Lidze
+// (im niżej w piramidzie, tym relatywnie tańsze utrzymanie zawodnika względem jego wartości).
 function calcSalary(val,lvl,ovr_val){
-  // Opcja 3: liniowa interpolacja min-max per liga
   const _lvl=lvl||(G?G.myLeague:8)||8;
-  const SAL_MIN={1:55000,2:20000,3:6000,4:2500,5:1000,6:500,7:250,8:150};
-  const SAL_MAX={1:250000,2:50000,3:18000,4:7500,5:3500,6:1500,7:800,8:450};
-  const mn=SAL_MIN[_lvl]||150;
-  const mx=SAL_MAX[_lvl]||450;
-  let o=ovr_val||0;
-  if(!o&&val>0){
-    o=Math.round(99*Math.pow(val/25000000,1/4.5));
-    o=Math.max(1,Math.min(99,o));
-  }
-  o=Math.max(1,Math.min(99,o));
-  const ratio=Math.max(0,Math.min(1,(o-20)/(99-20)));
-  return Math.max(mn,Math.round((mn+ratio*(mx-mn))/50)*50);
+  const WAGE_MULT={1:1.000,2:0.946,3:0.897,4:0.854,5:0.814,6:0.778,7:0.745,8:0.714};
+  const wm=WAGE_MULT[_lvl]||0.714;
+  return Math.max(50,Math.round((val||0)/50*wm/50)*50);
 }
 function mkAttrs(pos,minO,maxO){for(let a=0;a<40;a++){const b=r(minO,maxO),s=15;const t=Math.max(1,Math.min(99,b+r(-s,s))),pa=Math.max(1,Math.min(99,b+r(-s,s))),sh=Math.max(1,Math.min(99,b+r(-s,s))),de=Math.max(1,Math.min(99,b+r(-s,s))),ph=Math.max(1,Math.min(99,b+r(-s,s))),me=Math.max(1,Math.min(99,b+r(-s,s)));const tmp={pos,tec:t,pas:pa,sht:sh,def:de,phy:ph,men:me};if(ovr(tmp)>=minO&&ovr(tmp)<=maxO)return{tec:t,pas:pa,sht:sh,def:de,phy:ph,men:me};}const m=Math.round((minO+maxO)/2);return{tec:m,pas:m,sht:m,def:m,phy:m,men:m};}
 let pid=1;

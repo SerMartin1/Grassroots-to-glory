@@ -510,14 +510,19 @@ function kronTrigger(){
           if(!G.academy||G.academy.level<1){notif(t('kron_t04_c2_notif_noacademy'),'err');return;}
           const pos2=kron.flags._t04pos||'POL';
           const ageT2=kron.flags._t04age||18;
-          const ovrT2=(kron.flags._t04ovr||42)+5;
-          const np=mkPlayer(0);
-          np.pos=pos2;np.age=ageT2;
-          const attrs=['tec','pas','sht','def','phy','men'];
-          const diff=ovrT2-ovr(np);
-          if(diff>0)attrs.forEach(function(a){np[a]=Math.min(99,np[a]+Math.ceil(diff/6));});
-          np.potential=Math.min(99,calcPotential(np,G.myLeague||8)+5);
-          np.fromAcademy=true;np.clubId=G.myClubId;
+          const ovrT2=kron.flags._t04ovr||42;
+          // Wpis w tym samym, "lekkim" kształcie co generateProspects() (academy.js) —
+          // status:'pending', bez pełnych atrybutów tec/pas/... — bo tylko taki kształt
+          // renderAcadPrzeglad()/acceptProspect() rozpoznają. Wcześniej trafiał tu pełny
+          // obiekt z mkPlayer() ze status:'active' (domyślny), więc nigdy nie pokazywał się
+          // w Przeglądzie i nie dało się go zaakceptować — junior "znikał" po wyborze tej opcji.
+          const acadLvl=getAcadLvl();const acadDef=ACADEMY.levels[acadLvl-1]||ACADEMY.levels[0];
+          const trRoll=Math.random();
+          const trainRate=trRoll<0.10?(50+r(0,30))/100:trRoll<0.45?(81+r(0,29))/100:trRoll<0.75?(110+r(0,40))/100:(150+r(0,50))/100;
+          const _arch4=['wojownik','techniczny','snajper','lider'][Math.floor(Math.random()*4)];
+          // Bonus "lokalnego talentu": +5 potencjału ponad zwykły roll akademii tego poziomu.
+          const potential=Math.min(99,Math.min(acadDef.maxPot,ovrT2+r(20,Math.max(1,acadDef.maxPot-ovrT2)))+5);
+          const np={id:pid++,name:getUniqueName(),pos:pos2,age:ageT2,ovr:ovrT2,potential,trainRate,archetype:_arch4,status:'pending'};
           if(!G.academy.prospects)G.academy.prospects=[];
           G.academy.prospects.push(np);
           addNews(t('kron_t04_c2_news').replace('{name}',np.name),'academy');

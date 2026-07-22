@@ -84,7 +84,7 @@ function dcLegend(parent,items){
 
 // ── Suwak sezonów (współdzielony przez wykresy Wzrostu i Kadry) ─────────
 const DC_HIST_WIN=12; // liczba sezonów widocznych jednocześnie na wykresach dc-bars
-let _dcWzrostCache=null; // {allData,winMaxStart,hasAcademy,acadNow,acadHistArr}
+let _dcWzrostCache=null; // {allData,winMaxStart}
 let _dcKadraCache=null; // {vals,winMaxStart}
 
 function _dcSliderNode(handlerFn,lblId,winStart,winMaxStart,fromSeason,toSeason){
@@ -111,14 +111,6 @@ function _dcShortVal(v){
 function _dcRepData(items){return items.map(d=>({s:d.season,v:d.reputation||0,lbl:(d.reputation||0),cur:!!d._current}));}
 function _dcStadData(items){return items.map(d=>({s:d.season,v:d.stadiumCap||200,lbl:(d.stadiumCap||200),cur:!!d._current}));}
 function _dcBudgetData(items){return items.map(d=>({s:d.season,v:d._current?(G.budget||0):(d.budget||0),lbl:_dcShortVal(d._current?(G.budget||0):(d.budget||0)),cur:!!d._current}));}
-function _dcAcadData(items,acadNow,acadHistArr){
-  return items.map(d=>{
-    const entry=acadHistArr.find(a=>a.season===d.season);
-    const v=entry?entry.level:(d._current?acadNow:Math.max(0,acadNow-1));
-    return {s:d.season,v,lbl:'L'+v,cur:!!d._current};
-  });
-}
-
 function _dcWzrostSlide(val){
   const c=_dcWzrostCache;if(!c)return;
   const start=Math.max(0,Math.min(parseInt(val,10)||0,c.winMaxStart));
@@ -127,10 +119,6 @@ function _dcWzrostSlide(val){
   const b1=document.getElementById('dc-wzrost-b1');if(b1)dcBars(b1,_dcRepData(win),'var(--am)');
   const b2=document.getElementById('dc-wzrost-b2');if(b2)dcBars(b2,_dcStadData(win),'#00bcd4');
   const b3=document.getElementById('dc-wzrost-b3');if(b3)dcBars(b3,_dcBudgetData(win),'var(--gb)');
-  if(c.hasAcademy){
-    const b4=document.getElementById('dc-wzrost-b4');
-    if(b4)dcBars(b4,_dcAcadData(win,c.acadNow,c.acadHistArr),'#9c27b0',52);
-  }
   const lbl=document.getElementById('dc-wzrost-slider-lbl');
   if(lbl)lbl.textContent='S'+win[0].season+'–S'+win[win.length-1].season;
 }
@@ -173,10 +161,7 @@ function dcRenderWzrost(){
   const hasSlider=allData.length>DC_HIST_WIN;
   const winStart=winMaxStart; // domyślnie: najnowsze sezony, suwak cofa do S1
   const win=hasSlider?allData.slice(winStart,winStart+DC_HIST_WIN):allData;
-  const hasAcademy=!!(G.academy&&G.academy.level>0);
-  const acadNow=hasAcademy?G.academy.level:0;
-  const acadHistArr=hasAcademy?(G.academy.hist||[]):[];
-  _dcWzrostCache={allData,winMaxStart,hasAcademy,acadNow,acadHistArr};
+  _dcWzrostCache={allData,winMaxStart};
 
   if(hasSlider)el.appendChild(_dcSliderNode('_dcWzrostSlide','dc-wzrost-slider-lbl',winStart,winMaxStart,win[0].season,win[win.length-1].season));
 
@@ -212,19 +197,6 @@ function dcRenderWzrost(){
   l3.textContent=t('dc_chart_budget')+' ['+curSym()+']';w3.appendChild(l3);
   const b3=document.createElement('div');b3.className='dc-bars';b3.id='dc-wzrost-b3';b3.style.height='72px';w3.appendChild(b3);
   dcBars(b3, _dcBudgetData(win), 'var(--gb)');
-
-  // ── Wykres 4: Poziom akademii ─────────────────────────
-  if(hasAcademy){
-    const sec4=document.createElement('div');sec4.className='dc-sec';
-    sec4.style.cssText='color:#ce93d8;border-color:#9c27b0';
-    sec4.textContent=t('dc_sec_academy_lvl');el.appendChild(sec4);
-
-    const w4=document.createElement('div');w4.className='dc-chart';el.appendChild(w4);
-    const l4=document.createElement('div');l4.className='dc-chart-lbl';
-    l4.textContent=t('dc_chart_academy_lvl');w4.appendChild(l4);
-    const b4=document.createElement('div');b4.className='dc-bars';b4.id='dc-wzrost-b4';b4.style.height='52px';w4.appendChild(b4);
-    dcBars(b4, _dcAcadData(win,acadNow,acadHistArr), '#9c27b0', 52);
-  }
 }
 
 // ── LEGENDY ─────────────────────────────────────────────

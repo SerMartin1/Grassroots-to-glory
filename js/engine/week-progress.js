@@ -211,26 +211,30 @@ function advWeek(){G.week++;if(G.week>=3)G.round++;if(!G.trainFocusLock)G.trainF
   p.form=Math.max(30,Math.min(100,p.form+formDelta+r(-1,1)));
   // Fatigue: HIGH trening zwieksza, LOW redukuje
   if(!p.fatigue)p.fatigue=0;
-  // Balans zmeczenia: mecz PHY55 +7/tyg
-  // NOR=-6 (netto +1/tyg → ~38% pod koniec sezonu - realistyczne)
-  // LOW=-12 (regeneracja: z 50% do 0 w ~4 tyg)
-  // HIGH=+8 (szybko rośnie, wymaga LOW co kilka tyg)
-  if(iOpt3.k==='HIGH') p.fatigue=Math.round(Math.min(100,p.fatigue+8));
-  else if(iOpt3.k==='LOW') p.fatigue=Math.round(Math.max(0,p.fatigue-(tcProfiles().includes('kondycja')?24:12)));
-  else p.fatigue=Math.round(Math.max(0,p.fatigue-(tcProfiles().includes('kondycja')?12:6))); // NOR: lekka regeneracja
-  // Ryzyko kontuzji treningowej z fatigue
+  // Balans zmeczenia v2: mecz PHY50 ~+13.5/tyg (patrz match-engine.js), progi treningu przeskalowane
+  // proporcjonalnie (x1.8) razem z przyrostem meczowym, zeby zachowac sezonowa krzywa zblizona do
+  // starej (~stale NOR → ~75% pod koniec sezonu), ale z wiekszymi, bardziej odczuwalnymi wahaniami:
+  // NOR=-11 (netto +~2.5/tyg przy meczu co tydzien)
+  // LOW=-22 (realna regeneracja mimo meczu w tym samym tygodniu)
+  // HIGH=+14 (szybko rosnie, wymaga LOW co kilka tyg — celowo niezrownowazone przy grze co tydzien)
+  if(iOpt3.k==='HIGH') p.fatigue=Math.round(Math.min(100,p.fatigue+14));
+  else if(iOpt3.k==='LOW') p.fatigue=Math.round(Math.max(0,p.fatigue-(tcProfiles().includes('kondycja')?44:22)));
+  else p.fatigue=Math.round(Math.max(0,p.fatigue-(tcProfiles().includes('kondycja')?22:11))); // NOR: umiarkowana regeneracja
+  // Ryzyko kontuzji treningowej z fatigue — krzywa v2: prog od 40 (bylo 50), max 15% przy 100 (bylo 7.5%)
   if(!p.injured){
-    const fatRisk=p.fatigue>70?(p.fatigue-70)/400:p.fatigue>50?(p.fatigue-50)/800:0;
+    const fatRisk=p.fatigue>70?0.03+((p.fatigue-70)/30)*0.12:p.fatigue>40?((p.fatigue-40)/30)*0.03:0;
     const intRisk=iOpt3.k==='HIGH'?0.012:iOpt3.k==='NOR'?0.003:0;
     const injMult=(p.traits&&p.traits.includes('wytrzymaly'))?0.5:1.0;
     const _regMult=tcProfiles().includes('regeneracja')?0.85:1.0;
     if(Math.random()<(fatRisk+intRisk)*injMult*_regMult) applyInjury(p,false);
   }
-  // Wysoka fatigue obniza forme i generuje news
-  if(p.fatigue>80){
-    p.form=Math.max(30,p.form-2);
-    if(p.fatigue>85&&Math.random()<0.3&&p.clubId===G.myClubId)addNews(t('news_fatigue_warn').replace('{name}',p.name).replace('{n}',p.fatigue),'err');
+  // Wysoka fatigue obniza forme (progresywnie) i generuje news
+  if(p.fatigue>85){
+    p.form=Math.max(25,p.form-4);
+    if(Math.random()<0.3&&p.clubId===G.myClubId)addNews(t('news_fatigue_warn').replace('{name}',p.name).replace('{n}',p.fatigue),'err');
   }
+  else if(p.fatigue>70) p.form=Math.max(30,p.form-2);
+  else if(p.fatigue>55) p.form=Math.max(35,p.form-1);
   // Milestone OVR dla wychowanków akademii
   if(p.fromAcademy&&p.clubId===G.myClubId){
     const _curOvr2=ovr(p);

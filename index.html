@@ -218,6 +218,7 @@
     <!-- Skrót tygodnia/kolejki — sama akcja "zagraj" jest teraz na FAB-ie w pasku, więc to już
          tylko informacyjny pasek (wciąż klikalny jako wygodny, drugi punkt wejścia). -->
     <div class="gab-nextweek" id="btn-next-match" onclick="handleNextWeek()"><span id="btn-next-week">TYDZIEŃ 1</span><span id="btn-next-match-info">▶ NASTĘPNA KOLEJKA</span></div>
+    <div id="gabinet-fatigue-warn"></div>
     <div id="gabinet-board-goal"></div>
     <div id="news-list"></div>
   </div>
@@ -419,7 +420,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="squadTab('meczowy',this)" data-i18n="squad_tab_lineup">SKŁAD MECZOWY</button>
       <button class="tab-btn" onclick="squadTab('statystyki',this)" data-i18n="squad_tab_stats">STATYSTYKI</button>
-      <button class="tab-btn" onclick="squadTab('zdrowie',this)" data-i18n="squad_tab_health">ZDROWIE</button>
+      <button class="tab-btn" id="sq-tab-zdrowie" onclick="squadTab('zdrowie',this)" data-i18n="squad_tab_health">ZDROWIE</button>
       <button class="tab-btn" onclick="squadTab('kontrakty',this)" data-i18n="squad_tab_contracts">KONTRAKTY</button>
     </div>
     <!-- SKŁAD MECZOWY (przeniesione z dawnego p-tactics / tac-pane-sklad) -->
@@ -733,7 +734,7 @@
           <option value="POL" id="tr-camp-opt-pol">🎯 POMOC (Podania + Mentalność)</option>
           <option value="OBR" id="tr-camp-opt-obr">🛡️ OBRONA (Odbiór + Fizyczność)</option>
         </select>
-        <button onclick="sendIndCamp()" style="width:100%;background:var(--gm);border:1px solid var(--gb);color:var(--gb);font-size:var(--fs-dense);padding:8px;cursor:pointer" data-i18n="train_camp_send_btn">WYŚLIJ NA OBÓZ (2000 ZŁ/OS.)</button>
+        <button id="tr-camp-ind-send-btn" onclick="sendIndCamp()" style="width:100%;background:var(--gm);border:1px solid var(--gb);color:var(--gb);font-size:var(--fs-dense);padding:8px;cursor:pointer">WYŚLIJ NA OBÓZ (2000 ZŁ/OS.)</button>
       </div>
     </div>
     <div id="tr-postep" class="sq-tab-pane2" style="padding:10px 12px">

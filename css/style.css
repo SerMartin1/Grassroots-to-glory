@@ -518,6 +518,44 @@ body{background:var(--gd);color:var(--wh);font-family:'JetBrains Mono',monospace
 .fc-season-val.pos{color:var(--gb);}
 .fc-season-val.neg{color:var(--rd);}
 .fc-season-val.neu{color:var(--am);}
+/* Przegląd: wynik operacyjny rozdzielony od transferowego (patrz renderFinPrzeglad) */
+.fc-tr-chip{display:flex;justify-content:space-between;align-items:center;background:var(--gm);border:1px solid var(--gb);padding:9px 12px;margin:8px 12px;}
+.fc-tr-chip-lbl{font-family:'JetBrains Mono',monospace;font-size:var(--fs-micro);color:var(--gr);letter-spacing:.5px;}
+.fc-tr-chip-lbl b{display:block;font-size:var(--fs-dense);color:var(--wh);font-weight:700;margin-top:1px;}
+.fc-tr-chip-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h2);}
+.fc-tr-chip-val.pos{color:var(--gb);}
+.fc-tr-chip-val.neg{color:var(--rd);}
+.fc-health{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font-size:var(--fs-dense);}
+.fc-health-lbl{color:var(--gr);}
+.fc-pill{font-family:'JetBrains Mono',monospace;font-size:var(--fs-micro);font-weight:700;padding:2px 7px;letter-spacing:.3px;}
+.fc-pill-ok{background:rgba(76,175,80,.15);color:var(--gb);border:1px solid var(--gb);}
+.fc-pill-mid{background:rgba(255,193,7,.12);color:var(--am);border:1px solid var(--am);}
+.fc-pill-warn{background:rgba(244,67,54,.15);color:var(--rd);border:1px solid var(--rd);}
+.fc-tr-details{margin:0 12px 8px;border:1px solid var(--gl);background:var(--tb);}
+.fc-tr-details summary{list-style:none;cursor:pointer;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;}
+.fc-tr-details summary::-webkit-details-marker{display:none;}
+.fc-tr-sum-lbl{font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);font-weight:700;color:var(--wh);}
+.fc-tr-sum-meta{font-size:var(--fs-micro);color:var(--gr);margin-top:1px;}
+.fc-tr-sum-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fs-h2);}
+.fc-tr-sum-val.pos{color:var(--gb);}
+.fc-tr-sum-val.neg{color:var(--rd);}
+.fc-tr-chev{color:var(--gr);font-size:var(--fs-micro);margin-left:8px;transition:transform .15s;}
+.fc-tr-details[open] .fc-tr-chev{transform:rotate(90deg);}
+.fc-tr-list{padding:0 12px 9px;border-top:1px solid var(--gl);}
+.fc-tr-item{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(45,107,45,.4);font-size:var(--fs-dense);}
+.fc-tr-item:last-child{border-bottom:none;}
+.fc-tr-item-who{color:var(--wh);}
+.fc-tr-item-amt{font-weight:700;white-space:nowrap;}
+.fc-tr-item-amt.pos{color:var(--gb);}
+.fc-tr-item-amt.neg{color:var(--rd);}
+.fc-prevm-row{display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:var(--fs-dense);}
+.fc-prevm-name{width:76px;flex-shrink:0;color:var(--gr);}
+.fc-prevm-bar{flex:1;height:6px;background:#0a150a;position:relative;overflow:hidden;}
+.fc-prevm-bar-fill{position:absolute;top:0;height:100%;}
+.fc-prevm-val{width:82px;text-align:right;font-weight:700;white-space:nowrap;}
+.fc-prevm-val.pos{color:var(--gb);}
+.fc-prevm-val.neg{color:var(--rd);}
+.fc-season-caption{padding:6px 12px 10px;font-size:var(--fs-micro);color:var(--am);}
 /* Historia uproszczona */
 .fh-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:var(--fs-dense);}
 .fh-table th{padding:4px 5px;border-bottom:1px solid var(--gl);font-size:var(--fs-h2);font-family:'JetBrains Mono',monospace;font-weight:700;}

@@ -39,6 +39,11 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 
 # 🟢 POZIOM 1 — Drobne poprawki (bug, jedna funkcja, jedna sesja)
 
+☐ **Martwy kod: `FIN.salMin`/`FIN.salMax` (`core/data.js`)**
+  Tabela nigdzie nieużywana (potwierdzone grepem) — zastąpiona przez `calcSalary()` w
+  `core/state.js` już podczas przebudowy ekonomii (22.07.2026, patrz CHANGELOG). Do usunięcia
+  albo jawnego oznaczenia jako legacy, żeby nie mylić przy kolejnej edycji `FIN`.
+
 ☐ **Karta zawodnika — numer zawodnika**
   Dodać/poprawić wyświetlanie numeru na karcie. (część większego zadania #9 poniżej —
   jeśli chcesz to zrobić osobno i szybko, wydziel tylko tę część)
@@ -56,6 +61,15 @@ końcu tego pliku, bo są zbyt długie żeby streszczać.
 ---
 
 # 🟡 POZIOM 2 — Małe zadania (jeden plik/moduł, ograniczony zakres)
+
+☐ **Przebudowa ekonomii — dociągnięcie ~150 kwot w `engine/kronika-eventy-*.js`**
+  Świadomie pominięte przy przebudowie ekonomii 22.07.2026 (mnożnik ×2 na `FIN`/`LEAGUE_BUDGET`,
+  nowy `calcSalary()`, `FIN.bonus`, obozy, puchar, cele zarządu — patrz CHANGELOG). Jednorazowe
+  fabularne kwoty koszt/przychód (zakres 1 000–20 000, ~150 literałów w 10 plikach: academy,
+  history, finance, transfery, crisis, health, club, cup, locker, sporting) zostały na starej
+  skali — dziś relatywnie małe wobec nowych, większych budżetów. Do decyzji: przeskalować ×2
+  dla pełnej spójności, czy zostawić celowo jako drobne "flavor" koszty nieproporcjonalne do
+  reszty ekonomii.
 
 ☐ **Kontrakty — natychmiastowy update po akceptacji**
   UI ma się odświeżać od razu po zaakceptowaniu warunków.

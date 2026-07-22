@@ -6,15 +6,15 @@ function _cupRoundLabels(){
 }
 const CUP_ROUND_LABELS=new Proxy([],{get(target,prop){const arr=_cupRoundLabels();return arr[prop];}});
 const CUP_REWARDS=[
-  {rnd:0,labelKey:'cup_reward_r1',cash:5000,rep:2},
-  {rnd:1,labelKey:'cup_reward_r2',cash:15000,rep:4},
-  {rnd:2,labelKey:'cup_reward_qf',cash:50000,rep:8},
-  {rnd:3,labelKey:'cup_reward_sf',cash:150000,rep:15},
-  {rnd:4,labelKey:'cup_reward_sf',cash:150000,rep:15},
-  {rnd:5,labelKey:'cup_reward_finalist',cash:400000,rep:25},
+  {rnd:0,labelKey:'cup_reward_r1',cash:25000,rep:2},
+  {rnd:1,labelKey:'cup_reward_r2',cash:75000,rep:4},
+  {rnd:2,labelKey:'cup_reward_qf',cash:250000,rep:8},
+  {rnd:3,labelKey:'cup_reward_sf',cash:750000,rep:15},
+  {rnd:4,labelKey:'cup_reward_sf',cash:750000,rep:15},
+  {rnd:5,labelKey:'cup_reward_finalist',cash:2000000,rep:25},
 ];
 CUP_REWARDS.forEach(r=>Object.defineProperty(r,'label',{get(){return t(r.labelKey);},enumerable:true}));
-const CUP_REWARD_WIN={cash:1000000,rep:50};
+const CUP_REWARD_WIN={cash:5000000,rep:50};
 Object.defineProperty(CUP_REWARD_WIN,'label',{get(){return t('cup_reward_win');},enumerable:true});
 function grantCupReward(rIdx,won){
   if(!won||!G)return;

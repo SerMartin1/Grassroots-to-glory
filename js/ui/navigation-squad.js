@@ -468,6 +468,7 @@ function updateHdr(){if(!G)return;
     if(G.seasonEnded){
       if(wSpan)wSpan.textContent=t('hdr_season_ended').replace('{n}',G.season);
       if(mSpan)mSpan.textContent=t('hdr_new_season');
+      updateGabinetFatigueWarn(null);
       return;
     }
     if(nm){
@@ -484,8 +485,29 @@ function updateHdr(){if(!G)return;
       if(wSpan)wSpan.textContent=t('hdr_week')+' '+G.week;
       if(mSpan)mSpan.textContent=t('hdr_end_season');
     }
+    updateGabinetFatigueWarn(nm);
   }
   renderNews();
+}
+// Baner na Gabinecie: startery >70% zmęczenia przed najbliższym meczem (tylko gdy jakiś jest
+// rozegrany w tym tygodniu) — żeby gracz zobaczył ostrzeżenie od razu, bez wchodzenia do
+// Skład → Zdrowie samemu. Ten sam próg co kolorystyka "Zmęczony/Przemęczony" w tej zakładce.
+function updateGabinetFatigueWarn(nm){
+  const el=document.getElementById('gabinet-fatigue-warn');if(!el)return;
+  if(!nm||G.seasonEnded){el.innerHTML='';return;}
+  const tired=myPl().filter(p=>p.starter&&!p.injured&&(p.fatigue||0)>70)
+    .sort((a,b)=>(b.fatigue||0)-(a.fatigue||0)).slice(0,3);
+  if(!tired.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="margin:9px 8px 4px;background:var(--tb);border:1px solid var(--rd);border-left:3px solid var(--rd);padding:9px 11px">'+
+    '<div style="font-size:var(--fs-dense);font-weight:700;color:var(--rd);margin-bottom:5px">😓 '+t('gab_fatigue_warn_title')+'</div>'+
+    tired.map(p=>'<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);color:var(--wh);padding:2px 0">'+p.name+'<span style="color:var(--rd);font-weight:700">'+Math.round(p.fatigue)+'%</span></div>').join('')+
+    '<div style="text-align:right;font-size:var(--fs-meta);color:var(--am);margin-top:5px;cursor:pointer" onclick="openSquadHealth()">'+t('gab_fatigue_warn_cta')+'</div>'+
+  '</div>';
+}
+function openSquadHealth(){
+  openPanel('p-squad');
+  const b=document.getElementById('sq-tab-zdrowie');
+  if(b)squadTab('zdrowie',b);
 }
 
 function fillPanel(id){
@@ -543,7 +565,7 @@ function _sqTbl(headers, rows, footer){
   '</table></div>';
 }
 // Sort state per zakładka
-if(!window._sqSort)window._sqSort={stats:'pos',health:'pos',contracts:'contract'};
+if(!window._sqSort)window._sqSort={stats:'pos',health:'fat',contracts:'contract'};
 function setSqSort(tab,field){
   const cur=window._sqSort[tab]||'';
   const curField=cur.endsWith('_asc')?cur.replace('_asc',''):cur;
@@ -583,7 +605,7 @@ window._sqf=function(el){
 
 function renderSquadStats(){
   const el=document.getElementById('squad-statystyki');if(!el||!G)return;
-  if(!window._sqSort)window._sqSort={stats:'pos',health:'pos',contracts:'contract'};
+  if(!window._sqSort)window._sqSort={stats:'pos',health:'fat',contracts:'contract'};
   if(!window._sqFilter)window._sqFilter={stats:'all',health:'all',contracts:'all'};
   const sf=window._sqSort.stats||'pos';
   const asc=sf.endsWith('_asc');const field=asc?sf.replace('_asc',''):sf;
@@ -605,6 +627,7 @@ function renderSquadStats(){
   const avgOvr=all.length?Math.round(all.reduce((s,p)=>s+ovr(p),0)/all.length):0;
   const rows=all.map(p=>{
     const o=ovr(p);const oc=o>=70?'var(--gb)':o>=40?'var(--am)':'var(--rd)';
+    const fatOvrPts3=Math.round(o*fatigueOvrPenalty(p.fatigue));
     const fm=p.form||75;const fc=fm>=75?'var(--gb)':fm>=50?'var(--am)':'var(--rd)';
     const sRats=p.seasonRatings||[];
     const rat=sRats.length?Math.round(sRats.reduce((s,r)=>s+r,0)/sRats.length*10)/10:null;
@@ -618,7 +641,7 @@ function renderSquadStats(){
       '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'stats\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh);vertical-align:middle"><span class="sq-face-slot" data-pid="'+p.id+'" data-age="'+p.age+'" style="display:inline-block;vertical-align:middle;margin-right:5px;line-height:0"></span>'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;padding-right:8px;color:var(--gr)">'+(p.age||'—')+'</td>'+
-      '<td style="text-align:right;padding-right:10px;color:'+oc+'">'+o+'</td>'+
+      '<td style="text-align:right;padding-right:10px;color:'+oc+'">'+o+(fatOvrPts3>0?' <span style="color:var(--rd);font-size:9px">-'+fatOvrPts3+'</span>':'')+'</td>'+
       '<td style="text-align:right;padding-right:10px;color:'+fc+'">'+fm+'%</td>'+
       stats+
       '<td style="text-align:right;padding-right:10px;color:'+ratCol+'">'+ratDisp+'</td>'+
@@ -641,7 +664,7 @@ function renderSquadStats(){
 }
 function renderSquadHealth(){
   const el=document.getElementById('squad-zdrowie');if(!el||!G)return;
-  if(!window._sqSort)window._sqSort={stats:'pos',health:'pos',contracts:'contract'};
+  if(!window._sqSort)window._sqSort={stats:'pos',health:'fat',contracts:'contract'};
   if(!window._sqFilter)window._sqFilter={stats:'all',health:'all',contracts:'all'};
   const sf=window._sqSort.health||'pos';
   const asc=sf.endsWith('_asc');const field=asc?sf.replace('_asc',''):sf;
@@ -655,6 +678,9 @@ function renderSquadHealth(){
   const avail=all.filter(p=>!p.injured&&(!p.suspension||p.suspension===0)).length;
   const injured=all.filter(p=>p.injured).length;
   const susp=all.filter(p=>p.suspension>0).length;
+  const overloaded=all.filter(p=>(p.fatigue||0)>80).length;
+  const warnBanner=overloaded?'<div style="display:flex;align-items:flex-start;gap:8px;background:var(--tb);border:1px solid var(--rd);border-left:3px solid var(--rd);padding:8px 10px;margin-bottom:8px;font-size:var(--fs-dense);color:var(--wh)">'+
+    '<span>⚠️</span><span>'+t('squad_health_warn').replace('{n}',overloaded)+'</span></div>':'';
   const rows=all.map(p=>{
     let status,scol;
     if(p.injured){status=t('squad_status_inj').replace('{n}',p.injuryWeeks);scol='var(--rd)';}
@@ -664,26 +690,28 @@ function renderSquadHealth(){
     const fat=Math.round(p.fatigue||0);
     const fatCol=fat>70?'var(--rd)':fat>50?'var(--am)':'var(--gb)';
     const fatLbl=fat>70?t('squad_fat_overloaded'):fat>50?t('squad_fat_tired'):t('squad_fat_ok');
+    const fatOvrPts4=Math.round(ovr(p)*fatigueOvrPenalty(p.fatigue));
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
       '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'health\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+
       '<td style="text-align:right;color:'+fc+'">'+fm+'%</td>'+
-      '<td style="text-align:right;color:'+fatCol+'">'+fat+'%<br><span style="font-size:var(--fs-dense)">'+fatLbl+'</span></td>'+
+      '<td style="text-align:right;color:'+fatCol+'">'+fat+'%<br><span style="font-size:var(--fs-dense)">'+fatLbl+(fatOvrPts4>0?' • -'+fatOvrPts4+' OVR':'')+'</span></td>'+
       '<td style="padding:5px 8px 5px 4px;padding-right:14px;color:'+scol+'">'+status+'</td>'+
     '</tr>';
   }).join('');
-  const _hf=window._sqSort&&window._sqSort.health||'pos';
+  const _hf=window._sqSort&&window._sqSort.health||'fat';
   const headers=[
     {label:t('squad_col_pos'),sort:"setSqSort('health','pos')",active:_hf==='pos'||_hf==='pos_asc'},{label:t('squad_col_player')},
-    {label:t('squad_col_fatigue'),right:true,sort:"setSqSort('health','fat')",active:_hf==='fat'},
+    {label:t('squad_col_form'),right:true,sort:"setSqSort('health','fm')",active:_hf==='fm'||_hf==='fm_asc'},
+    {label:t('squad_col_fatigue'),right:true,sort:"setSqSort('health','fat')",active:_hf==='fat'||_hf==='fat_asc'},
     {label:t('squad_col_status'),sort:"setSqSort('health','status')",active:_hf==='status'}
   ];
   const footer=t('squad_footer_avail').replace('{a}',avail).replace('{t}',all.length).replace('{i}',injured).replace('{s}',susp);
-  el.innerHTML=_filterBar('health')+_sqTbl(headers,rows,footer);
+  el.innerHTML=_filterBar('health')+warnBanner+_sqTbl(headers,rows,footer);
 }
 function renderSquadContracts(){
   const el=document.getElementById('squad-kontrakty');if(!el||!G)return;
-  if(!window._sqSort)window._sqSort={stats:'pos',health:'pos',contracts:'contract'};
+  if(!window._sqSort)window._sqSort={stats:'pos',health:'fat',contracts:'contract'};
   if(!window._sqFilter)window._sqFilter={stats:'all',health:'all',contracts:'all'};
   const sf=window._sqSort.contracts||'contract';
   const asc=sf.endsWith('_asc');const field=asc?sf.replace('_asc',''):sf;
@@ -697,7 +725,7 @@ function renderSquadContracts(){
   const totalSal=all.reduce((s,p)=>s+(p.salary||0),0);
   const rows=all.map(p=>{
     const cc=p.contract<=1?'var(--rd)':p.contract<=2?'var(--am)':'var(--wh)';
-    const vc=p.value>=20000?'var(--gb)':p.value>=5000?'var(--am)':'var(--wh)';
+    const vc=p.value>=2000?'var(--gb)':p.value>=500?'var(--am)':'var(--wh)';
     return '<tr style="border-bottom:1px solid #0d1f0d;cursor:pointer" onclick="showById('+p.id+')">'+
       '<td style="padding:5px 4px;color:var(--gr);font-size:var(--fs-dense);cursor:pointer" onclick="event.stopPropagation();setSqFilter(\'contracts\',\''+p.pos+'\')" title="'+t('nav_filter_title').replace('{pos}',POS_SHORT[p.pos]||p.pos)+'">'+(POS_SHORT[p.pos]||p.pos)+'</td>'+
       '<td style="padding:5px 4px;color:var(--wh)">'+p.name+(p.fromAcademy?' <span style="color:#9c27b0;font-size:9px">🎓</span>':'')+'</td>'+

@@ -769,7 +769,9 @@ liveStats={hShots:0,aShots:0,hOn:0,aOn:0,hFouls:0,aFouls:0,hAct:0,aAct:0};
 function next(){if(idx2>=allEvts.length){m.done=true;m.hg=fHG;m.ag=fAG;if(!m._isCup)updStand(m.h,m.a,fHG,fAG);// Injuries during match
   G.players.filter(p=>(p.clubId===m.h||p.clubId===m.a)&&p.starter&&!p.injured).forEach(p=>{
     const injMult=(p.traits&&p.traits.includes('wytrzymaly'))?0.7:1.0;
-    const chance=0.01*(1+(100-p.phy)/100)*injMult;
+    // v2: zmeczenie (p.fatigue) dolicza sie do ryzyka kontuzji meczowej — do +75% przy 100% zmeczenia
+    const fatFactor=(p.fatigue||0)>50?((p.fatigue-50)/100):0;
+    const chance=0.01*(1+(100-p.phy)/100+fatFactor*1.5)*injMult;
     if(Math.random()<chance){
     applyInjury(p,true);
     if(!window._matchInjured)window._matchInjured=[];
@@ -788,10 +790,10 @@ function next(){if(idx2>=allEvts.length){m.done=true;m.hg=fHG;m.ag=fAG;if(!m._is
       }
       if(p.clubId===G.myClubId){
         if(!p.trainMatches)p.trainMatches=0;p.trainMatches++;
-        // Narastające zmeczenie po meczu
+        // Narastające zmeczenie po meczu — v2: wieksze przyrosty (PHY50 ~+14 zamiast ~+8)
         if(!p.fatigue)p.fatigue=0;
         const phyBonus=(p.phy||50)/200; // wyzszy PHY = mniejsze zmeczenie
-        p.fatigue=Math.round(Math.min(100,p.fatigue+Math.max(3,10-phyBonus*10)));
+        p.fatigue=Math.round(Math.min(100,p.fatigue+Math.max(8,18-phyBonus*18)));
       }
     });
   });

@@ -1,23 +1,27 @@
 const ACADEMY={
-  costBase: [150000, 450000, 1200000, 3600000, 12000000],
-  upkBase:  [500,    2000,   6000,    18000,   55000],
+  costBase: [300000, 900000, 2400000, 7200000, 24000000],
+  upkBase:  [1000,   4000,   12000,   36000,   110000],
   costMult: {1:5.0,2:3.0,3:1.8,4:1.2,5:0.8,6:0.5,7:0.35,8:0.25},
   upkMult:  {1:6.0,2:3.5,3:4.0,4:3.6,5:2.1,6:1.2,7:0.75,8:0.45},
+  // leagueReq: twardy wymóg ligowy (G.myLeague<=leagueReq), osobny od progu reputacji (req) —
+  // wcześniej sam próg reputacji potrafił zostać osiągnięty w słabszej lidze niż sugerował opis
+  // w UI (np. rep 100+ w VI lidze zamiast dopiero w V), bo reputacja i awans nie są sztywno
+  // powiązane. Wartości dopasowane do istniejących opisowych etykiet (acad_expand_l1/l3/l5).
   levels:[
-    {cost:150000,  upkeep:150,   perSeason:1, maxPot:60, ovrMin:18, buildWeeks:8,  key:'basic',   req:0},
-    {cost:450000,  upkeep:800,   perSeason:2, maxPot:72, ovrMin:22, buildWeeks:12, key:'advanced',req:100},
-    {cost:1200000, upkeep:2500,  perSeason:3, maxPot:82, ovrMin:27, buildWeeks:20, key:'pro',     req:250},
-    {cost:3600000, upkeep:8000,  perSeason:5, maxPot:92, ovrMin:32, buildWeeks:32, key:'elite',   req:500},
+    {cost:150000,  upkeep:150,   perSeason:1, maxPot:60, ovrMin:18, buildWeeks:8,  key:'basic',   req:0,   leagueReq:8},
+    {cost:450000,  upkeep:800,   perSeason:2, maxPot:72, ovrMin:22, buildWeeks:12, key:'advanced',req:100, leagueReq:6},
+    {cost:1200000, upkeep:2500,  perSeason:3, maxPot:82, ovrMin:27, buildWeeks:20, key:'pro',     req:250, leagueReq:4},
+    {cost:3600000, upkeep:8000,  perSeason:5, maxPot:92, ovrMin:32, buildWeeks:32, key:'elite',   req:500, leagueReq:2},
     {cost:12000000,upkeep:25000, perSeason:2, maxPot:99, ovrMin:38, buildWeeks:52, key:'masters', req:800, ekstraOnly:true},
   ]
 };
 function _acadName(a){return t('acad_lvl_'+(a.key||'basic'));}
 const TRAINING_CENTER={
-  costBase:[80000,350000,1200000],
-  upkBase: [300,1200,4000],
+  costBase:[160000,700000,2400000],
+  upkBase: [600,2400,8000],
   costMult:{1:5.0,2:3.0,3:1.8,4:1.2,5:0.8,6:0.5,7:0.35,8:0.25},
   upkMult: {1:6.0,2:3.5,3:4.0,4:3.6,5:2.1,6:1.2,7:0.75,8:0.45},
-  changeCost:{0:5000,1:15000,2:40000},
+  changeCost:{0:10000,1:30000,2:80000},
   levels:[
     {key:'basic',    profiles:1, buildWeeks:4,  req:{rep:0,  stad:0}},
     {key:'advanced', profiles:2, buildWeeks:8,  req:{rep:150,stad:1000}},
@@ -338,6 +342,7 @@ function renderAcadRozbudowa(){
     const isOwned=i<lvl;const isNext=i===lvl;
     const cost=acadCost(i);const upk=acadUpkeep(i);
     const reqOk=rep>=(a.req||0);const canAfford=G.budget>=cost;
+    const leagueOk=a.leagueReq==null||lg<=a.leagueReq;
     const availLine=a.ekstraOnly?t('acad_expand_premier'):a.req>=500?t('acad_expand_l1'):a.req>=250?t('acad_expand_l3'):a.req>=100?t('acad_expand_l5'):'';
     return '<div style="background:var(--tb);border:2px solid '+(isOwned?'var(--gb)':isNext?'var(--am)':'var(--gl)')+';padding:10px 12px;margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'+
@@ -355,7 +360,8 @@ function renderAcadRozbudowa(){
         (availLine?'<div><span style="color:var(--gr)">'+t('acad_expand_avail')+'</span><span style="color:var(--wh)"> '+availLine+'</span></div>':'')+
       '</div>'+
       (!isOwned&&isNext?
-        (!reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_locked').replace('{req}',a.req).replace('{rep}',rep)+'</div>':
+        (!leagueOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_locked_league').replace('{league}',LEAGUE_NAMES[a.leagueReq]).replace('{cur}',LEAGUE_NAMES[lg])+'</div>':
+         !reqOk?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_locked').replace('{req}',a.req).replace('{rep}',rep)+'</div>':
          !canAfford?'<div style="font-size:var(--fs-dense);color:var(--rd)">'+t('acad_expand_no_funds').replace('{n}',fmt(cost-G.budget))+'</div>':
          '<button onclick="buildAcademy('+i+')" style="width:100%;background:var(--gb);color:#000;border:none;font-size:var(--fs-meta);padding:8px;cursor:pointer">'+(lvl===0?t('acad_expand_build_btn'):t('acad_expand_upgrade_btn')).replace('{cost}',fmt(cost))+'</button>')
       :'')+
@@ -368,6 +374,7 @@ function buildAcademy(levelIdx){
   if(!G.academy.trainees)G.academy.trainees=[];
   const a=ACADEMY.levels[levelIdx];if(!a)return;
   if(a.ekstraOnly&&(G.myLeague||8)!==1){notif(t('acad_masters_only'),'err');return;}
+  if(a.leagueReq!=null&&(G.myLeague||8)>a.leagueReq){notif(t('acad_req_league').replace('{n}',LEAGUE_NAMES[a.leagueReq]),'err');return;}
   const _cst=acadCost(levelIdx);
   if(G.budget<_cst){notif(t('acad_no_funds'),'err');return;}
   if((G.reputation||30)<(a.req||0)){notif(t('acad_req_rep').replace('{n}',a.req),'err');return;}

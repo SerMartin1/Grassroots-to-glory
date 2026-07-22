@@ -288,6 +288,10 @@ function applyInjury(p, isMatch){
   if(roll==='light'){type=t('inj_type_light');weeks=r(1,2);formDrop=20;}
   else if(roll==='medium'){type=t('inj_type_medium');weeks=r(3,5);formDrop=40;phyDrop=2;}
   else{type=t('inj_type_severe');weeks=r(6,12);formDrop=0;p.form=5;phyDrop=3;}
+  // v2: kontuzja u przemeczonego zawodnika goi się dłużej — realny koszt ignorowania zmęczenia,
+  // nie tylko wyższe ryzyko jej wystąpienia (progi 40/70 spójne z playerStr()/fatRisk wyżej w kodzie)
+  const fatDurMult=(p.fatigue||0)>70?1.6:(p.fatigue||0)>40?1.25:1.0;
+  weeks=Math.max(1,Math.round(weeks*fatDurMult));
   p.injured=true;
   p.injuryWeeks=weeks;
   p.injuryType=type;
@@ -317,6 +321,13 @@ function getBondFormBonus(p,isHome){
 }
 // ─────────────────────────────────────────────────────────────────
 
+// Kara do siły/OVR zawodnika z powodu zmęczenia — wspólna dla playerStr() (siła w meczu) i
+// wyświetlania informacyjnego (tactics-playercard.js) — jedno źródło liczb, żeby oba miejsca
+// zawsze pokazywały ten sam procent. Ponizej 40% zmeczenia brak kary.
+function fatigueOvrPenalty(fatigue){
+  const fat=fatigue||0;
+  return fat>70?0.08+((fat-70)/30)*0.12:fat>40?((fat-40)/30)*0.08:0;
+}
 function playerStr(p){
   if(!p)return 0;
   // Bonusy cech do atrybutów w meczu
@@ -327,11 +338,14 @@ function playerStr(p){
     if((p.pos==='NAP'||p.pos==='POL')&&p.traits.includes('snajper'))sht=Math.min(99,sht+5);
     if((p.pos==='OBR'||p.pos==='GK')&&p.traits.includes('mur'))def=Math.min(99,def+5);
   }
-  if(p.pos==='NAP') return Math.round(sht*0.40+tec*0.25+phy*0.20+men*0.15);
-  if(p.pos==='POL') return Math.round(pas*0.35+tec*0.25+men*0.20+phy*0.20);
-  if(p.pos==='OBR') return Math.round(def*0.40+phy*0.30+men*0.20+pas*0.10);
-  if(p.pos==='GK')  return Math.round(def*0.45+men*0.35+phy*0.15+pas*0.05);
-  return ovr(p);
+  let base;
+  if(p.pos==='NAP') base=sht*0.40+tec*0.25+phy*0.20+men*0.15;
+  else if(p.pos==='POL') base=pas*0.35+tec*0.25+men*0.20+phy*0.20;
+  else if(p.pos==='OBR') base=def*0.40+phy*0.30+men*0.20+pas*0.10;
+  else if(p.pos==='GK')  base=def*0.45+men*0.35+phy*0.15+pas*0.05;
+  else return ovr(p);
+  // v2: zmeczenie osłabia realną siłę zawodnika w meczu
+  return Math.round(base*(1-fatigueOvrPenalty(p.fatigue)));
 }
 function capOvrAtPotential(p){const attrs=['tec','pas','sht','def','phy','men'];while(ovr(p)>=p.potential&&p.potential<99){const excess=ovr(p)-p.potential+1;const a=attrs[Math.floor(Math.random()*attrs.length)];p[a]=Math.max(1,p[a]-excess);}}
 
@@ -835,6 +849,13 @@ function loadGame(slot){try{
     if(!p.history)p.history=[];
     if(!p.st)p.st={m:0,g:0,a:0,yk:0,rk:0,cs:0,ga:0};
     const curOvr=ovr(p);
+    // Migracja: zawodnicy zapisani w wariancie slimMicro (kluby AI >2 poziomy ligowe od
+    // gracza, patrz saveGame()) nie mają name/value/salary w ogóle — jedyne pola tej grupy,
+    // które nigdy nie były tu odtwarzane (status/st/potential/traits już były), więc zostawały
+    // undefined na stałe i psuły sumowania w zakładce Świat (wartość składu, rekordowe transfery).
+    if(!p.name){p.name=getUniqueName();p.last=p.name.split(' ')[1]||p.name;}
+    if(p.value===undefined)p.value=calcValue(curOvr,p.age);
+    if(p.salary===undefined)p.salary=calcSalary(p.value,null,curOvr);
     if(!p.potential||p.potential<=curOvr){
       const _lgM=G.leagues?G.leagues.find(l=>l.clubs&&l.clubs.some(c=>c.id===p.clubId)):null;
       p.potential=calcPotential(p,_lgM?_lgM.level:G.myLeague||8);

@@ -22,7 +22,7 @@ function genBoardGoals(){
   const leagueName=LEAGUE_NAMES[lvl]||t('league_fallback');
   const rep=G.reputation||30;
   const budget=G.budget;
-  const rewardScale=[0,500000,200000,80000,30000,12000,5000,2000,800][lvl]||800;
+  const rewardScale=[0,5000000,2000000,800000,300000,120000,50000,20000,8000][lvl]||8000;
 
   // ── Kontekst historyczny ──────────────────────────────────
   const lastHist=G.cHist&&G.cHist.length?G.cHist[G.cHist.length-1]:null;

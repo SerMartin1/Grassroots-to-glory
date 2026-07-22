@@ -80,6 +80,10 @@ function renderFinPrzeglad(){
   if(!monthNums.includes(curMonth))monthNums.unshift(curMonth);
   monthNums.sort((a,b)=>b-a);
 
+  // otherEvents = zdarzenia jednorazowe BEZ transferów (bonusy zarządu, budowa stadionu itd.);
+  // trEvents = same transfery (SPR:/KUP:), osobno — to jest sedno przebudowy: dawniej te dwie
+  // kategorie były wymieszane w jednej liście "events" o równej wadze wizualnej, co maskowało
+  // fakt że to transfery, nie działalność klubu, dominują saldo (patrz diagnoza ekonomii).
   function monthData(m){
     const w0=(m-1)*4+1; const w1=m*4; // T zakres miesiąca (M1=T1-T4, M2=T5-T8 itd.)
     const rows=hist.filter(h=>h.w>=w0&&h.w<=w1);
@@ -87,7 +91,6 @@ function renderFinPrzeglad(){
     const regInc=rows.filter(h=>!h.note).reduce((s,h)=>s+(h.inc||0),0);
     const salPaid=rows.filter(h=>!h.note&&h.costSalary>0).reduce((s,h)=>s+(h.costSalary||0),0);
     const maintPaid=rows.filter(h=>!h.note).reduce((s,h)=>s+(h.costMaint||0)+(h.costTC||0)+(h.costAcad||0),0);
-    // Zdarzenia z fin.hist z note — ale wykluczamy SPR:/KUP: bo te są już w fin.transfers
     const nonTrRows=rows.filter(h=>h.note&&!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'));
     const evtInc=nonTrRows.reduce((s,h)=>s+(h.inc||0),0);
     const evtCost=nonTrRows.reduce((s,h)=>s+(h.cost||0),0);
@@ -95,12 +98,12 @@ function renderFinPrzeglad(){
     const trBuyCost=trRows.filter(t=>t.type==='buy').reduce((s,t)=>s+(t.val||t.fee||0),0);
     const totalInc=regInc+evtInc+trSellInc;
     const totalCost=salPaid+maintPaid+evtCost+trBuyCost;
-    const events=[
-      ...nonTrRows.map(h=>({lbl:h.note,inc:h.inc||0,cost:h.cost||0})),
-      ...trRows.filter(t=>t.type==='sell').map(t=>({lbl:'SPR: '+t.name,inc:t.val||0,cost:0})),
-      ...trRows.filter(t=>t.type==='buy').map(t=>({lbl:'KUP: '+t.name,inc:0,cost:t.val||t.fee||0}))
+    const otherEvents=nonTrRows.map(h=>({lbl:h.note,inc:h.inc||0,cost:h.cost||0}));
+    const trEvents=[
+      ...trRows.filter(t=>t.type==='sell').map(t=>({lbl:'SPR: '+t.name,inc:t.val||0,cost:0,type:'sell'})),
+      ...trRows.filter(t=>t.type==='buy').map(t=>({lbl:'KUP: '+t.name,inc:0,cost:t.val||t.fee||0,type:'buy'}))
     ];
-    return{w0,w1,regInc,salPaid,maintPaid,evtInc,evtCost,trSellInc,trBuyCost,totalInc,totalCost,net:totalInc-totalCost,events};
+    return{w0,w1,regInc,salPaid,maintPaid,evtInc,evtCost,trSellInc,trBuyCost,totalInc,totalCost,net:totalInc-totalCost,otherEvents,trEvents};
   }
 
   // Jeśli brak danych historycznych (wczesna gra) — szacuj z aktualnych stawek
@@ -123,128 +126,159 @@ function renderFinPrzeglad(){
       &&!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'));
     const evtIncE=histRowsE.reduce((s,h)=>s+(h.inc||0),0);
     const evtCostE=histRowsE.reduce((s,h)=>s+(h.cost||0),0);
-    const eventsE=[
-      ...histRowsE.map(h=>({lbl:h.note,inc:h.inc||0,cost:h.cost||0})),
-      ...trRowsE.filter(t=>t.type==='sell').map(t=>({lbl:'SPR: '+t.name,inc:t.val||0,cost:0})),
-      ...trRowsE.filter(t=>t.type==='buy').map(t=>({lbl:'KUP: '+t.name,inc:0,cost:t.val||t.fee||0}))
+    const otherEventsE=histRowsE.map(h=>({lbl:h.note,inc:h.inc||0,cost:h.cost||0}));
+    const trEventsE=[
+      ...trRowsE.filter(t=>t.type==='sell').map(t=>({lbl:'SPR: '+t.name,inc:t.val||0,cost:0,type:'sell'})),
+      ...trRowsE.filter(t=>t.type==='buy').map(t=>({lbl:'KUP: '+t.name,inc:0,cost:t.val||t.fee||0,type:'buy'}))
     ];
     // Dodaj niezaksięgowane bilety z bieżącego tygodnia (przed advWeek)
     const _pendingTickets=isCur?(G.fin.tickets||0):0;
     const regIncFinal=regInc+_pendingTickets;
     const totalInc=regIncFinal+trSellE+evtIncE;
     const totalCost=salPaid+maintPaid+trBuyE+evtCostE;
-    return{w0:w0e,w1:w1e,regInc:regIncFinal,salPaid,maintPaid,evtInc:evtIncE+trSellE,evtCost:evtCostE+trBuyE,trSellInc:trSellE,trBuyCost:trBuyE,totalInc,totalCost,net:totalInc-totalCost,events:eventsE,estimated:true};
+    return{w0:w0e,w1:w1e,regInc:regIncFinal,salPaid,maintPaid,evtInc:evtIncE,evtCost:evtCostE,trSellInc:trSellE,trBuyCost:trBuyE,totalInc,totalCost,net:totalInc-totalCost,otherEvents:otherEventsE,trEvents:trEventsE,estimated:true};
   }
 
-  // Donut dla bieżącego miesiąca
   const curData=hist.filter(h=>weekToMonth(h.w)===curMonth&&!h.note).length>0
     ?monthData(curMonth):estimateMonth(curMonth);
-  const donutInc=curData.totalInc; const donutCost=curData.totalCost;
-  const donutTotal=donutInc+donutCost||1;
-  const CIRC=2*Math.PI*34; // obwód r=34
-  const incArc=Math.round(CIRC*donutInc/donutTotal*10)/10;
-  const costArc=Math.round(CIRC*donutCost/donutTotal*10)/10;
-  const netSign=curData.net>=0;
 
-  // Bilans całego sezonu
-  const allHist=hist;
-  const allTr=transfers;
-  // Wyklucz SPR:/KUP: z fin.hist bo te same transfery są już w fin.transfers
-  const seasonInc=allHist.filter(h=>!h.note||(!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'))).reduce((s,h)=>s+(h.inc||0),0)+allTr.filter(t=>t.type==='sell').reduce((s,t)=>s+(t.val||0),0);
-  const seasonCost=allHist.filter(h=>!h.note||(!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'))).reduce((s,h)=>s+(h.cost||0),0)+allTr.filter(t=>t.type==='buy').reduce((s,t)=>s+(t.val||t.fee||0),0);
+  // Wynik operacyjny (BEZ transferów) — donut liczy tylko to, żeby jedna duża sprzedaż nie
+  // zalewała wykresu na zielono i nie maskowała prawdziwego trendu klubu (patrz diagnoza).
+  const opInc=curData.regInc;
+  const opCost=curData.salPaid+curData.maintPaid;
+  const opNet=opInc-opCost;
+  const opTotal=opInc+opCost||1;
+  const CIRC=2*Math.PI*34; // obwód r=34
+  const incArc=Math.round(CIRC*opInc/opTotal*10)/10;
+  const costArc=Math.round(CIRC*opCost/opTotal*10)/10;
+  const opSign=opNet>=0;
+
+  const trNet=curData.trSellInc-curData.trBuyCost;
+  const trSellCount=curData.trEvents.filter(e=>e.type==='sell').length;
+  const trBuyCount=curData.trEvents.filter(e=>e.type==='buy').length;
+  const trCount=trSellCount+trBuyCount;
+
+  const healthRatio=opInc>0?curData.salPaid/opInc:(curData.salPaid>0?9.9:0);
+  const healthCls=healthRatio>1.3?'warn':healthRatio>1.0?'mid':'ok';
+
+  // Bilans całego sezonu (wyklucz SPR:/KUP: z fin.hist bo te same transfery są już w fin.transfers)
+  const seasonInc=hist.filter(h=>!h.note||(!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'))).reduce((s,h)=>s+(h.inc||0),0)+transfers.filter(t=>t.type==='sell').reduce((s,t)=>s+(t.val||0),0);
+  const seasonCost=hist.filter(h=>!h.note||(!h.note.startsWith('SPR:')&&!h.note.startsWith('KUP:'))).reduce((s,h)=>s+(h.cost||0),0)+transfers.filter(t=>t.type==='buy').reduce((s,t)=>s+(t.val||t.fee||0),0);
+  const seasonNet=seasonInc-seasonCost;
+  const seasonTrInc=transfers.filter(t=>t.type==='sell').reduce((s,t)=>s+(t.val||0),0);
+  const seasonTrPct=seasonInc>0?Math.round(seasonTrInc/seasonInc*100):0;
 
   // Render
   let html='';
 
-  // Donut + legenda
+  // Bilans operacyjny (donut) — tylko przychód regularny vs koszty stałe
+  html+='<div class="fsec" style="margin-top:0">'+t('fin_operating_title')+'</div>';
   html+='<div class="fc-donut-wrap">';
   html+='<div class="fc-donut">';
   html+=`<svg width="90" height="90" viewBox="0 0 90 90">`;
   html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#122412" stroke-width="12"/>`;
-  if(donutCost>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#f44336" stroke-width="12" stroke-dasharray="${costArc} ${CIRC-costArc}" stroke-dashoffset="0" transform="rotate(-90 45 45)" opacity="0.85"/>`;
-  if(donutInc>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#4caf50" stroke-width="12" stroke-dasharray="${incArc} ${CIRC-incArc}" stroke-dashoffset="${-costArc}" transform="rotate(-90 45 45)" opacity="0.85"/>`;
+  if(opCost>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#f44336" stroke-width="12" stroke-dasharray="${costArc} ${CIRC-costArc}" stroke-dashoffset="0" transform="rotate(-90 45 45)" opacity="0.85"/>`;
+  if(opInc>0)html+=`<circle cx="45" cy="45" r="34" fill="none" stroke="#4caf50" stroke-width="12" stroke-dasharray="${incArc} ${CIRC-incArc}" stroke-dashoffset="${-costArc}" transform="rotate(-90 45 45)" opacity="0.85"/>`;
   html+='</svg>';
-  html+=`<div class="fc-donut-center"><div class="fc-donut-amt ${netSign?'pos':'neg'}">${netSign?'+':''}${fmt(curData.net)}</div><div class="fc-donut-lbl">${t('fin_month_balance').replace('{n}',curMonth)}</div></div>`;
+  html+=`<div class="fc-donut-center"><div class="fc-donut-amt ${opSign?'pos':'neg'}">${opSign?'+':''}${fmt(opNet)}</div><div class="fc-donut-lbl">${t('fin_operating_label')}</div></div>`;
   html+='</div>';
   html+='<div class="fc-legend">';
-  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">${t('fin_income')}</span><span class="fc-leg-val pos">+${fmt(curData.totalInc)}</span></div>`;
-  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">${t('fin_costs')}</span><span class="fc-leg-val neg">-${fmt(curData.totalCost)}</span></div>`;
+  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--gb)"></span><span class="fc-leg-lbl">${t('fin_reg_income')}</span><span class="fc-leg-val pos">+${fmt(opInc)}</span></div>`;
+  html+=`<div class="fc-leg"><span class="fc-leg-dot" style="background:var(--rd)"></span><span class="fc-leg-lbl">${t('fin_fixed_costs')}</span><span class="fc-leg-val neg">-${fmt(opCost)}</span></div>`;
   html+=`<div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--gl);font-size:var(--fs-dense);color:var(--gr)">${t('fin_balance_state')} <span style="font-weight:700;font-size:var(--fs-h2);color:${G.budget>=0?'var(--gb)':'var(--rd)'}">${fmt(G.budget)}</span></div>`;
   html+='</div></div>';
 
-  // Lista miesięcy
-  html+='<div class="fsec" style="margin:0">'+t('fin_monthly_label').replace('{n}',G.season)+'</div>';
+  // Transfery tego miesiąca — osobny chip, celowo oddzielony od donuta operacyjnego
+  const trSub=trCount>0?t('fin_tr_chip_sub').replace('{a}',trSellCount).replace('{b}',trBuyCount):t('fin_tr_chip_sub_none');
+  html+=`<div class="fc-tr-chip"><div class="fc-tr-chip-lbl">${t('fin_tr_chip_title')}<b>${trSub}</b></div><div class="fc-tr-chip-val ${trNet>=0?'pos':'neg'}">${trNet>=0?'+':''}${fmt(trNet)}</div></div>`;
 
-  monthNums.forEach(function(m){
-    const _mw0=(m-1)*4+1; const _mw1=m*4;
-    const hasHistData=hist.filter(h=>weekToMonth(h.w)===m&&!h.note).length>0;
-    const hasTrData=transfers.filter(t=>t.week>=_mw0&&t.week<=_mw1).length>0;
-    const hasRealData=hasHistData||hasTrData;
-    const d=hasHistData?monthData(m):estimateMonth(m);
-    const isCur=m===curMonth;
-    html+=`<div class="fc-month">`;
-    html+=`<div class="fc-month-hdr">`;
-    html+=`<span class="fc-month-name">${isCur?'\u25b6 ':'\u25c6 '}${t('fin_month_label').replace('{m}',m).replace('{w0}',d.w0).replace('{w1}',d.w1)}${isCur?t('fin_current_month'):''}${d.estimated?' \u2248':''}</span>`;
-    
-    html+='</div>';
-    // Rozbicie przychodów regularnych z calcWeeklyIncome (bieżące stawki)
-    const _wInc=calcWeeklyIncome();
-    const _weeksInMonth=d.w1-d.w0+1;
-    // Dla bieżącego miesiąca: skaluj przez tygodnie które minęły
-    const _wScale=isCur?Math.max(1,G.week-d.w0+1):_weeksInMonth;
-    const _estSpon=Math.round((_wInc.sponsors||0)*_wScale);
-    const _estContr=Math.round((_wInc.contracts||0)*_wScale);
-    const _estAds=Math.round((_wInc.ads||0)*_wScale);
-    const _estTV=Math.round((_wInc.tv||0)*_wScale);
-    const _estGad=Math.round((_wInc.gadgets||0)*_wScale);
-    const _estVip=Math.round((_wInc.vip||0)*_wScale);
-    // Bilety: z fin.hist (faktyczne) minus reszta
-    const _estOther=_estSpon+_estContr+_estAds+_estTV+_estGad+_estVip;
-    // Bilety z fin.hist (faktyczne) — sumujemy G.fin.tickets z historii tygodniowej
-    // fin.hist.inc zawiera: sponsorzy+kontrakty+reklamy+TV+gadżety+VIP+bilety
-    // Bilety = inc - (sponsorzy+kontrakty+reklamy+TV+gadżety+VIP) per tydzień
-    let _ticketsEst=0;
-    if(!d.estimated){
-      // Dla zakończonych tygodni — czytaj z fin.hist
-      const _histWeeks=hist.filter(h=>!h.note&&weekToMonth(h.w)===(d.w0<=2?1:Math.ceil(d.w0/4)));
-      const _wIncForTicket=calcWeeklyIncome();
-      const _nonTicketPerWeek=(_wIncForTicket.sponsors||0)+(_wIncForTicket.contracts||0)+
-        (_wIncForTicket.ads||0)+(_wIncForTicket.tv||0)+(_wIncForTicket.gadgets||0)+(_wIncForTicket.vip||0);
-      _histWeeks.forEach(function(h){
-        const _t=Math.max(0,(h.inc||0)-_nonTicketPerWeek);
-        _ticketsEst+=_t;
-      });
-      // Dodaj niezaksięgowane bilety bieżącego tygodnia
-      _ticketsEst+=G.fin.tickets||0;
-    } else {
-      // Szacunek — bilety z G.fin.tickets (niezaksięgowane)
-      _ticketsEst=G.fin.tickets||0;
-    }
-    html+=`<div class="fc-month-body">`;
-    html+=`<div class="fc-mrow" style="border-bottom:1px solid #0a1f0a;margin-bottom:2px"><span class="fc-mrow-lbl" style="color:var(--wh)">${t('fin_reg_income')}</span><span class="fc-mrow-val pos">+${fmt(d.regInc)}</span></div>`;
-    if(_estSpon>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_sponsors')}</span><span class="fc-mrow-val pos">+${fmt(_estSpon)}</span></div>`;
-    if(_estContr>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_contracts_inc')}</span><span class="fc-mrow-val pos">+${fmt(_estContr)}</span></div>`;
-    if(_estAds>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_ads')}</span><span class="fc-mrow-val pos">+${fmt(_estAds)}</span></div>`;
-    if(_estTV>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_tv')}</span><span class="fc-mrow-val pos">+${fmt(_estTV)}</span></div>`;
-    if(_ticketsEst>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_tickets')}</span><span class="fc-mrow-val pos">+${fmt(_ticketsEst)}</span></div>`;
-    if(_estGad>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_gadgets')}</span><span class="fc-mrow-val pos">+${fmt(_estGad)}</span></div>`;
-    if(_estVip>0)html+=`<div class="fc-mrow" style="padding-left:8px"><span class="fc-mrow-lbl">${t('fin_vip')}</span><span class="fc-mrow-val pos">+${fmt(_estVip)}</span></div>`;
-    if(d.salPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">${t('fin_salaries')}</span><span class="fc-mrow-val neg">-${fmt(d.salPaid)}</span></div>`;
-    if(d.maintPaid>0)html+=`<div class="fc-mrow"><span class="fc-mrow-lbl">${t('fin_maintenance')}</span><span class="fc-mrow-val neg">-${fmt(d.maintPaid)}</span></div>`;
-    d.events.forEach(function(ev){
-      html+=`<div class="fc-mrow event"><span class="fc-mrow-lbl event">${ev.lbl}</span><span class="fc-mrow-val ${ev.inc>0?'pos':'neg'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</span></div>`;
+  // Wskaźnik zdrowia: pensje / przychód regularny
+  html+=`<div class="fc-health"><span class="fc-health-lbl">${t('fin_health_label')}</span><span class="fc-pill fc-pill-${healthCls}">${Math.round(healthRatio*100)}%</span></div>`;
+
+  // Rozbicie przychodów regularnych
+  const _wInc=calcWeeklyIncome();
+  const _weeksInMonth=curData.w1-curData.w0+1;
+  const _wScaleRaw=Math.max(1,G.week-curData.w0+1);
+  const _wScale=_wScaleRaw<=_weeksInMonth?_wScaleRaw:_weeksInMonth;
+  const _estSpon=Math.round((_wInc.sponsors||0)*_wScale);
+  const _estContr=Math.round((_wInc.contracts||0)*_wScale);
+  const _estAds=Math.round((_wInc.ads||0)*_wScale);
+  const _estTV=Math.round((_wInc.tv||0)*_wScale);
+  const _estGad=Math.round((_wInc.gadgets||0)*_wScale);
+  const _estVip=Math.round((_wInc.vip||0)*_wScale);
+  let _ticketsEst=0;
+  if(!curData.estimated){
+    const _histWeeks=hist.filter(h=>!h.note&&weekToMonth(h.w)===curMonth);
+    const _nonTicketPerWeek=(_wInc.sponsors||0)+(_wInc.contracts||0)+(_wInc.ads||0)+(_wInc.tv||0)+(_wInc.gadgets||0)+(_wInc.vip||0);
+    _histWeeks.forEach(function(h){_ticketsEst+=Math.max(0,(h.inc||0)-_nonTicketPerWeek);});
+    _ticketsEst+=G.fin.tickets||0;
+  } else {
+    _ticketsEst=G.fin.tickets||0;
+  }
+  html+='<div class="fsec">'+t('fin_reg_income')+'</div>';
+  if(_estSpon>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_sponsors')}</span><span class="fc-mrow-val pos">+${fmt(_estSpon)}</span></div>`;
+  if(_estContr>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_contracts_inc')}</span><span class="fc-mrow-val pos">+${fmt(_estContr)}</span></div>`;
+  if(_estAds>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_ads')}</span><span class="fc-mrow-val pos">+${fmt(_estAds)}</span></div>`;
+  if(_estTV>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_tv')}</span><span class="fc-mrow-val pos">+${fmt(_estTV)}</span></div>`;
+  if(_ticketsEst>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_tickets')}</span><span class="fc-mrow-val pos">+${fmt(_ticketsEst)}</span></div>`;
+  if(_estGad>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_gadgets')}</span><span class="fc-mrow-val pos">+${fmt(_estGad)}</span></div>`;
+  if(_estVip>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_vip')}</span><span class="fc-mrow-val pos">+${fmt(_estVip)}</span></div>`;
+  html+=`<div class="fc-mrow total" style="padding:5px 12px"><span class="fc-mrow-lbl">${t('fin_reg_income')}</span><span class="fc-mrow-val pos">+${fmt(opInc)}</span></div>`;
+
+  // Koszty stałe
+  html+='<div class="fsec">'+t('fin_fixed_costs')+'</div>';
+  if(curData.salPaid>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_salaries')}</span><span class="fc-mrow-val neg">-${fmt(curData.salPaid)}</span></div>`;
+  if(curData.maintPaid>0)html+=`<div class="fc-mrow" style="padding:2px 12px"><span class="fc-mrow-lbl">${t('fin_maintenance')}</span><span class="fc-mrow-val neg">-${fmt(curData.maintPaid)}</span></div>`;
+  html+=`<div class="fc-mrow total" style="padding:5px 12px"><span class="fc-mrow-lbl">${t('fin_fixed_costs')}</span><span class="fc-mrow-val neg">-${fmt(opCost)}</span></div>`;
+
+  // Transfery — osobna, zwijana lista (nie wymieszana z resztą zdarzeń)
+  html+='<div class="fsec">'+t('fin_transfers_title')+'</div>';
+  if(trCount>0){
+    html+=`<details class="fc-tr-details" open><summary><div><div class="fc-tr-sum-lbl">${t('fin_tr_count').replace('{n}',trCount)}</div><div class="fc-tr-sum-meta">${trSub}</div></div><div style="display:flex;align-items:center;"><span class="fc-tr-sum-val ${trNet>=0?'pos':'neg'}">${trNet>=0?'+':''}${fmt(trNet)}</span><span class="fc-tr-chev">▶</span></div></summary>`;
+    html+='<div class="fc-tr-list">';
+    curData.trEvents.forEach(function(ev){
+      html+=`<div class="fc-tr-item"><span class="fc-tr-item-who">${ev.lbl}</span><span class="fc-tr-item-amt ${ev.inc>0?'pos':'neg'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</span></div>`;
     });
-    html+=`<div class="fc-mrow total"><span class="fc-mrow-lbl">${t('fin_balance_row')}</span><span class="fc-mrow-val ${d.net>=0?'pos':'neg'}">${d.net>=0?'+':''}${fmt(d.net)}</span></div>`;
-    html+='</div></div>';
-  });
+    html+='</div></details>';
+  } else {
+    html+=`<div style="font-size:var(--fs-dense);color:var(--gr);padding:4px 12px 8px">${t('fin_tr_none')}</div>`;
+  }
+
+  // Zdarzenia jednorazowe — osobno od transferów
+  if(curData.otherEvents.length){
+    html+='<div class="fsec">'+t('fin_events_title')+'</div>';
+    curData.otherEvents.forEach(function(ev){
+      html+=`<div class="fc-mrow event" style="margin:2px 12px"><span class="fc-mrow-lbl event">${ev.lbl}</span><span class="fc-mrow-val ${ev.inc>0?'pos':'neg'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</span></div>`;
+    });
+  }
+
+  // Poprzednie miesiące — skrócone, tylko saldo netto
+  const prevMonths=monthNums.filter(m=>m!==curMonth);
+  if(prevMonths.length){
+    html+='<div class="fsec">'+t('fin_prev_months_title')+'</div>';
+    const prevData=prevMonths.map(function(m){
+      const hasHistData=hist.filter(h=>weekToMonth(h.w)===m&&!h.note).length>0;
+      return{m,d:hasHistData?monthData(m):estimateMonth(m)};
+    });
+    const maxAbs=Math.max(1,...prevData.map(x=>Math.abs(x.d.net)));
+    prevData.forEach(function(x){
+      const pct=Math.min(100,Math.round(Math.abs(x.d.net)/maxAbs*100));
+      const barCol=x.d.net>=0?'var(--gb)':'var(--rd)';
+      html+=`<div class="fc-prevm-row">`+
+        `<span class="fc-prevm-name">${t('fin_month_label').replace('{m}',x.m).replace('{w0}',x.d.w0).replace('{w1}',x.d.w1)}</span>`+
+        `<div class="fc-prevm-bar"><div class="fc-prevm-bar-fill" style="width:${pct}%;background:${barCol};opacity:.85"></div></div>`+
+        `<span class="fc-prevm-val ${x.d.net>=0?'pos':'neg'}">${x.d.net>=0?'+':''}${fmt(x.d.net)}</span>`+
+      `</div>`;
+    });
+  }
 
   // Pasek sezonu
-  const seasonNet=seasonInc-seasonCost;
   html+='<div class="fc-season-bar">';
   html+=`<div><div class="fc-season-lbl">${t('fin_season_income').replace('{n}',G.season)}</div><div class="fc-season-val pos">+${fmt(seasonInc)}</div></div>`;
   html+=`<div style="text-align:center"><div class="fc-season-lbl">${t('fin_season_costs').replace('{n}',G.season)}</div><div class="fc-season-val neg">-${fmt(seasonCost)}</div></div>`;
   html+=`<div style="text-align:right"><div class="fc-season-lbl">${t('fin_season_balance').replace('{n}',G.season)}</div><div class="fc-season-val ${seasonNet>=0?'pos':'neg'}">${seasonNet>=0?'+':''}${fmt(seasonNet)}</div></div>`;
   html+='</div>';
+  if(seasonInc>0&&seasonTrPct>0)html+=`<div class="fc-season-caption">${t('fin_season_transfer_pct').replace('{n}',seasonTrPct)}</div>`;
 
   el.innerHTML=html;
 }
@@ -306,13 +340,13 @@ function renderFinSezony(){
     html+=`<div style="border-bottom:1px solid var(--gl);padding:8px 12px;background:${bgCol};border-left:3px solid ${borderCol}">`;
     // Nagłówek karty
     html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">`;
-    html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' \u25c4':''}</span>`;
-    html+=`<span style="font-size:var(--fs-dense);color:var(--gr)">${leagueShort} \u2022 ${posStr}</span>`;
+    html+=`<span style="font-weight:700;font-size:var(--fs-h2);color:${isCur?'var(--am)':'var(--wh)'}">S${s}${isCur?' ◄':''}</span>`;
+    html+=`<span style="font-size:var(--fs-dense);color:var(--gr)">${leagueShort} • ${posStr}</span>`;
     html+='</div>';
     // Przychody / Koszty
     html+=`<div style="display:flex;justify-content:space-between;font-size:var(--fs-dense);margin-bottom:3px">`;
-    html+=`<span>\u25b2 ${t('fin_income')}: ${salStr}</span>`;
-    html+=`<span>\u25bc ${t('fin_costs')}: ${costStr}</span>`;
+    html+=`<span>▲ ${t('fin_income')}: ${salStr}</span>`;
+    html+=`<span>▼ ${t('fin_costs')}: ${costStr}</span>`;
     html+='</div>';
     // Pasek
     if(fd){
@@ -470,8 +504,8 @@ function renderFinHistoria(){
   (G.fin.transfers||[]).filter(t=>t.season===G.season).forEach(function(t){
     const w=t.week||0;
     if(!allEvents[w])allEvents[w]=[];
-    if(t.type==='sell')allEvents[w].push({lbl:'\u2794 SPR: '+t.name+(t.club?' \u2192'+t.club:''),inc:t.val||0,cost:0});
-    else allEvents[w].push({lbl:'\u2794 KUP: '+t.name,inc:0,cost:t.val||t.fee||0});
+    if(t.type==='sell')allEvents[w].push({lbl:'➔ SPR: '+t.name+(t.club?' →'+t.club:''),inc:t.val||0,cost:0});
+    else allEvents[w].push({lbl:'➔ KUP: '+t.name,inc:0,cost:t.val||t.fee||0});
   });
 
   if(!weekly.length){el.innerHTML='<div style="color:var(--gr);font-size:var(--fs-dense);padding:16px">'+t('fin_hist_empty')+'</div>';return;}
@@ -499,18 +533,18 @@ function renderFinHistoria(){
     const rowBg=isPayWeek?'background:#1a0800':'';
     if(h){
       html+=`<tr style="${rowBg}">`;
-      html+=`<td style="padding:4px 5px;color:var(--gr)">T${w}${isPayWeek?' <span style="color:var(--am)">\u2605</span>':''}</td>`;
-      html+=`<td style="text-align:right;padding:4px 5px;color:var(--gb)">${h.inc?'+'+fmt(h.inc):'\u2014'}</td>`;
-      html+=`<td style="text-align:right;padding:4px 5px;color:var(--rd)">${totalCost>0?'-'+fmt(totalCost):'\u2014'}</td>`;
+      html+=`<td style="padding:4px 5px;color:var(--gr)">T${w}${isPayWeek?' <span style="color:var(--am)">★</span>':''}</td>`;
+      html+=`<td style="text-align:right;padding:4px 5px;color:var(--gb)">${h.inc?'+'+fmt(h.inc):'—'}</td>`;
+      html+=`<td style="text-align:right;padding:4px 5px;color:var(--rd)">${totalCost>0?'-'+fmt(totalCost):'—'}</td>`;
       html+=`<td style="text-align:right;padding:4px 5px;color:var(--am)">${fmt(h.bal)}</td>`;
       html+='</tr>';
     }
     // Zdarzenia jednorazowe tego tygodnia
     (allEvents[w]||[]).forEach(function(ev){
       html+='<tr style="background:#080f08">';
-      html+=`<td colspan="2" style="padding:2px 5px 2px 12px;color:var(--am);font-size:var(--fs-dense)">\u21b3 ${ev.lbl}</td>`;
+      html+=`<td colspan="2" style="padding:2px 5px 2px 12px;color:var(--am);font-size:var(--fs-dense)">↳ ${ev.lbl}</td>`;
       html+=`<td style="text-align:right;padding:2px 5px;font-size:var(--fs-dense);color:${ev.inc>0?'var(--gb)':'var(--rd)'}">${ev.inc>0?'+'+fmt(ev.inc):'-'+fmt(ev.cost)}</td>`;
-      html+=`<td style="padding:2px 5px;color:var(--gr);text-align:right">\u2014</td>`;
+      html+=`<td style="padding:2px 5px;color:var(--gr);text-align:right">—</td>`;
       html+='</tr>';
     });
   });

@@ -589,11 +589,9 @@ function startNewSeason(){
     const targetClub=pick(ALL_CLUBS.filter(c=>c.id!==G.myClubId));
     if(targetClub){
       p.clubId=targetClub.id;p.starter=false;p.contract=r(1,3);
-      G.players.push(p);
       addNews(t('news_left_expired').replace('{name}',p.name).replace('{club}',targetClub.n),'budget');
     }
   });
-  G.players=G.players.filter(p=>!_myExpired.includes(p)||p.clubId!==G.myClubId);
   G.fin.salaries=myPl().reduce((s,p)=>s+p.salary,0);
   // AI: dekrementuj i obsłuż wygasłe
   aiRenewContracts();
